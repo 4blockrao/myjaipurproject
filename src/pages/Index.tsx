@@ -2,14 +2,18 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coins, Gift, Users, Star, TrendingUp, MapPin, Globe, RefreshCw } from "lucide-react";
+import { Coins, Gift, Users, Star, TrendingUp, MapPin, Globe, RefreshCw, User, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import AuthButton from "@/components/AuthButton";
+import { useToast } from "@/hooks/use-toast";
+import AuthModal from "@/components/AuthModal";
 
 const Index = () => {
   const [user, setUser] = useState<any>(null);
+  const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { toast } = useToast();
   const [stats, setStats] = useState({
     totalDeals: 0,
     totalMerchants: 0,
@@ -18,13 +22,26 @@ const Index = () => {
   });
 
   useEffect(() => {
-    // Get initial user
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
+    // Set up auth state listener FIRST (security best practice)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      // Close auth modal when user successfully signs in
+      if (session?.user && isAuthModalOpen) {
+        setIsAuthModalOpen(false);
+        toast({
+          title: "Welcome!",
+          description: "You've been signed in successfully."
+        });
+      }
     });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    // THEN check for existing session (security best practice)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.id);
+      setSession(session);
       setUser(session?.user ?? null);
     });
 
@@ -32,7 +49,7 @@ const Index = () => {
     fetchStats();
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [isAuthModalOpen, toast]);
 
   const fetchStats = async () => {
     setIsLoading(true);
@@ -49,7 +66,6 @@ const Index = () => {
         console.error('Error fetching deals count:', dealsError);
       }
 
-      // Get merchants count
       const { count: merchantsCount, error: merchantsError } = await supabase
         .from('merchants')
         .select('*', { count: 'exact', head: true })
@@ -59,7 +75,6 @@ const Index = () => {
         console.error('Error fetching merchants count:', merchantsError);
       }
 
-      // Get profiles count
       const { count: usersCount, error: usersError } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
@@ -68,7 +83,6 @@ const Index = () => {
         console.error('Error fetching users count:', usersError);
       }
 
-      // Get featured deals
       const { data: featuredDeals, error: featuredError } = await supabase
         .from('deals')
         .select(`
@@ -106,11 +120,20 @@ const Index = () => {
     }
   };
 
-  const handleAuthChange = () => {
-    // Refresh user data after auth changes
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-    });
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Signed out",
+        description: "You've been signed out successfully."
+      });
+    }
   };
 
   return (
@@ -159,7 +182,27 @@ const Index = () => {
                 <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
-              <AuthButton user={user} onAuthChange={handleAuthChange} />
+              
+              {/* Authentication Section */}
+              {user ? (
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <User className="w-5 h-5 text-gray-600" />
+                    <span className="text-gray-700">{user.user_metadata?.full_name || user.email}</span>
+                  </div>
+                  <Button onClick={handleSignOut} variant="outline" size="sm">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </div>
+              ) : (
+                <Button 
+                  onClick={() => setIsAuthModalOpen(true)} 
+                  className="bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600"
+                >
+                  Sign In
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -188,7 +231,6 @@ const Index = () => {
             </Link>
           </div>
 
-          {/* Data seeding notice */}
           {stats.totalDeals === 0 && stats.totalMerchants === 0 && !isLoading && (
             <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg max-w-2xl mx-auto">
               <h3 className="font-semibold text-yellow-800 mb-2">No data found!</h3>
@@ -204,7 +246,6 @@ const Index = () => {
           )}
         </div>
 
-        {/* Stats Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           <Card className="text-center border-2 border-pink-100">
             <CardContent className="pt-6">
@@ -249,7 +290,6 @@ const Index = () => {
           </Card>
         </div>
 
-        {/* Featured Deals */}
         {stats.featuredDeals.length > 0 && (
           <div className="mb-16">
             <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">Featured Deals</h2>
@@ -315,7 +355,6 @@ const Index = () => {
           </div>
         )}
 
-        {/* How it Works */}
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-gray-800 mb-8">How HiJaipur Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -343,7 +382,6 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-pink-100 px-4 py-2">
           <div className="flex justify-around">
             <Link to="/deals" className="flex flex-col items-center space-y-1 text-gray-600 hover:text-pink-600">
@@ -365,6 +403,12 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      {/* Beautiful Auth Modal */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+      />
     </div>
   );
 };
