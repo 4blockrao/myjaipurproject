@@ -3,14 +3,88 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Database, AlertTriangle, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Database, AlertTriangle, Trash2, CheckCircle, XCircle, Users, Coins } from 'lucide-react';
 
 const DataSeeder = () => {
   const [isSeeding, setIsSeeding] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isSeedingUsers, setIsSeedingUsers] = useState(false);
   const [verificationResults, setVerificationResults] = useState<any>(null);
   const { toast } = useToast();
+
+  const createSampleUsersAndTransactions = async () => {
+    setIsSeedingUsers(true);
+    
+    try {
+      console.log('Creating sample user profiles and transactions...');
+      
+      // Since we can't create auth users directly, we'll create sample profiles
+      // that simulate a realistic user ecosystem for testing
+      
+      const sampleUsers = [
+        { name: 'Arjun Sharma', email: 'arjun.sharma@email.com', locality: 'C-Scheme', tier: 'premium' },
+        { name: 'Priya Agarwal', email: 'priya.agarwal@email.com', locality: 'Malviya Nagar', tier: 'pro' },
+        { name: 'Rohit Singh', email: 'rohit.singh@email.com', locality: 'Vaishali Nagar', tier: 'premium' },
+        { name: 'Kavya Jain', email: 'kavya.jain@email.com', locality: 'Mansarovar', tier: 'pro' },
+        { name: 'Vikram Gupta', email: 'vikram.gupta@email.com', locality: 'Jagatpura', tier: 'basic' },
+        { name: 'Anjali Meena', email: 'anjali.meena@email.com', locality: 'Shyam Nagar', tier: 'basic' },
+        { name: 'Karan Sharma', email: 'karan.sharma@email.com', locality: 'Tonk Road', tier: 'premium' },
+        { name: 'Sneha Patel', email: 'sneha.patel@email.com', locality: 'Ajmer Road', tier: 'pro' },
+        { name: 'Amit Kumar', email: 'amit.kumar@email.com', locality: 'Bani Park', tier: 'pro' },
+        { name: 'Ritu Singh', email: 'ritu.singh@email.com', locality: 'Civil Lines', tier: 'basic' }
+      ];
+
+      // Create simulated user data for testing (without auth dependency)
+      console.log('Note: This creates test data for UI testing. In production, users would be created through actual authentication.');
+      
+      // Create sample JaiCoin transactions without user dependencies for testing
+      const sampleTransactions = [];
+      
+      // Generate sample transaction data for testing the UI
+      for (let i = 0; i < 100; i++) {
+        const transactionTypes = ['earned', 'spent'];
+        const sources = ['signup', 'referral', 'spin', 'review', 'deal_purchase', 'challenge'];
+        const amounts = [10, 25, 50, 75, 100, 150, 200];
+        
+        sampleTransactions.push({
+          amount: amounts[Math.floor(Math.random() * amounts.length)],
+          type: transactionTypes[Math.floor(Math.random() * transactionTypes.length)],
+          source: sources[Math.floor(Math.random() * sources.length)],
+          description: `Sample transaction for testing - ${sources[Math.floor(Math.random() * sources.length)]} activity`,
+          created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+        });
+      }
+
+      // Since we can't insert into auth-dependent tables without actual users,
+      // we'll inform the user about the limitation and provide alternatives
+      toast({
+        title: "User Creation Limitation",
+        description: "Cannot create sample users without authentication. Please sign up real users to test referral system, or use existing authenticated users.",
+        variant: "default"
+      });
+
+      console.log('Sample user data structure created for reference:');
+      console.log('Users:', sampleUsers);  
+      console.log('Sample transactions:', sampleTransactions.slice(0, 5));
+      
+      toast({
+        title: "Sample Data Structure Ready",
+        description: "User templates and transaction patterns created. Sign up users manually to test the referral system.",
+        variant: "default"
+      });
+
+    } catch (error) {
+      console.error('Error creating sample users:', error);
+      toast({
+        title: "User Creation Failed",
+        description: "Failed to create sample users. Check console for details.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSeedingUsers(false);
+    }
+  };
 
   const generateComprehensiveSampleData = async () => {
     setIsSeeding(true);
@@ -423,6 +497,51 @@ const DataSeeder = () => {
 
   return (
     <div className="space-y-4">
+      {/* User Creation Section */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-800">
+            <Users className="w-5 h-5" />
+            User & Referral System Testing
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="text-blue-700">
+              <h3 className="font-semibold mb-2">🔐 Authentication Required</h3>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li><strong>Manual User Creation:</strong> Sign up real users through the authentication system</li>
+                <li><strong>Referral Testing:</strong> Each user gets a unique referral code automatically</li>
+                <li><strong>JaiCoin System:</strong> 25 coins welcome bonus + 50 coins per referral</li>
+                <li><strong>Multi-level Rewards:</strong> Secondary referrals earn additional bonuses</li>
+                <li className="text-blue-600"><strong>💡 Tip:</strong> Use different email addresses to create multiple test accounts</li>
+              </ul>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button 
+                onClick={createSampleUsersAndTransactions}
+                disabled={isSeedingUsers}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+              >
+                <Coins className={`w-4 h-4 ${isSeedingUsers ? 'animate-spin' : ''}`} />
+                {isSeedingUsers ? 'Creating User Templates...' : 'Show User Templates'}
+              </Button>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <div className="flex items-start gap-2 text-amber-800">
+                <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <div className="text-xs">
+                  <strong>⚠️ Important:</strong> Cannot create sample users due to authentication constraints. Please create real user accounts to test the referral system. Each new user automatically gets a referral code and welcome bonus.
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Existing Merchant Data Seeder */}
       <Card className="border-green-200 bg-green-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-800">
