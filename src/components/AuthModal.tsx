@@ -54,6 +54,8 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           throw new Error('Password must be at least 6 characters long');
         }
 
+        console.log('Attempting signup with:', { email, name });
+
         // Sign up with proper redirect URL (security best practice)
         const redirectUrl = `${window.location.origin}/`;
         
@@ -70,9 +72,10 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
         if (error) throw error;
 
+        console.log('Signup successful');
         toast({
-          title: "Check your email!",
-          description: "We've sent you a verification link to complete your signup."
+          title: "Account created!",
+          description: "Your account has been created successfully. You can now sign in and start earning JaiCoins!"
         });
         
         // Reset form and close modal
@@ -82,6 +85,8 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         onClose();
       } else {
         // Sign in
+        console.log('Attempting signin with:', { email });
+        
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -89,6 +94,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
         if (error) throw error;
 
+        console.log('Signin successful');
         toast({
           title: "Welcome back!",
           description: "You've been signed in successfully."
@@ -97,6 +103,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         // Reset form - modal will close via auth state change
         setEmail('');
         setPassword('');
+        onClose();
       }
     } catch (error: any) {
       console.error('Auth error:', error);

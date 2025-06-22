@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Loader2 } from "lucide-react";
 
 interface AuthButtonProps {
   user: any;
@@ -27,30 +27,43 @@ const AuthButton = ({ user, onAuthChange }: AuthButtonProps) => {
 
     try {
       if (isSignUp) {
+        console.log('Attempting signup with:', { email, fullName });
+        
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
+            emailRedirectTo: `${window.location.origin}/`,
             data: {
               full_name: fullName,
             }
           }
         });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Signup error:', error);
+          throw error;
+        }
 
+        console.log('Signup successful');
         toast({
           title: "Success!",
-          description: "Please check your email to verify your account."
+          description: "Account created successfully! Please check your email to verify your account if required."
         });
       } else {
+        console.log('Attempting signin with:', { email });
+        
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Signin error:', error);
+          throw error;
+        }
 
+        console.log('Signin successful');
         toast({
           title: "Welcome back!",
           description: "You've been signed in successfully."
@@ -63,9 +76,10 @@ const AuthButton = ({ user, onAuthChange }: AuthButtonProps) => {
       setFullName("");
       onAuthChange();
     } catch (error: any) {
+      console.error('Auth error:', error);
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Authentication Error",
+        description: error.message || 'An error occurred during authentication',
         variant: "destructive"
       });
     } finally {
@@ -129,6 +143,7 @@ const AuthButton = ({ user, onAuthChange }: AuthButtonProps) => {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required
+                    disabled={isLoading}
                   />
                 )}
                 <Input
@@ -137,6 +152,7 @@ const AuthButton = ({ user, onAuthChange }: AuthButtonProps) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
                 <Input
                   type="password"
@@ -144,12 +160,20 @@ const AuthButton = ({ user, onAuthChange }: AuthButtonProps) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
                 <div className="flex space-x-2">
                   <Button type="submit" disabled={isLoading} className="flex-1">
-                    {isLoading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        {isSignUp ? 'Creating Account...' : 'Signing In...'}
+                      </>
+                    ) : (
+                      isSignUp ? 'Sign Up' : 'Sign In'
+                    )}
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => setShowAuthForm(false)}>
+                  <Button type="button" variant="outline" onClick={() => setShowAuthForm(false)} disabled={isLoading}>
                     Cancel
                   </Button>
                 </div>
@@ -158,6 +182,7 @@ const AuthButton = ({ user, onAuthChange }: AuthButtonProps) => {
                     type="button"
                     onClick={() => setIsSignUp(!isSignUp)}
                     className="text-sm text-pink-600 hover:underline"
+                    disabled={isLoading}
                   >
                     {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
                   </button>
