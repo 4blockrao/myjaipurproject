@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,39 +26,49 @@ import DataDashboard from "./components/DataDashboard";
 import SystemAudit from "./components/SystemAudit";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+// Create QueryClient instance outside of component to avoid recreation
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/deals" element={<DealsPage />} />
-          <Route path="/categories" element={<CategoriesPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/favorites" element={<FavoritesPage />} />
-          <Route path="/help" element={<HelpPage />} />
-          <Route path="/wallet" element={<WalletPage />} />
-          <Route path="/challenges" element={<ChallengesPage />} />
-          <Route path="/merchant" element={<MerchantPage />} />
-          <Route path="/merchant/onboard" element={<MerchantOnboardingPage />} />
-          <Route path="/merchant/dashboard" element={<MerchantDashboardPage />} />
-          <Route path="/gamification" element={<GamificationPage />} />
-          <Route path="/pro" element={<ProMembershipPage />} />
-          <Route path="/analytics" element={<AnalyticsPage />} />
-          <Route path="/deal/:id" element={<DealDetailPage />} />
-          <Route path="/checkout/:orderId" element={<CheckoutPage />} />
-          <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
-          <Route path="/admin/data" element={<DataDashboard />} />
-          <Route path="/admin/audit" element={<SystemAudit />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/deals" element={<DealsPage />} />
+            <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/favorites" element={<FavoritesPage />} />
+            <Route path="/help" element={<HelpPage />} />
+            <Route path="/wallet" element={<WalletPage />} />
+            <Route path="/challenges" element={<ChallengesPage />} />
+            <Route path="/merchant" element={<MerchantPage />} />
+            <Route path="/merchant/onboard" element={<MerchantOnboardingPage />} />
+            <Route path="/merchant/dashboard" element={<MerchantDashboardPage />} />
+            <Route path="/gamification" element={<GamificationPage />} />
+            <Route path="/pro" element={<ProMembershipPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/deal/:id" element={<DealDetailPage />} />
+            <Route path="/checkout/:orderId" element={<CheckoutPage />} />
+            <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
+            <Route path="/admin/data" element={<DataDashboard />} />
+            <Route path="/admin/audit" element={<SystemAudit />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
