@@ -16,7 +16,12 @@ interface Product {
   discounted_price: number;
   discount_percentage: number;
   inventory_count?: number;
-  product_details?: any;
+  product_details?: {
+    brand?: string;
+    warranty?: string;
+    delivery_time?: string;
+    return_policy?: string;
+  };
   merchant: {
     business_name: string;
     is_verified: boolean;
@@ -44,7 +49,7 @@ const ProductShowcase = () => {
           )
         `)
         .eq('is_active', true)
-        .eq('deal_type', 'product')
+        .eq('is_product_sale', true)
         .gt('inventory_count', 0)
         .order('created_at', { ascending: false })
         .limit(6);
@@ -58,8 +63,8 @@ const ProductShowcase = () => {
         original_price: item.original_price || 0,
         discounted_price: item.discounted_price || 0,
         discount_percentage: item.discount_percentage || 0,
-        inventory_count: item.inventory_count || 0,
-        product_details: item.product_details,
+        inventory_count: (item as any).inventory_count || 0,
+        product_details: (item as any).product_details,
         merchant: {
           business_name: item.merchants?.business_name || 'Unknown Merchant',
           is_verified: item.merchants?.is_verified || false
