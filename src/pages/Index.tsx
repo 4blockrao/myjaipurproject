@@ -1,219 +1,290 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, Search, Coins, Users, Gift, Star, Trophy, MessageCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import AuthModal from "@/components/AuthModal";
+import { Coins, Gift, Users, Star, TrendingUp, MapPin, Globe } from "lucide-react";
+import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import AuthButton from "@/components/AuthButton";
 
 const Index = () => {
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
+  const [stats, setStats] = useState({
+    totalDeals: 0,
+    totalMerchants: 0,
+    totalUsers: 0,
+    featuredDeals: []
+  });
 
-  const features = [
-    {
-      icon: <Search className="w-8 h-8 text-pink-500" />,
-      title: "Discover Deals",
-      description: "Find amazing discounts at local Jaipur businesses",
-      action: () => navigate("/deals")
-    },
-    {
-      icon: <Coins className="w-8 h-8 text-yellow-500" />,
-      title: "JaiCoin Wallet",
-      description: "Earn and spend JaiCoins for exclusive rewards",
-      action: () => navigate("/wallet")
-    },
-    {
-      icon: <Users className="w-8 h-8 text-blue-500" />,
-      title: "Referral System",
-      description: "Invite friends and earn JaiCoins together",
-      action: () => navigate("/community?tab=referrals")
-    },
-    {
-      icon: <Gift className="w-8 h-8 text-green-500" />,
-      title: "Daily Spin",
-      description: "Spin the wheel daily for surprise rewards",
-      action: () => navigate("/community?tab=spin")
-    },
-    {
-      icon: <MessageCircle className="w-8 h-8 text-purple-500" />,
-      title: "Community Hub",
-      description: "Share experiences and connect with locals",
-      action: () => navigate("/community?tab=community")
-    },
-    {
-      icon: <Trophy className="w-8 h-8 text-orange-500" />,
-      title: "Leaderboard",
-      description: "Compete and climb the rankings",
-      action: () => navigate("/community?tab=leaderboard")
+  useEffect(() => {
+    // Get initial user
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Fetch stats
+    fetchStats();
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      // Get deals count
+      const { count: dealsCount } = await supabase
+        .from('deals')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true);
+
+      // Get merchants count
+      const { count: merchantsCount } = await supabase
+        .from('merchants')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true);
+
+      // Get profiles count
+      const { count: usersCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      // Get featured deals
+      const { data: featuredDeals } = await supabase
+        .from('deals')
+        .select(`
+          *,
+          merchants!inner(
+            business_name,
+            is_verified
+          )
+        `)
+        .eq('is_active', true)
+        .eq('is_featured', true)
+        .limit(3);
+
+      setStats({
+        totalDeals: dealsCount || 0,
+        totalMerchants: merchantsCount || 0,
+        totalUsers: usersCount || 0,
+        featuredDeals: featuredDeals || []
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
     }
-  ];
+  };
 
-  const popularDeals = [
-    { name: "Rajasthani Thali", discount: "30% OFF", restaurant: "Chokhi Dhani", rating: 4.8 },
-    { name: "Heritage Tour", discount: "25% OFF", restaurant: "Pink City Tours", rating: 4.9 },
-    { name: "Jewelry Shopping", discount: "40% OFF", restaurant: "Johari Bazaar", rating: 4.7 },
-    { name: "Traditional Spa", discount: "35% OFF", restaurant: "Palace Wellness", rating: 4.6 }
-  ];
+  const handleAuthChange = () => {
+    // Refresh user data after auth changes
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-yellow-50">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-yellow-50 to-blue-50">
       {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-pink-100 sticky top-0 z-40">
+      <nav className="bg-white shadow-sm border-b-2 border-pink-100">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-yellow-500 rounded-full flex items-center justify-center">
-                <MapPin className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-pink-600">HiJaipur</span>
+              <Coins className="w-8 h-8 text-pink-600" />
+              <span className="text-2xl font-bold text-gray-800">HiJaipur</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" onClick={() => navigate("/deals")}>Deals</Button>
-              <Button variant="ghost" onClick={() => navigate("/wallet")}>Wallet</Button>
-              <Button variant="ghost" onClick={() => navigate("/community")}>Community</Button>
-              <Button 
-                onClick={() => setIsAuthModalOpen(true)}
-                className="bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600"
-              >
-                Sign In
-              </Button>
+            
+            <div className="hidden md:flex items-center space-x-6">
+              <Link to="/deals" className="text-gray-600 hover:text-pink-600 font-medium">
+                Deals
+              </Link>
+              <Link to="/wallet" className="text-gray-600 hover:text-pink-600 font-medium">
+                Wallet
+              </Link>
+              <Link to="/challenges" className="text-gray-600 hover:text-pink-600 font-medium">
+                Challenges
+              </Link>
+              <Link to="/community" className="text-gray-600 hover:text-pink-600 font-medium">
+                Community
+              </Link>
+              <Link to="/merchant" className="text-gray-600 hover:text-pink-600 font-medium">
+                For Merchants
+              </Link>
             </div>
+
+            <AuthButton user={user} onAuthChange={handleAuthChange} />
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl font-bold mb-6">
-            Welcome to{" "}
-            <span className="bg-gradient-to-r from-pink-600 to-yellow-600 bg-clip-text text-transparent">
-              HiJaipur
-            </span>
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center mb-16">
+          <h1 className="text-5xl font-bold text-gray-800 mb-6">
+            Welcome to <span className="text-pink-600">HiJaipur</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Discover amazing deals, earn JaiCoins, and connect with the vibrant community of the Pink City!
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            Discover amazing deals from local businesses in Jaipur and earn JaiCoins with every purchase. 
+            Shop local, save money, and get rewarded!
           </p>
-          <div className="flex gap-4 justify-center">
-            <Button 
-              size="lg" 
-              onClick={() => navigate("/deals")}
-              className="bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600"
-            >
-              Explore Deals
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              onClick={() => navigate("/community")}
-              className="border-pink-300 hover:bg-pink-50"
-            >
-              Join Community
-            </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/deals">
+              <Button className="bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 text-lg px-8 py-3">
+                Explore Deals
+              </Button>
+            </Link>
+            <Link to="/merchant">
+              <Button variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 text-lg px-8 py-3">
+                Join as Merchant
+              </Button>
+            </Link>
           </div>
         </div>
-      </section>
 
-      {/* Features Grid */}
-      <section className="py-16 bg-white/50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
-            Everything You Need in One App
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <Card 
-                key={index} 
-                className="hover:shadow-lg transition-all duration-300 cursor-pointer border-pink-100 hover:border-pink-200"
-                onClick={feature.action}
-              >
-                <CardHeader className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-pink-50 to-yellow-50 rounded-full flex items-center justify-center">
-                    {feature.icon}
-                  </div>
-                  <CardTitle className="text-xl text-gray-800">{feature.title}</CardTitle>
-                  <CardDescription className="text-gray-600">
-                    {feature.description}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
+        {/* Stats Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          <Card className="text-center border-2 border-pink-100">
+            <CardContent className="pt-6">
+              <Gift className="w-12 h-12 mx-auto mb-4 text-pink-600" />
+              <div className="text-3xl font-bold text-gray-800 mb-2">{stats.totalDeals}+</div>
+              <div className="text-gray-600">Active Deals</div>
+            </CardContent>
+          </Card>
+          
+          <Card className="text-center border-2 border-yellow-100">
+            <CardContent className="pt-6">
+              <Users className="w-12 h-12 mx-auto mb-4 text-yellow-600" />
+              <div className="text-3xl font-bold text-gray-800 mb-2">{stats.totalMerchants}+</div>
+              <div className="text-gray-600">Partner Merchants</div>
+            </CardContent>
+          </Card>
+          
+          <Card className="text-center border-2 border-blue-100">
+            <CardContent className="pt-6">
+              <Star className="w-12 h-12 mx-auto mb-4 text-blue-600" />
+              <div className="text-3xl font-bold text-gray-800 mb-2">{stats.totalUsers}+</div>
+              <div className="text-gray-600">Happy Users</div>
+            </CardContent>
+          </Card>
         </div>
-      </section>
 
-      {/* Popular Deals Preview */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-800">Trending Deals</h2>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate("/deals")}
-              className="border-pink-300 hover:bg-pink-50"
-            >
-              View All Deals
-            </Button>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {popularDeals.map((deal, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow border-pink-100">
-                <CardContent className="pt-6">
-                  <div className="space-y-3">
-                    <Badge className="bg-gradient-to-r from-pink-500 to-yellow-500 text-white">
-                      {deal.discount}
-                    </Badge>
-                    <h3 className="font-semibold text-lg">{deal.name}</h3>
-                    <p className="text-gray-600">{deal.restaurant}</p>
-                    <div className="flex items-center space-x-1">
-                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                      <span className="text-sm font-medium">{deal.rating}</span>
+        {/* Featured Deals */}
+        {stats.featuredDeals.length > 0 && (
+          <div className="mb-16">
+            <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">Featured Deals</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {stats.featuredDeals.map((deal: any) => (
+                <Card key={deal.id} className="border-2 border-yellow-200 bg-yellow-50">
+                  <CardHeader>
+                    <div className="bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-medium w-fit mb-2">
+                      ⭐ Featured
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-pink-500 to-yellow-500">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">
-            Ready to Start Your Jaipur Journey?
-          </h2>
-          <p className="text-xl text-pink-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of locals discovering the best deals and earning rewards every day!
-          </p>
-          <Button 
-            size="lg"
-            onClick={() => setIsAuthModalOpen(true)}
-            className="bg-white text-pink-600 hover:bg-pink-50 px-8 py-4 text-lg"
-          >
-            Get Started Now
-          </Button>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-center space-x-2 mb-8">
-            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-yellow-500 rounded-full flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-white" />
+                    <CardTitle className="text-lg">{deal.title}</CardTitle>
+                    <CardDescription className="flex items-center gap-2">
+                      <span>{deal.merchants?.business_name}</span>
+                      {deal.merchants?.is_verified && (
+                        <span className="text-green-600 text-xs">✓ Verified</span>
+                      )}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xl font-bold text-green-600">₹{deal.discounted_price}</span>
+                        {deal.original_price > 0 && (
+                          <span className="text-sm line-through text-gray-500">₹{deal.original_price}</span>
+                        )}
+                      </div>
+                      {deal.discount_percentage > 0 && (
+                        <span className="bg-pink-100 text-pink-800 px-2 py-1 rounded-full text-xs font-medium">
+                          {deal.discount_percentage}% OFF
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+                      <div className="flex items-center space-x-1">
+                        {deal.location?.toLowerCase().includes('online') ? (
+                          <Globe className="w-4 h-4 text-blue-500" />
+                        ) : (
+                          <MapPin className="w-4 h-4 text-red-500" />
+                        )}
+                        <span>{deal.location}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Coins className="w-4 h-4 text-yellow-500" />
+                        <span>+{deal.jaicoin_reward} JaiCoins</span>
+                      </div>
+                    </div>
+                    <Link to="/deals">
+                      <Button className="w-full bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600">
+                        View Deal
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-            <span className="text-2xl font-bold">HiJaipur</span>
+            <div className="text-center mt-8">
+              <Link to="/deals">
+                <Button variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50">
+                  View All Deals
+                </Button>
+              </Link>
+            </div>
           </div>
-          <div className="text-center text-gray-400">
-            <p>&copy; 2024 HiJaipur. Made with ❤️ for the Pink City.</p>
+        )}
+
+        {/* How it Works */}
+        <div className="text-center mb-16">
+          <h2 className="text-3xl font-bold text-gray-800 mb-8">How HiJaipur Works</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🔍</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Discover Deals</h3>
+              <p className="text-gray-600">Browse amazing deals from local businesses in Jaipur</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🛍️</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Redeem & Save</h3>
+              <p className="text-gray-600">Use our platform to get exclusive discounts and offers</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">💰</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Earn JaiCoins</h3>
+              <p className="text-gray-600">Get rewarded with JaiCoins for every purchase and activity</p>
+            </div>
           </div>
         </div>
-      </footer>
 
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+        {/* Mobile Navigation */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-pink-100 px-4 py-2">
+          <div className="flex justify-around">
+            <Link to="/deals" className="flex flex-col items-center space-y-1 text-gray-600 hover:text-pink-600">
+              <Gift className="w-6 h-6" />
+              <span className="text-xs">Deals</span>
+            </Link>
+            <Link to="/wallet" className="flex flex-col items-center space-y-1 text-gray-600 hover:text-pink-600">
+              <Coins className="w-6 h-6" />
+              <span className="text-xs">Wallet</span>
+            </Link>
+            <Link to="/challenges" className="flex flex-col items-center space-y-1 text-gray-600 hover:text-pink-600">
+              <TrendingUp className="w-6 h-6" />
+              <span className="text-xs">Challenges</span>
+            </Link>
+            <Link to="/community" className="flex flex-col items-center space-y-1 text-gray-600 hover:text-pink-600">
+              <Users className="w-6 h-6" />
+              <span className="text-xs">Community</span>
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

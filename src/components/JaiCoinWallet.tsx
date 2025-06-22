@@ -1,15 +1,18 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wallet } from "lucide-react";
+import { Wallet, Coins, TrendingUp, TrendingDown } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Transaction {
-  id: number;
+  id: string;
   type: 'earned' | 'spent';
   amount: number;
   description: string;
-  date: string;
+  source: string;
+  created_at: string;
 }
 
 interface Reward {
@@ -21,17 +24,11 @@ interface Reward {
 }
 
 const JaiCoinWallet = () => {
-  const [balance] = useState(1250); // Example balance
+  const [balance, setBalance] = useState(0);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
   
-  const transactions: Transaction[] = [
-    { id: 1, type: 'earned', amount: 50, description: 'Deal purchase at Chokhi Dhani', date: '2024-01-20' },
-    { id: 2, type: 'earned', amount: 25, description: 'Friend referral signup', date: '2024-01-19' },
-    { id: 3, type: 'spent', amount: 250, description: 'Redeemed ₹25 off coupon', date: '2024-01-18' },
-    { id: 4, type: 'earned', amount: 25, description: 'Posted review with photo', date: '2024-01-17' },
-    { id: 5, type: 'earned', amount: 100, description: '3-day redemption streak bonus', date: '2024-01-16' },
-    { id: 6, type: 'earned', amount: 10, description: 'Daily spin reward', date: '2024-01-15' },
-  ];
-
   const rewards: Reward[] = [
     {
       id: 1,
@@ -70,10 +67,111 @@ const JaiCoinWallet = () => {
     }
   ];
 
-  const handleRedeemReward = (rewardId: number, cost: number) => {
-    if (balance >= cost) {
-      // TODO: Implement reward redemption logic
-      console.log('Redeeming reward:', rewardId);
+  useEffect(() => {
+    fetchWalletData();
+  }, []);
+
+  const fetchWalletData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Fetch user balance
+      const { data: balanceData, error: balanceError } = await supabase
+        .rpc('get_user_balance', { user_uuid: user.id });
+
+      if (balanceError) {
+        console.error('Error fetching balance:', balanceError);
+      } else {
+        setBalance(balanceData || 0);
+      }
+
+      // Fetch transactions
+      const { data: transactionsData, error: transactionsError } = await supabase
+        .from('jaicoin_transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (transactionsError) {
+        console.error('Error fetching transactions:', transactionsError);
+        toast({
+          title: "Error",
+          description: "Failed to load transaction history",
+          variant: "destructive"
+        });
+      } else {
+        setTransactions(transactionsData || []);
+      }
+    } catch (error) {
+      console.error('Error fetching wallet data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRedeemReward = async (rewardId: number, cost: number) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to redeem rewards",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (balance < cost) {
+        toast({
+          title: "Insufficient Balance",
+          description: `You need ${cost - balance} more JaiCoins to redeem this reward`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const reward = rewards.find(r => r.id === rewardId);
+      if (!reward) return;
+
+      // Create transaction for spending JaiCoins
+      const { error } = await supabase
+        .from('jaicoin_transactions')
+        .insert({
+          user_id: user.id,
+          amount: cost,
+          type: 'spent',
+          source: 'reward_redemption',
+          description: `Redeemed: ${reward.title}`
+        });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to redeem reward",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Reward Redeemed Successfully!",
+        description: `You've redeemed ${reward.title} for ${cost} JaiCoins!`
+      });
+
+      // Refresh wallet data
+      fetchWalletData();
+    } catch (error) {
+      console.error('Error redeeming reward:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong",
+        variant: "destructive"
+      });
     }
   };
 
@@ -87,6 +185,30 @@ const JaiCoinWallet = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const getSourceIcon = (source: string) => {
+    switch (source) {
+      case 'signup': return '🎉';
+      case 'referral': return '👥';
+      case 'deal_purchase': return '🛍️';
+      case 'review': return '⭐';
+      case 'spin': return '🎰';
+      case 'challenge_reward': return '🏆';
+      case 'reward_redemption': return '🎁';
+      default: return '💰';
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-yellow-50 to-blue-50 p-4 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your wallet...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-yellow-50 to-blue-50 p-4">
@@ -104,7 +226,7 @@ const JaiCoinWallet = () => {
             <div className="text-center">
               <div className="text-sm opacity-90 mb-2">Your Balance</div>
               <div className="text-5xl font-bold mb-4 flex items-center justify-center">
-                <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full mr-3"></div>
+                <Coins className="w-8 h-8 mr-3" />
                 {balance.toLocaleString()} JaiCoins
               </div>
               <div className="text-sm opacity-90">
@@ -135,7 +257,7 @@ const JaiCoinWallet = () => {
                   <CardContent>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 bg-gradient-to-r from-pink-500 to-yellow-500 rounded-full"></div>
+                        <Coins className="w-4 h-4 text-yellow-500" />
                         <span className="font-bold text-gray-800">{reward.cost} JaiCoins</span>
                       </div>
                       <Button
@@ -160,30 +282,52 @@ const JaiCoinWallet = () => {
           <div>
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Transaction History</h2>
             <div className="space-y-3">
-              {transactions.map((transaction) => (
-                <Card key={transaction.id} className="border border-gray-200">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-800">{transaction.description}</div>
-                        <div className="text-sm text-gray-500 mt-1">
-                          {new Date(transaction.date).toLocaleDateString()}
+              {transactions.length > 0 ? (
+                transactions.map((transaction) => (
+                  <Card key={transaction.id} className="border border-gray-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="text-2xl">
+                            {getSourceIcon(transaction.source)}
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-800">{transaction.description}</div>
+                            <div className="text-sm text-gray-500 mt-1 flex items-center space-x-2">
+                              <span>{new Date(transaction.created_at).toLocaleDateString()}</span>
+                              <span>•</span>
+                              <span className="capitalize">{transaction.source.replace('_', ' ')}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`font-bold flex items-center space-x-1 ${
+                            transaction.type === 'earned' ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {transaction.type === 'earned' ? (
+                              <TrendingUp className="w-4 h-4" />
+                            ) : (
+                              <TrendingDown className="w-4 h-4" />
+                            )}
+                            <span>
+                              {transaction.type === 'earned' ? '+' : '-'}{transaction.amount}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {transaction.type === 'earned' ? 'Earned' : 'Spent'}
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className={`font-bold ${
-                          transaction.type === 'earned' ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {transaction.type === 'earned' ? '+' : '-'}{transaction.amount}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {transaction.type === 'earned' ? 'Earned' : 'Spent'}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Coins className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>No transactions yet</p>
+                  <p className="text-sm">Start earning JaiCoins by redeeming deals!</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -201,7 +345,7 @@ const JaiCoinWallet = () => {
                 <div className="text-sm text-gray-700">Sign-up Bonus</div>
               </div>
               <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600 mb-2">50</div>
+                <div className="text-2xl font-bold text-yellow-600 mb-2">50+</div>
                 <div className="text-sm text-gray-700">Per Deal Purchase</div>
               </div>
               <div className="text-center p-4 bg-blue-50 rounded-lg">
