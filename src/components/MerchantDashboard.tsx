@@ -59,9 +59,7 @@ interface Coupon {
   purchased_at: string;
   redeemed_at: string | null;
   user_id: string;
-  deals: {
-    title: string;
-  };
+  deal_title: string;
 }
 
 const MerchantDashboard = () => {
@@ -88,6 +86,8 @@ const MerchantDashboard = () => {
 
   const fetchMerchantData = async (userId: string) => {
     try {
+      console.log('Fetching merchant data for user:', userId);
+      
       // Fetch merchant profile
       const { data: merchantData, error: merchantError } = await supabase
         .from('merchants')
@@ -95,31 +95,61 @@ const MerchantDashboard = () => {
         .eq('user_id', userId)
         .single();
 
-      if (merchantError) throw merchantError;
-      setMerchant(merchantData);
+      if (merchantError) {
+        console.error('Merchant fetch error:', merchantError);
+        if (merchantError.code !== 'PGRST116') { // Not found error
+          throw merchantError;
+        }
+      } else {
+        console.log('Merchant data found:', merchantData);
+        setMerchant(merchantData);
 
-      // Fetch deals
-      const { data: dealsData, error: dealsError } = await supabase
-        .from('deals')
-        .select('*')
-        .eq('merchant_id', merchantData.id)
-        .order('created_at', { ascending: false });
+        // Fetch deals for this merchant
+        const { data: dealsData, error: dealsError } = await supabase
+          .from('deals')
+          .select('*')
+          .eq('merchant_id', merchantData.id)
+          .order('created_at', { ascending: false });
 
-      if (dealsError) throw dealsError;
-      setDeals(dealsData || []);
+        if (dealsError) {
+          console.error('Deals fetch error:', dealsError);
+        } else {
+          console.log('Deals data:', dealsData);
+          setDeals(dealsData || []);
+        }
 
-      // Fetch coupons for this merchant
-      const { data: couponsData, error: couponsError } = await supabase
-        .from('coupons')
-        .select(`
-          *,
-          deals!inner(title)
-        `)
-        .eq('merchant_id', merchantData.id)
-        .order('purchased_at', { ascending: false });
+        // Fetch coupons for this merchant's deals
+        const { data: couponsData, error: couponsError } = await supabase
+          .from('coupons')
+          .select(`
+            id,
+            coupon_code,
+            status,
+            purchased_at,
+            redeemed_at,
+            user_id,
+            deals!inner(title)
+          `)
+          .eq('merchant_id', merchantData.id)
+          .order('purchased_at', { ascending: false });
 
-      if (couponsError) throw couponsError;
-      setCoupons(couponsData || []);
+        if (couponsError) {
+          console.error('Coupons fetch error:', couponsError);
+        } else {
+          console.log('Coupons data:', couponsData);
+          // Transform the data to match our interface
+          const transformedCoupons = (couponsData || []).map(coupon => ({
+            id: coupon.id,
+            coupon_code: coupon.coupon_code,
+            status: coupon.status,
+            purchased_at: coupon.purchased_at,
+            redeemed_at: coupon.redeemed_at,
+            user_id: coupon.user_id,
+            deal_title: (coupon.deals as any)?.title || 'Unknown Deal'
+          }));
+          setCoupons(transformedCoupons);
+        }
+      }
 
     } catch (error) {
       console.error('Error fetching merchant data:', error);
@@ -145,7 +175,10 @@ const MerchantDashboard = () => {
       // Find coupon by code
       const { data: coupon, error: findError } = await supabase
         .from('coupons')
-        .select('*, deals!inner(title, jaicoin_reward)')
+        .select(`
+          *,
+          deals!inner(title, jaicoin_reward)
+        `)
         .eq('coupon_code', redemptionCode.trim())
         .eq('merchant_id', merchant?.id)
         .single();
@@ -181,21 +214,22 @@ const MerchantDashboard = () => {
       if (updateError) throw updateError;
 
       // Award JaiCoins for redemption
+      const dealData = coupon.deals as any;
       const { error: rewardError } = await supabase
         .from('jaicoin_transactions')
         .insert({
           user_id: coupon.user_id,
-          amount: coupon.deals.jaicoin_reward || 10,
+          amount: dealData?.jaicoin_reward || 10,
           type: 'earned',
           source: 'redemption',
-          description: `Redeemed: ${coupon.deals.title}`
+          description: `Redeemed: ${dealData?.title || 'Deal'}`
         });
 
       if (rewardError) throw rewardError;
 
       toast({
         title: "Coupon Redeemed!",
-        description: `Successfully redeemed coupon for ${coupon.deals.title}`,
+        description: `Successfully redeemed coupon for ${dealData?.title || 'Deal'}`,
       });
 
       setRedemptionCode('');
@@ -281,7 +315,7 @@ const MerchantDashboard = () => {
   const totalRevenue = coupons
     .filter(c => c.status === 'redeemed')
     .reduce((sum, c) => {
-      const deal = deals.find(d => d.id === c.deals);
+      const deal = deals.find(d => d.id === c.id);
       return sum + (deal?.purchase_price || 0);
     }, 0);
 
@@ -399,7 +433,7 @@ const MerchantDashboard = () => {
                   <div key={coupon.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
                       <p className="font-medium">{coupon.coupon_code}</p>
-                      <p className="text-sm text-gray-600">{coupon.deals.title}</p>
+                      <p className="text-sm text-gray-600">{coupon.deal_title}</p>
                       <p className="text-xs text-gray-500">
                         Purchased: {new Date(coupon.purchased_at).toLocaleDateString()}
                       </p>
@@ -409,6 +443,9 @@ const MerchantDashboard = () => {
                     </Badge>
                   </div>
                 ))}
+                {coupons.length === 0 && (
+                  <p className="text-center text-gray-500 py-8">No coupons found</p>
+                )}
               </div>
             </CardContent>
           </Card>
