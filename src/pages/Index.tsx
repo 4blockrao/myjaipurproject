@@ -2,13 +2,14 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coins, Gift, Users, Star, TrendingUp, MapPin, Globe } from "lucide-react";
+import { Coins, Gift, Users, Star, TrendingUp, MapPin, Globe, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import AuthButton from "@/components/AuthButton";
 
 const Index = () => {
   const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({
     totalDeals: 0,
     totalMerchants: 0,
@@ -27,33 +28,48 @@ const Index = () => {
       setUser(session?.user ?? null);
     });
 
-    // Fetch stats
+    // Fetch stats on mount
     fetchStats();
 
     return () => subscription.unsubscribe();
   }, []);
 
   const fetchStats = async () => {
+    setIsLoading(true);
     try {
+      console.log('Fetching dashboard stats...');
+
       // Get deals count
-      const { count: dealsCount } = await supabase
+      const { count: dealsCount, error: dealsError } = await supabase
         .from('deals')
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true);
 
+      if (dealsError) {
+        console.error('Error fetching deals count:', dealsError);
+      }
+
       // Get merchants count
-      const { count: merchantsCount } = await supabase
+      const { count: merchantsCount, error: merchantsError } = await supabase
         .from('merchants')
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true);
 
+      if (merchantsError) {
+        console.error('Error fetching merchants count:', merchantsError);
+      }
+
       // Get profiles count
-      const { count: usersCount } = await supabase
+      const { count: usersCount, error: usersError } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
+      if (usersError) {
+        console.error('Error fetching users count:', usersError);
+      }
+
       // Get featured deals
-      const { data: featuredDeals } = await supabase
+      const { data: featuredDeals, error: featuredError } = await supabase
         .from('deals')
         .select(`
           *,
@@ -66,6 +82,17 @@ const Index = () => {
         .eq('is_featured', true)
         .limit(3);
 
+      if (featuredError) {
+        console.error('Error fetching featured deals:', featuredError);
+      }
+
+      console.log('Stats fetched:', {
+        deals: dealsCount,
+        merchants: merchantsCount,
+        users: usersCount,
+        featured: featuredDeals?.length
+      });
+
       setStats({
         totalDeals: dealsCount || 0,
         totalMerchants: merchantsCount || 0,
@@ -74,6 +101,8 @@ const Index = () => {
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -105,15 +134,27 @@ const Index = () => {
               <Link to="/challenges" className="text-gray-600 hover:text-pink-600 font-medium">
                 Challenges
               </Link>
-              <Link to="/community" className="text-gray-600 hover:text-pink-600 font-medium">
-                Community
-              </Link>
               <Link to="/merchant" className="text-gray-600 hover:text-pink-600 font-medium">
                 For Merchants
               </Link>
+              <Link to="/admin/data" className="text-gray-600 hover:text-pink-600 font-medium text-sm">
+                Admin
+              </Link>
             </div>
 
-            <AuthButton user={user} onAuthChange={handleAuthChange} />
+            <div className="flex items-center space-x-4">
+              <Button
+                onClick={fetchStats}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+                disabled={isLoading}
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <AuthButton user={user} onAuthChange={handleAuthChange} />
+            </div>
           </div>
         </div>
       </nav>
@@ -140,6 +181,21 @@ const Index = () => {
               </Button>
             </Link>
           </div>
+
+          {/* Data seeding notice */}
+          {stats.totalDeals === 0 && stats.totalMerchants === 0 && !isLoading && (
+            <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg max-w-2xl mx-auto">
+              <h3 className="font-semibold text-yellow-800 mb-2">No data found!</h3>
+              <p className="text-yellow-700 mb-3">
+                It looks like the database is empty. Please seed some sample data to see the platform in action.
+              </p>
+              <Link to="/admin/data">
+                <Button variant="outline" className="border-yellow-300 text-yellow-700 hover:bg-yellow-100">
+                  Go to Admin Panel to Seed Data
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Stats Section */}
@@ -147,7 +203,13 @@ const Index = () => {
           <Card className="text-center border-2 border-pink-100">
             <CardContent className="pt-6">
               <Gift className="w-12 h-12 mx-auto mb-4 text-pink-600" />
-              <div className="text-3xl font-bold text-gray-800 mb-2">{stats.totalDeals}+</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2">
+                {isLoading ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-16 mx-auto rounded"></div>
+                ) : (
+                  `${stats.totalDeals}+`
+                )}
+              </div>
               <div className="text-gray-600">Active Deals</div>
             </CardContent>
           </Card>
@@ -155,7 +217,13 @@ const Index = () => {
           <Card className="text-center border-2 border-yellow-100">
             <CardContent className="pt-6">
               <Users className="w-12 h-12 mx-auto mb-4 text-yellow-600" />
-              <div className="text-3xl font-bold text-gray-800 mb-2">{stats.totalMerchants}+</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2">
+                {isLoading ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-16 mx-auto rounded"></div>
+                ) : (
+                  `${stats.totalMerchants}+`
+                )}
+              </div>
               <div className="text-gray-600">Partner Merchants</div>
             </CardContent>
           </Card>
@@ -163,7 +231,13 @@ const Index = () => {
           <Card className="text-center border-2 border-blue-100">
             <CardContent className="pt-6">
               <Star className="w-12 h-12 mx-auto mb-4 text-blue-600" />
-              <div className="text-3xl font-bold text-gray-800 mb-2">{stats.totalUsers}+</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2">
+                {isLoading ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-16 mx-auto rounded"></div>
+                ) : (
+                  `${stats.totalUsers}+`
+                )}
+              </div>
               <div className="text-gray-600">Happy Users</div>
             </CardContent>
           </Card>
@@ -278,9 +352,9 @@ const Index = () => {
               <TrendingUp className="w-6 h-6" />
               <span className="text-xs">Challenges</span>
             </Link>
-            <Link to="/community" className="flex flex-col items-center space-y-1 text-gray-600 hover:text-pink-600">
+            <Link to="/admin/data" className="flex flex-col items-center space-y-1 text-gray-600 hover:text-pink-600">
               <Users className="w-6 h-6" />
-              <span className="text-xs">Community</span>
+              <span className="text-xs">Admin</span>
             </Link>
           </div>
         </div>
