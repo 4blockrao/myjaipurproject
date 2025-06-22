@@ -239,6 +239,7 @@ export type Database = {
           min_order_value: number | null
           original_price: number | null
           product_details: Json | null
+          product_id: string | null
           purchase_price: number | null
           start_date: string | null
           subcategory: string | null
@@ -272,6 +273,7 @@ export type Database = {
           min_order_value?: number | null
           original_price?: number | null
           product_details?: Json | null
+          product_id?: string | null
           purchase_price?: number | null
           start_date?: string | null
           subcategory?: string | null
@@ -305,6 +307,7 @@ export type Database = {
           min_order_value?: number | null
           original_price?: number | null
           product_details?: Json | null
+          product_id?: string | null
           purchase_price?: number | null
           start_date?: string | null
           subcategory?: string | null
@@ -321,6 +324,13 @@ export type Database = {
             columns: ["merchant_id"]
             isOneToOne: false
             referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -654,6 +664,70 @@ export type Database = {
         }
         Relationships: []
       }
+      order_items: {
+        Row: {
+          created_at: string | null
+          deal_id: string | null
+          discount_applied: number | null
+          id: string
+          item_type: string
+          jaicoin_used: number | null
+          order_id: string
+          product_id: string | null
+          quantity: number
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          deal_id?: string | null
+          discount_applied?: number | null
+          id?: string
+          item_type: string
+          jaicoin_used?: number | null
+          order_id: string
+          product_id?: string | null
+          quantity?: number
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string | null
+          deal_id?: string | null
+          discount_applied?: number | null
+          id?: string
+          item_type?: string
+          jaicoin_used?: number | null
+          order_id?: string
+          product_id?: string | null
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           created_at: string | null
@@ -751,6 +825,179 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_reviews: {
+        Row: {
+          created_at: string | null
+          helpful_votes: number | null
+          id: string
+          images: string[] | null
+          jaicoin_rewarded: boolean | null
+          merchant_id: string
+          product_id: string
+          rating: number
+          review_text: string | null
+          review_title: string | null
+          user_id: string | null
+          verified_purchase: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          helpful_votes?: number | null
+          id?: string
+          images?: string[] | null
+          jaicoin_rewarded?: boolean | null
+          merchant_id: string
+          product_id: string
+          rating: number
+          review_text?: string | null
+          review_title?: string | null
+          user_id?: string | null
+          verified_purchase?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          helpful_votes?: number | null
+          id?: string
+          images?: string[] | null
+          jaicoin_rewarded?: boolean | null
+          merchant_id?: string
+          product_id?: string
+          rating?: number
+          review_text?: string | null
+          review_title?: string | null
+          user_id?: string | null
+          verified_purchase?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_reviews_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          average_rating: number | null
+          brand: string | null
+          category: string
+          created_at: string | null
+          description: string | null
+          dimensions: Json | null
+          discount_percentage: number | null
+          discounted_price: number | null
+          id: string
+          images: string[] | null
+          inventory_count: number | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          jaicoin_reward: number | null
+          max_order_quantity: number | null
+          merchant_id: string
+          min_order_quantity: number | null
+          model: string | null
+          name: string
+          original_price: number
+          return_policy: string | null
+          shipping_required: boolean | null
+          shipping_weight: number | null
+          sku: string | null
+          specifications: Json | null
+          subcategory: string | null
+          tags: string[] | null
+          total_reviews: number | null
+          total_sales: number | null
+          updated_at: string | null
+          warranty_period: string | null
+          weight: number | null
+        }
+        Insert: {
+          average_rating?: number | null
+          brand?: string | null
+          category: string
+          created_at?: string | null
+          description?: string | null
+          dimensions?: Json | null
+          discount_percentage?: number | null
+          discounted_price?: number | null
+          id?: string
+          images?: string[] | null
+          inventory_count?: number | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          jaicoin_reward?: number | null
+          max_order_quantity?: number | null
+          merchant_id: string
+          min_order_quantity?: number | null
+          model?: string | null
+          name: string
+          original_price: number
+          return_policy?: string | null
+          shipping_required?: boolean | null
+          shipping_weight?: number | null
+          sku?: string | null
+          specifications?: Json | null
+          subcategory?: string | null
+          tags?: string[] | null
+          total_reviews?: number | null
+          total_sales?: number | null
+          updated_at?: string | null
+          warranty_period?: string | null
+          weight?: number | null
+        }
+        Update: {
+          average_rating?: number | null
+          brand?: string | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          dimensions?: Json | null
+          discount_percentage?: number | null
+          discounted_price?: number | null
+          id?: string
+          images?: string[] | null
+          inventory_count?: number | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          jaicoin_reward?: number | null
+          max_order_quantity?: number | null
+          merchant_id?: string
+          min_order_quantity?: number | null
+          model?: string | null
+          name?: string
+          original_price?: number
+          return_policy?: string | null
+          shipping_required?: boolean | null
+          shipping_weight?: number | null
+          sku?: string | null
+          specifications?: Json | null
+          subcategory?: string | null
+          tags?: string[] | null
+          total_reviews?: number | null
+          total_sales?: number | null
+          updated_at?: string | null
+          warranty_period?: string | null
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
         ]

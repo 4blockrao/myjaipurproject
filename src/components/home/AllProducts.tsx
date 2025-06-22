@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,9 +54,9 @@ const AllProducts = () => {
 
   const fetchAllProducts = async () => {
     try {
-      // Fetch both product sales (deals with products) and regular deals
-      const { data: dealsData, error: dealsError } = await supabase
-        .from('deals')
+      // Fetch all active products
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
         .select(`
           *,
           merchants!inner(
@@ -67,27 +68,27 @@ const AllProducts = () => {
         .gt('inventory_count', 0)
         .order('created_at', { ascending: false });
 
-      if (dealsError) throw dealsError;
+      if (productsError) throw productsError;
 
-      // Transform deals data to match Product interface
-      const formattedProducts = dealsData?.map(item => ({
+      // Transform products data to match Product interface
+      const formattedProducts = productsData?.map(item => ({
         id: item.id,
-        name: item.title || 'Untitled Product',
+        name: item.name || 'Untitled Product',
         description: item.description || '',
         category: item.category || 'General',
         subcategory: item.subcategory || '',
-        brand: item.product_details?.brand || 'Generic',
+        brand: item.brand || 'Generic',
         original_price: item.original_price || 0,
         discounted_price: item.discounted_price || 0,
         discount_percentage: item.discount_percentage || 0,
         inventory_count: item.inventory_count || 0,
-        specifications: item.product_details || {},
-        images: item.image_url ? [item.image_url] : [],
+        specifications: item.specifications || {},
+        images: item.images || [],
         tags: item.tags || [],
         is_featured: item.is_featured || false,
         jaicoin_reward: item.jaicoin_reward || 0,
-        average_rating: 0, // Will be updated when we have reviews
-        total_reviews: 0,
+        average_rating: item.average_rating || 0,
+        total_reviews: item.total_reviews || 0,
         merchants: {
           business_name: item.merchants?.business_name || 'Unknown Merchant',
           is_verified: item.merchants?.is_verified || false
@@ -129,7 +130,7 @@ const AllProducts = () => {
         filtered.sort((a, b) => b.discount_percentage - a.discount_percentage);
         break;
       default: // newest
-        // Since we don't have created_at in our transformed data, we'll keep original order
+        // Products are already sorted by created_at from the query
         break;
     }
 
