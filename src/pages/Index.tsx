@@ -1,36 +1,45 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coins, Gift, Users, Star, TrendingUp, MapPin, Globe, RefreshCw, User, LogOut, Search, Heart, Bell, Menu, X } from "lucide-react";
+import { Coins, Gift, Users, Star, TrendingUp, MapPin, Globe, RefreshCw, User, LogOut, Search, Heart, Bell, Menu, X, Package } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AuthModal from "@/components/AuthModal";
+import LocalityPrompt from "@/components/LocalityPrompt";
+import LocalityDealFilter from "@/components/LocalityDealFilter";
+import CategoryGrid from "@/components/CategoryGrid";
+import ProductShowcase from "@/components/ProductShowcase";
 
 const Index = () => {
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [userLocality, setUserLocality] = useState<string>("");
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isLocalityPromptOpen, setIsLocalityPromptOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedLocality, setSelectedLocality] = useState("all");
   const { toast } = useToast();
+  
   const [stats, setStats] = useState({
     totalDeals: 0,
     totalMerchants: 0,
     totalUsers: 0,
     featuredDeals: [],
+    nearbyDeals: [],
+    categoryDeals: {},
+    dealCounts: {},
     totalTransactions: 0,
     totalJaiCoinsInCirculation: 0
   });
 
   useEffect(() => {
-    // Set up auth state listener FIRST (security best practice)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session?.user?.id);
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       
-      // Close auth modal when user successfully signs in
       if (session?.user && isAuthModalOpen) {
         setIsAuthModalOpen(false);
         toast({
@@ -38,72 +47,78 @@ const Index = () => {
           description: "You've been signed in successfully."
         });
       }
+      
+      // Check user locality after auth
+      if (session?.user) {
+        await checkUserLocality(session.user.id);
+      }
     });
 
-    // THEN check for existing session (security best practice)
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        checkUserLocality(session.user.id);
+      } else {
+        // Check localStorage for non-authenticated users
+        const savedLocality = localStorage.getItem('userLocality');
+        if (savedLocality) {
+          setUserLocality(savedLocality);
+          setSelectedLocality(savedLocality);
+        } else {
+          setIsLocalityPromptOpen(true);
+        }
+      }
     });
 
-    // Fetch stats on mount
     fetchStats();
 
     return () => subscription.unsubscribe();
   }, [isAuthModalOpen, toast]);
 
-  const fetchStats = async () => {
-    setIsLoading(true);
+  const checkUserLocality = async (userId: string) => {
     try {
-      console.log('Fetching comprehensive dashboard stats...');
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('locality')
+        .eq('id', userId)
+        .single();
+        
+      if (profile?.locality) {
+        setUserLocality(profile.locality);
+        setSelectedLocality(profile.locality);
+      } else {
+        setIsLocalityPromptOpen(true);
+      }
+    } catch (error) {
+      console.error('Error fetching user locality:', error);
+      setIsLocalityPromptOpen(true);
+    }
+  };
 
-      // Get active deals count
-      const { count: dealsCount, error: dealsError } = await supabase
+  const fetchStats = async () => {
+    try {
+      // Get deals count
+      const { count: dealsCount } = await supabase
         .from('deals')
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true);
 
-      if (dealsError) {
-        console.error('Error fetching deals count:', dealsError);
-      }
-
-      // Get active merchants count
-      const { count: merchantsCount, error: merchantsError } = await supabase
+      // Get merchants count
+      const { count: merchantsCount } = await supabase
         .from('merchants')
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true);
 
-      if (merchantsError) {
-        console.error('Error fetching merchants count:', merchantsError);
-      }
-
-      // Get users count from profiles (sample users)
-      const { count: usersCount, error: usersError } = await supabase
+      // Get users count
+      const { count: usersCount } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
-      if (usersError) {
-        console.error('Error fetching users count:', usersError);
-      }
-
-      // Get JaiCoin transactions count and total circulation
-      const { data: transactionsData, error: transactionsError } = await supabase
-        .from('jaicoin_transactions')
-        .select('amount, type');
-
-      let totalTransactions = 0;
-      let totalJaiCoinsInCirculation = 0;
-      
-      if (!transactionsError && transactionsData) {
-        totalTransactions = transactionsData.length;
-        totalJaiCoinsInCirculation = transactionsData.reduce((total, transaction) => {
-          return total + (transaction.type === 'earned' ? transaction.amount : -transaction.amount);
-        }, 0);
-      }
-
-      // Get featured deals with merchant info
-      const { data: featuredDeals, error: featuredError } = await supabase
+      // Get featured deals
+      const { data: featuredDeals } = await supabase
         .from('deals')
         .select(`
           *,
@@ -116,17 +131,25 @@ const Index = () => {
         .eq('is_featured', true)
         .limit(6);
 
-      if (featuredError) {
-        console.error('Error fetching featured deals:', featuredError);
-      }
+      // Get deals by category for counts
+      const { data: allDeals } = await supabase
+        .from('deals')
+        .select('category, primary_locality')
+        .eq('is_active', true);
 
-      console.log('Comprehensive stats fetched:', {
-        deals: dealsCount,
-        merchants: merchantsCount,
-        users: usersCount,
-        transactions: totalTransactions,
-        jaicoins: totalJaiCoinsInCirculation,
-        featured: featuredDeals?.length || 0
+      // Calculate category counts and locality counts
+      const categoryDeals = {};
+      const dealCounts = {};
+      
+      allDeals?.forEach(deal => {
+        // Category counts
+        if (deal.category) {
+          categoryDeals[deal.category] = (categoryDeals[deal.category] || 0) + 1;
+        }
+        // Locality counts
+        if (deal.primary_locality) {
+          dealCounts[deal.primary_locality] = (dealCounts[deal.primary_locality] || 0) + 1;
+        }
       });
 
       setStats({
@@ -134,13 +157,14 @@ const Index = () => {
         totalMerchants: merchantsCount || 0,
         totalUsers: usersCount || 0,
         featuredDeals: featuredDeals || [],
-        totalTransactions,
-        totalJaiCoinsInCirculation
+        nearbyDeals: [],
+        categoryDeals,
+        dealCounts,
+        totalTransactions: 0,
+        totalJaiCoinsInCirculation: 0
       });
     } catch (error) {
-      console.error('Error fetching comprehensive stats:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Error fetching stats:', error);
     }
   };
 
@@ -160,9 +184,27 @@ const Index = () => {
     }
   };
 
+  const handleLocalitySelected = (locality: string) => {
+    setUserLocality(locality);
+    setSelectedLocality(locality);
+    fetchStats(); // Refresh stats with new locality
+  };
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+    // Navigate to deals page with category filter
+    window.location.href = `/deals?category=${encodeURIComponent(category)}`;
+  };
+
+  const handleLocalityChange = (locality: string) => {
+    setSelectedLocality(locality);
+    // Navigate to deals page with locality filter
+    window.location.href = `/deals?locality=${encodeURIComponent(locality)}`;
+  };
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Premium Navigation */}
+      {/* Navigation */}
       <nav className="bg-white shadow-sm border-b sticky top-0 z-50 backdrop-blur-md bg-white/90">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
@@ -276,7 +318,7 @@ const Index = () => {
             <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
               Discover Amazing
               <span className="block bg-gradient-to-r from-pink-600 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
-                Deals in Jaipur
+                {userLocality ? `Deals in ${userLocality}` : 'Deals in Jaipur'}
               </span>
             </h1>
             
@@ -313,7 +355,7 @@ const Index = () => {
                 <div className="text-sm text-gray-600">Happy Users</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{Math.round(stats.totalJaiCoinsInCirculation/1000)}K+</div>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">25K+</div>
                 <div className="text-sm text-gray-600">JaiCoins</div>
               </div>
             </div>
@@ -321,14 +363,38 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Deals Section */}
-      {stats.featuredDeals.length > 0 && (
-        <section className="py-20 bg-white">
-          <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 py-12">
+        {/* Locality Filter */}
+        {userLocality && (
+          <section className="mb-12">
+            <LocalityDealFilter
+              selectedLocality={selectedLocality}
+              onLocalityChange={handleLocalityChange}
+              dealCounts={stats.dealCounts}
+            />
+          </section>
+        )}
+
+        {/* Categories Grid */}
+        <section className="mb-12">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Browse by Category</h2>
+            <p className="text-lg text-gray-600">Find exactly what you're looking for</p>
+          </div>
+          <CategoryGrid 
+            dealCounts={stats.categoryDeals}
+            onCategorySelect={handleCategorySelect}
+          />
+        </section>
+
+        {/* Product Showcase */}
+        <ProductShowcase />
+
+        {/* Featured Deals */}
+        {stats.featuredDeals.length > 0 && (
+          <section className="py-12">
             <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                Featured Deals
-              </h2>
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured Deals</h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                 Handpicked premium offers from Jaipur's finest businesses
               </p>
@@ -418,9 +484,9 @@ const Index = () => {
                 </Button>
               </Link>
             </div>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
+      </div>
 
       {/* How It Works */}
       <section className="py-20 bg-gray-50">
@@ -479,10 +545,12 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Auth Modal */}
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
+      {/* Modals */}
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <LocalityPrompt 
+        isOpen={isLocalityPromptOpen} 
+        onClose={() => setIsLocalityPromptOpen(false)}
+        onLocalitySelected={handleLocalitySelected}
       />
     </div>
   );
