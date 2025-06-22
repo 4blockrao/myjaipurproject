@@ -752,6 +752,47 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_tracking: {
+        Row: {
+          clicked_at: string
+          coupon_purchased: boolean
+          coupon_redeemed: boolean
+          id: string
+          purchased_at: string | null
+          redeemed_at: string | null
+          share_token: string | null
+          user_id: string | null
+        }
+        Insert: {
+          clicked_at?: string
+          coupon_purchased?: boolean
+          coupon_redeemed?: boolean
+          id?: string
+          purchased_at?: string | null
+          redeemed_at?: string | null
+          share_token?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          clicked_at?: string
+          coupon_purchased?: boolean
+          coupon_redeemed?: boolean
+          id?: string
+          purchased_at?: string | null
+          redeemed_at?: string | null
+          share_token?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_tracking_share_token_fkey"
+            columns: ["share_token"]
+            isOneToOne: false
+            referencedRelation: "shared_deal_links"
+            referencedColumns: ["token"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           created_at: string | null
@@ -787,6 +828,41 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      shared_deal_links: {
+        Row: {
+          created_at: string
+          deal_id: string
+          id: string
+          link_clicks: number
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deal_id: string
+          id?: string
+          link_clicks?: number
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deal_id?: string
+          id?: string
+          link_clicks?: number
+          token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_deal_links_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       spin_attempts: {
         Row: {

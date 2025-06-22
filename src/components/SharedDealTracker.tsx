@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Eye, ShoppingCart, CheckCircle, Coins, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 

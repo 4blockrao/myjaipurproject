@@ -1,65 +1,76 @@
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { 
-  QrCode, 
-  Search, 
-  Eye, 
-  TrendingUp, 
+  Store, 
   Users, 
+  TrendingUp, 
+  CheckCircle, 
   DollarSign,
-  CheckCircle,
-  Clock,
-  AlertCircle
+  Calendar,
+  MapPin,
+  Star,
+  QrCode,
+  CreditCard,
+  BarChart3,
+  Crown
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+interface Merchant {
+  id: string;
+  business_name: string;
+  description: string;
+  address: string;
+  phone: string;
+  email: string;
+  average_rating: number;
+  total_reviews: number;
+  total_deals: number;
+  listing_tier: string;
+  listing_fee_paid: boolean;
+  is_verified: boolean;
+  approval_status: string;
+}
+
+interface Deal {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  purchase_price: number;
+  coupon_type: string;
+  max_redemptions: number;
+  current_redemptions: number;
+  is_active: boolean;
+  created_at: string;
+}
+
 interface Coupon {
   id: string;
   coupon_code: string;
-  coupon_type: string;
-  discount_amount: number;
-  purchase_amount: number;
   status: string;
-  expires_at: string;
-  created_at: string;
-  min_order_value: number;
-  usage_terms: string;
-  redeemed_at?: string;
+  purchased_at: string;
+  redeemed_at: string | null;
+  user_id: string;
   deals: {
     title: string;
-    description: string;
   };
-  profiles: {
-    full_name: string;
-    email: string;
-  };
-}
-
-interface MerchantStats {
-  totalCoupons: number;
-  redeemedCoupons: number;
-  activeCoupons: number;
-  totalRevenue: number;
 }
 
 const MerchantDashboard = () => {
+  const [merchant, setMerchant] = useState<Merchant | null>(null);
+  const [deals, setDeals] = useState<Deal[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [stats, setStats] = useState<MerchantStats>({
-    totalCoupons: 0,
-    redeemedCoupons: 0,
-    activeCoupons: 0,
-    totalRevenue: 0
-  });
-  const [searchCode, setSearchCode] = useState("");
+  const [redemptionCode, setRedemptionCode] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
-  const [merchant, setMerchant] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -72,11 +83,12 @@ const MerchantDashboard = () => {
       setUser(user);
       await fetchMerchantData(user.id);
     }
+    setIsLoading(false);
   };
 
   const fetchMerchantData = async (userId: string) => {
     try {
-      // Get merchant info
+      // Fetch merchant profile
       const { data: merchantData, error: merchantError } = await supabase
         .from('merchants')
         .select('*')
@@ -86,55 +98,28 @@ const MerchantDashboard = () => {
       if (merchantError) throw merchantError;
       setMerchant(merchantData);
 
+      // Fetch deals
+      const { data: dealsData, error: dealsError } = await supabase
+        .from('deals')
+        .select('*')
+        .eq('merchant_id', merchantData.id)
+        .order('created_at', { ascending: false });
+
+      if (dealsError) throw dealsError;
+      setDeals(dealsData || []);
+
       // Fetch coupons for this merchant
       const { data: couponsData, error: couponsError } = await supabase
         .from('coupons')
         .select(`
           *,
-          deals!inner(title, description),
-          profiles!inner(full_name, email)
+          deals!inner(title)
         `)
         .eq('merchant_id', merchantData.id)
-        .order('created_at', { ascending: false });
+        .order('purchased_at', { ascending: false });
 
       if (couponsError) throw couponsError;
-
-      const formattedCoupons: Coupon[] = couponsData?.map(coupon => ({
-        id: coupon.id,
-        coupon_code: coupon.coupon_code,
-        coupon_type: coupon.coupon_type,
-        discount_amount: coupon.discount_amount,
-        purchase_amount: coupon.purchase_amount,
-        status: coupon.status,
-        expires_at: coupon.expires_at,
-        created_at: coupon.created_at,
-        min_order_value: coupon.min_order_value,
-        usage_terms: coupon.usage_terms,
-        redeemed_at: coupon.redeemed_at,
-        deals: {
-          title: coupon.deals?.title || 'Unknown Deal',
-          description: coupon.deals?.description || ''
-        },
-        profiles: {
-          full_name: coupon.profiles?.full_name || 'Unknown User',
-          email: coupon.profiles?.email || ''
-        }
-      })) || [];
-
-      setCoupons(formattedCoupons);
-
-      // Calculate stats
-      const totalCoupons = formattedCoupons.length;
-      const redeemedCoupons = formattedCoupons.filter(c => c.status === 'redeemed').length;
-      const activeCoupons = formattedCoupons.filter(c => c.status === 'active').length;
-      const totalRevenue = formattedCoupons.reduce((sum, c) => sum + (c.purchase_amount || 0), 0);
-
-      setStats({
-        totalCoupons,
-        redeemedCoupons,
-        activeCoupons,
-        totalRevenue
-      });
+      setCoupons(couponsData || []);
 
     } catch (error) {
       console.error('Error fetching merchant data:', error);
@@ -143,273 +128,469 @@ const MerchantDashboard = () => {
         description: "Failed to load merchant data",
         variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const handleRedeemCoupon = async (couponId: string) => {
+  const validateRedemption = async () => {
+    if (!redemptionCode.trim()) {
+      toast({
+        title: "Invalid Code",
+        description: "Please enter a redemption code",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
-      const { error } = await supabase
+      // Find coupon by code
+      const { data: coupon, error: findError } = await supabase
         .from('coupons')
-        .update({ 
+        .select('*, deals!inner(title, jaicoin_reward)')
+        .eq('coupon_code', redemptionCode.trim())
+        .eq('merchant_id', merchant?.id)
+        .single();
+
+      if (findError || !coupon) {
+        toast({
+          title: "Invalid Code",
+          description: "Coupon code not found or not valid for your store",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (coupon.status === 'redeemed') {
+        toast({
+          title: "Already Redeemed",
+          description: "This coupon has already been redeemed",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Update coupon status
+      const { error: updateError } = await supabase
+        .from('coupons')
+        .update({
           status: 'redeemed',
           redeemed_at: new Date().toISOString(),
-          redeemed_by: user.id
+          redeemed_by: merchant?.id
         })
-        .eq('id', couponId);
+        .eq('id', coupon.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Award JaiCoins for redemption
+      const { error: rewardError } = await supabase
+        .from('jaicoin_transactions')
+        .insert({
+          user_id: coupon.user_id,
+          amount: coupon.deals.jaicoin_reward || 10,
+          type: 'earned',
+          source: 'redemption',
+          description: `Redeemed: ${coupon.deals.title}`
+        });
+
+      if (rewardError) throw rewardError;
 
       toast({
-        title: "Coupon Redeemed",
-        description: "Coupon has been successfully redeemed",
+        title: "Coupon Redeemed!",
+        description: `Successfully redeemed coupon for ${coupon.deals.title}`,
       });
 
-      // Refresh data
-      if (user) await fetchMerchantData(user.id);
+      setRedemptionCode('');
+      fetchMerchantData(user.id);
 
     } catch (error) {
-      console.error('Error redeeming coupon:', error);
+      console.error('Error validating redemption:', error);
       toast({
         title: "Error",
-        description: "Failed to redeem coupon",
+        description: "Failed to validate redemption",
         variant: "destructive"
       });
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge className="bg-green-100 text-green-800">Active</Badge>;
-      case 'redeemed':
-        return <Badge className="bg-blue-100 text-blue-800">Redeemed</Badge>;
-      case 'expired':
-        return <Badge className="bg-gray-100 text-gray-800">Expired</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
+  const payListingFee = async (tier: string) => {
+    const feeAmount = tier === 'premium' ? 999 : 1999;
+    
+    try {
+      // Simulate payment processing
+      const paymentId = `pay_${Date.now()}`;
+      
+      const { error } = await supabase
+        .from('merchants')
+        .update({
+          listing_tier: tier,
+          listing_fee_paid: true,
+          listing_payment_id: paymentId
+        })
+        .eq('id', merchant?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Payment Successful!",
+        description: `Your ${tier} listing is now active`,
+      });
+
+      fetchMerchantData(user.id);
+
+    } catch (error) {
+      console.error('Error processing payment:', error);
+      toast({
+        title: "Payment Failed",
+        description: "Please try again",
+        variant: "destructive"
+      });
     }
   };
 
-  const filteredCoupons = coupons.filter(coupon =>
-    coupon.coupon_code.toLowerCase().includes(searchCode.toLowerCase()) ||
-    coupon.profiles.full_name.toLowerCase().includes(searchCode.toLowerCase())
-  );
-
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
       </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Card>
+        <CardContent className="text-center py-8">
+          <p className="text-gray-600">Please sign in to access merchant dashboard</p>
+        </CardContent>
+      </Card>
     );
   }
 
   if (!merchant) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>No Merchant Profile Found</CardTitle>
-            <CardDescription>
-              You need to complete merchant onboarding first.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
+      <Card>
+        <CardContent className="text-center py-8">
+          <Store className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600 mb-2">Merchant profile not found</p>
+          <p className="text-sm text-gray-500">Please complete merchant onboarding first</p>
+        </CardContent>
+      </Card>
     );
   }
 
+  const activeCoupons = coupons.filter(c => c.status === 'active').length;
+  const redeemedCoupons = coupons.filter(c => c.status === 'redeemed').length;
+  const totalRevenue = coupons
+    .filter(c => c.status === 'redeemed')
+    .reduce((sum, c) => {
+      const deal = deals.find(d => d.id === c.deals);
+      return sum + (deal?.purchase_price || 0);
+    }, 0);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
-      <div className="container mx-auto max-w-6xl">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            {merchant.business_name} Dashboard
-          </h1>
-          <p className="text-gray-600">Manage your coupons and track performance</p>
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">{merchant.business_name}</h1>
+          <p className="text-gray-600">{merchant.description}</p>
         </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Coupons</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalCoupons}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Redeemed</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.redeemedCoupons}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.activeCoupons}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">₹{stats.totalRevenue.toLocaleString()}</div>
-            </CardContent>
-          </Card>
+        <div className="flex items-center gap-2">
+          <Badge variant={merchant.is_verified ? "default" : "secondary"}>
+            {merchant.is_verified ? "Verified" : "Pending"}
+          </Badge>
+          <Badge variant={merchant.listing_tier === 'enterprise' ? "default" : "outline"}>
+            <Crown className="w-3 h-3 mr-1" />
+            {merchant.listing_tier}
+          </Badge>
         </div>
+      </div>
 
-        {/* Main Content */}
-        <Tabs defaultValue="coupons" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="coupons">Coupon Management</TabsTrigger>
-            <TabsTrigger value="validator">QR Validator</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          </TabsList>
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Deals</p>
+                <p className="text-2xl font-bold">{deals.length}</p>
+              </div>
+              <Store className="w-8 h-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
 
-          <TabsContent value="coupons" className="space-y-6">
-            {/* Search */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Search Coupons</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    type="text"
-                    placeholder="Search by coupon code or customer name..."
-                    value={searchCode}
-                    onChange={(e) => setSearchCode(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Active Coupons</p>
+                <p className="text-2xl font-bold">{activeCoupons}</p>
+              </div>
+              <Users className="w-8 h-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
 
-            {/* Coupons List */}
-            <div className="grid gap-4">
-              {filteredCoupons.map((coupon) => (
-                <Card key={coupon.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="font-semibold text-lg">{coupon.deals.title}</h3>
-                        <p className="text-gray-600">{coupon.profiles.full_name}</p>
-                      </div>
-                      {getStatusBadge(coupon.status)}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Redeemed</p>
+                <p className="text-2xl font-bold">{redeemedCoupons}</p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-purple-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Revenue</p>
+                <p className="text-2xl font-bold">₹{totalRevenue}</p>
+              </div>
+              <DollarSign className="w-8 h-8 text-yellow-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs defaultValue="redemptions" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="redemptions">Coupon Redemptions</TabsTrigger>
+          <TabsTrigger value="deals">My Deals</TabsTrigger>
+          <TabsTrigger value="upgrade">Upgrade Listing</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="redemptions" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <QrCode className="w-5 h-5" />
+                Validate Coupon Redemption
+              </CardTitle>
+              <CardDescription>
+                Enter coupon code to validate and mark as redeemed
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter coupon code (e.g., JAI12345678)"
+                  value={redemptionCode}
+                  onChange={(e) => setRedemptionCode(e.target.value)}
+                  className="flex-1"
+                />
+                <Button onClick={validateRedemption}>
+                  Validate
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Coupons</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {coupons.slice(0, 10).map((coupon) => (
+                  <div key={coupon.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium">{coupon.coupon_code}</p>
+                      <p className="text-sm text-gray-600">{coupon.deals.title}</p>
+                      <p className="text-xs text-gray-500">
+                        Purchased: {new Date(coupon.purchased_at).toLocaleDateString()}
+                      </p>
                     </div>
+                    <Badge variant={coupon.status === 'redeemed' ? 'default' : 'secondary'}>
+                      {coupon.status}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                      <div>
-                        <p className="text-sm text-gray-500">Coupon Code</p>
-                        <p className="font-mono font-medium">{coupon.coupon_code}</p>
+        <TabsContent value="deals" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Deals</CardTitle>
+              <CardDescription>Manage your published deals</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {deals.map((deal) => (
+                  <div key={deal.id} className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold">{deal.title}</h3>
+                      <Badge variant={deal.is_active ? 'default' : 'secondary'}>
+                        {deal.is_active ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">{deal.description}</p>
+                    <div className="flex items-center gap-4 text-sm">
+                      <span>Price: ₹{deal.purchase_price}</span>
+                      <span>Redeemed: {deal.current_redemptions}/{deal.max_redemptions || '∞'}</span>
+                      <span>Type: {deal.coupon_type}</span>
+                    </div>
+                  </div>
+                ))}
+                {deals.length === 0 && (
+                  <p className="text-center text-gray-500 py-8">No deals created yet</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="upgrade" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Crown className="w-5 h-5" />
+                Upgrade Your Listing
+              </CardTitle>
+              <CardDescription>
+                Choose a plan to enhance your business visibility
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-6">
+                <Card className="border-2">
+                  <CardHeader>
+                    <CardTitle className="text-xl">Premium Listing</CardTitle>
+                    <div className="text-3xl font-bold">₹999</div>
+                    <CardDescription>Enhanced visibility and features</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">Priority in search results</span>
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Discount</p>
-                        <p className="font-semibold">₹{coupon.discount_amount}</p>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">Featured deal highlights</span>
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Purchased For</p>
-                        <p className="font-semibold">₹{coupon.purchase_amount}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Expires</p>
-                        <p className="text-sm">{new Date(coupon.expires_at).toLocaleDateString()}</p>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">Basic analytics</span>
                       </div>
                     </div>
-
-                    {coupon.status === 'active' && (
-                      <div className="flex justify-end">
-                        <Button 
-                          onClick={() => handleRedeemCoupon(coupon.id)}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <QrCode className="w-4 h-4 mr-2" />
-                          Mark as Redeemed
-                        </Button>
-                      </div>
-                    )}
-
-                    {coupon.redeemed_at && (
-                      <div className="mt-2 text-sm text-gray-500">
-                        Redeemed on: {new Date(coupon.redeemed_at).toLocaleString()}
-                      </div>
-                    )}
+                    <Button 
+                      className="w-full" 
+                      onClick={() => payListingFee('premium')}
+                      disabled={merchant.listing_tier === 'premium' && merchant.listing_fee_paid}
+                    >
+                      {merchant.listing_tier === 'premium' && merchant.listing_fee_paid ? 'Current Plan' : 'Upgrade to Premium'}
+                    </Button>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
 
-            {filteredCoupons.length === 0 && (
-              <Card>
-                <CardContent className="text-center py-8">
-                  <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-600 mb-2">No Coupons Found</h3>
-                  <p className="text-gray-500">
-                    {searchCode ? 'No coupons match your search criteria.' : 'No coupons have been generated yet.'}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
+                <Card className="border-2 border-yellow-300">
+                  <CardHeader>
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      Enterprise Listing
+                      <Crown className="w-5 h-5 text-yellow-500" />
+                    </CardTitle>
+                    <div className="text-3xl font-bold">₹1999</div>
+                    <CardDescription>Maximum exposure and premium features</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">Top placement in all searches</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">Unlimited featured deals</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">Advanced analytics & insights</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">Priority customer support</span>
+                      </div>
+                    </div>
+                    <Button 
+                      className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600" 
+                      onClick={() => payListingFee('enterprise')}
+                      disabled={merchant.listing_tier === 'enterprise' && merchant.listing_fee_paid}
+                    >
+                      {merchant.listing_tier === 'enterprise' && merchant.listing_fee_paid ? 'Current Plan' : 'Upgrade to Enterprise'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-          <TabsContent value="validator">
-            <Card>
-              <CardHeader>
-                <CardTitle>QR Code Validator</CardTitle>
-                <CardDescription>
-                  Scan QR codes or enter coupon codes to validate and redeem
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <QrCode className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">QR Scanner integration coming soon</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    For now, use the coupon management tab to manually redeem coupons
-                  </p>
+        <TabsContent value="analytics" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Business Analytics
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Performance Metrics</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span>Total Deals Created:</span>
+                      <span className="font-medium">{deals.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Coupons Sold:</span>
+                      <span className="font-medium">{coupons.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Redemption Rate:</span>
+                      <span className="font-medium">
+                        {coupons.length > 0 ? Math.round((redeemedCoupons / coupons.length) * 100) : 0}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Average Rating:</span>
+                      <span className="font-medium flex items-center gap-1">
+                        <Star className="w-4 h-4 text-yellow-500" />
+                        {merchant.average_rating?.toFixed(1) || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          <TabsContent value="analytics">
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance Analytics</CardTitle>
-                <CardDescription>
-                  Track your coupon performance and customer insights
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <TrendingUp className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Detailed analytics coming soon</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    View redemption trends, customer behavior, and revenue insights
-                  </p>
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Revenue Insights</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span>Total Revenue:</span>
+                      <span className="font-medium">₹{totalRevenue}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Active Coupons:</span>
+                      <span className="font-medium">{activeCoupons}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Listing Tier:</span>
+                      <span className="font-medium capitalize">{merchant.listing_tier}</span>
+                    </div>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
