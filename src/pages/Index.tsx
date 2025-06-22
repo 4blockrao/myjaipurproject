@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ArrowLeft, MapPin, Search, Star, Filter, Menu, Bell, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -137,6 +136,25 @@ const Index = () => {
     "all", "Food & Dining", "Beauty & Wellness", "Shopping", 
     "Electronics", "Services", "Health & Fitness"
   ];
+
+  // Calculate deal counts by category for CategoryGrid
+  const dealCounts = categories.reduce((acc, category) => {
+    if (category === "all") {
+      acc[category] = deals.length;
+    } else {
+      acc[category] = deals.filter(deal => deal.category === category).length;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+  };
+
+  const handleAuthSuccess = async () => {
+    await checkUser();
+    setShowAuthModal(false);
+  };
 
   if (isLoading) {
     return (
@@ -351,7 +369,10 @@ const Index = () => {
 
           {/* Categories Tab */}
           <TabsContent value="categories">
-            <CategoryGrid />
+            <CategoryGrid 
+              dealCounts={dealCounts}
+              onCategorySelect={handleCategorySelect}
+            />
           </TabsContent>
 
           {/* Products Tab */}
@@ -441,13 +462,12 @@ const Index = () => {
       <AuthModal 
         isOpen={showAuthModal} 
         onClose={() => setShowAuthModal(false)} 
-        onSuccess={checkUser}
       />
       
       <LocalityPrompt
         isOpen={showLocalityPrompt}
         onClose={() => setShowLocalityPrompt(false)}
-        onLocationSet={handleLocalitySet}
+        onLocalitySelected={handleLocalitySet}
       />
     </div>
   );

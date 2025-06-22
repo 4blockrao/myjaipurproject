@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,19 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Listen for auth state changes and close modal when user signs in
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        onClose();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
