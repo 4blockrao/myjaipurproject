@@ -1,11 +1,13 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { Store, Users, Tag, CreditCard, TrendingUp, Database } from 'lucide-react';
+import { Store, Users, Tag, CreditCard, TrendingUp, Database, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import DataSeeder from './DataSeeder';
+import { useToast } from '@/hooks/use-toast';
 
 interface MerchantData {
   id: string;
@@ -74,6 +76,7 @@ const DataDashboard = () => {
     redeemedCoupons: 0,
     totalProfiles: 0
   });
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchAllData();
@@ -84,7 +87,19 @@ const DataDashboard = () => {
     try {
       console.log('Fetching all data...');
 
-      // Fetch merchants
+      // Test database connectivity first
+      const { error: connectivityError } = await supabase.from('merchants').select('id').limit(1);
+      if (connectivityError) {
+        console.error('Database connectivity error:', connectivityError);
+        toast({
+          title: "Database Connection Error",
+          description: "Unable to connect to the database. Please check your connection.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Fetch merchants with better error handling
       const { data: merchantsData, error: merchantsError } = await supabase
         .from('merchants')
         .select('*')
@@ -92,6 +107,11 @@ const DataDashboard = () => {
 
       if (merchantsError) {
         console.error('Merchants error:', merchantsError);
+        toast({
+          title: "Error fetching merchants",
+          description: merchantsError.message,
+          variant: "destructive"
+        });
       } else {
         console.log('Merchants data:', merchantsData);
         setMerchants(merchantsData || []);
@@ -108,6 +128,11 @@ const DataDashboard = () => {
 
       if (dealsError) {
         console.error('Deals error:', dealsError);
+        toast({
+          title: "Error fetching deals",
+          description: dealsError.message,
+          variant: "destructive"
+        });
       } else {
         console.log('Deals data:', dealsData);
         setDeals(dealsData || []);
@@ -125,6 +150,11 @@ const DataDashboard = () => {
 
       if (couponsError) {
         console.error('Coupons error:', couponsError);
+        toast({
+          title: "Error fetching coupons",
+          description: couponsError.message,
+          variant: "destructive"
+        });
       } else {
         console.log('Coupons data:', couponsData);
         setCoupons(couponsData || []);
@@ -138,6 +168,11 @@ const DataDashboard = () => {
 
       if (profilesError) {
         console.error('Profiles error:', profilesError);
+        toast({
+          title: "Error fetching profiles",
+          description: profilesError.message,
+          variant: "destructive"
+        });
       } else {
         console.log('Profiles data:', profilesData);
         setProfiles(profilesData || []);
@@ -160,8 +195,21 @@ const DataDashboard = () => {
         totalProfiles: profileStats.length
       });
 
+      if (merchantStats.length === 0 && dealStats.length === 0) {
+        toast({
+          title: "No Data Found",
+          description: "Database appears empty. Use the seeder to create sample data.",
+          variant: "default"
+        });
+      }
+
     } catch (error) {
       console.error('Error fetching data:', error);
+      toast({
+        title: "Unexpected Error",
+        description: "An unexpected error occurred while fetching data.",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -170,7 +218,10 @@ const DataDashboard = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto mb-4"></div>
+          <p>Loading system data...</p>
+        </div>
       </div>
     );
   }
@@ -178,16 +229,28 @@ const DataDashboard = () => {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Data Dashboard</h1>
-        <Badge variant="outline" className="flex items-center gap-1">
-          <Database className="w-4 h-4" />
-          System Overview
-        </Badge>
+        <h1 className="text-3xl font-bold">Admin Data Dashboard</h1>
+        <div className="flex gap-2">
+          <Link to="/admin/audit">
+            <Button variant="outline" className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              System Audit
+            </Button>
+          </Link>
+          <Button 
+            onClick={fetchAllData}
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh Data
+          </Button>
+        </div>
       </div>
 
-      {/* Stats Overview */}
+      {/* Stats Overview - Enhanced */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className={stats.totalMerchants === 0 ? "border-red-200 bg-red-50" : ""}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -200,7 +263,7 @@ const DataDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={stats.totalDeals === 0 ? "border-red-200 bg-red-50" : ""}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -213,7 +276,7 @@ const DataDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={stats.totalCoupons === 0 ? "border-red-200 bg-red-50" : ""}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -226,7 +289,7 @@ const DataDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={stats.totalProfiles === 0 ? "border-red-200 bg-red-50" : ""}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -240,16 +303,31 @@ const DataDashboard = () => {
         </Card>
       </div>
 
+      {/* Data Status Alert */}
+      {stats.totalMerchants === 0 && stats.totalDeals === 0 && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-yellow-800">
+              <AlertTriangle className="w-5 h-5" />
+              <span className="font-semibold">No Data Detected</span>
+            </div>
+            <p className="text-yellow-700 mt-2">
+              The database appears to be empty. Use the data seeder below to create sample data for testing.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Data Seeder */}
       <DataSeeder />
 
       {/* Data Tables */}
       <Tabs defaultValue="merchants" className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="merchants">Merchants</TabsTrigger>
-          <TabsTrigger value="deals">Deals</TabsTrigger>
-          <TabsTrigger value="coupons">Coupons</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="merchants">Merchants ({merchants.length})</TabsTrigger>
+          <TabsTrigger value="deals">Deals ({deals.length})</TabsTrigger>
+          <TabsTrigger value="coupons">Coupons ({coupons.length})</TabsTrigger>
+          <TabsTrigger value="users">Users ({profiles.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="merchants" className="space-y-4">

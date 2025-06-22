@@ -137,9 +137,15 @@ const Index = () => {
               <Link to="/merchant" className="text-gray-600 hover:text-pink-600 font-medium">
                 For Merchants
               </Link>
-              <Link to="/admin/data" className="text-gray-600 hover:text-pink-600 font-medium text-sm">
-                Admin
-              </Link>
+              <div className="flex items-center space-x-2">
+                <Link to="/admin/data" className="text-gray-600 hover:text-pink-600 font-medium text-sm">
+                  Admin Data
+                </Link>
+                <span className="text-gray-400">|</span>
+                <Link to="/admin/audit" className="text-gray-600 hover:text-pink-600 font-medium text-sm">
+                  System Audit
+                </Link>
+              </div>
             </div>
 
             <div className="flex items-center space-x-4">

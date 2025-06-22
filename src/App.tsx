@@ -15,6 +15,7 @@ import GamificationPage from "./pages/GamificationPage";
 import ProMembershipPage from "./pages/ProMembershipPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import DataDashboard from "./components/DataDashboard";
+import SystemAudit from "./components/SystemAudit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/pro" element={<ProMembershipPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/admin/data" element={<DataDashboard />} />
+          <Route path="/admin/audit" element={<SystemAudit />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
