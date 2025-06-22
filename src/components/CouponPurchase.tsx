@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +20,7 @@ interface Deal {
   jaicoin_reward: number;
   location: string;
   merchants: {
+    id: string;
     business_name: string;
     is_verified: boolean;
   };
@@ -50,6 +50,7 @@ const CouponPurchase = ({ dealId }: { dealId: string }) => {
         .select(`
           *,
           merchants!inner(
+            id,
             business_name,
             is_verified
           )
@@ -59,7 +60,28 @@ const CouponPurchase = ({ dealId }: { dealId: string }) => {
         .single();
 
       if (error) throw error;
-      setDeal(data);
+      
+      const formattedDeal: Deal = {
+        id: data.id,
+        title: data.title,
+        description: data.description || '',
+        coupon_type: data.coupon_type as 'free' | 'paid_discount' | 'full_value',
+        purchase_price: data.purchase_price || 0,
+        original_price: data.original_price || 0,
+        discounted_price: data.discounted_price || 0,
+        validity_days: data.validity_days || 30,
+        usage_terms: data.usage_terms || '',
+        min_order_value: data.min_order_value || 0,
+        jaicoin_reward: data.jaicoin_reward || 0,
+        location: data.location || '',
+        merchants: {
+          id: data.merchants.id,
+          business_name: data.merchants.business_name,
+          is_verified: data.merchants.is_verified
+        }
+      };
+      
+      setDeal(formattedDeal);
     } catch (error) {
       console.error('Error fetching deal:', error);
       toast({
@@ -103,7 +125,7 @@ const CouponPurchase = ({ dealId }: { dealId: string }) => {
           .insert({
             deal_id: deal.id,
             user_id: user.id,
-            merchant_id: deal.merchants?.business_name, // This should be merchant_id but using business_name for demo
+            merchant_id: deal.merchants.id,
             coupon_code: couponCode,
             coupon_type: deal.coupon_type,
             purchase_amount: 0,
@@ -132,7 +154,6 @@ const CouponPurchase = ({ dealId }: { dealId: string }) => {
         });
       } else {
         // For paid coupons, simulate payment gateway integration
-        // In real implementation, integrate with Razorpay/Stripe here
         const paymentId = 'payment_' + Math.random().toString(36).substr(2, 9);
         
         const { error } = await supabase
@@ -140,7 +161,7 @@ const CouponPurchase = ({ dealId }: { dealId: string }) => {
           .insert({
             deal_id: deal.id,
             user_id: user.id,
-            merchant_id: deal.merchants?.business_name, // This should be merchant_id
+            merchant_id: deal.merchants.id,
             coupon_code: couponCode,
             coupon_type: deal.coupon_type,
             purchase_amount: deal.purchase_price,
