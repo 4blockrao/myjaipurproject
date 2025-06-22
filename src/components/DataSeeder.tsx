@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -193,7 +192,24 @@ const DataSeeder = () => {
             const deal = sampleDeals[i];
             const profile = profiles[i % profiles.length];
             
-            const coupon = {
+            // Determine if this coupon should be redeemed
+            const shouldBeRedeemed = Math.random() > 0.6;
+            
+            const coupon: {
+              coupon_code: string;
+              user_id: string;
+              deal_id: string;
+              merchant_id: string;
+              coupon_type: string;
+              discount_amount: number;
+              purchase_amount: number;
+              status: string;
+              expires_at: string;
+              purchased_at: string;
+              min_order_value: number;
+              usage_terms: string;
+              redeemed_at?: string;
+            } = {
               coupon_code: `JAI${String(Math.random()).substring(2, 10).toUpperCase()}`,
               user_id: profile.id,
               deal_id: deal.id,
@@ -201,7 +217,7 @@ const DataSeeder = () => {
               coupon_type: 'paid_discount',
               discount_amount: Math.floor(Math.random() * 50) + 10,
               purchase_amount: deal.purchase_price || 25,
-              status: ['active', 'redeemed', 'expired'][Math.floor(Math.random() * 3)],
+              status: shouldBeRedeemed ? 'redeemed' : ['active', 'expired'][Math.floor(Math.random() * 2)],
               expires_at: new Date(Date.now() + Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
               purchased_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
               min_order_value: Math.floor(Math.random() * 30),
@@ -209,9 +225,8 @@ const DataSeeder = () => {
             };
             
             // Add redeemed_at for redeemed coupons
-            if (Math.random() > 0.6) {
+            if (shouldBeRedeemed) {
               coupon.redeemed_at = new Date(Date.now() - Math.random() * 15 * 24 * 60 * 60 * 1000).toISOString();
-              coupon.status = 'redeemed';
             }
             
             coupons.push(coupon);
