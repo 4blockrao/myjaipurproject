@@ -56,7 +56,7 @@ const Index = () => {
     try {
       console.log('Fetching dashboard stats...');
 
-      // Get deals count
+      // Get active deals count
       const { count: dealsCount, error: dealsError } = await supabase
         .from('deals')
         .select('*', { count: 'exact', head: true })
@@ -66,6 +66,7 @@ const Index = () => {
         console.error('Error fetching deals count:', dealsError);
       }
 
+      // Get active merchants count
       const { count: merchantsCount, error: merchantsError } = await supabase
         .from('merchants')
         .select('*', { count: 'exact', head: true })
@@ -75,6 +76,7 @@ const Index = () => {
         console.error('Error fetching merchants count:', merchantsError);
       }
 
+      // Get users count
       const { count: usersCount, error: usersError } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
@@ -83,6 +85,7 @@ const Index = () => {
         console.error('Error fetching users count:', usersError);
       }
 
+      // Get featured deals with merchant info
       const { data: featuredDeals, error: featuredError } = await supabase
         .from('deals')
         .select(`
@@ -94,7 +97,7 @@ const Index = () => {
         `)
         .eq('is_active', true)
         .eq('is_featured', true)
-        .limit(3);
+        .limit(6);
 
       if (featuredError) {
         console.error('Error fetching featured deals:', featuredError);
@@ -104,7 +107,7 @@ const Index = () => {
         deals: dealsCount,
         merchants: merchantsCount,
         users: usersCount,
-        featured: featuredDeals?.length
+        featured: featuredDeals?.length || 0
       });
 
       setStats({
@@ -231,23 +234,26 @@ const Index = () => {
             </Link>
           </div>
 
+          {/* Enhanced Empty State Message */}
           {stats.totalDeals === 0 && stats.totalMerchants === 0 && !isLoading && (
-            <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg max-w-2xl mx-auto">
-              <h3 className="font-semibold text-yellow-800 mb-2">No data found!</h3>
-              <p className="text-yellow-700 mb-3">
-                It looks like the database is empty. Please seed some sample data to see the platform in action.
+            <div className="mt-8 p-6 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg max-w-2xl mx-auto">
+              <h3 className="font-semibold text-yellow-800 mb-3">🚀 Ready to Explore HiJaipur?</h3>
+              <p className="text-yellow-700 mb-4">
+                It looks like the database needs sample data to showcase the platform's features. 
+                Click below to populate with realistic Jaipur businesses, deals, and user activity!
               </p>
               <Link to="/admin/data">
-                <Button variant="outline" className="border-yellow-300 text-yellow-700 hover:bg-yellow-100">
-                  Go to Admin Panel to Seed Data
+                <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white">
+                  🎯 Seed Sample Data Now
                 </Button>
               </Link>
             </div>
           )}
         </div>
 
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          <Card className="text-center border-2 border-pink-100">
+          <Card className="text-center border-2 border-pink-100 hover:shadow-lg transition-shadow">
             <CardContent className="pt-6">
               <Gift className="w-12 h-12 mx-auto mb-4 text-pink-600" />
               <div className="text-3xl font-bold text-gray-800 mb-2">
@@ -258,10 +264,13 @@ const Index = () => {
                 )}
               </div>
               <div className="text-gray-600">Active Deals</div>
+              {stats.totalDeals > 0 && (
+                <div className="text-xs text-green-600 mt-1">🔥 Live & Updated</div>
+              )}
             </CardContent>
           </Card>
           
-          <Card className="text-center border-2 border-yellow-100">
+          <Card className="text-center border-2 border-yellow-100 hover:shadow-lg transition-shadow">
             <CardContent className="pt-6">
               <Users className="w-12 h-12 mx-auto mb-4 text-yellow-600" />
               <div className="text-3xl font-bold text-gray-800 mb-2">
@@ -272,10 +281,13 @@ const Index = () => {
                 )}
               </div>
               <div className="text-gray-600">Partner Merchants</div>
+              {stats.totalMerchants > 0 && (
+                <div className="text-xs text-green-600 mt-1">✅ Verified Businesses</div>
+              )}
             </CardContent>
           </Card>
           
-          <Card className="text-center border-2 border-blue-100">
+          <Card className="text-center border-2 border-blue-100 hover:shadow-lg transition-shadow">
             <CardContent className="pt-6">
               <Star className="w-12 h-12 mx-auto mb-4 text-blue-600" />
               <div className="text-3xl font-bold text-gray-800 mb-2">
@@ -286,59 +298,78 @@ const Index = () => {
                 )}
               </div>
               <div className="text-gray-600">Happy Users</div>
+              {stats.totalUsers > 0 && (
+                <div className="text-xs text-green-600 mt-1">🎯 Active Community</div>
+              )}
             </CardContent>
           </Card>
         </div>
 
+        {/* Featured Deals Section */}
         {stats.featuredDeals.length > 0 && (
           <div className="mb-16">
-            <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">Featured Deals</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">
+              🌟 Featured Deals from Jaipur
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {stats.featuredDeals.map((deal: any) => (
-                <Card key={deal.id} className="border-2 border-yellow-200 bg-yellow-50">
+                <Card key={deal.id} className="border-2 border-yellow-200 bg-gradient-to-br from-yellow-50 to-orange-50 hover:shadow-xl transition-all duration-300">
                   <CardHeader>
-                    <div className="bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-medium w-fit mb-2">
-                      ⭐ Featured
-                    </div>
-                    <CardTitle className="text-lg">{deal.title}</CardTitle>
-                    <CardDescription className="flex items-center gap-2">
-                      <span>{deal.merchants?.business_name}</span>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-xs font-bold">
+                        ⭐ FEATURED
+                      </div>
                       {deal.merchants?.is_verified && (
-                        <span className="text-green-600 text-xs">✓ Verified</span>
+                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                          ✓ Verified
+                        </span>
                       )}
+                    </div>
+                    <CardTitle className="text-lg leading-tight">{deal.title}</CardTitle>
+                    <CardDescription className="flex items-center gap-2">
+                      <span className="font-medium">{deal.merchants?.business_name}</span>
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-2">
-                        <span className="text-xl font-bold text-green-600">₹{deal.discounted_price}</span>
+                        <span className="text-2xl font-bold text-green-600">₹{deal.discounted_price?.toLocaleString()}</span>
                         {deal.original_price > 0 && (
-                          <span className="text-sm line-through text-gray-500">₹{deal.original_price}</span>
+                          <span className="text-sm line-through text-gray-500">₹{deal.original_price?.toLocaleString()}</span>
                         )}
                       </div>
                       {deal.discount_percentage > 0 && (
-                        <span className="bg-pink-100 text-pink-800 px-2 py-1 rounded-full text-xs font-medium">
+                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-bold">
                           {deal.discount_percentage}% OFF
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                      <div className="flex items-center space-x-1">
-                        {deal.location?.toLowerCase().includes('online') ? (
-                          <Globe className="w-4 h-4 text-blue-500" />
-                        ) : (
-                          <MapPin className="w-4 h-4 text-red-500" />
-                        )}
-                        <span>{deal.location}</span>
+                    
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center justify-between text-sm text-gray-600">
+                        <div className="flex items-center space-x-1">
+                          {deal.location?.toLowerCase().includes('online') ? (
+                            <Globe className="w-4 h-4 text-blue-500" />
+                          ) : (
+                            <MapPin className="w-4 h-4 text-red-500" />
+                          )}
+                          <span className="font-medium">{deal.location}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-1">
+                      
+                      <div className="flex items-center space-x-1 text-sm">
                         <Coins className="w-4 h-4 text-yellow-500" />
-                        <span>+{deal.jaicoin_reward} JaiCoins</span>
+                        <span className="text-yellow-700 font-semibold">Earn +{deal.jaicoin_reward} JaiCoins</span>
+                      </div>
+                      
+                      <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                        Category: <span className="font-medium">{deal.category}</span>
                       </div>
                     </div>
+                    
                     <Link to="/deals">
-                      <Button className="w-full bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600">
-                        View Deal
+                      <Button className="w-full bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 font-semibold">
+                        🛍️ View Deal Details
                       </Button>
                     </Link>
                   </CardContent>
@@ -347,14 +378,15 @@ const Index = () => {
             </div>
             <div className="text-center mt-8">
               <Link to="/deals">
-                <Button variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50">
-                  View All Deals
+                <Button variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 px-8 py-3">
+                  🔍 Explore All {stats.totalDeals} Deals
                 </Button>
               </Link>
             </div>
           </div>
         )}
 
+        {/* How It Works Section */}
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-gray-800 mb-8">How HiJaipur Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -382,6 +414,7 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Mobile Navigation */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-pink-100 px-4 py-2">
           <div className="flex justify-around">
             <Link to="/deals" className="flex flex-col items-center space-y-1 text-gray-600 hover:text-pink-600">
