@@ -2,15 +2,29 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Trophy, Medal, Award, TrendingUp, Users, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+interface TopEarner {
+  id: string;
+  full_name: string;
+  rank: string;
+  balance: number;
+}
+
+interface TopReferrer {
+  id: string;
+  full_name: string;
+  total_referrals: number;
+  rank: string;
+}
+
 const Leaderboard = () => {
-  const [topEarners, setTopEarners] = useState([]);
-  const [topReferrers, setTopReferrers] = useState([]);
+  const [topEarners, setTopEarners] = useState<TopEarner[]>([]);
+  const [topReferrers, setTopReferrers] = useState<TopReferrer[]>([]);
   const [activeTab, setActiveTab] = useState('earners');
-  const [userRank, setUserRank] = useState(null);
+  const [userRank, setUserRank] = useState<any>(null);
 
   useEffect(() => {
     fetchTopEarners();
@@ -19,9 +33,34 @@ const Leaderboard = () => {
   }, []);
 
   const fetchTopEarners = async () => {
-    // Get users with highest JaiCoin balances
-    const { data } = await supabase.rpc('get_top_earners', {}, { count: 10 });
-    setTopEarners(data || []);
+    try {
+      // Use the existing get_user_balance function to calculate balances
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, rank')
+        .limit(10);
+
+      if (profiles) {
+        const earnersWithBalances = await Promise.all(
+          profiles.map(async (profile) => {
+            const { data: balance } = await supabase.rpc('get_user_balance', {
+              user_uuid: profile.id
+            });
+            return {
+              ...profile,
+              balance: balance || 0
+            };
+          })
+        );
+
+        // Sort by balance descending
+        earnersWithBalances.sort((a, b) => b.balance - a.balance);
+        setTopEarners(earnersWithBalances.slice(0, 10));
+      }
+    } catch (error) {
+      console.error('Error fetching top earners:', error);
+      setTopEarners([]);
+    }
   };
 
   const fetchTopReferrers = async () => {
@@ -117,9 +156,9 @@ const Leaderboard = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <Avatar className={`w-10 h-10 ${getRankColor(userRank.rank)}`}>
-                      <div className="w-full h-full flex items-center justify-center text-white font-bold">
+                      <AvatarFallback className="text-white font-bold">
                         YOU
-                      </div>
+                      </AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="font-medium">Your Stats</div>
@@ -146,9 +185,9 @@ const Leaderboard = () => {
                     <div className="flex items-center space-x-3">
                       {getRankIcon(index + 1)}
                       <Avatar className={`w-10 h-10 ${getRankColor(user.rank)}`}>
-                        <div className="w-full h-full flex items-center justify-center text-white font-bold">
+                        <AvatarFallback className="text-white font-bold">
                           {user.full_name?.[0] || 'U'}
-                        </div>
+                        </AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="font-medium">{user.full_name || 'Anonymous User'}</div>
@@ -170,9 +209,9 @@ const Leaderboard = () => {
                     <div className="flex items-center space-x-3">
                       {getRankIcon(index + 1)}
                       <Avatar className={`w-10 h-10 ${getRankColor(user.rank)}`}>
-                        <div className="w-full h-full flex items-center justify-center text-white font-bold">
+                        <AvatarFallback className="text-white font-bold">
                           {user.full_name?.[0] || 'U'}
-                        </div>
+                        </AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="font-medium">{user.full_name || 'Anonymous User'}</div>
