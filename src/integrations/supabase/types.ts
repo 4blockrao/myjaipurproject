@@ -221,20 +221,24 @@ export type Database = {
           coupon_type: string | null
           created_at: string | null
           current_redemptions: number | null
+          deal_type: string | null
           description: string | null
           discount_percentage: number | null
           discounted_price: number | null
           end_date: string | null
           id: string
           image_url: string | null
+          inventory_count: number | null
           is_active: boolean | null
           is_featured: boolean | null
+          is_product_sale: boolean | null
           jaicoin_reward: number | null
           location: string | null
           max_redemptions: number | null
           merchant_id: string | null
           min_order_value: number | null
           original_price: number | null
+          product_details: Json | null
           purchase_price: number | null
           start_date: string | null
           subcategory: string | null
@@ -250,20 +254,24 @@ export type Database = {
           coupon_type?: string | null
           created_at?: string | null
           current_redemptions?: number | null
+          deal_type?: string | null
           description?: string | null
           discount_percentage?: number | null
           discounted_price?: number | null
           end_date?: string | null
           id?: string
           image_url?: string | null
+          inventory_count?: number | null
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_product_sale?: boolean | null
           jaicoin_reward?: number | null
           location?: string | null
           max_redemptions?: number | null
           merchant_id?: string | null
           min_order_value?: number | null
           original_price?: number | null
+          product_details?: Json | null
           purchase_price?: number | null
           start_date?: string | null
           subcategory?: string | null
@@ -279,20 +287,24 @@ export type Database = {
           coupon_type?: string | null
           created_at?: string | null
           current_redemptions?: number | null
+          deal_type?: string | null
           description?: string | null
           discount_percentage?: number | null
           discounted_price?: number | null
           end_date?: string | null
           id?: string
           image_url?: string | null
+          inventory_count?: number | null
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_product_sale?: boolean | null
           jaicoin_reward?: number | null
           location?: string | null
           max_redemptions?: number | null
           merchant_id?: string | null
           min_order_value?: number | null
           original_price?: number | null
+          product_details?: Json | null
           purchase_price?: number | null
           start_date?: string | null
           subcategory?: string | null
@@ -642,6 +654,78 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          created_at: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          deal_id: string | null
+          delivery_address: string | null
+          id: string
+          jaicoin_used: number | null
+          merchant_id: string | null
+          order_code: string | null
+          order_notes: string | null
+          payment_method: string | null
+          quantity: number
+          status: string | null
+          total_amount: number
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          deal_id?: string | null
+          delivery_address?: string | null
+          id?: string
+          jaicoin_used?: number | null
+          merchant_id?: string | null
+          order_code?: string | null
+          order_notes?: string | null
+          payment_method?: string | null
+          quantity?: number
+          status?: string | null
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          deal_id?: string | null
+          delivery_address?: string | null
+          id?: string
+          jaicoin_used?: number | null
+          merchant_id?: string | null
+          order_code?: string | null
+          order_notes?: string | null
+          payment_method?: string | null
+          quantity?: number
+          status?: string | null
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_likes: {
         Row: {
           created_at: string | null
@@ -678,6 +762,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_pro: boolean | null
+          locality: string | null
           phone: string | null
           pro_expires_at: string | null
           pro_tier: string | null
@@ -694,6 +779,7 @@ export type Database = {
           full_name?: string | null
           id: string
           is_pro?: boolean | null
+          locality?: string | null
           phone?: string | null
           pro_expires_at?: string | null
           pro_tier?: string | null
@@ -710,6 +796,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_pro?: boolean | null
+          locality?: string | null
           phone?: string | null
           pro_expires_at?: string | null
           pro_tier?: string | null
@@ -1014,6 +1101,25 @@ export type Database = {
       generate_referral_code: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_order_details: {
+        Args: { order_uuid: string }
+        Returns: {
+          id: string
+          order_code: string
+          quantity: number
+          total_amount: number
+          jaicoin_used: number
+          status: string
+          payment_method: string
+          customer_name: string
+          deal_title: string
+          deal_discounted_price: number
+          deal_jaicoin_reward: number
+          deal_is_product_sale: boolean
+          merchant_business_name: string
+          merchant_address: string
+        }[]
       }
       get_user_balance: {
         Args: { user_uuid: string }

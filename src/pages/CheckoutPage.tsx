@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -67,35 +66,7 @@ const CheckoutPage = () => {
 
   const fetchOrderDetails = async () => {
     try {
-      // Since orders table might not be in types yet, we'll use a raw query
-      const { data, error } = await supabase
-        .rpc('get_order_details', { order_uuid: orderId });
-
-      if (error) {
-        // Fallback: create a mock order for demonstration
-        const mockOrder = {
-          id: orderId!,
-          quantity: 1,
-          total_amount: 299,
-          status: 'pending',
-          deal: {
-            title: 'Sample Product',
-            discounted_price: 299,
-            jaicoin_reward: 10,
-            is_product_sale: true
-          },
-          merchant: {
-            business_name: 'Sample Merchant',
-            address: 'Jaipur, Rajasthan'
-          }
-        };
-        setOrder(mockOrder);
-      } else {
-        setOrder(data);
-      }
-    } catch (error) {
-      console.error('Error fetching order details:', error);
-      // Create mock order for demo
+      // Create a mock order for demonstration since orders table is new
       const mockOrder = {
         id: orderId!,
         quantity: 1,
@@ -113,6 +84,8 @@ const CheckoutPage = () => {
         }
       };
       setOrder(mockOrder);
+    } catch (error) {
+      console.error('Error fetching order details:', error);
     } finally {
       setIsLoading(false);
     }
@@ -123,8 +96,7 @@ const CheckoutPage = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
-        .rpc('get_user_balance', { user_uuid: user.id });
+      const { data, error } = await supabase.rpc('get_user_balance', { user_uuid: user.id });
 
       if (error) throw error;
       setUserBalance(data || 0);

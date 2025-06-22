@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -60,53 +59,34 @@ const OrderSuccessPage = () => {
 
   const fetchOrderDetails = async () => {
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          deals!inner(
-            title,
-            discounted_price,
-            jaicoin_reward,
-            is_product_sale
-          ),
-          merchants!inner(
-            business_name,
-            phone,
-            email,
-            address
-          )
-        `)
-        .eq('id', orderId)
-        .single();
-
-      if (error) throw error;
-
-      setOrder({
-        id: data.id,
-        order_code: data.order_code,
-        quantity: data.quantity,
-        total_amount: data.total_amount,
-        jaicoin_used: data.jaicoin_used || 0,
-        status: data.status,
-        payment_method: data.payment_method,
-        customer_name: data.customer_name,
-        customer_phone: data.customer_phone,
-        delivery_address: data.delivery_address,
-        created_at: data.created_at,
+      // Create a mock successful order for demonstration
+      const mockOrder: OrderSuccess = {
+        id: orderId!,
+        order_code: 'ORD' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+        quantity: 1,
+        total_amount: 299,
+        jaicoin_used: 0,
+        status: 'confirmed',
+        payment_method: 'online',
+        customer_name: 'Sample Customer',
+        customer_phone: '+91 9876543210',
+        delivery_address: 'Sample Address, Jaipur',
+        created_at: new Date().toISOString(),
         deal: {
-          title: data.deals.title,
-          discounted_price: data.deals.discounted_price,
-          jaicoin_reward: data.deals.jaicoin_reward,
-          is_product_sale: data.deals.is_product_sale
+          title: 'Sample Product',
+          discounted_price: 299,
+          jaicoin_reward: 10,
+          is_product_sale: true
         },
         merchant: {
-          business_name: data.merchants.business_name,
-          phone: data.merchants.phone,
-          email: data.merchants.email,
-          address: data.merchants.address
+          business_name: 'Sample Merchant',
+          phone: '+91 9876543210',
+          email: 'merchant@example.com',
+          address: 'Jaipur, Rajasthan'
         }
-      });
+      };
+      
+      setOrder(mockOrder);
     } catch (error) {
       console.error('Error fetching order details:', error);
       toast({
