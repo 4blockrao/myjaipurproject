@@ -40,8 +40,9 @@ const FeaturedProducts = () => {
 
   const fetchFeaturedProducts = async () => {
     try {
+      // Fetch featured deals that represent products
       const { data, error } = await supabase
-        .from('products')
+        .from('deals')
         .select(`
           *,
           merchants!inner(
@@ -57,24 +58,25 @@ const FeaturedProducts = () => {
 
       if (error) throw error;
 
+      // Transform deals data to match Product interface
       const formattedProducts = data?.map(item => ({
         id: item.id,
-        name: item.name,
+        name: item.title || 'Untitled Product',
         description: item.description || '',
-        category: item.category,
+        category: item.category || 'General',
         subcategory: item.subcategory || '',
-        brand: item.brand || '',
+        brand: item.product_details?.brand || 'Generic',
         original_price: item.original_price || 0,
         discounted_price: item.discounted_price || 0,
         discount_percentage: item.discount_percentage || 0,
         inventory_count: item.inventory_count || 0,
-        specifications: item.specifications || {},
-        images: item.images || [],
+        specifications: item.product_details || {},
+        images: item.image_url ? [item.image_url] : [],
         tags: item.tags || [],
         is_featured: item.is_featured || false,
         jaicoin_reward: item.jaicoin_reward || 0,
-        average_rating: item.average_rating || 0,
-        total_reviews: item.total_reviews || 0,
+        average_rating: 0, // Will be updated when we have reviews
+        total_reviews: 0,
         merchants: {
           business_name: item.merchants?.business_name || 'Unknown Merchant',
           is_verified: item.merchants?.is_verified || false
