@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { ArrowLeft, MapPin, Search, Star, Filter, Menu, Bell, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -65,7 +66,7 @@ const Index = () => {
     }
   };
 
-  const handleLocalitySet = async (locality: string) => {
+  const handleLocalitySelected = async (locality: string) => {
     if (!user) return;
     
     try {
@@ -149,11 +150,6 @@ const Index = () => {
 
   const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
-  };
-
-  const handleAuthSuccess = async () => {
-    await checkUser();
-    setShowAuthModal(false);
   };
 
   if (isLoading) {
@@ -467,7 +463,7 @@ const Index = () => {
       <LocalityPrompt
         isOpen={showLocalityPrompt}
         onClose={() => setShowLocalityPrompt(false)}
-        onLocalitySelected={handleLocalitySet}
+        onLocalitySelected={handleLocalitySelected}
       />
     </div>
   );
