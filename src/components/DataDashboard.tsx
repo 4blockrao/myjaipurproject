@@ -99,11 +99,12 @@ const DataDashboard = () => {
         return;
       }
 
-      // Fetch merchants with better error handling
+      // Fetch merchants with better error handling and pagination
       const { data: merchantsData, error: merchantsError } = await supabase
         .from('merchants')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100); // Limit for performance
 
       if (merchantsError) {
         console.error('Merchants error:', merchantsError);
@@ -117,14 +118,15 @@ const DataDashboard = () => {
         setMerchants(merchantsData || []);
       }
 
-      // Fetch deals with merchant info
+      // Fetch deals with merchant info and pagination
       const { data: dealsData, error: dealsError } = await supabase
         .from('deals')
         .select(`
           *,
           merchants!inner(business_name)
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100); // Limit for performance
 
       if (dealsError) {
         console.error('Deals error:', dealsError);
@@ -138,7 +140,7 @@ const DataDashboard = () => {
         setDeals(dealsData || []);
       }
 
-      // Fetch coupons with deal and merchant info
+      // Fetch coupons with deal and merchant info and pagination
       const { data: couponsData, error: couponsError } = await supabase
         .from('coupons')
         .select(`
@@ -146,7 +148,8 @@ const DataDashboard = () => {
           deals!inner(title),
           merchants!inner(business_name)
         `)
-        .order('purchased_at', { ascending: false });
+        .order('purchased_at', { ascending: false })
+        .limit(100); // Limit for performance
 
       if (couponsError) {
         console.error('Coupons error:', couponsError);
@@ -160,11 +163,12 @@ const DataDashboard = () => {
         setCoupons(couponsData || []);
       }
 
-      // Fetch profiles
+      // Fetch profiles with pagination
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100); // Limit for performance
 
       if (profilesError) {
         console.error('Profiles error:', profilesError);
@@ -201,6 +205,12 @@ const DataDashboard = () => {
           description: "Database appears empty. Use the seeder to create sample data.",
           variant: "default"
         });
+      } else {
+        toast({
+          title: "Data Loaded Successfully", 
+          description: `Loaded ${merchantStats.length} merchants, ${dealStats.length} deals, ${couponStats.length} coupons, and ${profileStats.length} profiles.`,
+          variant: "default"
+        });
       }
 
     } catch (error) {
@@ -220,7 +230,7 @@ const DataDashboard = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto mb-4"></div>
-          <p>Loading system data...</p>
+          <p>Loading comprehensive system data...</p>
         </div>
       </div>
     );
@@ -248,14 +258,14 @@ const DataDashboard = () => {
         </div>
       </div>
 
-      {/* Stats Overview - Enhanced */}
+      {/* Enhanced Stats Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className={stats.totalMerchants === 0 ? "border-red-200 bg-red-50" : ""}>
+        <Card className={stats.totalMerchants === 0 ? "border-red-200 bg-red-50" : "border-green-200 bg-green-50"}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Merchants</p>
-                <p className="text-2xl font-bold">{stats.totalMerchants}</p>
+                <p className="text-2xl font-bold text-green-700">{stats.totalMerchants}</p>
                 <p className="text-xs text-green-600">{stats.activeMerchants} active</p>
               </div>
               <Store className="w-8 h-8 text-blue-500" />
@@ -263,12 +273,12 @@ const DataDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className={stats.totalDeals === 0 ? "border-red-200 bg-red-50" : ""}>
+        <Card className={stats.totalDeals === 0 ? "border-red-200 bg-red-50" : "border-blue-200 bg-blue-50"}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Deals</p>
-                <p className="text-2xl font-bold">{stats.totalDeals}</p>
+                <p className="text-2xl font-bold text-blue-700">{stats.totalDeals}</p>
                 <p className="text-xs text-green-600">{stats.activeDeals} active</p>
               </div>
               <Tag className="w-8 h-8 text-green-500" />
@@ -276,12 +286,12 @@ const DataDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className={stats.totalCoupons === 0 ? "border-red-200 bg-red-50" : ""}>
+        <Card className={stats.totalCoupons === 0 ? "border-red-200 bg-red-50" : "border-purple-200 bg-purple-50"}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Coupons</p>
-                <p className="text-2xl font-bold">{stats.totalCoupons}</p>
+                <p className="text-2xl font-bold text-purple-700">{stats.totalCoupons}</p>
                 <p className="text-xs text-orange-600">{stats.redeemedCoupons} redeemed</p>
               </div>
               <CreditCard className="w-8 h-8 text-purple-500" />
@@ -289,12 +299,12 @@ const DataDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className={stats.totalProfiles === 0 ? "border-red-200 bg-red-50" : ""}>
+        <Card className={stats.totalProfiles === 0 ? "border-red-200 bg-red-50" : "border-yellow-200 bg-yellow-50"}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Users</p>
-                <p className="text-2xl font-bold">{stats.totalProfiles}</p>
+                <p className="text-2xl font-bold text-yellow-700">{stats.totalProfiles}</p>
                 <p className="text-xs text-blue-600">profiles</p>
               </div>
               <Users className="w-8 h-8 text-yellow-500" />
@@ -303,7 +313,22 @@ const DataDashboard = () => {
         </Card>
       </div>
 
-      {/* Data Status Alert */}
+      {/* Production Data Status Alert */}
+      {stats.totalMerchants > 20 && stats.totalDeals > 40 && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-green-800">
+              <TrendingUp className="w-5 h-5" />
+              <span className="font-semibold">Production-Ready Data Detected!</span>
+            </div>
+            <p className="text-green-700 mt-2">
+              Excellent! Your database now contains comprehensive sample data perfect for testing all system features and demonstrating the Groupon 2.0 platform capabilities.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Data Status Alert for Empty Database */}
       {stats.totalMerchants === 0 && stats.totalDeals === 0 && (
         <Card className="border-yellow-200 bg-yellow-50">
           <CardContent className="p-4">
@@ -312,30 +337,45 @@ const DataDashboard = () => {
               <span className="font-semibold">No Data Detected</span>
             </div>
             <p className="text-yellow-700 mt-2">
-              The database appears to be empty. Use the data seeder below to create sample data for testing.
+              The database appears to be empty. Use the comprehensive data seeder below to create production-ready sample data for testing.
             </p>
           </CardContent>
         </Card>
       )}
 
-      {/* Data Seeder */}
+      {/* Enhanced Data Seeder */}
       <DataSeeder />
 
-      {/* Data Tables */}
+      {/* Data Tables with improved display */}
       <Tabs defaultValue="merchants" className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="merchants">Merchants ({merchants.length})</TabsTrigger>
-          <TabsTrigger value="deals">Deals ({deals.length})</TabsTrigger>
-          <TabsTrigger value="coupons">Coupons ({coupons.length})</TabsTrigger>
-          <TabsTrigger value="users">Users ({profiles.length})</TabsTrigger>
+          <TabsTrigger value="merchants">
+            Merchants ({merchants.length >= 100 ? '100+' : merchants.length})
+          </TabsTrigger>
+          <TabsTrigger value="deals">
+            Deals ({deals.length >= 100 ? '100+' : deals.length})
+          </TabsTrigger>
+          <TabsTrigger value="coupons">
+            Coupons ({coupons.length >= 100 ? '100+' : coupons.length})
+          </TabsTrigger>
+          <TabsTrigger value="users">
+            Users ({profiles.length >= 100 ? '100+' : profiles.length})
+          </TabsTrigger>
         </TabsList>
 
+        {/* Keep existing TabsContent sections but add note about pagination */}
         <TabsContent value="merchants" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Merchants ({merchants.length})</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Merchants ({merchants.length >= 100 ? '100+ (showing first 100)' : merchants.length})</CardTitle>
+                {merchants.length >= 100 && (
+                  <Badge variant="outline">Limited view - showing first 100 results</Badge>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
+              {/* ... keep existing merchant display code */}
               <div className="space-y-4">
                 {merchants.map((merchant) => (
                   <div key={merchant.id} className="border rounded-lg p-4">
@@ -371,7 +411,12 @@ const DataDashboard = () => {
         <TabsContent value="deals" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Deals ({deals.length})</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Deals ({deals.length >= 100 ? '100+ (showing first 100)' : deals.length})</CardTitle>
+                {deals.length >= 100 && (
+                  <Badge variant="outline">Limited view - showing first 100 results</Badge>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -409,7 +454,12 @@ const DataDashboard = () => {
         <TabsContent value="coupons" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Coupons ({coupons.length})</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Coupons ({coupons.length >= 100 ? '100+ (showing first 100)' : coupons.length})</CardTitle>
+                {coupons.length >= 100 && (
+                  <Badge variant="outline">Limited view - showing first 100 results</Badge>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -448,7 +498,12 @@ const DataDashboard = () => {
         <TabsContent value="users" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>User Profiles ({profiles.length})</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>User Profiles ({profiles.length >= 100 ? '100+ (showing first 100)' : profiles.length})</CardTitle>
+                {profiles.length >= 100 && (
+                  <Badge variant="outline">Limited view - showing first 100 results</Badge>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

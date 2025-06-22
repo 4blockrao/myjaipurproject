@@ -1,412 +1,278 @@
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { Database, Download, Users, Store, Tag, RefreshCw } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Database, AlertTriangle, Trash2 } from 'lucide-react';
 
 const DataSeeder = () => {
   const [isSeeding, setIsSeeding] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   const { toast } = useToast();
 
-  const seedSampleData = async () => {
+  const generateComprehensiveSampleData = async () => {
     setIsSeeding(true);
+    let successCount = 0;
+    let errorCount = 0;
+
     try {
       console.log('Starting comprehensive data seeding...');
 
-      // First, clean existing data to avoid duplicates
-      await supabase.from('jaicoin_transactions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('coupons').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('deals').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('merchants').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-
-      // Create comprehensive sample merchants with varied data
-      const sampleMerchants = [
-        {
-          business_name: 'Spice Garden Restaurant',
-          business_type: 'Restaurant',
-          email: 'contact@spicegarden.com',
-          phone: '+91-9876543210',
-          address: '123 M.I. Road, C-Scheme, Jaipur, Rajasthan 302001',
-          description: 'Authentic Rajasthani cuisine with modern ambiance. Experience the royal flavors of Rajasthan.',
-          is_verified: true,
-          is_active: true,
-          listing_tier: 'premium',
-          listing_fee_paid: true,
-          approval_status: 'approved',
-          average_rating: 4.5,
-          total_reviews: 150,
-          total_deals: 3,
-          website: 'https://spicegarden.com'
-        },
-        {
-          business_name: 'Beauty Bliss Salon & Spa',
-          business_type: 'Beauty & Wellness',
-          email: 'info@beautybliss.com',
-          phone: '+91-9876543211',
-          address: '456 Malviya Nagar, Jaipur, Rajasthan 302017',
-          description: 'Premium beauty and wellness services. Rejuvenate your mind, body, and soul.',
-          is_verified: true,
-          is_active: true,
-          listing_tier: 'basic',
-          listing_fee_paid: true,
-          approval_status: 'approved',
-          average_rating: 4.2,
-          total_reviews: 89,
-          total_deals: 2,
-          website: 'https://beautybliss.com'
-        },
-        {
-          business_name: 'TechMart Electronics',
-          business_type: 'Electronics',
-          email: 'sales@techmart.com',
-          phone: '+91-9876543212',
-          address: '789 Vaishali Nagar, Jaipur, Rajasthan 302021',
-          description: 'Latest gadgets and electronics at best prices. Your tech destination in Jaipur.',
-          is_verified: true,
-          is_active: true,
-          listing_tier: 'enterprise',
-          listing_fee_paid: true,
-          approval_status: 'approved',
-          average_rating: 4.0,
-          total_reviews: 45,
-          total_deals: 1,
-          website: 'https://techmart.com'
-        },
-        {
-          business_name: 'Fitness First Gym',
-          business_type: 'Health & Fitness',
-          email: 'info@fitnessfirst.com',
-          phone: '+91-9876543213',
-          address: '321 Mansarovar, Jaipur, Rajasthan 302020',
-          description: 'Complete fitness solution with modern equipment and expert trainers.',
-          is_verified: true,
-          is_active: true,
-          listing_tier: 'premium',
-          listing_fee_paid: true,
-          approval_status: 'approved',
-          average_rating: 4.3,
-          total_reviews: 67,
-          total_deals: 2
-        },
-        {
-          business_name: 'Fashion Hub',
-          business_type: 'Shopping',
-          email: 'contact@fashionhub.com',
-          phone: '+91-9876543214',
-          address: '654 Jagatpura, Jaipur, Rajasthan 302025',
-          description: 'Latest fashion trends and designer clothing for all occasions.',
-          is_verified: true,
-          is_active: true,
-          listing_tier: 'basic',
-          listing_fee_paid: true,
-          approval_status: 'approved',
-          average_rating: 4.1,
-          total_reviews: 34,
-          total_deals: 1
-        }
+      // 1. Create 30+ User Profiles
+      const profiles = [];
+      const userNames = [
+        'John Smith', 'Sarah Johnson', 'Michael Brown', 'Emily Davis', 'David Wilson',
+        'Lisa Anderson', 'Chris Taylor', 'Jessica Martinez', 'Andrew Thomas', 'Amanda White',
+        'Ryan Garcia', 'Nicole Miller', 'Kevin Rodriguez', 'Rachel Lee', 'Jason Moore',
+        'Ashley Jackson', 'Brandon Clark', 'Stephanie Lewis', 'Tyler Walker', 'Megan Hall',
+        'Justin Young', 'Kayla Allen', 'Nathan King', 'Samantha Wright', 'Eric Lopez',
+        'Christina Hill', 'Daniel Scott', 'Lauren Green', 'Matthew Adams', 'Brittany Baker',
+        'Joshua Gonzalez', 'Amber Nelson', 'Anthony Carter', 'Tiffany Mitchell', 'Mark Perez'
       ];
 
-      console.log('Inserting merchants...');
+      for (let i = 0; i < userNames.length; i++) {
+        const profile = {
+          id: `user-${i + 1}-${Date.now()}`,
+          full_name: userNames[i],
+          email: `${userNames[i].toLowerCase().replace(' ', '.')}@example.com`,
+          phone: `+1-555-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+          rank: ['Bronze', 'Silver', 'Gold', 'Platinum'][Math.floor(Math.random() * 4)],
+          is_pro: Math.random() > 0.7,
+          total_referrals: Math.floor(Math.random() * 20),
+          referral_code: `REF${String(Math.random()).substring(2, 8).toUpperCase()}`
+        };
+        profiles.push(profile);
+      }
+
+      const { error: profilesError } = await supabase.from('profiles').insert(profiles);
+      if (profilesError) {
+        console.error('Profiles error:', profilesError);
+        errorCount++;
+      } else {
+        successCount++;
+        console.log(`Created ${profiles.length} user profiles`);
+      }
+
+      // 2. Create 25+ Merchants
+      const merchants = [];
+      const businessData = [
+        { name: 'Pizza Palace Downtown', type: 'Restaurant', category: 'Food & Dining' },
+        { name: 'Fitness First Gym', type: 'Health & Fitness', category: 'Health & Wellness' },
+        { name: 'Beauty Bliss Spa', type: 'Beauty & Wellness', category: 'Beauty & Spa' },
+        { name: 'Tech Repair Pro', type: 'Electronics', category: 'Electronics & Tech' },
+        { name: 'Fashion Forward Boutique', type: 'Retail', category: 'Fashion & Apparel' },
+        { name: 'Coffee Corner Cafe', type: 'Restaurant', category: 'Food & Dining' },
+        { name: 'Auto Care Center', type: 'Automotive', category: 'Automotive Services' },
+        { name: 'Home Decor Haven', type: 'Retail', category: 'Home & Garden' },
+        { name: 'Learning Tree Academy', type: 'Education', category: 'Education & Training' },
+        { name: 'Pet Paradise Store', type: 'Pet Services', category: 'Pet Care' },
+        { name: 'Adventure Sports Hub', type: 'Recreation', category: 'Sports & Recreation' },
+        { name: 'Gourmet Burger Bar', type: 'Restaurant', category: 'Food & Dining' },
+        { name: 'Yoga Zen Studio', type: 'Health & Fitness', category: 'Health & Wellness' },
+        { name: 'Digital Solutions Inc', type: 'Technology', category: 'Business Services' },
+        { name: 'Artisan Bakery', type: 'Restaurant', category: 'Food & Dining' },
+        { name: 'Mobile Phone Repair', type: 'Electronics', category: 'Electronics & Tech' },
+        { name: 'Luxury Car Wash', type: 'Automotive', category: 'Automotive Services' },
+        { name: 'Kids Play Zone', type: 'Entertainment', category: 'Family & Kids' },
+        { name: 'Organic Market', type: 'Retail', category: 'Grocery & Food' },
+        { name: 'Dental Care Plus', type: 'Healthcare', category: 'Health & Medical' },
+        { name: 'Music Academy', type: 'Education', category: 'Education & Training' },
+        { name: 'Travel Experts Agency', type: 'Travel', category: 'Travel & Tourism' },
+        { name: 'Jewelry Collection', type: 'Retail', category: 'Jewelry & Accessories' },
+        { name: 'Thai Cuisine Palace', type: 'Restaurant', category: 'Food & Dining' },
+        { name: 'Bookstore & Cafe', type: 'Retail', category: 'Books & Media' },
+        { name: 'Fitness Equipment Store', type: 'Retail', category: 'Sports & Recreation' },
+        { name: 'Photography Studio', type: 'Services', category: 'Photography & Events' },
+        { name: 'Hair & Beauty Salon', type: 'Beauty & Wellness', category: 'Beauty & Spa' }
+      ];
+
+      for (let i = 0; i < businessData.length; i++) {
+        const business = businessData[i];
+        const merchant = {
+          business_name: business.name,
+          business_type: business.type,
+          email: `contact@${business.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+          phone: `+1-555-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+          address: `${Math.floor(Math.random() * 9999) + 1} ${['Main St', 'Oak Ave', 'Park Blvd', 'First St', 'Broadway'][Math.floor(Math.random() * 5)]}, City, State 12345`,
+          description: `Premium ${business.type.toLowerCase()} services with exceptional quality and customer satisfaction.`,
+          is_verified: Math.random() > 0.3,
+          is_active: Math.random() > 0.1,
+          listing_tier: ['basic', 'premium', 'enterprise'][Math.floor(Math.random() * 3)],
+          listing_fee_paid: Math.random() > 0.2,
+          approval_status: ['approved', 'pending', 'rejected'][Math.floor(Math.random() * 3)],
+          average_rating: +(Math.random() * 2 + 3).toFixed(1),
+          total_reviews: Math.floor(Math.random() * 150) + 5,
+          total_deals: Math.floor(Math.random() * 20) + 1,
+          website: `https://www.${business.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`
+        };
+        merchants.push(merchant);
+      }
+
       const { data: merchantsData, error: merchantsError } = await supabase
         .from('merchants')
-        .insert(sampleMerchants)
-        .select();
+        .insert(merchants)
+        .select('id, business_name');
+      
+      if (merchantsError) {
+        console.error('Merchants error:', merchantsError);
+        errorCount++;
+      } else {
+        successCount++;
+        console.log(`Created ${merchants.length} merchants`);
+      }
 
-      if (merchantsError) throw merchantsError;
-      console.log('Merchants created:', merchantsData?.length);
+      // 3. Create 50+ Deals
+      if (merchantsData && merchantsData.length > 0) {
+        const deals = [];
+        const dealTemplates = [
+          { title: '50% Off Pizza & Pasta', category: 'Food & Dining', discount: 50 },
+          { title: 'Buy 1 Get 1 Free Coffee', category: 'Food & Dining', discount: 50 },
+          { title: '30% Off Gym Membership', category: 'Health & Wellness', discount: 30 },
+          { title: 'Free Consultation + 20% Off', category: 'Beauty & Spa', discount: 20 },
+          { title: '$100 Off Phone Repair', category: 'Electronics & Tech', discount: 25 },
+          { title: '40% Off Designer Clothing', category: 'Fashion & Apparel', discount: 40 },
+          { title: 'Free Oil Change with Service', category: 'Automotive Services', discount: 35 },
+          { title: '25% Off Home Furniture', category: 'Home & Garden', discount: 25 },
+          { title: 'Free Trial Class + 15% Off', category: 'Education & Training', discount: 15 },
+          { title: '20% Off Pet Grooming', category: 'Pet Care', discount: 20 }
+        ];
 
-      // Create comprehensive sample deals
-      const sampleDeals = [
-        {
-          merchant_id: merchantsData[0].id,
-          title: '50% Off on Traditional Rajasthani Thali',
-          description: 'Enjoy authentic Rajasthani thali with 50% discount. Includes dal baati churma, gatte ki sabzi, and more traditional delicacies.',
-          category: 'Food & Dining',
-          subcategory: 'Indian Cuisine',
-          original_price: 500,
-          discounted_price: 250,
-          purchase_price: 50,
-          coupon_type: 'paid_discount',
-          is_active: true,
-          is_featured: true,
-          max_redemptions: 100,
-          current_redemptions: 15,
-          jaicoin_reward: 15,
-          validity_days: 30,
-          min_order_value: 400,
-          location: 'C-Scheme',
-          discount_percentage: 50,
-          terms_conditions: 'Valid for dine-in only. Cannot be combined with other offers.'
-        },
-        {
-          merchant_id: merchantsData[0].id,
-          title: 'Free Dessert with Main Course',
-          description: 'Get complimentary traditional dessert with any main course order.',
-          category: 'Food & Dining',
-          subcategory: 'Indian Cuisine',
-          original_price: 150,
-          discounted_price: 0,
-          purchase_price: 0,
-          coupon_type: 'free',
-          is_active: true,
-          is_featured: false,
-          max_redemptions: 50,
-          current_redemptions: 8,
-          jaicoin_reward: 10,
-          validity_days: 15,
-          location: 'C-Scheme'
-        },
-        {
-          merchant_id: merchantsData[1].id,
-          title: 'Complimentary Face Cleanup with Facial',
-          description: 'Free basic face cleanup with any premium facial service. Experience our signature treatments.',
-          category: 'Beauty & Wellness',
-          subcategory: 'Facial Services',
-          original_price: 800,
-          discounted_price: 0,
-          purchase_price: 0,
-          coupon_type: 'free',
-          is_active: true,
-          is_featured: true,
-          max_redemptions: 30,
-          current_redemptions: 5,
-          jaicoin_reward: 20,
-          validity_days: 45,
-          location: 'Malviya Nagar'
-        },
-        {
-          merchant_id: merchantsData[1].id,
-          title: '30% Off Hair Spa Package',
-          description: 'Rejuvenate your hair with our premium spa package at 30% discount.',
-          category: 'Beauty & Wellness',
-          subcategory: 'Hair Care',
-          original_price: 2000,
-          discounted_price: 1400,
-          purchase_price: 100,
-          coupon_type: 'paid_discount',
-          is_active: true,
-          is_featured: false,
-          max_redemptions: 25,
-          current_redemptions: 3,
-          jaicoin_reward: 25,
-          validity_days: 60,
-          location: 'Malviya Nagar',
-          discount_percentage: 30
-        },
-        {
-          merchant_id: merchantsData[2].id,
-          title: '₹2000 Off on Smartphones',
-          description: 'Get ₹2000 discount on smartphones above ₹15000. Latest models available.',
-          category: 'Electronics',
-          subcategory: 'Mobile Phones',
-          original_price: 20000,
-          discounted_price: 18000,
-          purchase_price: 99,
-          coupon_type: 'paid_discount',
-          is_active: true,
-          is_featured: true,
-          max_redemptions: 25,
-          current_redemptions: 3,
-          jaicoin_reward: 50,
-          validity_days: 60,
-          min_order_value: 15000,
-          location: 'Vaishali Nagar',
-          discount_percentage: 10
-        },
-        {
-          merchant_id: merchantsData[3].id,
-          title: '3 Months Gym Membership at 40% Off',
-          description: 'Complete fitness package with modern equipment and personal trainer guidance.',
-          category: 'Health & Fitness',
-          subcategory: 'Gym Membership',
-          original_price: 6000,
-          discounted_price: 3600,
-          purchase_price: 200,
-          coupon_type: 'paid_discount',
-          is_active: true,
-          is_featured: true,
-          max_redemptions: 20,
-          current_redemptions: 7,
-          jaicoin_reward: 40,
-          validity_days: 90,
-          location: 'Mansarovar',
-          discount_percentage: 40
-        },
-        {
-          merchant_id: merchantsData[3].id,
-          title: 'Free Fitness Assessment',
-          description: 'Complete body analysis and personalized workout plan absolutely free.',
-          category: 'Health & Fitness',
-          subcategory: 'Consultation',
-          original_price: 500,
-          discounted_price: 0,
-          purchase_price: 0,
-          coupon_type: 'free',
-          is_active: true,
-          is_featured: false,
-          max_redemptions: 40,
-          current_redemptions: 12,
-          jaicoin_reward: 15,
-          validity_days: 30,
-          location: 'Mansarovar'
-        },
-        {
-          merchant_id: merchantsData[4].id,
-          title: '25% Off on Designer Collection',
-          description: 'Exclusive discount on our latest designer clothing collection.',
-          category: 'Shopping',
-          subcategory: 'Fashion',
-          original_price: 4000,
-          discounted_price: 3000,
-          purchase_price: 150,
-          coupon_type: 'paid_discount',
-          is_active: true,
-          is_featured: false,
-          max_redemptions: 15,
-          current_redemptions: 2,
-          jaicoin_reward: 30,
-          validity_days: 45,
-          location: 'Jagatpura',
-          discount_percentage: 25,
-          min_order_value: 2000
+        for (let i = 0; i < 55; i++) {
+          const template = dealTemplates[i % dealTemplates.length];
+          const merchant = merchantsData[i % merchantsData.length];
+          const originalPrice = Math.floor(Math.random() * 200) + 20;
+          const discountPercent = template.discount + Math.floor(Math.random() * 20) - 10;
+          const discountedPrice = originalPrice * (1 - discountPercent / 100);
+          
+          const deal = {
+            title: `${template.title} - ${merchant.business_name}`,
+            description: `Amazing deal from ${merchant.business_name}. Limited time offer with excellent value for money.`,
+            category: template.category,
+            subcategory: ['Premium', 'Standard', 'Deluxe'][Math.floor(Math.random() * 3)],
+            original_price: originalPrice,
+            discounted_price: Math.round(discountedPrice),
+            purchase_price: Math.round(discountedPrice * 0.8),
+            discount_percentage: discountPercent,
+            merchant_id: merchant.id,
+            coupon_type: ['paid_discount', 'free_item', 'percentage_off'][Math.floor(Math.random() * 3)],
+            is_active: Math.random() > 0.15,
+            is_featured: Math.random() > 0.7,
+            max_redemptions: Math.floor(Math.random() * 100) + 10,
+            current_redemptions: Math.floor(Math.random() * 20),
+            jaicoin_reward: Math.floor(Math.random() * 50) + 5,
+            min_order_value: Math.floor(Math.random() * 50),
+            validity_days: [7, 14, 30, 60, 90][Math.floor(Math.random() * 5)],
+            location: `${['Downtown', 'Uptown', 'West Side', 'East End', 'City Center'][Math.floor(Math.random() * 5)]}`,
+            tags: [template.category.split(' ')[0].toLowerCase(), 'popular', 'limited-time'],
+            terms_conditions: 'Valid for new customers only. Cannot be combined with other offers.',
+            usage_terms: 'Present coupon at time of purchase. Valid ID required.'
+          };
+          deals.push(deal);
         }
-      ];
 
-      console.log('Inserting deals...');
-      const { data: dealsData, error: dealsError } = await supabase
-        .from('deals')
-        .insert(sampleDeals)
-        .select();
-
-      if (dealsError) throw dealsError;
-      console.log('Deals created:', dealsData?.length);
-
-      // Create sample user profiles
-      const sampleProfiles = [
-        {
-          id: '11111111-1111-1111-1111-111111111111',
-          full_name: 'Rajesh Kumar',
-          email: 'rajesh@example.com',
-          phone: '+91-9876543220',
-          referral_code: 'RAJ2024',
-          rank: 'Silver',
-          is_pro: false,
-          total_referrals: 3
-        },
-        {
-          id: '22222222-2222-2222-2222-222222222222',
-          full_name: 'Priya Sharma',
-          email: 'priya@example.com',
-          phone: '+91-9876543221',
-          referral_code: 'PRI2024',
-          rank: 'Gold',
-          is_pro: true,
-          total_referrals: 8,
-          pro_tier: 'premium',
-          subscription_status: 'active'
-        },
-        {
-          id: '33333333-3333-3333-3333-333333333333',
-          full_name: 'Amit Singh',
-          email: 'amit@example.com',
-          phone: '+91-9876543222',
-          referral_code: 'AMI2024',
-          rank: 'Bronze',
-          is_pro: false,
-          total_referrals: 1
-        },
-        {
-          id: '44444444-4444-4444-4444-444444444444',
-          full_name: 'Neha Gupta',
-          email: 'neha@example.com',
-          phone: '+91-9876543223',
-          referral_code: 'NEH2024',
-          rank: 'Silver',
-          is_pro: true,
-          total_referrals: 5,
-          pro_tier: 'basic',
-          subscription_status: 'active'
-        },
-        {
-          id: '55555555-5555-5555-5555-555555555555',
-          full_name: 'Vikram Jain',
-          email: 'vikram@example.com',
-          phone: '+91-9876543224',
-          referral_code: 'VIK2024',
-          rank: 'Bronze',
-          is_pro: false,
-          total_referrals: 0
+        const { data: dealsData, error: dealsError } = await supabase
+          .from('deals')
+          .insert(deals)
+          .select('id, title, merchant_id, purchase_price');
+        
+        if (dealsError) {
+          console.error('Deals error:', dealsError);
+          errorCount++;
+        } else {
+          successCount++;
+          console.log(`Created ${deals.length} deals`);
         }
-      ];
 
-      console.log('Inserting user profiles...');
-      const { error: profilesError } = await supabase
-        .from('profiles')
-        .upsert(sampleProfiles, { onConflict: 'id' });
+        // 4. Create Coupons for some deals
+        if (dealsData && dealsData.length > 0 && profiles.length > 0) {
+          const coupons = [];
+          const sampleDeals = dealsData.slice(0, 30); // Create coupons for first 30 deals
+          
+          for (let i = 0; i < sampleDeals.length; i++) {
+            const deal = sampleDeals[i];
+            const profile = profiles[i % profiles.length];
+            const merchant = merchantsData.find(m => m.id === deal.merchant_id);
+            
+            const coupon = {
+              coupon_code: `JAI${String(Math.random()).substring(2, 10).toUpperCase()}`,
+              user_id: profile.id,
+              deal_id: deal.id,
+              merchant_id: deal.merchant_id,
+              coupon_type: 'paid_discount',
+              discount_amount: Math.floor(Math.random() * 50) + 10,
+              purchase_amount: deal.purchase_price || 25,
+              status: ['active', 'redeemed', 'expired'][Math.floor(Math.random() * 3)],
+              expires_at: new Date(Date.now() + Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
+              purchased_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+              min_order_value: Math.floor(Math.random() * 30),
+              usage_terms: 'Valid for single use only. Cannot be transferred.'
+            };
+            
+            if (Math.random() > 0.6) {
+              coupon.redeemed_at = new Date(Date.now() - Math.random() * 15 * 24 * 60 * 60 * 1000).toISOString();
+              coupon.status = 'redeemed';
+            }
+            
+            coupons.push(coupon);
+          }
 
-      if (profilesError) throw profilesError;
-      console.log('User profiles created:', sampleProfiles.length);
-
-      // Create sample JAICoin transactions
-      const sampleTransactions = [
-        {
-          user_id: '11111111-1111-1111-1111-111111111111',
-          amount: 25,
-          type: 'earned',
-          source: 'signup',
-          description: 'Welcome bonus for signing up'
-        },
-        {
-          user_id: '22222222-2222-2222-2222-222222222222',
-          amount: 20,
-          type: 'earned',
-          source: 'deal_purchase',
-          description: 'Reward for purchasing facial service coupon'
-        },
-        {
-          user_id: '11111111-1111-1111-1111-111111111111',
-          amount: 50,
-          type: 'spent',
-          source: 'purchase',
-          description: 'Purchased thali discount coupon'
-        },
-        {
-          user_id: '33333333-3333-3333-3333-333333333333',
-          amount: 15,
-          type: 'earned',
-          source: 'referral',
-          description: 'Referral bonus'
-        },
-        {
-          user_id: '44444444-4444-4444-4444-444444444444',
-          amount: 30,
-          type: 'earned',
-          source: 'deal_purchase',
-          description: 'Reward for gym membership purchase'
+          const { error: couponsError } = await supabase.from('coupons').insert(coupons);
+          if (couponsError) {
+            console.error('Coupons error:', couponsError);
+            errorCount++;
+          } else {
+            successCount++;
+            console.log(`Created ${coupons.length} coupons`);
+          }
         }
-      ];
 
-      console.log('Inserting transactions...');
-      const { error: transactionsError } = await supabase
-        .from('jaicoin_transactions')
-        .insert(sampleTransactions);
+        // 5. Create JaiCoin Transactions
+        const transactions = [];
+        for (let i = 0; i < 40; i++) {
+          const profile = profiles[i % profiles.length];
+          const transactionTypes = [
+            { type: 'earned', source: 'signup', amount: 25, description: 'Welcome bonus' },
+            { type: 'earned', source: 'referral', amount: 50, description: 'Referral bonus' },
+            { type: 'earned', source: 'purchase', amount: 15, description: 'Purchase reward' },
+            { type: 'earned', source: 'review', amount: 10, description: 'Review reward' },
+            { type: 'spent', source: 'coupon_purchase', amount: -20, description: 'Coupon purchase' },
+            { type: 'earned', source: 'spin_wheel', amount: 25, description: 'Spin wheel reward' }
+          ];
+          
+          const transType = transactionTypes[i % transactionTypes.length];
+          transactions.push({
+            user_id: profile.id,
+            amount: Math.abs(transType.amount) * (transType.type === 'spent' ? -1 : 1),
+            type: transType.type,
+            source: transType.source,
+            description: transType.description,
+            metadata: { transaction_id: `txn_${Date.now()}_${i}` }
+          });
+        }
 
-      if (transactionsError) throw transactionsError;
-      console.log('Transactions created:', sampleTransactions.length);
+        const { error: transactionsError } = await supabase.from('jaicoin_transactions').insert(transactions);
+        if (transactionsError) {
+          console.error('Transactions error:', transactionsError);
+          errorCount++;
+        } else {
+          successCount++;
+          console.log(`Created ${transactions.length} JaiCoin transactions`);
+        }
+      }
 
+      // Show success message
       toast({
-        title: "Sample Data Created Successfully! 🎉",
-        description: `Created ${merchantsData?.length} merchants, ${dealsData?.length} deals, ${sampleProfiles.length} users, and ${sampleTransactions.length} transactions`,
+        title: "Data Seeding Complete!",
+        description: `Successfully created comprehensive sample data: ${successCount} data types seeded, ${errorCount} errors encountered.`,
+        variant: "default"
       });
 
     } catch (error) {
       console.error('Error seeding data:', error);
       toast({
         title: "Seeding Failed",
-        description: "Failed to create sample data. Check console for details.",
+        description: "Failed to seed sample data. Check console for details.",
         variant: "destructive"
       });
     } finally {
@@ -415,79 +281,92 @@ const DataSeeder = () => {
   };
 
   const clearAllData = async () => {
+    setIsClearing(true);
     try {
-      console.log('Clearing all data...');
+      console.log('Clearing all sample data...');
       
-      // Clear in correct order due to foreign key constraints
-      await supabase.from('jaicoin_transactions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('coupons').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('deals').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('merchants').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('profiles').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-
+      const tables = ['coupons', 'deals', 'merchants', 'profiles', 'jaicoin_transactions'];
+      let clearedCount = 0;
+      
+      for (const table of tables) {
+        const { error } = await supabase.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        if (error) {
+          console.error(`Error clearing ${table}:`, error);
+        } else {
+          clearedCount++;
+          console.log(`Cleared ${table} table`);
+        }
+      }
+      
       toast({
         title: "Data Cleared",
-        description: "All sample data has been removed from the database",
+        description: `Successfully cleared ${clearedCount} tables`,
+        variant: "default"
       });
-
+      
     } catch (error) {
       console.error('Error clearing data:', error);
       toast({
-        title: "Clear Failed",
+        title: "Clear Failed", 
         description: "Failed to clear data. Check console for details.",
         variant: "destructive"
       });
+    } finally {
+      setIsClearing(false);
     }
   };
 
   return (
-    <Card className="w-full max-w-3xl mx-auto">
+    <Card className="border-green-200 bg-green-50">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-green-800">
           <Database className="w-5 h-5" />
-          Database Management & Sample Data
+          Comprehensive Data Seeder
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Button
-            onClick={seedSampleData}
-            disabled={isSeeding}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-          >
-            <Download className="w-4 h-4" />
-            {isSeeding ? 'Seeding Data...' : 'Seed Complete Sample Data'}
-          </Button>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="text-green-700">
+            <h3 className="font-semibold mb-2">🚀 Production-Ready Sample Data</h3>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>35 User Profiles</strong> - Diverse user base with different ranks and pro status</li>
+              <li><strong>28 Merchants</strong> - Variety of business types and categories</li>
+              <li><strong>55 Deals</strong> - Comprehensive deal catalog across all categories</li>
+              <li><strong>30 Coupons</strong> - Mix of active, redeemed, and expired coupons</li>
+              <li><strong>40 JaiCoin Transactions</strong> - Complete transaction history</li>
+              <li><strong>Reviews & Analytics</strong> - Sample ratings and engagement data</li>
+            </ul>
+          </div>
           
-          <Button
-            onClick={clearAllData}
-            variant="destructive"
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Clear All Data
-          </Button>
-        </div>
-        
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h3 className="font-semibold text-blue-800 mb-2">What gets created:</h3>
-          <ul className="text-sm text-blue-700 space-y-1">
-            <li>• 5 Sample merchants (restaurants, salon, electronics, gym, fashion)</li>
-            <li>• 8 Sample deals (mix of paid discounts and free offers)</li>
-            <li>• 5 Sample user profiles with different ranks and pro status</li>
-            <li>• Sample JAICoin transactions showing earnings and spending</li>
-            <li>• Realistic data with proper relationships and varied categories</li>
-          </ul>
-        </div>
-
-        <div className="bg-yellow-50 p-4 rounded-lg">
-          <h3 className="font-semibold text-yellow-800 mb-2">Instructions:</h3>
-          <ol className="text-sm text-yellow-700 space-y-1 list-decimal list-inside">
-            <li>Click "Seed Complete Sample Data" to populate the database</li>
-            <li>Go to the home page to see the updated stats</li>
-            <li>Visit /deals page to see all the sample deals</li>
-            <li>Check /merchant pages for sample merchant data</li>
-          </ol>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button 
+              onClick={generateComprehensiveSampleData}
+              disabled={isSeeding}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+            >
+              <Database className={`w-4 h-4 ${isSeeding ? 'animate-spin' : ''}`} />
+              {isSeeding ? 'Creating Sample Data...' : 'Seed Production Data'}
+            </Button>
+            
+            <Button 
+              onClick={clearAllData}
+              disabled={isClearing}
+              variant="destructive"
+              className="flex items-center gap-2"
+            >
+              <Trash2 className={`w-4 h-4 ${isClearing ? 'animate-spin' : ''}`} />
+              {isClearing ? 'Clearing Data...' : 'Clear All Data'}
+            </Button>
+          </div>
+          
+          <div className="bg-blue-100 border border-blue-200 rounded-lg p-3">
+            <div className="flex items-start gap-2 text-blue-800">
+              <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <div className="text-xs">
+                <strong>Note:</strong> This creates a comprehensive dataset perfect for testing all features including deals discovery, merchant dashboards, user analytics, coupon systems, and JaiCoin wallet functionality.
+              </div>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
