@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { ArrowLeft, MapPin, Search, Star, Filter, Menu, Bell, Heart, Mic, ShoppingCart, Coins, TrendingUp, Users, Gift, Camera } from "lucide-react";
+import { ArrowLeft, MapPin, Search, Star, Filter, Menu, Bell, Heart, Mic, ShoppingCart, Coins, TrendingUp, Users, Gift, Camera, Database, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -191,6 +190,22 @@ const Index = () => {
                 <MapPin className="w-4 h-4" />
                 <span>{profile?.locality || 'Select Location'}</span>
               </div>
+
+              {/* Admin Quick Access */}
+              <div className="hidden md:flex items-center space-x-2">
+                <Link to="/admin/data">
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 flex items-center gap-1">
+                    <Database className="w-4 h-4" />
+                    <span className="text-xs">Data</span>
+                  </Button>
+                </Link>
+                <Link to="/admin/audit">
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 flex items-center gap-1">
+                    <AlertTriangle className="w-4 h-4" />
+                    <span className="text-xs">Audit</span>
+                  </Button>
+                </Link>
+              </div>
             </div>
 
             {/* Search Bar */}
@@ -234,6 +249,20 @@ const Index = () => {
                   Sign In
                 </Button>
               )}
+
+              {/* Mobile Admin Access */}
+              <div className="md:hidden flex items-center space-x-1">
+                <Link to="/admin/data">
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 p-2">
+                    <Database className="w-4 h-4" />
+                  </Button>
+                </Link>
+                <Link to="/admin/audit">
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 p-2">
+                    <AlertTriangle className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
