@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coins, Gift, Users, Star, TrendingUp, MapPin, Globe, RefreshCw, User, LogOut } from "lucide-react";
+import { Coins, Gift, Users, Star, TrendingUp, MapPin, Globe, RefreshCw, User, LogOut, Search, Heart, Bell, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +12,7 @@ const Index = () => {
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { toast } = useToast();
   const [stats, setStats] = useState({
     totalDeals: 0,
@@ -161,335 +161,325 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-yellow-50 to-blue-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b-2 border-pink-100">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Coins className="w-8 h-8 text-pink-600" />
-              <span className="text-2xl font-bold text-gray-800">HiJaipur</span>
-            </div>
+    <div className="min-h-screen bg-white">
+      {/* Premium Navigation */}
+      <nav className="bg-white shadow-sm border-b sticky top-0 z-50 backdrop-blur-md bg-white/90">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link to="/" className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-orange-400 rounded-xl flex items-center justify-center">
+                <Coins className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <span className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-orange-500 bg-clip-text text-transparent">
+                  HiJaipur
+                </span>
+                <div className="text-xs text-gray-500 -mt-1">Premium Deals</div>
+              </div>
+            </Link>
             
-            <div className="hidden md:flex items-center space-x-6">
-              <Link to="/deals" className="text-gray-600 hover:text-pink-600 font-medium">
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center space-x-8">
+              <Link to="/deals" className="text-gray-700 hover:text-pink-600 font-medium transition-colors">
                 Deals
               </Link>
-              <Link to="/wallet" className="text-gray-600 hover:text-pink-600 font-medium">
+              <Link to="/categories" className="text-gray-700 hover:text-pink-600 font-medium transition-colors">
+                Categories
+              </Link>
+              <Link to="/wallet" className="text-gray-700 hover:text-pink-600 font-medium transition-colors">
                 Wallet
               </Link>
-              <Link to="/challenges" className="text-gray-600 hover:text-pink-600 font-medium">
-                Challenges
+              <Link to="/merchant" className="text-gray-700 hover:text-pink-600 font-medium transition-colors">
+                For Business
               </Link>
-              <Link to="/merchant" className="text-gray-600 hover:text-pink-600 font-medium">
-                For Merchants
-              </Link>
-              <div className="flex items-center space-x-2">
-                <Link to="/admin/data" className="text-gray-600 hover:text-pink-600 font-medium text-sm">
-                  Admin Data
-                </Link>
-                <span className="text-gray-400">|</span>
-                <Link to="/admin/audit" className="text-gray-600 hover:text-pink-600 font-medium text-sm">
-                  System Audit
-                </Link>
-              </div>
             </div>
 
+            {/* Right Side */}
             <div className="flex items-center space-x-4">
-              <Button
-                onClick={fetchStats}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-                disabled={isLoading}
-              >
-                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                Refresh
+              {/* Search */}
+              <Button variant="ghost" size="sm" className="hidden md:flex">
+                <Search className="w-4 h-4" />
               </Button>
-              
-              {/* Authentication Section */}
+
               {user ? (
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <User className="w-5 h-5 text-gray-600" />
-                    <span className="text-gray-700">{user.user_metadata?.full_name || user.email}</span>
-                  </div>
-                  <Button onClick={handleSignOut} variant="outline" size="sm">
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
+                <div className="flex items-center space-x-3">
+                  <Button variant="ghost" size="sm">
+                    <Bell className="w-4 h-4" />
                   </Button>
+                  <Link to="/favorites">
+                    <Button variant="ghost" size="sm">
+                      <Heart className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                  <Link to="/profile">
+                    <div className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <div className="w-8 h-8 bg-gradient-to-br from-pink-500 to-orange-400 rounded-full flex items-center justify-center">
+                        <User className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="hidden md:block text-sm font-medium text-gray-700">
+                        {user.user_metadata?.full_name?.split(' ')[0] || 'Profile'}
+                      </span>
+                    </div>
+                  </Link>
                 </div>
               ) : (
                 <Button 
                   onClick={() => setIsAuthModalOpen(true)} 
-                  className="bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600"
+                  className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white font-medium px-6"
                 >
                   Sign In
                 </Button>
               )}
+
+              {/* Mobile Menu Toggle */}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="lg:hidden"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </Button>
             </div>
           </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="lg:hidden border-t py-4 space-y-4">
+              <Link to="/deals" className="block text-gray-700 hover:text-pink-600 font-medium">
+                Deals
+              </Link>
+              <Link to="/categories" className="block text-gray-700 hover:text-pink-600 font-medium">
+                Categories
+              </Link>
+              <Link to="/wallet" className="block text-gray-700 hover:text-pink-600 font-medium">
+                Wallet
+              </Link>
+              <Link to="/merchant" className="block text-gray-700 hover:text-pink-600 font-medium">
+                For Business
+              </Link>
+            </div>
+          )}
         </div>
       </nav>
 
       {/* Hero Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-800 mb-6">
-            Welcome to <span className="text-pink-600">HiJaipur</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Discover amazing deals from local businesses in Jaipur and earn JaiCoins with every purchase. 
-            Shop local, save money, and get rewarded!
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/deals">
-              <Button className="bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 text-lg px-8 py-3">
-                Explore Deals
-              </Button>
-            </Link>
-            <Link to="/merchant">
-              <Button variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 text-lg px-8 py-3">
-                Join as Merchant
-              </Button>
-            </Link>
-          </div>
-
-          {/* Enhanced Empty State Message - only show if really no data */}
-          {stats.totalDeals === 0 && stats.totalMerchants === 0 && stats.totalUsers === 0 && !isLoading && (
-            <div className="mt-8 p-6 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg max-w-2xl mx-auto">
-              <h3 className="font-semibold text-yellow-800 mb-3">🚀 Ready to Explore HiJaipur?</h3>
-              <p className="text-yellow-700 mb-4">
-                It looks like the database needs sample data to showcase the platform's features. 
-                Click below to populate with realistic Jaipur businesses, deals, and user activity!
-              </p>
-              <Link to="/admin/data">
-                <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white">
-                  🎯 Seed Sample Data Now
+      <section className="relative overflow-hidden bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50">
+        <div className="container mx-auto px-4 py-20">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 mb-8 shadow-sm">
+              <Star className="w-4 h-4 text-yellow-500" />
+              <span className="text-sm font-medium text-gray-700">India's Premier Local Deals Platform</span>
+            </div>
+            
+            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+              Discover Amazing
+              <span className="block bg-gradient-to-r from-pink-600 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
+                Deals in Jaipur
+              </span>
+            </h1>
+            
+            <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+              Shop local, save money, and earn JaiCoins with every purchase. Join thousands discovering 
+              exclusive offers from premium businesses across the Pink City.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <Link to="/deals">
+                <Button size="lg" className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white font-semibold px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all">
+                  Explore Premium Deals
+                </Button>
+              </Link>
+              <Link to="/merchant">
+                <Button variant="outline" size="lg" className="border-2 border-gray-300 hover:border-pink-300 text-gray-700 hover:text-pink-600 font-semibold px-8 py-4 text-lg bg-white/80 backdrop-blur-sm">
+                  Partner with Us
                 </Button>
               </Link>
             </div>
-          )}
 
-          {/* Success Message for populated data */}
-          {stats.totalUsers > 50 && (
-            <div className="mt-8 p-6 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg max-w-2xl mx-auto">
-              <h3 className="font-semibold text-green-800 mb-3">🎉 HiJaipur is Live with Sample Data!</h3>
-              <p className="text-green-700 mb-2">
-                Great! The platform is now populated with {stats.totalUsers} users, {stats.totalMerchants} merchants, 
-                {stats.totalDeals} deals, and {stats.totalJaiCoinsInCirculation.toLocaleString()} JaiCoins in circulation.
-              </p>
-              <p className="text-green-600 text-sm">
-                🔥 {stats.totalTransactions} total transactions processed • Ready for testing!
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl mx-auto">
+              <div className="text-center">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{stats.totalDeals}+</div>
+                <div className="text-sm text-gray-600">Active Deals</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{stats.totalMerchants}+</div>
+                <div className="text-sm text-gray-600">Partners</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{stats.totalUsers}+</div>
+                <div className="text-sm text-gray-600">Happy Users</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{Math.round(stats.totalJaiCoinsInCirculation/1000)}K+</div>
+                <div className="text-sm text-gray-600">JaiCoins</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Deals Section */}
+      {stats.featuredDeals.length > 0 && (
+        <section className="py-20 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                Featured Deals
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Handpicked premium offers from Jaipur's finest businesses
               </p>
             </div>
-          )}
-        </div>
-
-        {/* Enhanced Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          <Card className="text-center border-2 border-pink-100 hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <Gift className="w-12 h-12 mx-auto mb-4 text-pink-600" />
-              <div className="text-3xl font-bold text-gray-800 mb-2">
-                {isLoading ? (
-                  <div className="animate-pulse bg-gray-200 h-8 w-16 mx-auto rounded"></div>
-                ) : (
-                  `${stats.totalDeals}+`
-                )}
-              </div>
-              <div className="text-gray-600">Active Deals</div>
-              {stats.totalDeals > 0 && (
-                <div className="text-xs text-green-600 mt-1">🔥 Live & Updated</div>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Card className="text-center border-2 border-yellow-100 hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <Users className="w-12 h-12 mx-auto mb-4 text-yellow-600" />
-              <div className="text-3xl font-bold text-gray-800 mb-2">
-                {isLoading ? (
-                  <div className="animate-pulse bg-gray-200 h-8 w-16 mx-auto rounded"></div>
-                ) : (
-                  `${stats.totalMerchants}+`
-                )}
-              </div>
-              <div className="text-gray-600">Partner Merchants</div>
-              {stats.totalMerchants > 0 && (
-                <div className="text-xs text-green-600 mt-1">✅ Verified Businesses</div>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Card className="text-center border-2 border-blue-100 hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <Star className="w-12 h-12 mx-auto mb-4 text-blue-600" />
-              <div className="text-3xl font-bold text-gray-800 mb-2">
-                {isLoading ? (
-                  <div className="animate-pulse bg-gray-200 h-8 w-16 mx-auto rounded"></div>
-                ) : (
-                  `${stats.totalUsers}+`
-                )}
-              </div>
-              <div className="text-gray-600">Active Users</div>
-              {stats.totalUsers > 0 && (
-                <div className="text-xs text-green-600 mt-1">🎯 Growing Community</div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="text-center border-2 border-green-100 hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <Coins className="w-12 h-12 mx-auto mb-4 text-green-600" />
-              <div className="text-3xl font-bold text-gray-800 mb-2">
-                {isLoading ? (
-                  <div className="animate-pulse bg-gray-200 h-8 w-16 mx-auto rounded"></div>
-                ) : (
-                  `${stats.totalJaiCoinsInCirculation.toLocaleString()}`
-                )}
-              </div>
-              <div className="text-gray-600">JaiCoins in Circulation</div>
-              {stats.totalTransactions > 0 && (
-                <div className="text-xs text-green-600 mt-1">💰 {stats.totalTransactions} transactions</div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Featured Deals Section */}
-        {stats.featuredDeals.length > 0 && (
-          <div className="mb-16">
-            <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">
-              🌟 Featured Deals from Jaipur
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {stats.featuredDeals.map((deal: any) => (
-                <Card key={deal.id} className="border-2 border-yellow-200 bg-gradient-to-br from-yellow-50 to-orange-50 hover:shadow-xl transition-all duration-300">
-                  <CardHeader>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-xs font-bold">
-                        ⭐ FEATURED
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+              {stats.featuredDeals.slice(0, 6).map((deal: any) => (
+                <Card key={deal.id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md overflow-hidden">
+                  <div className="relative">
+                    <div className="h-48 bg-gradient-to-br from-pink-100 via-orange-100 to-yellow-100 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-3xl mb-2">{deal.category === 'Food & Dining' ? '🍽️' : 
+                                                     deal.category === 'Beauty & Wellness' ? '💆‍♀️' : 
+                                                     deal.category === 'Shopping' ? '🛍️' : '✨'}</div>
+                        <div className="text-sm font-medium text-gray-600">{deal.subcategory}</div>
                       </div>
+                    </div>
+                    <div className="absolute top-4 left-4">
+                      <span className="bg-gradient-to-r from-pink-500 to-orange-400 text-white px-3 py-1 rounded-full text-xs font-bold">
+                        FEATURED
+                      </span>
+                    </div>
+                    {deal.discount_percentage > 0 && (
+                      <div className="absolute top-4 right-4">
+                        <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                          {deal.discount_percentage}% OFF
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg group-hover:text-pink-600 transition-colors line-clamp-2">
+                      {deal.title}
+                    </CardTitle>
+                    <CardDescription className="flex items-center justify-between">
+                      <span className="font-medium text-gray-900">{deal.merchants?.business_name}</span>
                       {deal.merchants?.is_verified && (
-                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
                           ✓ Verified
                         </span>
                       )}
-                    </div>
-                    <CardTitle className="text-lg leading-tight">{deal.title}</CardTitle>
-                    <CardDescription className="flex items-center gap-2">
-                      <span className="font-medium">{deal.merchants?.business_name}</span>
                     </CardDescription>
                   </CardHeader>
+                  
                   <CardContent>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-2xl font-bold text-green-600">₹{deal.discounted_price?.toLocaleString()}</span>
-                        {deal.original_price > 0 && (
-                          <span className="text-sm line-through text-gray-500">₹{deal.original_price?.toLocaleString()}</span>
-                        )}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-2xl font-bold text-gray-900">₹{deal.discounted_price?.toLocaleString()}</span>
+                          {deal.original_price > 0 && (
+                            <span className="text-sm line-through text-gray-500">₹{deal.original_price?.toLocaleString()}</span>
+                          )}
+                        </div>
                       </div>
-                      {deal.discount_percentage > 0 && (
-                        <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-bold">
-                          {deal.discount_percentage}% OFF
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center justify-between text-sm text-gray-600">
-                        <div className="flex items-center space-x-1">
+                      
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center space-x-1 text-gray-600">
                           {deal.location?.toLowerCase().includes('online') ? (
                             <Globe className="w-4 h-4 text-blue-500" />
                           ) : (
                             <MapPin className="w-4 h-4 text-red-500" />
                           )}
-                          <span className="font-medium">{deal.location}</span>
+                          <span>{deal.location}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Coins className="w-4 h-4 text-yellow-500" />
+                          <span className="text-yellow-700 font-medium">+{deal.jaicoin_reward}</span>
                         </div>
                       </div>
                       
-                      <div className="flex items-center space-x-1 text-sm">
-                        <Coins className="w-4 h-4 text-yellow-500" />
-                        <span className="text-yellow-700 font-semibold">Earn +{deal.jaicoin_reward} JaiCoins</span>
-                      </div>
-                      
-                      <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
-                        Category: <span className="font-medium">{deal.category}</span>
-                      </div>
+                      <Link to="/deals">
+                        <Button className="w-full bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white font-medium">
+                          View Deal
+                        </Button>
+                      </Link>
                     </div>
-                    
-                    <Link to="/deals">
-                      <Button className="w-full bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 font-semibold">
-                        🛍️ View Deal Details
-                      </Button>
-                    </Link>
                   </CardContent>
                 </Card>
               ))}
             </div>
-            <div className="text-center mt-8">
+            
+            <div className="text-center">
               <Link to="/deals">
-                <Button variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 px-8 py-3">
-                  🔍 Explore All {stats.totalDeals} Deals
+                <Button variant="outline" size="lg" className="border-2 border-pink-300 text-pink-600 hover:bg-pink-50 px-8 py-3 font-medium">
+                  View All {stats.totalDeals} Deals
                 </Button>
               </Link>
             </div>
           </div>
-        )}
+        </section>
+      )}
 
-        {/* How It Works Section */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-800 mb-8">How HiJaipur Works</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {/* How It Works */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">How HiJaipur Works</h2>
+            <p className="text-lg text-gray-600">Simple steps to start saving and earning</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <div className="text-center">
-              <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🔍</span>
+              <div className="w-20 h-20 bg-gradient-to-br from-pink-500 to-orange-400 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <Search className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Discover Deals</h3>
-              <p className="text-gray-600">Browse amazing deals from local businesses in Jaipur</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Discover Premium Deals</h3>
+              <p className="text-gray-600 leading-relaxed">Browse curated offers from Jaipur's best restaurants, spas, shops, and services</p>
             </div>
+            
             <div className="text-center">
-              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🛍️</span>
+              <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-yellow-400 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <Gift className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Redeem & Save</h3>
-              <p className="text-gray-600">Use our platform to get exclusive discounts and offers</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Redeem & Enjoy</h3>
+              <p className="text-gray-600 leading-relaxed">Show your digital coupon at the store or order online for instant savings</p>
             </div>
+            
             <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">💰</span>
+              <div className="w-20 h-20 bg-gradient-to-br from-yellow-500 to-pink-400 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <Coins className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Earn JaiCoins</h3>
-              <p className="text-gray-600">Get rewarded with JaiCoins for every purchase and activity</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Earn JaiCoins</h3>
+              <p className="text-gray-600 leading-relaxed">Get rewarded with JaiCoins for every purchase and unlock exclusive benefits</p>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Mobile Navigation */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-pink-100 px-4 py-2">
-          <div className="flex justify-around">
-            <Link to="/deals" className="flex flex-col items-center space-y-1 text-gray-600 hover:text-pink-600">
-              <Gift className="w-6 h-6" />
-              <span className="text-xs">Deals</span>
-            </Link>
-            <Link to="/wallet" className="flex flex-col items-center space-y-1 text-gray-600 hover:text-pink-600">
-              <Coins className="w-6 h-6" />
-              <span className="text-xs">Wallet</span>
-            </Link>
-            <Link to="/challenges" className="flex flex-col items-center space-y-1 text-gray-600 hover:text-pink-600">
-              <TrendingUp className="w-6 h-6" />
-              <span className="text-xs">Challenges</span>
-            </Link>
-            <Link to="/admin/data" className="flex flex-col items-center space-y-1 text-gray-600 hover:text-pink-600">
-              <Users className="w-6 h-6" />
-              <span className="text-xs">Admin</span>
-            </Link>
-          </div>
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-pink-600 via-orange-500 to-yellow-500">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-4xl font-bold text-white mb-6">
+            Ready to Start Saving?
+          </h2>
+          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+            Join thousands of smart shoppers who save money and earn rewards with HiJaipur
+          </p>
+          {!user && (
+            <Button 
+              size="lg" 
+              onClick={() => setIsAuthModalOpen(true)}
+              className="bg-white text-pink-600 hover:bg-gray-50 font-bold px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all"
+            >
+              Get Started Free
+            </Button>
+          )}
         </div>
-      </div>
+      </section>
 
-      {/* Beautiful Auth Modal */}
+      {/* Auth Modal */}
       <AuthModal 
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 

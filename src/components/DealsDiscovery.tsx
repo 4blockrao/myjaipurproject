@@ -1,11 +1,11 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, MapPin, Globe, Coins } from "lucide-react";
+import { Search, MapPin, Globe, Coins, Filter, Sliders, Heart, Share2, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 
 interface Deal {
   id: string;
@@ -33,7 +33,9 @@ const DealsDiscovery = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("all");
+  const [sortBy, setSortBy] = useState("featured");
   const [isLoading, setIsLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const { toast } = useToast();
 
   const categories = [
@@ -46,13 +48,21 @@ const DealsDiscovery = () => {
     "Mansarovar", "Jagatpura", "Shyam Nagar", "Tonk Road", "Ajmer Road", "Online Delivery Jaipur"
   ];
 
+  const sortOptions = [
+    { value: "featured", label: "Featured First" },
+    { value: "discount", label: "Highest Discount" },
+    { value: "price_low", label: "Price: Low to High" },
+    { value: "price_high", label: "Price: High to Low" },
+    { value: "newest", label: "Newest First" }
+  ];
+
   useEffect(() => {
     fetchDeals();
   }, []);
 
   useEffect(() => {
     filterDeals();
-  }, [deals, searchQuery, selectedCategory, selectedLocation]);
+  }, [deals, searchQuery, selectedCategory, selectedLocation, sortBy]);
 
   const fetchDeals = async () => {
     try {
@@ -124,6 +134,16 @@ const DealsDiscovery = () => {
 
     if (selectedLocation !== "all") {
       filtered = filtered.filter(deal => deal.location === selectedLocation);
+    }
+
+    if (sortBy === "discount") {
+      filtered = filtered.sort((a, b) => b.discounted_price - a.discounted_price);
+    } else if (sortBy === "price_low") {
+      filtered = filtered.sort((a, b) => a.discounted_price - b.discounted_price);
+    } else if (sortBy === "price_high") {
+      filtered = filtered.sort((a, b) => b.discounted_price - a.discounted_price);
+    } else if (sortBy === "newest") {
+      filtered = filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
 
     setFilteredDeals(filtered);
@@ -207,183 +227,280 @@ const DealsDiscovery = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-yellow-50 to-blue-50 p-4 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading amazing deals...</p>
+          <p className="text-gray-600">Loading premium deals...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-yellow-50 to-blue-50 p-4">
-      <div className="container mx-auto max-w-6xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Discover Amazing Deals</h1>
-          <p className="text-gray-600 text-lg">Find the best offers from local businesses in Jaipur</p>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow-sm border-2 border-pink-100 p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Search */}
-            <div className="md:col-span-2 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                type="text"
-                placeholder="Search deals, restaurants, services..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 border-pink-200 focus:border-pink-400"
-              />
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b sticky top-0 z-40 backdrop-blur-md bg-white/90">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <Link to="/">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Premium Deals</h1>
+                <p className="text-sm text-gray-600">{filteredDeals.length} deals available</p>
+              </div>
             </div>
-
-            {/* Category Filter */}
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 border border-pink-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent"
-            >
-              {categories.map(category => (
-                <option key={category} value={category}>
-                  {category === "all" ? "All Categories" : category}
-                </option>
-              ))}
-            </select>
-
-            {/* Location Filter */}
-            <select
-              value={selectedLocation}
-              onChange={(e) => setSelectedLocation(e.target.value)}
-              className="px-3 py-2 border border-pink-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent"
-            >
-              {locations.map(location => (
-                <option key={location} value={location}>
-                  {location === "all" ? "All Locations" : location}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Results Count */}
-        <div className="mb-6">
-          <p className="text-gray-600">
-            Showing {filteredDeals.length} deal{filteredDeals.length !== 1 ? 's' : ''}
-            {searchQuery && ` for "${searchQuery}"`}
-            {selectedCategory !== "all" && ` in ${selectedCategory}`}
-            {selectedLocation !== "all" && ` in ${selectedLocation}`}
-          </p>
-        </div>
-
-        {/* Deals Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDeals.map((deal) => {
-            const isOnline = isOnlineDeal(deal.location);
-            const availableSlots = deal.max_redemptions - deal.current_redemptions;
             
-            return (
-              <Card key={deal.id} className={`hover:shadow-lg transition-shadow border-2 ${deal.is_featured ? 'border-yellow-300 bg-yellow-50' : 'border-pink-100'} hover:border-pink-200`}>
-                <CardHeader className="pb-2">
-                  {deal.is_featured && (
-                    <div className="bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-medium w-fit mb-2">
-                      ⭐ Featured Deal
-                    </div>
-                  )}
-                  
-                  <div className="w-full h-48 bg-gradient-to-br from-pink-100 to-yellow-100 rounded-lg mb-4 flex items-center justify-center">
-                    <span className="text-gray-500">{deal.subcategory} Deal</span>
-                  </div>
-                  
-                  <CardTitle className="text-lg text-gray-800 line-clamp-2">{deal.title}</CardTitle>
-                  <CardDescription className="flex items-center gap-2">
-                    <span className="text-pink-600 font-medium">{deal.merchant.business_name}</span>
-                    {deal.merchant.is_verified && (
-                      <span className="text-green-600 text-xs">✓ Verified</span>
-                    )}
-                  </CardDescription>
-                </CardHeader>
-                
-                <CardContent>
-                  <div className="space-y-3">
-                    {/* Price */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-2xl font-bold text-green-600">₹{deal.discounted_price.toLocaleString()}</span>
-                        {deal.original_price > 0 && (
-                          <span className="text-gray-500 line-through">₹{deal.original_price.toLocaleString()}</span>
-                        )}
-                      </div>
-                      {deal.discount_percentage > 0 && (
-                        <span className="bg-pink-100 text-pink-800 px-2 py-1 rounded-full text-sm font-medium">
-                          {deal.discount_percentage}% OFF
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Location and Type */}
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <div className="flex items-center space-x-1">
-                        {isOnline ? (
-                          <Globe className="w-4 h-4 text-blue-500" />
-                        ) : (
-                          <MapPin className="w-4 h-4 text-red-500" />
-                        )}
-                        <span>{isOnline ? 'Online/Delivery' : deal.location}</span>
-                      </div>
-                      {availableSlots > 0 && (
-                        <span className="text-green-600 font-medium">{availableSlots} left</span>
-                      )}
-                    </div>
-
-                    {/* Description */}
-                    {deal.description && (
-                      <p className="text-sm text-gray-600 line-clamp-2">{deal.description}</p>
-                    )}
-
-                    {/* JaiCoins and Action */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-1">
-                        <Coins className="w-4 h-4 text-yellow-500" />
-                        <span className="text-sm font-medium text-gray-700">+{deal.jaicoin_reward} JaiCoins</span>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        onClick={() => handleRedeemDeal(deal.id, isOnline)}
-                        disabled={availableSlots <= 0}
-                        className="bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 disabled:opacity-50"
-                      >
-                        {isOnline ? 'Buy Online' : 'Redeem'}
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* No Results */}
-        {filteredDeals.length === 0 && !isLoading && (
-          <div className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">No deals found</h3>
-            <p className="text-gray-500 mb-4">Try adjusting your search or filters</p>
-            <Button 
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedCategory("all");
-                setSelectedLocation("all");
-              }}
-              variant="outline"
-              className="border-pink-300 text-pink-600 hover:bg-pink-50"
-            >
-              Clear Filters
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className="lg:hidden"
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                Filters
+              </Button>
+            </div>
           </div>
-        )}
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Filters Sidebar */}
+          <div className={`lg:col-span-1 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+            <Card className="sticky top-24">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Sliders className="w-5 h-5 mr-2" />
+                  Filters
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Search */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      type="text"
+                      placeholder="Search deals..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                {/* Category Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  >
+                    {categories.map(category => (
+                      <option key={category} value={category}>
+                        {category === "all" ? "All Categories" : category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Location Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                  <select
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  >
+                    {locations.map(location => (
+                      <option key={location} value={location}>
+                        {location === "all" ? "All Locations" : location}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Sort By */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  >
+                    {sortOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Clear Filters */}
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedCategory("all");
+                    setSelectedLocation("all");
+                    setSortBy("featured");
+                  }}
+                >
+                  Clear All Filters
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Deals Grid */}
+          <div className="lg:col-span-3">
+            {filteredDeals.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="text-gray-400 text-6xl mb-4">🔍</div>
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">No deals found</h3>
+                <p className="text-gray-500 mb-4">Try adjusting your search or filters</p>
+                <Button 
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedCategory("all");
+                    setSelectedLocation("all");
+                  }}
+                  variant="outline"
+                  className="border-pink-300 text-pink-600 hover:bg-pink-50"
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredDeals.map((deal) => {
+                  const isOnline = isOnlineDeal(deal.location);
+                  const availableSlots = deal.max_redemptions - deal.current_redemptions;
+                  
+                  return (
+                    <Card key={deal.id} className={`group hover:shadow-xl transition-all duration-300 border-0 shadow-md overflow-hidden ${deal.is_featured ? 'ring-2 ring-yellow-300' : ''}`}>
+                      <div className="relative">
+                        <div className="h-48 bg-gradient-to-br from-pink-100 via-orange-100 to-yellow-100 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="text-3xl mb-2">
+                              {deal.category === 'Food & Dining' ? '🍽️' : 
+                               deal.category === 'Beauty & Wellness' ? '💆‍♀️' : 
+                               deal.category === 'Shopping' ? '🛍️' : 
+                               deal.category === 'Electronics' ? '📱' : 
+                               deal.category === 'Health & Fitness' ? '💪' : '✨'}
+                            </div>
+                            <div className="text-sm font-medium text-gray-600">{deal.subcategory}</div>
+                          </div>
+                        </div>
+                        
+                        {/* Badges */}
+                        <div className="absolute top-4 left-4 space-y-2">
+                          {deal.is_featured && (
+                            <span className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                              ⭐ FEATURED
+                            </span>
+                          )}
+                          {deal.discount_percentage > 0 && (
+                            <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                              {deal.discount_percentage}% OFF
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="absolute top-4 right-4 space-y-2">
+                          <Button size="sm" variant="outline" className="bg-white/90 hover:bg-white">
+                            <Heart className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" className="bg-white/90 hover:bg-white">
+                            <Share2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg group-hover:text-pink-600 transition-colors line-clamp-2">
+                          {deal.title}
+                        </CardTitle>
+                        <CardDescription className="flex items-center justify-between">
+                          <span className="font-medium text-gray-900">{deal.merchant.business_name}</span>
+                          {deal.merchant.is_verified && (
+                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                              ✓ Verified
+                            </span>
+                          )}
+                        </CardDescription>
+                      </CardHeader>
+                      
+                      <CardContent>
+                        <div className="space-y-4">
+                          {/* Price */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-2xl font-bold text-gray-900">₹{deal.discounted_price.toLocaleString()}</span>
+                              {deal.original_price > 0 && (
+                                <span className="text-sm line-through text-gray-500">₹{deal.original_price.toLocaleString()}</span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Location and JaiCoins */}
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center space-x-1 text-gray-600">
+                              {isOnline ? (
+                                <Globe className="w-4 h-4 text-blue-500" />
+                              ) : (
+                                <MapPin className="w-4 h-4 text-red-500" />
+                              )}
+                              <span>{isOnline ? 'Online/Delivery' : deal.location}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Coins className="w-4 h-4 text-yellow-500" />
+                              <span className="text-yellow-700 font-medium">+{deal.jaicoin_reward}</span>
+                            </div>
+                          </div>
+
+                          {/* Description */}
+                          {deal.description && (
+                            <p className="text-sm text-gray-600 line-clamp-2">{deal.description}</p>
+                          )}
+
+                          {/* Available slots */}
+                          {availableSlots > 0 && availableSlots <= 10 && (
+                            <div className="bg-orange-50 border border-orange-200 rounded-lg p-2">
+                              <p className="text-xs text-orange-700 font-medium">
+                                ⏰ Only {availableSlots} left!
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Action Button */}
+                          <Button 
+                            onClick={() => handleRedeemDeal(deal.id, isOnline)}
+                            disabled={availableSlots <= 0}
+                            className="w-full bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 disabled:opacity-50 font-medium text-white shadow-lg hover:shadow-xl transition-all"
+                          >
+                            {availableSlots <= 0 ? 'Sold Out' : isOnline ? 'Buy Online' : 'Redeem Deal'}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
