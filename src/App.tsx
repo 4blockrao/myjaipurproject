@@ -5,14 +5,16 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
 import DealsPage from "./pages/DealsPage";
 import WalletPage from "./pages/WalletPage";
+import ChallengesPage from "./pages/ChallengesPage";
+import MerchantPage from "./pages/MerchantPage";
+import MerchantOnboardingPage from "./pages/MerchantOnboardingPage";
+import MerchantDashboardPage from "./pages/MerchantDashboardPage";
 import GamificationPage from "./pages/GamificationPage";
 import ProMembershipPage from "./pages/ProMembershipPage";
-import MerchantPage from "./pages/MerchantPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
-import ChallengesPage from "./pages/ChallengesPage";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -26,12 +28,13 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/deals" element={<DealsPage />} />
           <Route path="/wallet" element={<WalletPage />} />
-          <Route path="/community" element={<GamificationPage />} />
-          <Route path="/pro" element={<ProMembershipPage />} />
-          <Route path="/merchant" element={<MerchantPage />} />
-          <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/challenges" element={<ChallengesPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/merchant" element={<MerchantPage />} />
+          <Route path="/merchant/onboard" element={<MerchantOnboardingPage />} />
+          <Route path="/merchant/dashboard" element={<MerchantDashboardPage />} />
+          <Route path="/gamification" element={<GamificationPage />} />
+          <Route path="/pro" element={<ProMembershipPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

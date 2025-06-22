@@ -83,6 +83,84 @@ export type Database = {
         }
         Relationships: []
       }
+      coupons: {
+        Row: {
+          coupon_code: string
+          coupon_type: string
+          created_at: string | null
+          deal_id: string
+          discount_amount: number
+          expires_at: string
+          id: string
+          merchant_id: string
+          min_order_value: number | null
+          payment_id: string | null
+          purchase_amount: number | null
+          purchased_at: string | null
+          qr_code: string | null
+          redeemed_at: string | null
+          redeemed_by: string | null
+          status: string | null
+          usage_terms: string | null
+          user_id: string
+        }
+        Insert: {
+          coupon_code: string
+          coupon_type: string
+          created_at?: string | null
+          deal_id: string
+          discount_amount: number
+          expires_at: string
+          id?: string
+          merchant_id: string
+          min_order_value?: number | null
+          payment_id?: string | null
+          purchase_amount?: number | null
+          purchased_at?: string | null
+          qr_code?: string | null
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          status?: string | null
+          usage_terms?: string | null
+          user_id: string
+        }
+        Update: {
+          coupon_code?: string
+          coupon_type?: string
+          created_at?: string | null
+          deal_id?: string
+          discount_amount?: number
+          expires_at?: string
+          id?: string
+          merchant_id?: string
+          min_order_value?: number | null
+          payment_id?: string | null
+          purchase_amount?: number | null
+          purchased_at?: string | null
+          qr_code?: string | null
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          status?: string | null
+          usage_terms?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupons_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupons_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deal_redemptions: {
         Row: {
           created_at: string | null
@@ -140,6 +218,7 @@ export type Database = {
       deals: {
         Row: {
           category: string | null
+          coupon_type: string | null
           created_at: string | null
           current_redemptions: number | null
           description: string | null
@@ -154,16 +233,21 @@ export type Database = {
           location: string | null
           max_redemptions: number | null
           merchant_id: string | null
+          min_order_value: number | null
           original_price: number | null
+          purchase_price: number | null
           start_date: string | null
           subcategory: string | null
           tags: string[] | null
           terms_conditions: string | null
           title: string
           updated_at: string | null
+          usage_terms: string | null
+          validity_days: number | null
         }
         Insert: {
           category?: string | null
+          coupon_type?: string | null
           created_at?: string | null
           current_redemptions?: number | null
           description?: string | null
@@ -178,16 +262,21 @@ export type Database = {
           location?: string | null
           max_redemptions?: number | null
           merchant_id?: string | null
+          min_order_value?: number | null
           original_price?: number | null
+          purchase_price?: number | null
           start_date?: string | null
           subcategory?: string | null
           tags?: string[] | null
           terms_conditions?: string | null
           title: string
           updated_at?: string | null
+          usage_terms?: string | null
+          validity_days?: number | null
         }
         Update: {
           category?: string | null
+          coupon_type?: string | null
           created_at?: string | null
           current_redemptions?: number | null
           description?: string | null
@@ -202,13 +291,17 @@ export type Database = {
           location?: string | null
           max_redemptions?: number | null
           merchant_id?: string | null
+          min_order_value?: number | null
           original_price?: number | null
+          purchase_price?: number | null
           start_date?: string | null
           subcategory?: string | null
           tags?: string[] | null
           terms_conditions?: string | null
           title?: string
           updated_at?: string | null
+          usage_terms?: string | null
+          validity_days?: number | null
         }
         Relationships: [
           {
@@ -357,9 +450,121 @@ export type Database = {
           },
         ]
       }
+      merchant_applications: {
+        Row: {
+          address: string
+          admin_notes: string | null
+          business_type: string
+          contact_email: string
+          contact_phone: string
+          created_at: string | null
+          deals_data: Json | null
+          description: string | null
+          id: string
+          location: string
+          merchant_name: string
+          photos: string[] | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          social_handles: Json | null
+          status: string | null
+          submitted_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address: string
+          admin_notes?: string | null
+          business_type: string
+          contact_email: string
+          contact_phone: string
+          created_at?: string | null
+          deals_data?: Json | null
+          description?: string | null
+          id?: string
+          location: string
+          merchant_name: string
+          photos?: string[] | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          social_handles?: Json | null
+          status?: string | null
+          submitted_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: string
+          admin_notes?: string | null
+          business_type?: string
+          contact_email?: string
+          contact_phone?: string
+          created_at?: string | null
+          deals_data?: Json | null
+          description?: string | null
+          id?: string
+          location?: string
+          merchant_name?: string
+          photos?: string[] | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          social_handles?: Json | null
+          status?: string | null
+          submitted_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      merchant_referral_rewards: {
+        Row: {
+          amount: number
+          awarded_at: string | null
+          coupon_id: string | null
+          id: string
+          merchant_id: string
+          milestone_count: number | null
+          referrer_id: string
+          reward_type: string
+        }
+        Insert: {
+          amount: number
+          awarded_at?: string | null
+          coupon_id?: string | null
+          id?: string
+          merchant_id: string
+          milestone_count?: number | null
+          referrer_id: string
+          reward_type: string
+        }
+        Update: {
+          amount?: number
+          awarded_at?: string | null
+          coupon_id?: string | null
+          id?: string
+          merchant_id?: string
+          milestone_count?: number | null
+          referrer_id?: string
+          reward_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "merchant_referral_rewards_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "merchant_referral_rewards_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       merchants: {
         Row: {
           address: string | null
+          approval_status: string | null
           average_rating: number | null
           business_name: string
           business_type: string | null
@@ -369,8 +574,14 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_verified: boolean | null
+          listing_fee_paid: boolean | null
+          listing_payment_id: string | null
+          listing_tier: string | null
           logo_url: string | null
           phone: string | null
+          photos: string[] | null
+          referred_by: string | null
+          social_handles: Json | null
           total_deals: number | null
           total_reviews: number | null
           updated_at: string | null
@@ -379,6 +590,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          approval_status?: string | null
           average_rating?: number | null
           business_name: string
           business_type?: string | null
@@ -388,8 +600,14 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_verified?: boolean | null
+          listing_fee_paid?: boolean | null
+          listing_payment_id?: string | null
+          listing_tier?: string | null
           logo_url?: string | null
           phone?: string | null
+          photos?: string[] | null
+          referred_by?: string | null
+          social_handles?: Json | null
           total_deals?: number | null
           total_reviews?: number | null
           updated_at?: string | null
@@ -398,6 +616,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          approval_status?: string | null
           average_rating?: number | null
           business_name?: string
           business_type?: string | null
@@ -407,8 +626,14 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_verified?: boolean | null
+          listing_fee_paid?: boolean | null
+          listing_payment_id?: string | null
+          listing_tier?: string | null
           logo_url?: string | null
           phone?: string | null
+          photos?: string[] | null
+          referred_by?: string | null
+          social_handles?: Json | null
           total_deals?: number | null
           total_reviews?: number | null
           updated_at?: string | null
@@ -690,6 +915,21 @@ export type Database = {
           badge_description: string
         }
         Returns: undefined
+      }
+      award_referral_reward: {
+        Args: {
+          referrer_uuid: string
+          merchant_uuid: string
+          reward_type_param: string
+          reward_amount: number
+          coupon_uuid?: string
+          milestone_count_param?: number
+        }
+        Returns: undefined
+      }
+      generate_coupon_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       generate_redemption_code: {
         Args: Record<PropertyKey, never>
