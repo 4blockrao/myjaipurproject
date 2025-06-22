@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { ArrowLeft, MapPin, Search, Star, Filter, Menu, Bell, Heart, Mic, ShoppingCart, Coins, TrendingUp, Users, Gift, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,6 @@ import CategoryGrid from "@/components/CategoryGrid";
 import LocalityPrompt from "@/components/LocalityPrompt";
 import AuthModal from "@/components/AuthModal";
 import JaiCoinWallet from "@/components/JaiCoinWallet";
-import ProductShowcase from "@/components/ProductShowcase";
 import DealsNearMe from "@/components/home/DealsNearMe";
 import TopSellingDeals from "@/components/home/TopSellingDeals";
 import TodaysTopDeals from "@/components/home/TodaysTopDeals";
@@ -24,6 +24,8 @@ import TopMerchants from "@/components/home/TopMerchants";
 import Leaderboard from "@/components/home/Leaderboard";
 import LocalityGrid from "@/components/home/LocalityGrid";
 import StickyBottomNav from "@/components/home/StickyBottomNav";
+import FeaturedProducts from "@/components/home/FeaturedProducts";
+import AllProducts from "@/components/home/AllProducts";
 import { Link } from "react-router-dom";
 
 interface UserProfile {
@@ -251,8 +253,14 @@ const Index = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 space-y-12">
         
+        {/* Featured Products */}
+        <FeaturedProducts />
+
         {/* Today's Hot Deals Near You */}
         <TodaysTopDeals deals={filteredDeals} />
+
+        {/* All Products */}
+        <AllProducts />
 
         {/* Products You Can Buy Today */}
         <TopProducts deals={filteredDeals} />
