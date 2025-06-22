@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,75 +20,10 @@ const DataSeeder = () => {
     try {
       console.log('Starting comprehensive data seeding...');
 
-      // 1. Create Sample Users (without auth dependency) - using direct insert
-      console.log('Creating sample user profiles...');
-      const sampleUsers = [];
-      const jaipurNames = [
-        'Arjun Sharma', 'Priya Agarwal', 'Rohit Singh', 'Kavya Jain', 'Vikram Gupta',
-        'Anjali Meena', 'Karan Sharma', 'Sneha Patel', 'Amit Kumar', 'Ritu Singh',
-        'Rajesh Choudhary', 'Sunita Goyal', 'Manoj Agrawal', 'Pooja Saxena', 'Deepak Joshi'
-      ];
+      // Skip user profiles creation due to auth.users foreign key constraint
+      console.log('Skipping user profiles creation (requires authenticated users)');
 
-      for (let i = 0; i < jaipurNames.length; i++) {
-        const userId = crypto.randomUUID();
-        sampleUsers.push({
-          id: userId,
-          full_name: jaipurNames[i],
-          email: `${jaipurNames[i].toLowerCase().replace(' ', '.')}@gmail.com`,
-          phone: `+91987654${String(1000 + i).padStart(4, '0')}`,
-          total_referrals: Math.floor(Math.random() * 15),
-          rank: ['Bronze', 'Silver', 'Gold', 'Platinum'][Math.floor(Math.random() * 4)],
-          is_pro: Math.random() < 0.3,
-          pro_tier: Math.random() < 0.3 ? 'pro' : Math.random() < 0.1 ? 'premium' : 'basic',
-          subscription_status: Math.random() < 0.3 ? 'active' : 'inactive',
-          referral_code: Math.random().toString(36).substring(2, 10).toUpperCase()
-        });
-      }
-
-      // Insert sample users directly (bypassing auth constraints)
-      const { data: usersData, error: usersError } = await supabase
-        .from('profiles')
-        .upsert(sampleUsers, { onConflict: 'id' })
-        .select('id, full_name');
-      
-      if (usersError) {
-        console.error('Users creation error:', usersError);
-        errorCount++;
-      } else {
-        successCount++;
-        console.log(`Created ${sampleUsers.length} sample users`);
-      }
-
-      // 2. Create JaiCoin transactions for sample users
-      if (usersData && usersData.length > 0) {
-        console.log('Creating JaiCoin transactions...');
-        const transactions = [];
-        
-        for (const user of usersData) {
-          // Multiple transactions per user
-          for (let i = 0; i < Math.floor(Math.random() * 5) + 3; i++) {
-            transactions.push({
-              user_id: user.id,
-              amount: Math.floor(Math.random() * 200) + 25,
-              type: Math.random() < 0.7 ? 'earned' : 'spent',
-              source: ['referral', 'spin', 'review', 'deal_purchase', 'challenge_reward'][Math.floor(Math.random() * 5)],
-              description: `Sample transaction for ${user.full_name}`
-            });
-          }
-        }
-
-        const { error: transactionsError } = await supabase
-          .from('jaicoin_transactions')
-          .insert(transactions);
-        
-        if (transactionsError) {
-          console.error('Transactions error:', transactionsError);
-        } else {
-          console.log(`Created ${transactions.length} JaiCoin transactions`);
-        }
-      }
-
-      // 3. Create 50+ Merchants
+      // 1. Create 50+ Merchants
       console.log('Creating merchants...');
       const merchants = [];
       const jaipurBusinesses = [
@@ -157,7 +91,7 @@ const DataSeeder = () => {
           description: `Premium ${business.type.toLowerCase()} services in ${business.area}, Jaipur with exceptional quality and customer satisfaction.`,
           is_verified: Math.random() > 0.2,
           is_active: true,
-          listing_tier: 'basic',
+          listing_tier: 'basic', // Fixed: use valid enum value
           listing_fee_paid: Math.random() > 0.3,
           approval_status: Math.random() > 0.2 ? 'approved' : 'pending',
           average_rating: +(Math.random() * 1.5 + 3.5).toFixed(1),
@@ -180,7 +114,7 @@ const DataSeeder = () => {
         console.log(`Created ${merchants.length} merchants`);
       }
 
-      // 4. Create 70+ Deals
+      // 2. Create 70+ Deals with correct coupon_type values
       if (merchantsData && merchantsData.length > 0) {
         console.log('Creating deals...');
         const deals = [];
@@ -202,6 +136,9 @@ const DataSeeder = () => {
           { title: 'Travel Package to Udaipur', discount: 25, type: 'Travel' }
         ];
 
+        // Valid coupon_type values based on the database constraint
+        const validCouponTypes = ['discount', 'free_item', 'percentage_off', 'buy_one_get_one'];
+
         for (let i = 0; i < 75; i++) {
           const template = dealTemplates[i % dealTemplates.length];
           const merchant = merchantsData[i % merchantsData.length];
@@ -219,7 +156,7 @@ const DataSeeder = () => {
             purchase_price: Math.round(discountedPrice * 0.85),
             discount_percentage: discountPercent,
             merchant_id: merchant.id,
-            coupon_type: ['paid_discount', 'free_item', 'percentage_off'][Math.floor(Math.random() * 3)],
+            coupon_type: validCouponTypes[Math.floor(Math.random() * validCouponTypes.length)], // Fixed: use valid enum values
             is_active: true,
             is_featured: Math.random() > 0.8,
             max_redemptions: Math.floor(Math.random() * 200) + 50,
@@ -249,85 +186,79 @@ const DataSeeder = () => {
           console.log(`Created ${deals.length} deals`);
         }
 
-        // 5. Create Reviews
-        if (usersData && usersData.length > 0) {
-          console.log('Creating reviews...');
-          const reviews = [];
-          const reviewTexts = [
-            'Excellent service and great quality! Highly recommended for everyone.',
-            'Amazing experience with professional staff. Will definitely visit again.',
-            'Outstanding quality and value for money. Best in Jaipur!',
-            'Great ambiance and friendly service. Perfect for family visits.',
-            'Authentic Rajasthani experience with modern facilities.',
-            'Quick service and delicious food. Loved the traditional flavors.',
-            'Professional staff and clean environment. Very satisfied.',
-            'Good quality products at reasonable prices. Recommended!',
-            'Excellent customer service and timely delivery.',
-            'Best place in Jaipur for this service. Five stars!'
-          ];
+        // 3. Create Reviews (skip user_id since we don't have sample users)
+        console.log('Creating reviews...');
+        const reviews = [];
+        const reviewTexts = [
+          'Excellent service and great quality! Highly recommended for everyone.',
+          'Amazing experience with professional staff. Will definitely visit again.',
+          'Outstanding quality and value for money. Best in Jaipur!',
+          'Great ambiance and friendly service. Perfect for family visits.',
+          'Authentic Rajasthani experience with modern facilities.',
+          'Quick service and delicious food. Loved the traditional flavors.',
+          'Professional staff and clean environment. Very satisfied.',
+          'Good quality products at reasonable prices. Recommended!',
+          'Excellent customer service and timely delivery.',
+          'Best place in Jaipur for this service. Five stars!'
+        ];
 
-          for (let i = 0; i < 120; i++) {
-            const user = usersData[Math.floor(Math.random() * usersData.length)];
-            const merchant = merchantsData[Math.floor(Math.random() * merchantsData.length)];
-            
-            reviews.push({
-              user_id: user.id,
-              merchant_name: merchant.business_name,
-              rating: Math.floor(Math.random() * 2) + 4, // 4-5 star ratings
-              review_text: reviewTexts[Math.floor(Math.random() * reviewTexts.length)],
-              jaicoin_rewarded: true
-            });
-          }
-
-          const { error: reviewsError } = await supabase
-            .from('reviews')
-            .insert(reviews);
+        for (let i = 0; i < 120; i++) {
+          const merchant = merchantsData[Math.floor(Math.random() * merchantsData.length)];
           
-          if (reviewsError) {
-            console.error('Reviews error:', reviewsError);
-          } else {
-            console.log(`Created ${reviews.length} reviews`);
-          }
+          reviews.push({
+            // Skip user_id since we don't have sample users
+            merchant_name: merchant.business_name,
+            rating: Math.floor(Math.random() * 2) + 4, // 4-5 star ratings
+            review_text: reviewTexts[Math.floor(Math.random() * reviewTexts.length)],
+            jaicoin_rewarded: true
+          });
         }
 
-        // 6. Create Community Posts
-        if (usersData && usersData.length > 0) {
-          console.log('Creating community posts...');
-          const posts = [];
-          const postContents = [
-            'Just discovered this amazing restaurant in C-Scheme! The Rajasthani thali was incredible. Earned 50 JaiCoins too! 🍽️',
-            'Has anyone tried the new spa in Malviya Nagar? Looking for authentic Ayurvedic treatments.',
-            'Great deals on electronics this week! Got a new smartphone with 25% off. This app is fantastic for savings! 📱',
-            'Loving the traditional jewelry collection at Gem Palace. Perfect for upcoming wedding season! 💍',
-            'Best gym membership deals are live now. Already saved 2000 rupees on annual membership! 💪',
-            'Found amazing handicrafts for Diwali gifts. Supporting local artisans while saving money! 🎨',
-            'The car service deal was excellent. Professional work and great customer service. Highly recommended! 🚗',
-            'Photography session package was worth every penny. Beautiful traditional Rajasthani photoshoot! 📸',
-            'Travel package to Udaipur was amazing! Great value for money and excellent arrangements. 🏰',
-            'Organic food delivery has been a game changer. Fresh vegetables and fruits at great prices! 🥬'
-          ];
-
-          for (let i = 0; i < 35; i++) {
-            const user = usersData[Math.floor(Math.random() * usersData.length)];
-            posts.push({
-              user_id: user.id,
-              content: postContents[Math.floor(Math.random() * postContents.length)],
-              likes_count: Math.floor(Math.random() * 25) + 2
-            });
-          }
-
-          const { error: postsError } = await supabase
-            .from('community_posts')
-            .insert(posts);
-          
-          if (postsError) {
-            console.error('Community posts error:', postsError);
-          } else {
-            console.log(`Created ${posts.length} community posts`);
-          }
+        const { error: reviewsError } = await supabase
+          .from('reviews')
+          .insert(reviews);
+        
+        if (reviewsError) {
+          console.error('Reviews error:', reviewsError);
+        } else {
+          console.log(`Created ${reviews.length} reviews`);
         }
 
-        // 7. Create Group Challenges
+        // 4. Create Community Posts (skip user_id)
+        console.log('Creating community posts...');
+        const posts = [];
+        const postContents = [
+          'Just discovered this amazing restaurant in C-Scheme! The Rajasthani thali was incredible. Earned 50 JaiCoins too! 🍽️',
+          'Has anyone tried the new spa in Malviya Nagar? Looking for authentic Ayurvedic treatments.',
+          'Great deals on electronics this week! Got a new smartphone with 25% off. This app is fantastic for savings! 📱',
+          'Loving the traditional jewelry collection at Gem Palace. Perfect for upcoming wedding season! 💍',
+          'Best gym membership deals are live now. Already saved 2000 rupees on annual membership! 💪',
+          'Found amazing handicrafts for Diwali gifts. Supporting local artisans while saving money! 🎨',
+          'The car service deal was excellent. Professional work and great customer service. Highly recommended! 🚗',
+          'Photography session package was worth every penny. Beautiful traditional Rajasthani photoshoot! 📸',
+          'Travel package to Udaipur was amazing! Great value for money and excellent arrangements. 🏰',
+          'Organic food delivery has been a game changer. Fresh vegetables and fruits at great prices! 🥬'
+        ];
+
+        for (let i = 0; i < 35; i++) {
+          posts.push({
+            // Skip user_id since we don't have sample users
+            content: postContents[Math.floor(Math.random() * postContents.length)],
+            likes_count: Math.floor(Math.random() * 25) + 2
+          });
+        }
+
+        const { error: postsError } = await supabase
+          .from('community_posts')
+          .insert(posts);
+        
+        if (postsError) {
+          console.error('Community posts error:', postsError);
+        } else {
+          console.log(`Created ${posts.length} community posts`);
+        }
+
+        // 5. Create Group Challenges (skip created_by since we don't have sample users)
         console.log('Creating group challenges...');
         const challenges = [
           {
@@ -368,51 +299,21 @@ const DataSeeder = () => {
           }
         ];
 
-        if (usersData && usersData.length > 0) {
-          const challengesWithCreator = challenges.map(challenge => ({
-            ...challenge,
-            created_by: usersData[0].id
-          }));
-
-          const { data: challengesData, error: challengesError } = await supabase
-            .from('group_challenges')
-            .insert(challengesWithCreator)
-            .select('id');
-          
-          if (challengesError) {
-            console.error('Challenges error:', challengesError);
-          } else {
-            console.log(`Created ${challenges.length} group challenges`);
-
-            // Add challenge participants
-            if (challengesData) {
-              const participants = [];
-              for (const challenge of challengesData) {
-                const participantCount = Math.floor(Math.random() * 15) + 5;
-                for (let i = 0; i < participantCount && i < usersData.length; i++) {
-                  participants.push({
-                    challenge_id: challenge.id,
-                    user_id: usersData[i].id,
-                    current_progress: Math.floor(Math.random() * 5)
-                  });
-                }
-              }
-
-              const { error: participantsError } = await supabase
-                .from('challenge_participants')
-                .insert(participants);
-              
-              if (!participantsError) {
-                console.log(`Added ${participants.length} challenge participants`);
-              }
-            }
-          }
+        const { data: challengesData, error: challengesError } = await supabase
+          .from('group_challenges')
+          .insert(challenges)
+          .select('id');
+        
+        if (challengesError) {
+          console.error('Challenges error:', challengesError);
+        } else {
+          console.log(`Created ${challenges.length} group challenges`);
         }
       }
 
       toast({
-        title: "Comprehensive Data Seeding Complete! 🎉",
-        description: `Successfully created: ${sampleUsers.length} users, ${merchants.length} merchants, 75 deals, 120 reviews, 35 community posts, and 4 challenges with participants.`,
+        title: "Sample Data Created Successfully! 🎉",
+        description: `Created: ${merchants.length} merchants, 75 deals, 120 reviews, 35 community posts, and 4 challenges. Note: User profiles skipped (requires authentication).`,
         variant: "default"
       });
 
@@ -543,13 +444,12 @@ const DataSeeder = () => {
             <div className="text-green-700">
               <h3 className="font-semibold mb-2">🚀 Complete Sample Data Creation</h3>
               <ul className="list-disc list-inside space-y-1 text-sm">
-                <li><strong>15 Sample Users</strong> - Realistic Jaipur residents with demographics</li>
                 <li><strong>50 Merchants</strong> - Diverse Jaipur businesses across all categories</li>
-                <li><strong>75 Deals</strong> - Mix of location-based and online deals</li>
+                <li><strong>75 Deals</strong> - Mix of location-based and online deals with valid coupon types</li>
                 <li><strong>120 Reviews</strong> - User reviews for merchants</li>
                 <li><strong>35 Community Posts</strong> - Social interactions and discussions</li>
                 <li><strong>4 Group Challenges</strong> - With participants and progress tracking</li>
-                <li><strong>JaiCoin Transactions</strong> - Realistic transaction history</li>
+                <li className="text-amber-600"><strong>Note:</strong> User profiles require authentication - sign up users first</li>
               </ul>
             </div>
             
@@ -590,7 +490,7 @@ const DataSeeder = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                   <div className="flex items-center justify-between">
                     <span>Users:</span>
-                    <span className={`font-semibold ${verificationResults.profiles > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={`font-semibold ${verificationResults.profiles > 0 ? 'text-green-600' : 'text-amber-600'}`}>
                       {verificationResults.profiles}
                     </span>
                   </div>
@@ -638,7 +538,7 @@ const DataSeeder = () => {
               <div className="flex items-start gap-2 text-yellow-800">
                 <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 <div className="text-xs">
-                  <strong>Note:</strong> This creates comprehensive sample data including users, merchants, deals, reviews, community posts, and challenges. All data represents realistic Jaipur businesses and demographics.
+                  <strong>Note:</strong> User profiles require authenticated users from the auth.users table. Sign up real users first, then they will automatically get profiles. This seeder creates merchants, deals, reviews, posts, and challenges without user dependencies.
                 </div>
               </div>
             </div>
