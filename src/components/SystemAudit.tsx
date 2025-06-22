@@ -28,32 +28,140 @@ const SystemAudit = () => {
       // Database Schema Audit
       const schemaChecks = [];
       
-      // Check critical tables exist
-      const tables = ['merchants', 'deals', 'profiles', 'coupons', 'jaicoin_transactions'];
-      for (const table of tables) {
-        try {
-          const { count, error } = await supabase.from(table).select('*', { count: 'exact', head: true });
-          if (error) {
-            schemaChecks.push({
-              name: `Table: ${table}`,
-              status: 'fail' as const,
-              message: `Table missing or inaccessible: ${error.message}`
-            });
-          } else {
-            schemaChecks.push({
-              name: `Table: ${table}`,
-              status: 'pass' as const,
-              message: `Table exists with ${count || 0} records`,
-              count: count || 0
-            });
-          }
-        } catch (err) {
+      // Check critical tables exist with explicit table names
+      try {
+        const { count: merchantCount, error: merchantError } = await supabase
+          .from('merchants')
+          .select('*', { count: 'exact', head: true });
+        
+        if (merchantError) {
           schemaChecks.push({
-            name: `Table: ${table}`,
+            name: 'Table: merchants',
             status: 'fail' as const,
-            message: `Database connection error`
+            message: `Table missing or inaccessible: ${merchantError.message}`
+          });
+        } else {
+          schemaChecks.push({
+            name: 'Table: merchants',
+            status: 'pass' as const,
+            message: `Table exists with ${merchantCount || 0} records`,
+            count: merchantCount || 0
           });
         }
+      } catch (err) {
+        schemaChecks.push({
+          name: 'Table: merchants',
+          status: 'fail' as const,
+          message: 'Database connection error'
+        });
+      }
+
+      try {
+        const { count: dealCount, error: dealError } = await supabase
+          .from('deals')
+          .select('*', { count: 'exact', head: true });
+        
+        if (dealError) {
+          schemaChecks.push({
+            name: 'Table: deals',
+            status: 'fail' as const,
+            message: `Table missing or inaccessible: ${dealError.message}`
+          });
+        } else {
+          schemaChecks.push({
+            name: 'Table: deals',
+            status: 'pass' as const,
+            message: `Table exists with ${dealCount || 0} records`,
+            count: dealCount || 0
+          });
+        }
+      } catch (err) {
+        schemaChecks.push({
+          name: 'Table: deals',
+          status: 'fail' as const,
+          message: 'Database connection error'
+        });
+      }
+
+      try {
+        const { count: profileCount, error: profileError } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
+        
+        if (profileError) {
+          schemaChecks.push({
+            name: 'Table: profiles',
+            status: 'fail' as const,
+            message: `Table missing or inaccessible: ${profileError.message}`
+          });
+        } else {
+          schemaChecks.push({
+            name: 'Table: profiles',
+            status: 'pass' as const,
+            message: `Table exists with ${profileCount || 0} records`,
+            count: profileCount || 0
+          });
+        }
+      } catch (err) {
+        schemaChecks.push({
+          name: 'Table: profiles',
+          status: 'fail' as const,
+          message: 'Database connection error'
+        });
+      }
+
+      try {
+        const { count: couponCount, error: couponError } = await supabase
+          .from('coupons')
+          .select('*', { count: 'exact', head: true });
+        
+        if (couponError) {
+          schemaChecks.push({
+            name: 'Table: coupons',
+            status: 'fail' as const,
+            message: `Table missing or inaccessible: ${couponError.message}`
+          });
+        } else {
+          schemaChecks.push({
+            name: 'Table: coupons',
+            status: 'pass' as const,
+            message: `Table exists with ${couponCount || 0} records`,
+            count: couponCount || 0
+          });
+        }
+      } catch (err) {
+        schemaChecks.push({
+          name: 'Table: coupons',
+          status: 'fail' as const,
+          message: 'Database connection error'
+        });
+      }
+
+      try {
+        const { count: transactionCount, error: transactionError } = await supabase
+          .from('jaicoin_transactions')
+          .select('*', { count: 'exact', head: true });
+        
+        if (transactionError) {
+          schemaChecks.push({
+            name: 'Table: jaicoin_transactions',
+            status: 'fail' as const,
+            message: `Table missing or inaccessible: ${transactionError.message}`
+          });
+        } else {
+          schemaChecks.push({
+            name: 'Table: jaicoin_transactions',
+            status: 'pass' as const,
+            message: `Table exists with ${transactionCount || 0} records`,
+            count: transactionCount || 0
+          });
+        }
+      } catch (err) {
+        schemaChecks.push({
+          name: 'Table: jaicoin_transactions',
+          status: 'fail' as const,
+          message: 'Database connection error'
+        });
       }
 
       results.push({
@@ -112,17 +220,21 @@ const SystemAudit = () => {
           message: user ? 'User authenticated' : 'No active session (OK for testing)'
         });
 
-        // Check auth functions
-        const { data: functions } = await supabase.rpc('generate_referral_code').then(
-          () => ({ data: 'OK' }),
-          (error) => ({ error })
-        );
-        
-        authChecks.push({
-          name: 'Database Functions',
-          status: functions ? 'pass' : 'warning',
-          message: functions ? 'Auth functions working' : 'Some functions may be missing'
-        });
+        // Check auth functions with proper error handling
+        try {
+          const result = await supabase.rpc('generate_referral_code');
+          authChecks.push({
+            name: 'Database Functions',
+            status: result.error ? 'warning' : 'pass',
+            message: result.error ? 'Some functions may be missing' : 'Auth functions working'
+          });
+        } catch (funcError) {
+          authChecks.push({
+            name: 'Database Functions',
+            status: 'warning',
+            message: 'Some functions may be missing'
+          });
+        }
 
       } catch (error) {
         authChecks.push({
