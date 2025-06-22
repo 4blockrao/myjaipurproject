@@ -9,6 +9,230 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      community_posts: {
+        Row: {
+          content: string
+          created_at: string | null
+          deal_id: string | null
+          id: string
+          image_url: string | null
+          likes_count: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          deal_id?: string | null
+          id?: string
+          image_url?: string | null
+          likes_count?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          deal_id?: string | null
+          id?: string
+          image_url?: string | null
+          likes_count?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      jaicoin_transactions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          description: string | null
+          id: string
+          metadata: Json | null
+          source: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          source: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          source?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      post_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          is_pro: boolean | null
+          phone: string | null
+          rank: string | null
+          referral_code: string | null
+          referred_by: string | null
+          total_referrals: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          is_pro?: boolean | null
+          phone?: string | null
+          rank?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
+          total_referrals?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          is_pro?: boolean | null
+          phone?: string | null
+          rank?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
+          total_referrals?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      referral_earnings: {
+        Row: {
+          created_at: string | null
+          earnings: number
+          id: string
+          level: number
+          referred_id: string | null
+          referrer_id: string | null
+          source: string
+        }
+        Insert: {
+          created_at?: string | null
+          earnings: number
+          id?: string
+          level: number
+          referred_id?: string | null
+          referrer_id?: string | null
+          source: string
+        }
+        Update: {
+          created_at?: string | null
+          earnings?: number
+          id?: string
+          level?: number
+          referred_id?: string | null
+          referrer_id?: string | null
+          source?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          created_at: string | null
+          deal_id: string | null
+          id: string
+          image_url: string | null
+          jaicoin_rewarded: boolean | null
+          merchant_name: string
+          rating: number
+          review_text: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          deal_id?: string | null
+          id?: string
+          image_url?: string | null
+          jaicoin_rewarded?: boolean | null
+          merchant_name: string
+          rating: number
+          review_text?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          deal_id?: string | null
+          id?: string
+          image_url?: string | null
+          jaicoin_rewarded?: boolean | null
+          merchant_name?: string
+          rating?: number
+          review_text?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      spin_attempts: {
+        Row: {
+          created_at: string | null
+          id: string
+          reward_amount: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          reward_amount: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          reward_amount?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       test: {
         Row: {
           created_at: string
@@ -29,7 +253,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_referral_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_balance: {
+        Args: { user_uuid: string }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
