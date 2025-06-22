@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ArrowLeft, MapPin, Search, Star, Filter, Menu, Bell, Heart, Mic, ShoppingCart, Coins, TrendingUp, Users, Gift, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -258,8 +257,8 @@ const Index = () => {
         {/* Products You Can Buy Today */}
         <TopProducts deals={filteredDeals} />
 
-        {/* JAICoin Gamification Zone */}
-        <JaiCoinZone user={user} />
+        {/* JAICoin Gamification Zone - Only show if user is logged in */}
+        {user && <JaiCoinZone user={user} />}
 
         {/* Top Selling Deals */}
         <TopSellingDeals deals={filteredDeals} />
@@ -270,8 +269,8 @@ const Index = () => {
         {/* Top Merchants */}
         <TopMerchants />
 
-        {/* Leaderboard */}
-        <Leaderboard />
+        {/* Leaderboard - Only show if user is logged in */}
+        {user && <Leaderboard />}
 
         {/* Browse by Locality */}
         <LocalityGrid />
