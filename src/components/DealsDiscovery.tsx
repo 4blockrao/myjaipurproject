@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ interface Deal {
   is_featured: boolean;
   max_redemptions: number;
   current_redemptions: number;
+  created_at?: string;
   merchant: {
     business_name: string;
     is_verified: boolean;
@@ -103,6 +105,7 @@ const DealsDiscovery = () => {
         is_featured: deal.is_featured || false,
         max_redemptions: deal.max_redemptions || 0,
         current_redemptions: deal.current_redemptions || 0,
+        created_at: deal.created_at,
         merchant: {
           business_name: deal.merchants?.business_name || 'Unknown Merchant',
           is_verified: deal.merchants?.is_verified || false
@@ -137,13 +140,16 @@ const DealsDiscovery = () => {
     }
 
     if (sortBy === "discount") {
-      filtered = filtered.sort((a, b) => b.discounted_price - a.discounted_price);
+      filtered = filtered.sort((a, b) => b.discount_percentage - a.discount_percentage);
     } else if (sortBy === "price_low") {
       filtered = filtered.sort((a, b) => a.discounted_price - b.discounted_price);
     } else if (sortBy === "price_high") {
       filtered = filtered.sort((a, b) => b.discounted_price - a.discounted_price);
-    } else if (sortBy === "newest") {
-      filtered = filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    } else if (sortBy === "newest" && filtered[0]?.created_at) {
+      filtered = filtered.sort((a, b) => {
+        if (!a.created_at || !b.created_at) return 0;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
     }
 
     setFilteredDeals(filtered);

@@ -19,7 +19,7 @@ const ProfilePage = () => {
     full_name: '',
     email: '',
     phone: '',
-    location: ''
+    locality: ''
   });
   const { toast } = useToast();
 
@@ -45,7 +45,7 @@ const ProfilePage = () => {
             full_name: profile.full_name || '',
             email: user.email || '',
             phone: profile.phone || '',
-            location: profile.location || ''
+            locality: '' // Will be added when we implement locality field
           });
         }
       }
@@ -62,8 +62,7 @@ const ProfilePage = () => {
         .from('profiles')
         .update({
           full_name: formData.full_name,
-          phone: formData.phone,
-          location: formData.location
+          phone: formData.phone
         })
         .eq('id', user.id);
 
@@ -137,11 +136,11 @@ const ProfilePage = () => {
                 </div>
                 <div className="flex items-center space-x-3 text-sm text-gray-600">
                   <MapPin className="w-4 h-4" />
-                  <span>{profile?.location || 'Location not set'}</span>
+                  <span>Locality not set</span>
                 </div>
                 <div className="flex items-center space-x-3 text-sm">
                   <Coins className="w-4 h-4 text-yellow-500" />
-                  <span className="font-medium">JaiCoins: {profile?.jaicoin_balance || 0}</span>
+                  <span className="font-medium">JaiCoins: 0</span>
                 </div>
                 <Button 
                   onClick={handleSignOut}
@@ -214,13 +213,14 @@ const ProfilePage = () => {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="location">Location</Label>
+                        <Label htmlFor="locality">Locality</Label>
                         <Input
-                          id="location"
-                          value={formData.location}
-                          onChange={(e) => setFormData({...formData, location: e.target.value})}
+                          id="locality"
+                          value={formData.locality}
+                          onChange={(e) => setFormData({...formData, locality: e.target.value})}
                           disabled={!isEditing}
                           className="mt-1"
+                          placeholder="Will be updated with locality selector"
                         />
                       </div>
                     </div>
