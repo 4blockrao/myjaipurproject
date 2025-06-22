@@ -18,6 +18,9 @@ import MerchantDashboardPage from "./pages/MerchantDashboardPage";
 import GamificationPage from "./pages/GamificationPage";
 import ProMembershipPage from "./pages/ProMembershipPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
+import DealDetailPage from "./pages/DealDetailPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import OrderSuccessPage from "./pages/OrderSuccessPage";
 import DataDashboard from "./components/DataDashboard";
 import SystemAudit from "./components/SystemAudit";
 import NotFound from "./pages/NotFound";
@@ -45,6 +48,9 @@ const App = () => (
           <Route path="/gamification" element={<GamificationPage />} />
           <Route path="/pro" element={<ProMembershipPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/deal/:id" element={<DealDetailPage />} />
+          <Route path="/checkout/:orderId" element={<CheckoutPage />} />
+          <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
           <Route path="/admin/data" element={<DataDashboard />} />
           <Route path="/admin/audit" element={<SystemAudit />} />
           <Route path="*" element={<NotFound />} />

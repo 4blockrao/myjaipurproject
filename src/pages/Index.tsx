@@ -82,7 +82,7 @@ const Index = () => {
     try {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('locality')
+        .select('*')
         .eq('id', userId)
         .single();
         

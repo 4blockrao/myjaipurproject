@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Package, Star, Truck, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 
 interface Product {
   id: string;
@@ -14,8 +15,8 @@ interface Product {
   original_price: number;
   discounted_price: number;
   discount_percentage: number;
-  inventory_count: number;
-  product_details: any;
+  inventory_count?: number;
+  product_details?: any;
   merchant: {
     business_name: string;
     is_verified: boolean;
@@ -43,7 +44,7 @@ const ProductShowcase = () => {
           )
         `)
         .eq('is_active', true)
-        .eq('is_product_sale', true)
+        .eq('deal_type', 'product')
         .gt('inventory_count', 0)
         .order('created_at', { ascending: false })
         .limit(6);
@@ -85,11 +86,8 @@ const ProductShowcase = () => {
         return;
       }
 
-      // For now, just show success message - actual payment integration would go here
-      toast({
-        title: "Purchase Initiated",
-        description: `Added ${product.title} to your cart`,
-      });
+      // Navigate to deal detail page
+      window.location.href = `/deal/${product.id}`;
     } catch (error) {
       console.error('Purchase error:', error);
     }
@@ -140,7 +138,7 @@ const ProductShowcase = () => {
                 </div>
               )}
               
-              {product.inventory_count <= 10 && (
+              {product.inventory_count && product.inventory_count <= 10 && (
                 <div className="absolute top-4 right-4">
                   <Badge variant="destructive" className="font-bold">
                     Only {product.inventory_count} left!
@@ -199,14 +197,13 @@ const ProductShowcase = () => {
                   <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
                 )}
 
-                {/* Purchase Button */}
-                <Button 
-                  onClick={() => handlePurchase(product)}
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium shadow-lg hover:shadow-xl transition-all"
-                >
-                  <ShoppingCart className="w-4 h-4 mr-2" />
-                  Buy Now - ₹{product.discounted_price.toLocaleString()}
-                </Button>
+                {/* View Details Button */}
+                <Link to={`/deal/${product.id}`}>
+                  <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium shadow-lg hover:shadow-xl transition-all">
+                    <ShoppingCart className="w-4 h-4 mr-2" />
+                    View Details - ₹{product.discounted_price.toLocaleString()}
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>

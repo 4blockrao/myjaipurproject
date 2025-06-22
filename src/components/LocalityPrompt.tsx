@@ -35,7 +35,10 @@ const LocalityPrompt = ({ isOpen, onClose, onLocalitySelected }: LocalityPromptP
       if (user) {
         const { error } = await supabase
           .from('profiles')
-          .update({ locality: selectedLocality })
+          .update({ 
+            locality: selectedLocality,
+            updated_at: new Date().toISOString()
+          })
           .eq('id', user.id);
 
         if (error) throw error;
