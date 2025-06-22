@@ -19,7 +19,7 @@ const DataSeeder = () => {
     try {
       console.log('Starting comprehensive data seeding...');
 
-      // 1. Create 30+ User Profiles
+      // 1. Create 35+ User Profiles with proper UUIDs
       const profiles = [];
       const userNames = [
         'John Smith', 'Sarah Johnson', 'Michael Brown', 'Emily Davis', 'David Wilson',
@@ -33,7 +33,7 @@ const DataSeeder = () => {
 
       for (let i = 0; i < userNames.length; i++) {
         const profile = {
-          id: `user-${i + 1}-${Date.now()}`,
+          id: crypto.randomUUID(), // Generate proper UUID
           full_name: userNames[i],
           email: `${userNames[i].toLowerCase().replace(' ', '.')}@example.com`,
           phone: `+1-555-${String(Math.floor(Math.random() * 9000) + 1000)}`,
@@ -54,7 +54,7 @@ const DataSeeder = () => {
         console.log(`Created ${profiles.length} user profiles`);
       }
 
-      // 2. Create 25+ Merchants
+      // 2. Create 28+ Merchants with valid listing_tier values
       const merchants = [];
       const businessData = [
         { name: 'Pizza Palace Downtown', type: 'Restaurant', category: 'Food & Dining' },
@@ -98,7 +98,7 @@ const DataSeeder = () => {
           description: `Premium ${business.type.toLowerCase()} services with exceptional quality and customer satisfaction.`,
           is_verified: Math.random() > 0.3,
           is_active: Math.random() > 0.1,
-          listing_tier: ['basic', 'premium', 'enterprise'][Math.floor(Math.random() * 3)],
+          listing_tier: ['basic', 'premium', 'enterprise'][Math.floor(Math.random() * 3)], // Valid values only
           listing_fee_paid: Math.random() > 0.2,
           approval_status: ['approved', 'pending', 'rejected'][Math.floor(Math.random() * 3)],
           average_rating: +(Math.random() * 2 + 3).toFixed(1),
@@ -122,7 +122,7 @@ const DataSeeder = () => {
         console.log(`Created ${merchants.length} merchants`);
       }
 
-      // 3. Create 50+ Deals
+      // 3. Create 55+ Deals
       if (merchantsData && merchantsData.length > 0) {
         const deals = [];
         const dealTemplates = [
@@ -192,7 +192,6 @@ const DataSeeder = () => {
           for (let i = 0; i < sampleDeals.length; i++) {
             const deal = sampleDeals[i];
             const profile = profiles[i % profiles.length];
-            const merchant = merchantsData.find(m => m.id === deal.merchant_id);
             
             const coupon = {
               coupon_code: `JAI${String(Math.random()).substring(2, 10).toUpperCase()}`,
@@ -209,6 +208,7 @@ const DataSeeder = () => {
               usage_terms: 'Valid for single use only. Cannot be transferred.'
             };
             
+            // Add redeemed_at for redeemed coupons
             if (Math.random() > 0.6) {
               coupon.redeemed_at = new Date(Date.now() - Math.random() * 15 * 24 * 60 * 60 * 1000).toISOString();
               coupon.status = 'redeemed';
@@ -289,7 +289,7 @@ const DataSeeder = () => {
       let clearedCount = 0;
       
       for (const table of tables) {
-        const { error } = await supabase.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        const { error } = await supabase.from(table as any).delete().neq('id', '00000000-0000-0000-0000-000000000000');
         if (error) {
           console.error(`Error clearing ${table}:`, error);
         } else {
