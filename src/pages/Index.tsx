@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ArrowLeft, MapPin, Search, Star, Filter, Menu, Bell, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,10 @@ import LocalityPrompt from "@/components/LocalityPrompt";
 import AuthModal from "@/components/AuthModal";
 import JaiCoinWallet from "@/components/JaiCoinWallet";
 import ProductShowcase from "@/components/ProductShowcase";
+import DealsNearMe from "@/components/home/DealsNearMe";
+import TopSellingDeals from "@/components/home/TopSellingDeals";
+import TodaysTopDeals from "@/components/home/TodaysTopDeals";
+import TopProducts from "@/components/home/TopProducts";
 import { Link } from "react-router-dom";
 
 interface UserProfile {
@@ -221,20 +224,46 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Hero Section */}
+      <div className="bg-gradient-to-br from-pink-500 via-purple-500 to-orange-400 text-white py-12">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">
+            Discover Amazing Deals in Jaipur
+          </h1>
+          <p className="text-xl md:text-2xl mb-8 opacity-90">
+            Save money, earn rewards, and explore the best local businesses
+          </p>
+          <div className="flex flex-wrap justify-center gap-4 text-lg">
+            <div className="flex items-center space-x-2">
+              <span className="text-2xl">🏪</span>
+              <span>1000+ Local Businesses</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-2xl">💰</span>
+              <span>Up to 70% Off</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-2xl">🪙</span>
+              <span>Earn JaiCoins</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="deals" className="w-full">
+      <div className="container mx-auto px-4">
+        <Tabs defaultValue="home" className="w-full">
           {/* Navigation Tabs */}
-          <TabsList className="grid w-full grid-cols-5 mb-8">
-            <TabsTrigger value="deals">Deals</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5 mb-8 mt-8">
+            <TabsTrigger value="home">Home</TabsTrigger>
             <TabsTrigger value="categories">Categories</TabsTrigger>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="trending">Trending</TabsTrigger>
           </TabsList>
 
-          {/* Deals Tab */}
-          <TabsContent value="deals" className="space-y-8">
+          {/* Home Tab */}
+          <TabsContent value="home" className="space-y-8">
             {/* Category Filter */}
             <div className="flex flex-wrap gap-2">
               {categories.map(category => (
@@ -250,117 +279,136 @@ const Index = () => {
               ))}
             </div>
 
-            {/* Deals Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredDeals.map((deal) => (
-                <Card key={deal.id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md overflow-hidden">
-                  <div className="relative">
-                    <div className="h-48 bg-gradient-to-br from-pink-100 via-orange-100 to-yellow-100 flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="text-3xl mb-2">
-                          {deal.category === 'Food & Dining' ? '🍽️' : 
-                           deal.category === 'Beauty & Wellness' ? '💆‍♀️' : 
-                           deal.category === 'Shopping' ? '🛍️' : 
-                           deal.category === 'Electronics' ? '📱' : 
-                           deal.category === 'Health & Fitness' ? '💪' : '✨'}
+            {/* Deals Near Me Section */}
+            <DealsNearMe deals={filteredDeals} userLocality={profile?.locality} />
+
+            {/* Today's Top Deals Section */}
+            <TodaysTopDeals deals={filteredDeals} />
+
+            {/* Top Selling Deals Section */}
+            <TopSellingDeals deals={filteredDeals} />
+
+            {/* Top Products Section */}
+            <TopProducts deals={filteredDeals} />
+
+            {/* All Deals Grid */}
+            <section className="py-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">All Deals</h2>
+                <Button variant="outline" size="sm">View More</Button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredDeals.slice(0, 9).map((deal) => (
+                  <Card key={deal.id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md overflow-hidden">
+                    <div className="relative">
+                      <div className="h-48 bg-gradient-to-br from-pink-100 via-orange-100 to-yellow-100 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-3xl mb-2">
+                            {deal.category === 'Food & Dining' ? '🍽️' : 
+                             deal.category === 'Beauty & Wellness' ? '💆‍♀️' : 
+                             deal.category === 'Shopping' ? '🛍️' : 
+                             deal.category === 'Electronics' ? '📱' : 
+                             deal.category === 'Health & Fitness' ? '💪' : '✨'}
+                          </div>
+                          <div className="text-sm font-medium text-gray-600">{deal.subcategory}</div>
                         </div>
-                        <div className="text-sm font-medium text-gray-600">{deal.subcategory}</div>
                       </div>
+                      
+                      {deal.is_featured && (
+                        <div className="absolute top-4 left-4">
+                          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-bold">
+                            ⭐ FEATURED
+                          </Badge>
+                        </div>
+                      )}
+                      
+                      {deal.discount_percentage > 0 && (
+                        <div className="absolute top-4 right-4">
+                          <Badge className="bg-red-500 text-white font-bold">
+                            {deal.discount_percentage}% OFF
+                          </Badge>
+                        </div>
+                      )}
                     </div>
                     
-                    {deal.is_featured && (
-                      <div className="absolute top-4 left-4">
-                        <Badge className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-bold">
-                          ⭐ FEATURED
-                        </Badge>
-                      </div>
-                    )}
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg group-hover:text-pink-600 transition-colors line-clamp-2">
+                        {deal.title}
+                      </CardTitle>
+                      <CardDescription className="flex items-center justify-between">
+                        <span className="font-medium text-gray-900">{deal.merchants?.business_name}</span>
+                        {deal.merchants?.is_verified && (
+                          <Badge variant="outline" className="text-green-700 border-green-200">
+                            ✓ Verified
+                          </Badge>
+                        )}
+                      </CardDescription>
+                    </CardHeader>
                     
-                    {deal.discount_percentage > 0 && (
-                      <div className="absolute top-4 right-4">
-                        <Badge className="bg-red-500 text-white font-bold">
-                          {deal.discount_percentage}% OFF
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg group-hover:text-pink-600 transition-colors line-clamp-2">
-                      {deal.title}
-                    </CardTitle>
-                    <CardDescription className="flex items-center justify-between">
-                      <span className="font-medium text-gray-900">{deal.merchants?.business_name}</span>
-                      {deal.merchants?.is_verified && (
-                        <Badge variant="outline" className="text-green-700 border-green-200">
-                          ✓ Verified
-                        </Badge>
-                      )}
-                    </CardDescription>
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-2xl font-bold text-gray-900">₹{deal.discounted_price?.toLocaleString()}</span>
-                          {deal.original_price > 0 && (
-                            <span className="text-sm line-through text-gray-500">₹{deal.original_price?.toLocaleString()}</span>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-2xl font-bold text-gray-900">₹{deal.discounted_price?.toLocaleString()}</span>
+                            {deal.original_price > 0 && (
+                              <span className="text-sm line-through text-gray-500">₹{deal.original_price?.toLocaleString()}</span>
+                            )}
+                          </div>
+                          {deal.merchants?.average_rating > 0 && (
+                            <div className="flex items-center space-x-1">
+                              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                              <span className="text-sm font-medium">{deal.merchants.average_rating}</span>
+                            </div>
                           )}
                         </div>
-                        {deal.merchants?.average_rating > 0 && (
+
+                        <div className="flex items-center justify-between text-sm text-gray-600">
                           <div className="flex items-center space-x-1">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-medium">{deal.merchants.average_rating}</span>
+                            <MapPin className="w-4 h-4" />
+                            <span>{deal.location}</span>
                           </div>
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between text-sm text-gray-600">
-                        <div className="flex items-center space-x-1">
-                          <MapPin className="w-4 h-4" />
-                          <span>{deal.location}</span>
+                          {deal.jaicoin_reward > 0 && (
+                            <div className="flex items-center space-x-1 text-yellow-700">
+                              <span className="text-xs">🪙</span>
+                              <span className="font-medium">+{deal.jaicoin_reward}</span>
+                            </div>
+                          )}
                         </div>
-                        {deal.jaicoin_reward > 0 && (
-                          <div className="flex items-center space-x-1 text-yellow-700">
-                            <span className="text-xs">🪙</span>
-                            <span className="font-medium">+{deal.jaicoin_reward}</span>
-                          </div>
+
+                        {deal.description && (
+                          <p className="text-sm text-gray-600 line-clamp-2">{deal.description}</p>
                         )}
+
+                        <Link to={`/deal/${deal.id}`}>
+                          <Button className="w-full bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 font-medium">
+                            View Deal
+                          </Button>
+                        </Link>
                       </div>
-
-                      {deal.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2">{deal.description}</p>
-                      )}
-
-                      <Link to={`/deal/${deal.id}`}>
-                        <Button className="w-full bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 font-medium">
-                          View Deal
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {filteredDeals.length === 0 && (
-              <div className="text-center py-16">
-                <div className="text-gray-400 text-6xl mb-4">🔍</div>
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">No deals found</h3>
-                <p className="text-gray-500 mb-4">Try adjusting your search or location filters</p>
-                <Button 
-                  onClick={() => {
-                    setSearchQuery("");
-                    setSelectedCategory("all");
-                  }}
-                  variant="outline"
-                  className="border-pink-300 text-pink-600 hover:bg-pink-50"
-                >
-                  Clear Filters
-                </Button>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            )}
+
+              {filteredDeals.length === 0 && (
+                <div className="text-center py-16">
+                  <div className="text-gray-400 text-6xl mb-4">🔍</div>
+                  <h3 className="text-xl font-semibold text-gray-600 mb-2">No deals found</h3>
+                  <p className="text-gray-500 mb-4">Try adjusting your search or location filters</p>
+                  <Button 
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedCategory("all");
+                    }}
+                    variant="outline"
+                    className="border-pink-300 text-pink-600 hover:bg-pink-50"
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              )}
+            </section>
           </TabsContent>
 
           {/* Categories Tab */}
@@ -373,7 +421,10 @@ const Index = () => {
 
           {/* Products Tab */}
           <TabsContent value="products">
-            <ProductShowcase />
+            <div className="space-y-8">
+              <TopProducts deals={deals} />
+              <ProductShowcase />
+            </div>
           </TabsContent>
 
           {/* Services Tab */}
