@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,42 +19,10 @@ const DataSeeder = () => {
     try {
       console.log('Starting comprehensive data seeding...');
 
-      // 1. Create 35+ User Profiles with proper UUIDs
-      const profiles = [];
-      const userNames = [
-        'John Smith', 'Sarah Johnson', 'Michael Brown', 'Emily Davis', 'David Wilson',
-        'Lisa Anderson', 'Chris Taylor', 'Jessica Martinez', 'Andrew Thomas', 'Amanda White',
-        'Ryan Garcia', 'Nicole Miller', 'Kevin Rodriguez', 'Rachel Lee', 'Jason Moore',
-        'Ashley Jackson', 'Brandon Clark', 'Stephanie Lewis', 'Tyler Walker', 'Megan Hall',
-        'Justin Young', 'Kayla Allen', 'Nathan King', 'Samantha Wright', 'Eric Lopez',
-        'Christina Hill', 'Daniel Scott', 'Lauren Green', 'Matthew Adams', 'Brittany Baker',
-        'Joshua Gonzalez', 'Amber Nelson', 'Anthony Carter', 'Tiffany Mitchell', 'Mark Perez'
-      ];
+      // Skip profiles creation for now since it requires auth.users entries
+      console.log('Skipping profiles creation due to foreign key constraints');
 
-      for (let i = 0; i < userNames.length; i++) {
-        const profile = {
-          id: crypto.randomUUID(), // Generate proper UUID
-          full_name: userNames[i],
-          email: `${userNames[i].toLowerCase().replace(' ', '.')}@example.com`,
-          phone: `+1-555-${String(Math.floor(Math.random() * 9000) + 1000)}`,
-          rank: ['Bronze', 'Silver', 'Gold', 'Platinum'][Math.floor(Math.random() * 4)],
-          is_pro: Math.random() > 0.7,
-          total_referrals: Math.floor(Math.random() * 20),
-          referral_code: `REF${String(Math.random()).substring(2, 8).toUpperCase()}`
-        };
-        profiles.push(profile);
-      }
-
-      const { error: profilesError } = await supabase.from('profiles').insert(profiles);
-      if (profilesError) {
-        console.error('Profiles error:', profilesError);
-        errorCount++;
-      } else {
-        successCount++;
-        console.log(`Created ${profiles.length} user profiles`);
-      }
-
-      // 2. Create 28+ Merchants with valid listing_tier values
+      // 1. Create 28+ Merchants with valid listing_tier values
       const merchants = [];
       const businessData = [
         { name: 'Pizza Palace Downtown', type: 'Restaurant', category: 'Food & Dining' },
@@ -97,7 +66,7 @@ const DataSeeder = () => {
           description: `Premium ${business.type.toLowerCase()} services with exceptional quality and customer satisfaction.`,
           is_verified: Math.random() > 0.3,
           is_active: Math.random() > 0.1,
-          listing_tier: ['basic', 'premium', 'enterprise'][Math.floor(Math.random() * 3)], // Valid values only
+          listing_tier: 'basic', // Use only 'basic' to avoid constraint issues
           listing_fee_paid: Math.random() > 0.2,
           approval_status: ['approved', 'pending', 'rejected'][Math.floor(Math.random() * 3)],
           average_rating: +(Math.random() * 2 + 3).toFixed(1),
@@ -121,7 +90,7 @@ const DataSeeder = () => {
         console.log(`Created ${merchants.length} merchants`);
       }
 
-      // 3. Create 55+ Deals
+      // 2. Create 55+ Deals
       if (merchantsData && merchantsData.length > 0) {
         const deals = [];
         const dealTemplates = [
@@ -183,105 +152,13 @@ const DataSeeder = () => {
           console.log(`Created ${deals.length} deals`);
         }
 
-        // 4. Create Coupons for some deals
-        if (dealsData && dealsData.length > 0 && profiles.length > 0) {
-          const coupons = [];
-          const sampleDeals = dealsData.slice(0, 30); // Create coupons for first 30 deals
-          
-          for (let i = 0; i < sampleDeals.length; i++) {
-            const deal = sampleDeals[i];
-            const profile = profiles[i % profiles.length];
-            
-            // Determine if this coupon should be redeemed
-            const shouldBeRedeemed = Math.random() > 0.6;
-            
-            const coupon: {
-              coupon_code: string;
-              user_id: string;
-              deal_id: string;
-              merchant_id: string;
-              coupon_type: string;
-              discount_amount: number;
-              purchase_amount: number;
-              status: string;
-              expires_at: string;
-              purchased_at: string;
-              min_order_value: number;
-              usage_terms: string;
-              redeemed_at?: string;
-            } = {
-              coupon_code: `JAI${String(Math.random()).substring(2, 10).toUpperCase()}`,
-              user_id: profile.id,
-              deal_id: deal.id,
-              merchant_id: deal.merchant_id,
-              coupon_type: 'paid_discount',
-              discount_amount: Math.floor(Math.random() * 50) + 10,
-              purchase_amount: deal.purchase_price || 25,
-              status: shouldBeRedeemed ? 'redeemed' : ['active', 'expired'][Math.floor(Math.random() * 2)],
-              expires_at: new Date(Date.now() + Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
-              purchased_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-              min_order_value: Math.floor(Math.random() * 30),
-              usage_terms: 'Valid for single use only. Cannot be transferred.'
-            };
-            
-            // Add redeemed_at for redeemed coupons
-            if (shouldBeRedeemed) {
-              coupon.redeemed_at = new Date(Date.now() - Math.random() * 15 * 24 * 60 * 60 * 1000).toISOString();
-            }
-            
-            coupons.push(coupon);
-          }
-
-          const { error: couponsError } = await supabase.from('coupons').insert(coupons);
-          if (couponsError) {
-            console.error('Coupons error:', couponsError);
-            errorCount++;
-          } else {
-            successCount++;
-            console.log(`Created ${coupons.length} coupons`);
-          }
-        }
-
-        // 5. Create JaiCoin Transactions
-        const transactions = [];
-        for (let i = 0; i < 40; i++) {
-          const profile = profiles[i % profiles.length];
-          const transactionTypes = [
-            { type: 'earned', source: 'signup', amount: 25, description: 'Welcome bonus' },
-            { type: 'earned', source: 'referral', amount: 50, description: 'Referral bonus' },
-            { type: 'earned', source: 'purchase', amount: 15, description: 'Purchase reward' },
-            { type: 'earned', source: 'review', amount: 10, description: 'Review reward' },
-            { type: 'spent', source: 'coupon_purchase', amount: -20, description: 'Coupon purchase' },
-            { type: 'earned', source: 'spin_wheel', amount: 25, description: 'Spin wheel reward' }
-          ];
-          
-          const transType = transactionTypes[i % transactionTypes.length];
-          transactions.push({
-            user_id: profile.id,
-            amount: Math.abs(transType.amount) * (transType.type === 'spent' ? -1 : 1),
-            type: transType.type,
-            source: transType.source,
-            description: transType.description,
-            metadata: { transaction_id: `txn_${Date.now()}_${i}` }
-          });
-        }
-
-        const { error: transactionsError } = await supabase.from('jaicoin_transactions').insert(transactions);
-        if (transactionsError) {
-          console.error('Transactions error:', transactionsError);
-          errorCount++;
-        } else {
-          successCount++;
-          console.log(`Created ${transactions.length} JaiCoin transactions`);
-        }
+        // Show success message
+        toast({
+          title: "Data Seeding Complete!",
+          description: `Successfully created sample data: ${merchantsData.length} merchants, ${dealsData?.length || 0} deals. Note: Profiles skipped due to auth constraints.`,
+          variant: "default"
+        });
       }
-
-      // Show success message
-      toast({
-        title: "Data Seeding Complete!",
-        description: `Successfully created comprehensive sample data: ${successCount} data types seeded, ${errorCount} errors encountered.`,
-        variant: "default"
-      });
 
     } catch (error) {
       console.error('Error seeding data:', error);
@@ -300,7 +177,7 @@ const DataSeeder = () => {
     try {
       console.log('Clearing all sample data...');
       
-      const tables = ['coupons', 'deals', 'merchants', 'profiles', 'jaicoin_transactions'];
+      const tables = ['coupons', 'deals', 'merchants', 'jaicoin_transactions'];
       let clearedCount = 0;
       
       for (const table of tables) {
@@ -336,20 +213,17 @@ const DataSeeder = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-green-800">
           <Database className="w-5 h-5" />
-          Comprehensive Data Seeder
+          Sample Data Seeder
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div className="text-green-700">
-            <h3 className="font-semibold mb-2">🚀 Production-Ready Sample Data</h3>
+            <h3 className="font-semibold mb-2">🚀 Sample Data Creation</h3>
             <ul className="list-disc list-inside space-y-1 text-sm">
-              <li><strong>35 User Profiles</strong> - Diverse user base with different ranks and pro status</li>
               <li><strong>28 Merchants</strong> - Variety of business types and categories</li>
               <li><strong>55 Deals</strong> - Comprehensive deal catalog across all categories</li>
-              <li><strong>30 Coupons</strong> - Mix of active, redeemed, and expired coupons</li>
-              <li><strong>40 JaiCoin Transactions</strong> - Complete transaction history</li>
-              <li><strong>Reviews & Analytics</strong> - Sample ratings and engagement data</li>
+              <li><strong>Sample Analytics</strong> - Engagement and performance data</li>
             </ul>
           </div>
           
@@ -360,7 +234,7 @@ const DataSeeder = () => {
               className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
             >
               <Database className={`w-4 h-4 ${isSeeding ? 'animate-spin' : ''}`} />
-              {isSeeding ? 'Creating Sample Data...' : 'Seed Production Data'}
+              {isSeeding ? 'Creating Sample Data...' : 'Seed Sample Data'}
             </Button>
             
             <Button 
@@ -378,7 +252,7 @@ const DataSeeder = () => {
             <div className="flex items-start gap-2 text-blue-800">
               <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
               <div className="text-xs">
-                <strong>Note:</strong> This creates a comprehensive dataset perfect for testing all features including deals discovery, merchant dashboards, user analytics, coupon systems, and JaiCoin wallet functionality.
+                <strong>Note:</strong> This creates sample merchants and deals for testing. User profiles require authentication and are not included in this seeder.
               </div>
             </div>
           </div>
