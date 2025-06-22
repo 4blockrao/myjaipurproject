@@ -18,7 +18,9 @@ const Index = () => {
     totalDeals: 0,
     totalMerchants: 0,
     totalUsers: 0,
-    featuredDeals: []
+    featuredDeals: [],
+    totalTransactions: 0,
+    totalJaiCoinsInCirculation: 0
   });
 
   useEffect(() => {
@@ -54,7 +56,7 @@ const Index = () => {
   const fetchStats = async () => {
     setIsLoading(true);
     try {
-      console.log('Fetching dashboard stats...');
+      console.log('Fetching comprehensive dashboard stats...');
 
       // Get active deals count
       const { count: dealsCount, error: dealsError } = await supabase
@@ -76,13 +78,28 @@ const Index = () => {
         console.error('Error fetching merchants count:', merchantsError);
       }
 
-      // Get users count
+      // Get users count from profiles (sample users)
       const { count: usersCount, error: usersError } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
       if (usersError) {
         console.error('Error fetching users count:', usersError);
+      }
+
+      // Get JaiCoin transactions count and total circulation
+      const { data: transactionsData, error: transactionsError } = await supabase
+        .from('jaicoin_transactions')
+        .select('amount, type');
+
+      let totalTransactions = 0;
+      let totalJaiCoinsInCirculation = 0;
+      
+      if (!transactionsError && transactionsData) {
+        totalTransactions = transactionsData.length;
+        totalJaiCoinsInCirculation = transactionsData.reduce((total, transaction) => {
+          return total + (transaction.type === 'earned' ? transaction.amount : -transaction.amount);
+        }, 0);
       }
 
       // Get featured deals with merchant info
@@ -103,10 +120,12 @@ const Index = () => {
         console.error('Error fetching featured deals:', featuredError);
       }
 
-      console.log('Stats fetched:', {
+      console.log('Comprehensive stats fetched:', {
         deals: dealsCount,
         merchants: merchantsCount,
         users: usersCount,
+        transactions: totalTransactions,
+        jaicoins: totalJaiCoinsInCirculation,
         featured: featuredDeals?.length || 0
       });
 
@@ -114,10 +133,12 @@ const Index = () => {
         totalDeals: dealsCount || 0,
         totalMerchants: merchantsCount || 0,
         totalUsers: usersCount || 0,
-        featuredDeals: featuredDeals || []
+        featuredDeals: featuredDeals || [],
+        totalTransactions,
+        totalJaiCoinsInCirculation
       });
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      console.error('Error fetching comprehensive stats:', error);
     } finally {
       setIsLoading(false);
     }
@@ -234,8 +255,8 @@ const Index = () => {
             </Link>
           </div>
 
-          {/* Enhanced Empty State Message */}
-          {stats.totalDeals === 0 && stats.totalMerchants === 0 && !isLoading && (
+          {/* Enhanced Empty State Message - only show if really no data */}
+          {stats.totalDeals === 0 && stats.totalMerchants === 0 && stats.totalUsers === 0 && !isLoading && (
             <div className="mt-8 p-6 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg max-w-2xl mx-auto">
               <h3 className="font-semibold text-yellow-800 mb-3">🚀 Ready to Explore HiJaipur?</h3>
               <p className="text-yellow-700 mb-4">
@@ -249,10 +270,24 @@ const Index = () => {
               </Link>
             </div>
           )}
+
+          {/* Success Message for populated data */}
+          {stats.totalUsers > 50 && (
+            <div className="mt-8 p-6 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg max-w-2xl mx-auto">
+              <h3 className="font-semibold text-green-800 mb-3">🎉 HiJaipur is Live with Sample Data!</h3>
+              <p className="text-green-700 mb-2">
+                Great! The platform is now populated with {stats.totalUsers} users, {stats.totalMerchants} merchants, 
+                {stats.totalDeals} deals, and {stats.totalJaiCoinsInCirculation.toLocaleString()} JaiCoins in circulation.
+              </p>
+              <p className="text-green-600 text-sm">
+                🔥 {stats.totalTransactions} total transactions processed • Ready for testing!
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        {/* Enhanced Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           <Card className="text-center border-2 border-pink-100 hover:shadow-lg transition-shadow">
             <CardContent className="pt-6">
               <Gift className="w-12 h-12 mx-auto mb-4 text-pink-600" />
@@ -297,9 +332,26 @@ const Index = () => {
                   `${stats.totalUsers}+`
                 )}
               </div>
-              <div className="text-gray-600">Happy Users</div>
+              <div className="text-gray-600">Active Users</div>
               {stats.totalUsers > 0 && (
-                <div className="text-xs text-green-600 mt-1">🎯 Active Community</div>
+                <div className="text-xs text-green-600 mt-1">🎯 Growing Community</div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="text-center border-2 border-green-100 hover:shadow-lg transition-shadow">
+            <CardContent className="pt-6">
+              <Coins className="w-12 h-12 mx-auto mb-4 text-green-600" />
+              <div className="text-3xl font-bold text-gray-800 mb-2">
+                {isLoading ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-16 mx-auto rounded"></div>
+                ) : (
+                  `${stats.totalJaiCoinsInCirculation.toLocaleString()}`
+                )}
+              </div>
+              <div className="text-gray-600">JaiCoins in Circulation</div>
+              {stats.totalTransactions > 0 && (
+                <div className="text-xs text-green-600 mt-1">💰 {stats.totalTransactions} transactions</div>
               )}
             </CardContent>
           </Card>
