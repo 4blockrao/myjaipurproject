@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LocalityPrompt from "@/components/LocalityPrompt";
-import AuthModal from "@/components/AuthModal";
+import AuthModal from "@/components/auth/AuthModal";
 import StickyBottomNav from "@/components/home/StickyBottomNav";
 import HeroSection from "@/components/home/HeroSection";
 import ModernNavigation from "@/components/home/ModernNavigation";
