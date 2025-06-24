@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
   Users, Crown, Star, Trophy, Gift, Share2, Target,
-  Flame, Medal, Award, Coins, ChevronRight
+  Flame, Medal, Award, Coins, ChevronRight, Shirt
 } from "lucide-react";
 
 interface ReferralStats {
@@ -91,7 +91,8 @@ const EnhancedReferralSystem = () => {
 
   const calculateRank = (referralCount: number): string => {
     if (referralCount >= 100) return 'Jaipur Maharaja';
-    if (referralCount >= 25) return 'Jaipur Legend';
+    if (referralCount >= 50) return 'Jaipur Legend';
+    if (referralCount >= 25) return 'Jaipur Champion';
     if (referralCount >= 10) return 'Jaipur Star';
     if (referralCount >= 3) return 'Jaipur Explorer';
     return 'Local Explorer';
@@ -118,17 +119,18 @@ const EnhancedReferralSystem = () => {
   };
 
   const milestoneRewards = [
-    { count: 3, reward: 100, badge: "Jaipur Explorer", icon: Star },
-    { count: 10, reward: 300, badge: "Jaipur Star", icon: Award },
-    { count: 25, reward: 1000, badge: "Jaipur Legend", icon: Trophy },
-    { count: 50, reward: 2500, badge: "Jaipur Maharaja", icon: Crown },
-    { count: 100, reward: 10000, badge: "Ambassador", icon: Medal }
+    { count: 3, reward: 100, badge: "Jaipur Explorer", icon: Star, description: "Beta access" },
+    { count: 10, reward: 300, badge: "Jaipur Star", icon: Award, description: "2 spins daily + 10% bonus" },
+    { count: 25, reward: 1000, badge: "Jaipur Champion", icon: Shirt, description: "Jaipur T-shirt + digital badge" },
+    { count: 50, reward: 2500, badge: "Jaipur Legend", icon: Trophy, description: "VIP event invite" },
+    { count: 100, reward: 10000, badge: "Jaipur Maharaja", icon: Crown, description: "Ambassador status + grand prize" }
   ];
 
   const getRankIcon = (rank: string) => {
     switch (rank) {
       case 'Jaipur Maharaja': return <Crown className="w-6 h-6 text-purple-500" />;
       case 'Jaipur Legend': return <Trophy className="w-6 h-6 text-yellow-500" />;
+      case 'Jaipur Champion': return <Shirt className="w-6 h-6 text-pink-500" />;
       case 'Jaipur Star': return <Star className="w-6 h-6 text-blue-500" />;
       case 'Jaipur Explorer': return <Award className="w-6 h-6 text-green-500" />;
       default: return <Target className="w-6 h-6 text-gray-500" />;
@@ -139,9 +141,19 @@ const EnhancedReferralSystem = () => {
     switch (rank) {
       case 'Jaipur Maharaja': return 'from-purple-500 to-pink-500';
       case 'Jaipur Legend': return 'from-yellow-400 to-orange-500';
+      case 'Jaipur Champion': return 'from-pink-400 to-rose-500';
       case 'Jaipur Star': return 'from-blue-400 to-indigo-500';
       case 'Jaipur Explorer': return 'from-green-400 to-emerald-500';
       default: return 'from-gray-400 to-gray-600';
+    }
+  };
+
+  const claimPhysicalReward = async () => {
+    if (referralStats.level1Count >= 25) {
+      toast({
+        title: "🎽 T-shirt Claim",
+        description: "Contact support to claim your Jaipur Champion T-shirt!",
+      });
     }
   };
 
@@ -183,6 +195,17 @@ const EnhancedReferralSystem = () => {
                 <Share2 className="w-4 h-4" />
               </Button>
             </div>
+
+            {/* Physical Reward Claim for Jaipur Champion */}
+            {referralStats.level1Count >= 25 && referralStats.currentRank === 'Jaipur Champion' && (
+              <Button 
+                onClick={claimPhysicalReward}
+                className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600"
+              >
+                <Shirt className="w-4 h-4 mr-2" />
+                Claim Your Jaipur Champion T-shirt!
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -227,30 +250,34 @@ const EnhancedReferralSystem = () => {
               </CardContent>
             </Card>
 
-            {/* Reward Structure */}
+            {/* Enhanced Reward Structure */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Gift className="w-5 h-5 text-green-500" />
-                  <span>Reward Structure</span>
+                  <span>Enhanced Reward Structure</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span>Level 1 Signup:</span>
+                    <span>Level 1 Referral:</span>
                     <span className="font-bold text-green-600">50 JC</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Level 2 Redeem:</span>
-                    <span className="font-bold text-blue-600">20 JC</span>
+                    <span>Level 1 Redemption:</span>
+                    <span className="font-bold text-green-600">25 JC</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Level 3 Redeem:</span>
+                    <span>Level 2 Redemption:</span>
+                    <span className="font-bold text-blue-600">15 JC</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Level 3 Redemption:</span>
                     <span className="font-bold text-purple-600">10 JC</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Level 4 Redeem:</span>
+                    <span>Level 4 Redemption:</span>
                     <span className="font-bold text-orange-600">5 JC</span>
                   </div>
                 </div>
@@ -286,6 +313,7 @@ const EnhancedReferralSystem = () => {
                         <div>
                           <h3 className="font-bold">{milestone.badge}</h3>
                           <p className="text-sm text-gray-600">{milestone.count} referrals</p>
+                          <p className="text-xs text-gray-500">{milestone.description}</p>
                         </div>
                       </div>
                       <div className="text-right">
@@ -346,10 +374,20 @@ const EnhancedReferralSystem = () => {
                 {referralStats.level1Count > 0 && (
                   <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
                     <div>
-                      <p className="font-medium">Referral Rewards</p>
+                      <p className="font-medium">Direct Referral Rewards</p>
                       <p className="text-sm text-gray-600">{referralStats.level1Count} successful referrals</p>
                     </div>
                     <span className="font-bold text-blue-600">+{referralStats.level1Count * 50} JC</span>
+                  </div>
+                )}
+
+                {referralStats.level1Count >= 25 && (
+                  <div className="flex justify-between items-center p-3 bg-pink-50 rounded-lg">
+                    <div>
+                      <p className="font-medium">Jaipur Champion Milestone</p>
+                      <p className="text-sm text-gray-600">25 referrals achievement</p>
+                    </div>
+                    <span className="font-bold text-pink-600">+1000 JC + T-shirt</span>
                   </div>
                 )}
 

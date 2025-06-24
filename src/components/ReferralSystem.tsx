@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EnhancedReferralSystem from "./referral/EnhancedReferralSystem";
 import SocialTasksHub from "./gamification/SocialTasksHub";
 import ScratchCard from "./gamification/ScratchCard";
+import JAICoinRedemption from "./gamification/JAICoinRedemption";
 
 const ReferralSystem = () => {
   const [showScratchCard, setShowScratchCard] = useState(false);
@@ -22,9 +23,10 @@ const ReferralSystem = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="referrals" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="referrals">🤝 Referrals</TabsTrigger>
           <TabsTrigger value="tasks">📱 Social Tasks</TabsTrigger>
+          <TabsTrigger value="redeem">🎁 Redeem</TabsTrigger>
         </TabsList>
         
         <TabsContent value="referrals">
@@ -33,6 +35,10 @@ const ReferralSystem = () => {
         
         <TabsContent value="tasks">
           <SocialTasksHub />
+        </TabsContent>
+
+        <TabsContent value="redeem">
+          <JAICoinRedemption />
         </TabsContent>
       </Tabs>
 

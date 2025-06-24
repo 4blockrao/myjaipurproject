@@ -4,11 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
-  CheckCircle, Instagram, Twitter, Youtube, MessageCircle,
-  Share2, Heart, Repeat, Camera, Edit3, Users, Gift
+  Share2, Instagram, Twitter, Youtube, MessageCircle,
+  Check, Clock, Gift, Coins, Zap, Camera, Users,
+  Calendar, Target, Star, Award, Trophy, Heart
 } from "lucide-react";
 
 interface SocialTask {
@@ -16,22 +18,37 @@ interface SocialTask {
   title: string;
   description: string;
   reward: number;
-  icon: any;
   type: 'one-time' | 'daily' | 'weekly';
-  maxLimit?: number;
-  completed: boolean;
-  todayCount?: number;
+  platform: 'whatsapp' | 'instagram' | 'twitter' | 'youtube' | 'general';
+  status: 'available' | 'pending' | 'completed';
+  maxDaily?: number;
+  icon: any;
+}
+
+interface DailyStreak {
+  currentStreak: number;
+  bestStreak: number;
+  lastCheckIn: string;
+  totalCheckIns: number;
 }
 
 const SocialTasksHub = () => {
+  const [socialTasks, setSocialTasks] = useState<SocialTask[]>([]);
+  const [dailyStreak, setDailyStreak] = useState<DailyStreak>({
+    currentStreak: 0,
+    bestStreak: 0,
+    lastCheckIn: '',
+    totalCheckIns: 0
+  });
   const [user, setUser] = useState<any>(null);
-  const [tasks, setTasks] = useState<SocialTask[]>([]);
-  const [weeklyProgress, setWeeklyProgress] = useState({ current: 0, target: 500 });
+  const [weeklyProgress, setWeeklyProgress] = useState(0);
+  const [activeTab, setActiveTab] = useState('daily');
   const { toast } = useToast();
 
   useEffect(() => {
     checkUser();
     initializeTasks();
+    fetchDailyStreak();
   }, []);
 
   const checkUser = async () => {
@@ -42,104 +59,131 @@ const SocialTasksHub = () => {
   };
 
   const initializeTasks = () => {
-    const socialTasks: SocialTask[] = [
-      // One-time tasks
+    const tasks: SocialTask[] = [
+      // One-time Social Channel Tasks
       {
         id: 'join-whatsapp',
         title: 'Join WhatsApp Channel',
-        description: 'Get exclusive deals and updates',
+        description: 'Join our official MyJaipur WhatsApp channel for exclusive updates',
         reward: 20,
-        icon: MessageCircle,
         type: 'one-time',
-        completed: false
+        platform: 'whatsapp',
+        status: 'available',
+        icon: MessageCircle
       },
       {
         id: 'follow-instagram',
-        title: 'Follow Instagram',
-        description: 'Follow @MyJaipur for daily inspiration',
+        title: 'Follow on Instagram',
+        description: 'Follow @MyJaipur on Instagram for daily deals and updates',
         reward: 15,
-        icon: Instagram,
         type: 'one-time',
-        completed: false
+        platform: 'instagram',
+        status: 'available',
+        icon: Instagram
       },
       {
         id: 'follow-twitter',
-        title: 'Follow Twitter/X',
-        description: 'Stay updated with latest news',
+        title: 'Follow on Twitter/X',
+        description: 'Follow @MyJaipur on X for real-time notifications',
         reward: 15,
-        icon: Twitter,
         type: 'one-time',
-        completed: false
+        platform: 'twitter',
+        status: 'available',
+        icon: Twitter
       },
       {
         id: 'subscribe-youtube',
-        title: 'Subscribe YouTube',
-        description: 'Never miss our video content',
+        title: 'Subscribe to YouTube',
+        description: 'Subscribe to our YouTube channel for merchant spotlights',
         reward: 15,
-        icon: Youtube,
         type: 'one-time',
-        completed: false
+        platform: 'youtube',
+        status: 'available',
+        icon: Youtube
       },
       
-      // Daily tasks
+      // Daily Engagement Tasks
       {
         id: 'share-deal-whatsapp',
-        title: 'Share Deal to WhatsApp',
-        description: 'Share an active deal to your group',
+        title: 'Share Deal on WhatsApp',
+        description: 'Share an active deal to your WhatsApp groups',
         reward: 10,
-        icon: Share2,
         type: 'daily',
-        maxLimit: 3,
-        completed: false,
-        todayCount: 0
+        platform: 'whatsapp',
+        status: 'available',
+        maxDaily: 3,
+        icon: Share2
       },
       {
         id: 'instagram-story',
-        title: 'Instagram Story',
-        description: 'Tag @MyJaipur in your story',
+        title: 'Share Instagram Story',
+        description: 'Share a deal on your Instagram story tagging @MyJaipur',
         reward: 15,
-        icon: Camera,
         type: 'daily',
-        maxLimit: 2,
-        completed: false,
-        todayCount: 0
+        platform: 'instagram',
+        status: 'available',
+        maxDaily: 2,
+        icon: Camera
       },
       {
         id: 'retweet-official',
-        title: 'Retweet Official Tweet',
-        description: 'Help spread the word',
+        title: 'Retweet Our Tweet',
+        description: 'Retweet our latest official tweet',
         reward: 10,
-        icon: Repeat,
         type: 'daily',
-        maxLimit: 3,
-        completed: false,
-        todayCount: 0
+        platform: 'twitter',
+        status: 'available',
+        maxDaily: 3,
+        icon: Twitter
+      },
+      {
+        id: 'daily-checkin',
+        title: 'Daily Check-in',
+        description: 'Check in daily to maintain your Jaipur Journey streak',
+        reward: 5,
+        type: 'daily',
+        platform: 'general',
+        status: 'available',
+        maxDaily: 1,
+        icon: Calendar
       },
 
-      // Weekly tasks
+      // Weekly Tasks
       {
-        id: 'write-review',
-        title: 'Write Review Post',
-        description: 'Share your experience publicly',
+        id: 'review-post',
+        title: 'Share Review Post',
+        description: 'Share a review of your experience with MyJaipur',
         reward: 25,
-        icon: Edit3,
         type: 'weekly',
-        maxLimit: 5,
-        completed: false
+        platform: 'general',
+        status: 'available',
+        icon: Star
       },
       {
         id: 'tag-friends',
         title: 'Tag 3 Friends',
-        description: 'Tag friends on our Instagram post',
+        description: 'Tag 3 friends on our latest Instagram post',
         reward: 15,
-        icon: Users,
         type: 'weekly',
-        maxLimit: 1,
-        completed: false
+        platform: 'instagram',
+        status: 'available',
+        icon: Users
       }
     ];
 
-    setTasks(socialTasks);
+    setSocialTasks(tasks);
+  };
+
+  const fetchDailyStreak = () => {
+    // Mock data - in real implementation, fetch from database
+    const mockStreak = {
+      currentStreak: 3,
+      bestStreak: 7,
+      lastCheckIn: new Date().toISOString().split('T')[0],
+      totalCheckIns: 15
+    };
+    setDailyStreak(mockStreak);
+    setWeeklyProgress(45); // Mock weekly progress
   };
 
   const completeTask = async (taskId: string) => {
@@ -152,18 +196,8 @@ const SocialTasksHub = () => {
       return;
     }
 
-    const task = tasks.find(t => t.id === taskId);
+    const task = socialTasks.find(t => t.id === taskId);
     if (!task) return;
-
-    // Check if task can be completed
-    if (task.type === 'daily' && task.todayCount && task.maxLimit && task.todayCount >= task.maxLimit) {
-      toast({
-        title: "Daily limit reached",
-        description: `You've completed this task ${task.maxLimit} times today`,
-        variant: "destructive"
-      });
-      return;
-    }
 
     try {
       // Award JAICoins
@@ -180,27 +214,24 @@ const SocialTasksHub = () => {
       if (error) throw error;
 
       // Update task status
-      setTasks(prev => prev.map(t => {
-        if (t.id === taskId) {
-          if (t.type === 'one-time') {
-            return { ...t, completed: true };
-          } else if (t.type === 'daily') {
-            return { ...t, todayCount: (t.todayCount || 0) + 1 };
-          }
-        }
-        return t;
-      }));
-
-      // Update weekly progress
-      setWeeklyProgress(prev => ({
-        ...prev,
-        current: Math.min(prev.current + task.reward, prev.target)
-      }));
+      setSocialTasks(prev => prev.map(t => 
+        t.id === taskId ? { ...t, status: 'completed' } : t
+      ));
 
       toast({
         title: "🎉 Task Completed!",
-        description: `You earned ${task.reward} JAICoins!`,
+        description: `You earned ${task.reward} JAICoins for "${task.title}"!`,
       });
+
+      // Special handling for daily check-in
+      if (taskId === 'daily-checkin') {
+        setDailyStreak(prev => ({
+          ...prev,
+          currentStreak: prev.currentStreak + 1,
+          totalCheckIns: prev.totalCheckIns + 1,
+          lastCheckIn: new Date().toISOString().split('T')[0]
+        }));
+      }
 
     } catch (error) {
       console.error('Error completing task:', error);
@@ -212,87 +243,59 @@ const SocialTasksHub = () => {
     }
   };
 
-  const openSocialLink = (platform: string, taskId: string) => {
-    const links = {
-      'join-whatsapp': 'https://whatsapp.com/channel/myjaipur',
-      'follow-instagram': 'https://instagram.com/myjaipur',
-      'follow-twitter': 'https://twitter.com/myjaipur',
-      'subscribe-youtube': 'https://youtube.com/@myjaipur'
-    };
-
-    const url = links[taskId as keyof typeof links];
-    if (url) {
-      window.open(url, '_blank');
-      
-      // Auto-complete after a delay to allow user to complete the action
-      setTimeout(() => {
-        completeTask(taskId);
-      }, 3000);
-    }
+  const getStreakReward = (streak: number) => {
+    if (streak === 7) return 50;
+    if (streak === 30) return 200;
+    if (streak === 3) return 10;
+    return 5;
   };
 
-  const getTasksByType = (type: string) => {
-    return tasks.filter(task => task.type === type);
-  };
-
-  const canCompleteTask = (task: SocialTask) => {
-    if (task.type === 'one-time') return !task.completed;
-    if (task.type === 'daily') return (task.todayCount || 0) < (task.maxLimit || 1);
-    if (task.type === 'weekly') return !task.completed;
-    return true;
+  const getStreakMultiplier = (streak: number) => {
+    if (streak >= 30) return 3;
+    if (streak >= 7) return 2;
+    return 1;
   };
 
   const TaskCard = ({ task }: { task: SocialTask }) => {
     const Icon = task.icon;
-    const canComplete = canCompleteTask(task);
+    const isCompleted = task.status === 'completed';
+    const isPending = task.status === 'pending';
 
     return (
-      <Card className={`${task.completed ? 'bg-green-50 border-green-200' : ''}`}>
+      <Card className={`${isCompleted ? 'bg-green-50 border-green-200' : 'bg-white'}`}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                task.completed ? 'bg-green-500' : 'bg-pink-100'
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                isCompleted ? 'bg-green-500' : 'bg-gray-100'
               }`}>
-                {task.completed ? (
-                  <CheckCircle className="w-5 h-5 text-white" />
+                {isCompleted ? (
+                  <Check className="w-5 h-5 text-white" />
                 ) : (
-                  <Icon className="w-5 h-5 text-pink-600" />
+                  <Icon className="w-5 h-5 text-gray-600" />
                 )}
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-sm">{task.title}</h3>
-                <p className="text-xs text-gray-600">{task.description}</p>
-                {task.type === 'daily' && task.todayCount !== undefined && (
-                  <p className="text-xs text-blue-600">
-                    Today: {task.todayCount}/{task.maxLimit || 1}
-                  </p>
+                <h3 className="font-medium">{task.title}</h3>
+                <p className="text-sm text-gray-600">{task.description}</p>
+                {task.maxDaily && (
+                  <p className="text-xs text-gray-500">Max {task.maxDaily} times per day</p>
                 )}
               </div>
             </div>
-            <div className="text-right">
-              <div className="flex items-center space-x-2">
-                <span className="font-bold text-green-600">+{task.reward}</span>
-                <Gift className="w-4 h-4 text-green-600" />
-              </div>
-              {canComplete ? (
+            <div className="flex items-center space-x-2">
+              <Badge variant={isCompleted ? "default" : "secondary"}>
+                {task.reward} JC
+              </Badge>
+              {!isCompleted && (
                 <Button 
                   size="sm" 
-                  className="mt-2 bg-pink-500 hover:bg-pink-600"
-                  onClick={() => {
-                    if (['join-whatsapp', 'follow-instagram', 'follow-twitter', 'subscribe-youtube'].includes(task.id)) {
-                      openSocialLink(task.id.split('-')[1], task.id);
-                    } else {
-                      completeTask(task.id);
-                    }
-                  }}
+                  onClick={() => completeTask(task.id)}
+                  disabled={isPending}
+                  className="bg-pink-500 hover:bg-pink-600"
                 >
-                  {task.type === 'one-time' ? 'Complete' : 'Do It'}
+                  {isPending ? <Clock className="w-4 h-4" /> : 'Complete'}
                 </Button>
-              ) : (
-                <Badge variant="outline" className="mt-2">
-                  {task.completed ? 'Done' : 'Limit Reached'}
-                </Badge>
               )}
             </div>
           </div>
@@ -301,66 +304,149 @@ const SocialTasksHub = () => {
     );
   };
 
+  const oneTimeTasks = socialTasks.filter(t => t.type === 'one-time');
+  const dailyTasks = socialTasks.filter(t => t.type === 'daily');
+  const weeklyTasks = socialTasks.filter(t => t.type === 'weekly');
+
   return (
     <div className="space-y-6">
-      {/* Weekly Progress */}
-      <Card className="bg-gradient-to-r from-pink-50 to-orange-50 border-pink-200">
+      {/* Daily Streak Card */}
+      <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Gift className="w-5 h-5 text-pink-600" />
-            <span>Weekly Progress</span>
+            <Zap className="w-6 h-6 text-orange-500" />
+            <span>Jaipur Journey Streak</span>
           </CardTitle>
-          <CardDescription>
-            Earn {weeklyProgress.target} JAICoins this week to unlock bonus rewards!
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Progress</span>
-              <span>{weeklyProgress.current}/{weeklyProgress.target} JC</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div>
+              <div className="text-2xl font-bold text-orange-600">{dailyStreak.currentStreak}</div>
+              <p className="text-sm text-gray-600">Current Streak</p>
             </div>
-            <Progress value={(weeklyProgress.current / weeklyProgress.target) * 100} />
+            <div>
+              <div className="text-2xl font-bold text-red-600">{dailyStreak.bestStreak}</div>
+              <p className="text-sm text-gray-600">Best Streak</p>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-blue-600">{getStreakMultiplier(dailyStreak.currentStreak)}x</div>
+              <p className="text-sm text-gray-600">Multiplier</p>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-green-600">{dailyStreak.totalCheckIns}</div>
+              <p className="text-sm text-gray-600">Total Check-ins</p>
+            </div>
+          </div>
+          
+          <div className="mt-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium">Next milestone: 7 days</span>
+              <span className="text-sm text-gray-500">{dailyStreak.currentStreak}/7 days</span>
+            </div>
+            <Progress value={(dailyStreak.currentStreak / 7) * 100} className="h-2" />
           </div>
         </CardContent>
       </Card>
 
-      {/* One-time Social Tasks */}
-      <Card>
+      {/* Weekly Progress Card */}
+      <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
         <CardHeader>
-          <CardTitle>🔗 Connect with MyJaipur</CardTitle>
-          <CardDescription>Complete these once to boost your JAICoin wallet</CardDescription>
+          <CardTitle className="flex items-center space-x-2">
+            <Target className="w-6 h-6 text-purple-500" />
+            <span>Weekly Challenge Progress</span>
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {getTasksByType('one-time').map(task => (
-            <TaskCard key={task.id} task={task} />
-          ))}
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Complete 5 tasks this week</span>
+              <Badge variant="outline">{Math.floor(weeklyProgress / 20)}/5 tasks</Badge>
+            </div>
+            <Progress value={weeklyProgress} className="h-3" />
+            <p className="text-xs text-gray-600">Reward: 100 JAICoins + Special Badge</p>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Daily Tasks */}
-      <Card>
-        <CardHeader>
-          <CardTitle>📅 Daily Engagement</CardTitle>
-          <CardDescription>Complete these daily for consistent rewards</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {getTasksByType('daily').map(task => (
-            <TaskCard key={task.id} task={task} />
-          ))}
-        </CardContent>
-      </Card>
+      {/* Task Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="daily">📅 Daily Tasks</TabsTrigger>
+          <TabsTrigger value="social">📱 Social Tasks</TabsTrigger>
+          <TabsTrigger value="weekly">🏆 Weekly Quests</TabsTrigger>
+        </TabsList>
 
-      {/* Weekly Tasks */}
-      <Card>
-        <CardHeader>
-          <CardTitle>🎯 Weekly Challenges</CardTitle>
-          <CardDescription>Higher rewards for weekly commitments</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {getTasksByType('weekly').map(task => (
-            <TaskCard key={task.id} task={task} />
-          ))}
+        <TabsContent value="daily" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Calendar className="w-5 h-5 text-blue-500" />
+                <span>Daily Engagement Tasks</span>
+              </CardTitle>
+              <CardDescription>
+                Complete these tasks daily to earn JAICoins and maintain your streak
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {dailyTasks.map(task => (
+                <TaskCard key={task.id} task={task} />
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="social" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Share2 className="w-5 h-5 text-green-500" />
+                <span>One-Time Social Tasks</span>
+              </CardTitle>
+              <CardDescription>
+                Connect with us on social media and earn bonus JAICoins
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {oneTimeTasks.map(task => (
+                <TaskCard key={task.id} task={task} />
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="weekly" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Trophy className="w-5 h-5 text-purple-500" />
+                <span>Weekly Quests</span>
+              </CardTitle>
+              <CardDescription>
+                Complete these bigger challenges for higher rewards
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {weeklyTasks.map(task => (
+                <TaskCard key={task.id} task={task} />
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Festival Quests Teaser */}
+      <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Gift className="w-8 h-8 text-yellow-500" />
+              <div>
+                <h3 className="font-bold">Festival Quests Coming Soon!</h3>
+                <p className="text-sm text-gray-600">Special challenges during Diwali, Teej, and other festivals</p>
+              </div>
+            </div>
+            <Badge className="bg-yellow-500">Double Rewards!</Badge>
+          </div>
         </CardContent>
       </Card>
     </div>
