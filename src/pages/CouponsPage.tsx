@@ -88,7 +88,7 @@ interface Deal {
   merchant: Merchant;
 }
 
-const CouponsPage = () => {
+const CouponsPage = ({ user, profile }) => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
@@ -266,246 +266,120 @@ const CouponsPage = () => {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">My Coupons</h1>
-        <p className="text-gray-600">Here are the coupons you've collected. Use them wisely!</p>
-      </div>
+    <DashboardLayout user={user} profile={profile} pageTitle="My Coupons" showBackButton>
+      <div className="p-4 max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">My Coupons</h1>
+          <p className="text-gray-600">Manage and redeem your purchased coupons</p>
+        </div>
 
-      {coupons.length === 0 ? (
-        <Alert variant="default">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            You don't have any coupons yet. Go grab some <a href="/deals" className="underline font-medium">deals</a>!
-          </AlertDescription>
-        </Alert>
-      ) : (
-        <Tabs defaultvalue="active" className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="active">
-              <Ticket className="mr-2 h-4 w-4" />
-              Active Coupons
-            </TabsTrigger>
-            <TabsTrigger value="used">
-              <CheckCircle className="mr-2 h-4 w-4" />
-              Used Coupons
-            </TabsTrigger>
-            <TabsTrigger value="expired">
-              <XCircle className="mr-2 h-4 w-4" />
-              Expired Coupons
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="active" className="space-y-4">
-            {coupons
-              .filter(coupon => coupon.status === "active")
-              .map(coupon => (
-                <Card key={coupon.id} className="border-2 border-green-200 hover:shadow-md transition-shadow duration-200">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{coupon.deal.title}</CardTitle>
-                    <Badge variant="secondary">
-                      <Clock className="mr-1 w-4 h-4" />
-                      Expires: {new Date(coupon.expires_at).toLocaleDateString()}
-                    </Badge>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-500">{coupon.deal.description.substring(0, 80)}...</p>
-                    <Button variant="link" className="mt-2" onClick={() => handleCouponClick(coupon)}>
-                      View Details <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-          </TabsContent>
-          <TabsContent value="used" className="space-y-4">
-            {coupons
-              .filter(coupon => coupon.status === "used")
-              .map(coupon => (
-                <Card key={coupon.id} className="border-2 border-gray-200 hover:shadow-md transition-shadow duration-200">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{coupon.deal.title}</CardTitle>
-                    <Badge variant="outline">
-                      <CheckCircle className="mr-1 w-4 h-4" />
-                      Used On: {new Date(coupon.used_at!).toLocaleDateString()}
-                    </Badge>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-500">{coupon.deal.description.substring(0, 80)}...</p>
-                    <Button variant="link" className="mt-2" onClick={() => handleCouponClick(coupon)}>
-                      View Details <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-          </TabsContent>
-          <TabsContent value="expired" className="space-y-4">
-            {coupons
-              .filter(coupon => coupon.status === "expired")
-              .map(coupon => (
-                <Card key={coupon.id} className="border-2 border-red-200 hover:shadow-md transition-shadow duration-200">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{coupon.deal.title}</CardTitle>
-                    <Badge variant="destructive">
-                      <XCircle className="mr-1 w-4 h-4" />
-                      Expired On: {new Date(coupon.expires_at).toLocaleDateString()}
-                    </Badge>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-500">{coupon.deal.description.substring(0, 80)}...</p>
-                    <Button variant="link" className="mt-2" onClick={() => handleCouponClick(coupon)}>
-                      View Details <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-          </TabsContent>
-        </Tabs>
-      )}
-
-      <Dialog open={selectedCoupon !== null} onOpenChange={(open) => !open && handleCloseDialog()}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{selectedCoupon?.deal.title}</DialogTitle>
-            <DialogDescription>
-              {selectedCoupon?.deal.description}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedCoupon && (
-            <div className="py-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Coupon Details */}
-                <div className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Coupon Details</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Ticket className="h-4 w-4 text-gray-500" />
-                        <p className="text-sm font-medium">Code: {selectedCoupon.coupon_code}</p>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          onClick={() => copyCouponCode(selectedCoupon.coupon_code)}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        {copiedCode === selectedCoupon.coupon_code && (
-                          <span className="text-green-500 text-xs">Copied!</span>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Clock className="h-4 w-4 text-gray-500" />
-                        <p className="text-sm">Expires: {new Date(selectedCoupon.expires_at).toLocaleDateString()}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Shield className="h-4 w-4 text-gray-500" />
-                        <p className="text-sm">Status: {selectedCoupon.status}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Coins className="h-4 w-4 text-gray-500" />
-                        <p className="text-sm">Discount: ₹{selectedCoupon.discount_amount}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Store className="h-4 w-4 text-gray-500" />
-                        <p className="text-sm">Min. Order: ₹{selectedCoupon.min_order_value}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Terms and Conditions */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Terms & Conditions</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-600">{selectedCoupon.usage_terms}</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Merchant Details */}
-                <div className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Merchant Details</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Store className="h-4 w-4 text-gray-500" />
-                        <p className="text-sm font-medium">{selectedCoupon.deal.merchant.business_name}</p>
-                        {selectedCoupon.deal.merchant.is_verified && (
-                          <Badge className="ml-2 bg-green-100 text-green-800">
-                            <CheckCircle className="mr-1 w-3 h-3" />
-                            Verified
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4 text-gray-500" />
-                        <p className="text-sm">{selectedCoupon.deal.location}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Phone className="h-4 w-4 text-gray-500" />
-                        <p className="text-sm">{selectedCoupon.deal.merchant.phone}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Globe className="h-4 w-4 text-gray-500" />
-                        <a href={selectedCoupon.deal.merchant.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline">
-                          Website
-                        </a>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Star className="h-4 w-4 text-yellow-500" />
-                        <p className="text-sm">Rating: {selectedCoupon.deal.merchant.rating} ({selectedCoupon.deal.merchant.total_reviews} reviews)</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* QR Code */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>QR Code</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-col items-center justify-center">
-                      {showQRCode === selectedCoupon.coupon_code ? (
-                        <>
-                          <QRCodeGenerator value={selectedCoupon.coupon_code} size={150} />
-                          <Button variant="ghost" size="sm" onClick={() => toggleQRCode(selectedCoupon.coupon_code)}>
-                            <EyeOff className="mr-2 h-4 w-4" />
-                            Hide QR Code
-                          </Button>
-                        </>
-                      ) : (
-                        <Button variant="outline" onClick={() => toggleQRCode(selectedCoupon.coupon_code)}>
-                          <QrCode className="mr-2 h-4 w-4" />
-                          Show QR Code
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
+        {/* Balance Overview */}
+        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Available JAICoins</p>
+                <p className="text-2xl font-bold text-green-600">{userBalance} JC</p>
               </div>
-
-              {/* Action Buttons */}
-              <div className="flex justify-end mt-4 space-x-2">
-                <Button variant="outline" onClick={() => shareCoupon(selectedCoupon)}>
-                  <Share2 className="mr-2 h-4 w-4" />
-                  Share
-                </Button>
-                <Button variant="secondary" onClick={downloadCoupon}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download
-                </Button>
-                <Button variant="destructive" onClick={handleCloseDialog}>
-                  Close
-                </Button>
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Active Coupons</p>
+                <p className="text-2xl font-bold text-blue-600">{mockCoupons.length}</p>
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+          </CardContent>
+        </Card>
+
+        {mockCoupons.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Ticket className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Coupons Yet</h3>
+              <p className="text-gray-600 mb-4">
+                Start exploring deals and purchase your first coupon to see it here.
+              </p>
+              <Button className="bg-pink-500 hover:bg-pink-600">
+                Browse Deals
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <Tabs defaultValue="active" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="active">Active ({activeCoupons.length})</TabsTrigger>
+              <TabsTrigger value="used">Used ({usedCoupons.length})</TabsTrigger>
+              <TabsTrigger value="expired">Expired ({expiredCoupons.length})</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="active" className="space-y-4">
+              {coupons
+                .filter(coupon => coupon.status === "active")
+                .map(coupon => (
+                  <Card key={coupon.id} className="border-2 border-green-200 hover:shadow-md transition-shadow duration-200">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">{coupon.deal.title}</CardTitle>
+                      <Badge variant="secondary">
+                        <Clock className="mr-1 w-4 h-4" />
+                        Expires: {new Date(coupon.expires_at).toLocaleDateString()}
+                      </Badge>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-500">{coupon.deal.description.substring(0, 80)}...</p>
+                      <Button variant="link" className="mt-2" onClick={() => handleCouponClick(coupon)}>
+                        View Details <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+            </TabsContent>
+            <TabsContent value="used" className="space-y-4">
+              {coupons
+                .filter(coupon => coupon.status === "used")
+                .map(coupon => (
+                  <Card key={coupon.id} className="border-2 border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">{coupon.deal.title}</CardTitle>
+                      <Badge variant="outline">
+                        <CheckCircle className="mr-1 w-4 h-4" />
+                        Used On: {new Date(coupon.used_at!).toLocaleDateString()}
+                      </Badge>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-500">{coupon.deal.description.substring(0, 80)}...</p>
+                      <Button variant="link" className="mt-2" onClick={() => handleCouponClick(coupon)}>
+                        View Details <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+            </TabsContent>
+            <TabsContent value="expired" className="space-y-4">
+              {coupons
+                .filter(coupon => coupon.status === "expired")
+                .map(coupon => (
+                  <Card key={coupon.id} className="border-2 border-red-200 hover:shadow-md transition-shadow duration-200">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">{coupon.deal.title}</CardTitle>
+                      <Badge variant="destructive">
+                        <XCircle className="mr-1 w-4 h-4" />
+                        Expired On: {new Date(coupon.expires_at).toLocaleDateString()}
+                      </Badge>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-500">{coupon.deal.description.substring(0, 80)}...</p>
+                      <Button variant="link" className="mt-2" onClick={() => handleCouponClick(coupon)}>
+                        View Details <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+            </TabsContent>
+          </Tabs>
+        )}
+      </div>
+    </DashboardLayout>
   );
 };
 

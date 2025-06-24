@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,6 +50,16 @@ const ReferEarnSection = ({ user, profile }: ReferEarnSectionProps) => {
       toast({
         title: "🎉 Referral Link Copied!",
         description: "Share this with friends to start earning JAICoins!",
+      });
+    }
+  };
+
+  const copyUserIdCode = async () => {
+    if (profile?.user_id_code) {
+      await navigator.clipboard.writeText(profile.user_id_code);
+      toast({
+        title: "🎉 User ID Copied!",
+        description: "Share this ID for friends to find you!",
       });
     }
   };
@@ -146,9 +155,24 @@ const ReferEarnSection = ({ user, profile }: ReferEarnSectionProps) => {
                   </div>
 
                   <div className="space-y-3">
+                    {/* User ID Code */}
+                    {profile?.user_id_code && (
+                      <div className="flex space-x-2">
+                        <div className="flex-1 p-2 lg:p-3 bg-blue-50 rounded-lg border text-center">
+                          <div className="text-xs text-blue-600 mb-1">User ID</div>
+                          <span className="font-mono font-bold text-sm lg:text-base text-blue-700">{profile.user_id_code}</span>
+                        </div>
+                        <Button onClick={copyUserIdCode} size="sm" className="bg-blue-500 hover:bg-blue-600 px-3">
+                          <Share2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Referral Code */}
                     {profile?.referral_code && (
                       <div className="flex space-x-2">
                         <div className="flex-1 p-2 lg:p-3 bg-gray-50 rounded-lg border text-center">
+                          <div className="text-xs text-gray-600 mb-1">Referral Code</div>
                           <span className="font-mono font-bold text-sm lg:text-base">{profile.referral_code}</span>
                         </div>
                         <Button onClick={copyReferralCode} size="sm" className="bg-pink-500 hover:bg-pink-600 px-3">

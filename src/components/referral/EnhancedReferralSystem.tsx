@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -118,6 +117,16 @@ const EnhancedReferralSystem = () => {
     }
   };
 
+  const copyUserIdCode = async () => {
+    if (profile?.user_id_code) {
+      await navigator.clipboard.writeText(profile.user_id_code);
+      toast({
+        title: "🎉 User ID Copied!",
+        description: "Share this ID for friends to find you!",
+      });
+    }
+  };
+
   const milestoneRewards = [
     { count: 3, reward: 100, badge: "Jaipur Explorer", icon: Star, description: "Beta access" },
     { count: 10, reward: 300, badge: "Jaipur Star", icon: Award, description: "2 spins daily + 10% bonus" },
@@ -186,14 +195,32 @@ const EnhancedReferralSystem = () => {
               <Progress value={referralStats.progress} className="h-3" />
             </div>
 
-            {/* Referral Code */}
-            <div className="flex space-x-2">
-              <div className="flex-1 p-3 bg-white rounded-lg border-2 border-pink-200 text-center">
-                <span className="font-mono font-bold text-lg">{profile?.referral_code}</span>
+            {/* User ID Code */}
+            <div>
+              <label className="text-sm font-medium text-gray-600 mb-2 block">Your User ID:</label>
+              <div className="flex space-x-2">
+                <div className="flex-1 p-3 bg-white rounded-lg border-2 border-blue-200 text-center">
+                  <span className="font-mono font-bold text-lg text-blue-600">{profile?.user_id_code}</span>
+                </div>
+                <Button onClick={copyUserIdCode} className="bg-blue-500 hover:bg-blue-600">
+                  <Share2 className="w-4 h-4" />
+                </Button>
               </div>
-              <Button onClick={copyReferralCode} className="bg-pink-500 hover:bg-pink-600">
-                <Share2 className="w-4 h-4" />
-              </Button>
+              <p className="text-xs text-gray-500 mt-1">Friends can use this 6-digit code to find you</p>
+            </div>
+
+            {/* Referral Code */}
+            <div>
+              <label className="text-sm font-medium text-gray-600 mb-2 block">Your Referral Code:</label>
+              <div className="flex space-x-2">
+                <div className="flex-1 p-3 bg-white rounded-lg border-2 border-pink-200 text-center">
+                  <span className="font-mono font-bold text-lg">{profile?.referral_code}</span>
+                </div>
+                <Button onClick={copyReferralCode} className="bg-pink-500 hover:bg-pink-600">
+                  <Share2 className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Share this to earn JAICoins when friends sign up</p>
             </div>
 
             {/* Physical Reward Claim for Jaipur Champion */}
