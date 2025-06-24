@@ -66,37 +66,32 @@ const Index = () => {
   };
 
   // Mock data for components that need props
-  const mockCategories = [
-    { id: 'food', name: 'Food & Dining', icon: '🍽️', count: 45 },
-    { id: 'beauty', name: 'Beauty & Wellness', icon: '💄', count: 32 },
-    { id: 'shopping', name: 'Shopping', icon: '🛍️', count: 28 },
-    { id: 'entertainment', name: 'Entertainment', icon: '🎬', count: 15 }
-  ];
+  const mockCategories = ["Food & Dining", "Beauty & Wellness", "Shopping", "Entertainment"];
 
   const mockDeals = [
     {
       id: '1',
       title: '50% off at Rajasthani Thali House',
       description: 'Traditional Rajasthani cuisine',
-      discount: 50,
-      originalPrice: 800,
-      discountedPrice: 400,
+      discount_percentage: 50,
+      original_price: 800,
+      discounted_price: 400,
       location: 'C-Scheme, Jaipur',
       category: 'food',
       image: '/placeholder.svg',
-      rating: 4.5,
-      reviewCount: 120
+      is_featured: true,
+      merchant_id: '1',
+      end_date: '2024-07-15'
     }
   ];
 
   return (
     <div className="min-h-screen bg-white">
-      <HeroSection onAuthClick={() => setShowAuthModal(true)} />
+      <HeroSection />
       <CategoryShortcuts 
         categories={mockCategories}
         selectedCategory=""
         onCategorySelect={() => {}}
-        dealCounts={mockCategories.reduce((acc, cat) => ({ ...acc, [cat.id]: cat.count }), {})}
       />
       <TodaysTopDeals deals={mockDeals} />
       <TopMerchants />

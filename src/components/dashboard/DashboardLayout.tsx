@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, Wallet, Trophy, Star, 
-  User, Heart, Settings, ChevronRight, Home, ArrowLeft 
+  User, Heart, Settings, ChevronRight, Home, ArrowLeft, Ticket 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -25,6 +25,7 @@ const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", sho
     { icon: Trophy, label: "Leaderboard", path: "/leaderboard" },
     { icon: Star, label: "JaiCoin Zone", path: "/jaicoin-zone" },
     { icon: Heart, label: "Favorites", path: "/favorites" },
+    { icon: Ticket, label: "My Coupons", path: "/coupons" },
     { icon: User, label: "Profile", path: "/profile" },
     { icon: Settings, label: "Settings", path: "/profile?tab=settings" },
   ];
