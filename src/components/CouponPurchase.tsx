@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ interface Deal {
 }
 
 const CouponPurchase = ({ dealId }: { dealId: string }) => {
+  const navigate = useNavigate();
   const [deal, setDeal] = useState<Deal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPurchasing, setIsPurchasing] = useState(false);
@@ -113,13 +115,13 @@ const CouponPurchase = ({ dealId }: { dealId: string }) => {
     setIsPurchasing(true);
 
     try {
-      // Generate unique coupon code
-      const couponCode = generateCouponCode();
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + deal.validity_days);
-
       // For free coupons, directly create the coupon
       if (deal.coupon_type === 'free') {
+        // Generate unique coupon code
+        const couponCode = generateCouponCode();
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + deal.validity_days);
+
         const { error } = await supabase
           .from('coupons')
           .insert({
@@ -152,43 +154,13 @@ const CouponPurchase = ({ dealId }: { dealId: string }) => {
           title: "Coupon Claimed!",
           description: `Your free coupon (${couponCode}) has been added to your wallet`,
         });
+
+        // Redirect to coupons page
+        navigate('/coupons');
       } else {
-        // For paid coupons, simulate payment gateway integration
-        const paymentId = 'payment_' + Math.random().toString(36).substr(2, 9);
-        
-        const { error } = await supabase
-          .from('coupons')
-          .insert({
-            deal_id: deal.id,
-            user_id: user.id,
-            merchant_id: deal.merchants.id,
-            coupon_code: couponCode,
-            coupon_type: deal.coupon_type,
-            purchase_amount: deal.purchase_price,
-            discount_amount: deal.discounted_price,
-            payment_id: paymentId,
-            expires_at: expiresAt.toISOString(),
-            min_order_value: deal.min_order_value,
-            usage_terms: deal.usage_terms
-          });
-
-        if (error) throw error;
-
-        // Award JaiCoins for purchase
-        await supabase
-          .from('jaicoin_transactions')
-          .insert({
-            user_id: user.id,
-            amount: deal.jaicoin_reward,
-            type: 'earned',
-            source: 'coupon_purchase',
-            description: `Earned for purchasing: ${deal.title}`
-          });
-
-        toast({
-          title: "Purchase Successful!",
-          description: `Your coupon (${couponCode}) has been purchased and added to your wallet`,
-        });
+        // For paid coupons, go to checkout
+        const orderId = `order_${Date.now()}`;
+        navigate(`/checkout/${orderId}`);
       }
 
     } catch (error) {

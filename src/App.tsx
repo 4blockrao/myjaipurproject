@@ -55,7 +55,10 @@ const App = () => (
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/explore" element={<ExplorePage />} />
           <Route path="/scan" element={<ScanPage />} />
+          {/* Fixed checkout routing to accept orderId parameter */}
+          <Route path="/checkout/:orderId" element={<CheckoutPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
           <Route path="/order-success" element={<OrderSuccessPage />} />
           <Route path="/help" element={<HelpPage />} />
           {/* Public referral page - no authentication required */}

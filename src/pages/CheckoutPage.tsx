@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,7 +36,8 @@ interface PaymentMethod {
 }
 
 const CheckoutPage = () => {
-  const { orderId } = useParams<{ orderId: string }>();
+  const { orderId } = useParams<{ orderId?: string }>();
+  const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("card");
@@ -92,15 +93,16 @@ const CheckoutPage = () => {
       });
     } else {
       // Redirect to login
-      window.location.href = '/';
+      navigate('/');
     }
   };
 
   const fetchOrderDetails = async () => {
     // Mock data - in real implementation, fetch from orders table
+    // If we have an orderId, we can fetch specific order details
     const mockOrderItems: OrderItem[] = [
       {
-        id: "1",
+        id: orderId || "1",
         title: "Royal Rajasthani Thali Experience",
         original_price: 800,
         discounted_price: 400,
@@ -186,8 +188,11 @@ const CheckoutPage = () => {
     // Mock payment processing
     await new Promise(resolve => setTimeout(resolve, 3000));
     
+    // Generate success order ID if we don't have one
+    const successOrderId = orderId || `order_${Date.now()}`;
+    
     // Redirect to success page
-    window.location.href = `/order-success/${orderId}`;
+    navigate(`/order-success/${successOrderId}`);
   };
 
   if (!user) {
@@ -196,7 +201,7 @@ const CheckoutPage = () => {
         <Card className="p-8 text-center max-w-md">
           <h2 className="text-2xl font-bold mb-4">Sign In Required</h2>
           <p className="text-gray-600 mb-6">Please sign in to complete your purchase</p>
-          <Button onClick={() => window.location.href = '/'}>
+          <Button onClick={() => navigate('/')}>
             Go to Home
           </Button>
         </Card>
@@ -218,7 +223,7 @@ const CheckoutPage = () => {
             </Link>
             <div>
               <h1 className="text-2xl font-bold">Checkout</h1>
-              <p className="text-gray-600">Order #{orderId}</p>
+              <p className="text-gray-600">Order #{orderId || 'NEW'}</p>
             </div>
           </div>
         </div>
