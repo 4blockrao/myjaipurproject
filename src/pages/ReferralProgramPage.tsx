@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,11 +6,12 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import AuthModal from "@/components/AuthModal";
 import {
   Users, Coins, Gift, Star, Trophy, Crown, Share2,
   Target, Flame, Award, TrendingUp, Calendar,
   Copy, MessageCircle, Instagram, Facebook, Twitter,
-  Heart, Zap, CheckCircle, Clock, Smartphone
+  Heart, Zap, CheckCircle, Clock, Smartphone, ArrowRight
 } from "lucide-react";
 
 const ReferralProgramPage = () => {
@@ -26,6 +26,7 @@ const ReferralProgramPage = () => {
     nextLevelTarget: 10
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -87,9 +88,9 @@ const ReferralProgramPage = () => {
 
       setReferralStats({
         totalReferrals,
-        activeReferrals: Math.floor(totalReferrals * 0.8), // Mock active percentage
+        activeReferrals: Math.floor(totalReferrals * 0.8),
         totalEarned,
-        currentStreak: 5, // Mock streak
+        currentStreak: 5,
         level,
         nextLevelTarget
       });
@@ -119,6 +120,7 @@ const ReferralProgramPage = () => {
 
   const rewards = [
     { referrals: 1, reward: "50 JAICoins + Welcome Badge", type: "basic" },
+    { referrals: 3, reward: "150 JAICoins + Streak Bonus", type: "streak" },
     { referrals: 5, reward: "250 JAICoins + MyJaipur T-shirt", type: "milestone" },
     { referrals: 10, reward: "500 JAICoins + Jaipur Guide Badge", type: "level" },
     { referrals: 25, reward: "1,250 JAICoins + VIP Status", type: "level" },
@@ -127,12 +129,14 @@ const ReferralProgramPage = () => {
   ];
 
   const triggerEvents = [
-    { event: "Friend signs up", reward: "25 JAICoins", timing: "Instant" },
-    { event: "Friend completes profile", reward: "25 JAICoins", timing: "Within 24 hours" },
-    { event: "Friend redeems first deal", reward: "50 JAICoins", timing: "Within 7 days" },
-    { event: "Friend stays active (30 days)", reward: "100 JAICoins", timing: "After 30 days" },
-    { event: "Streak bonus (weekly)", reward: "50 JAICoins", timing: "Every Sunday" },
-    { event: "Monthly top referrer", reward: "500 JAICoins", timing: "End of month" }
+    { event: "Friend signs up", reward: "25 JAICoins", timing: "Instant", streak: false },
+    { event: "Friend completes profile", reward: "25 JAICoins", timing: "Within 24 hours", streak: false },
+    { event: "Friend redeems first deal", reward: "50 JAICoins", timing: "Within 7 days", streak: false },
+    { event: "Friend stays active (30 days)", reward: "100 JAICoins", timing: "After 30 days", streak: false },
+    { event: "Daily streak bonus", reward: "10-50 JAICoins", timing: "Daily", streak: true },
+    { event: "Weekly streak bonus", reward: "100 JAICoins", timing: "Every Sunday", streak: true },
+    { event: "Monthly top referrer", reward: "500 JAICoins", timing: "End of month", streak: false },
+    { event: "Perfect week (7 referrals)", reward: "200 JAICoins", timing: "Weekly", streak: true }
   ];
 
   const currentLevel = levels.find(l => 
@@ -143,35 +147,184 @@ const ReferralProgramPage = () => {
 
   if (isLoading) {
     return (
-      <DashboardLayout user={user} profile={profile} pageTitle="Referral Program" showBackButton>
+      <div className="min-h-screen bg-gray-50">
         <div className="flex items-center justify-center min-h-[50vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto mb-4"></div>
             <p className="text-gray-600 text-sm">Loading referral program...</p>
           </div>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
+  // Public view for non-authenticated users
   if (!user) {
     return (
-      <DashboardLayout user={user} profile={profile} pageTitle="Referral Program" showBackButton>
-        <Card className="mx-4 mt-4">
-          <CardHeader className="text-center pb-4">
-            <CardTitle className="text-lg">Join the Referral Program</CardTitle>
-            <CardDescription className="text-sm">Sign up to start earning JAICoins by referring friends!</CardDescription>
-          </CardHeader>
-          <CardContent className="pb-4">
-            <Button className="w-full" onClick={() => window.location.href = '/'}>
-              Sign Up Now
+      <div className="min-h-screen bg-gray-50">
+        {/* Mobile Header */}
+        <div className="lg:hidden bg-white shadow-sm border-b sticky top-0 z-50">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-orange-400 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-sm">MJ</span>
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-gray-900">Referral Program</h1>
+                <p className="text-xs text-gray-600">Join & Start Earning</p>
+              </div>
+            </div>
+            <Button onClick={() => setShowAuthModal(true)} className="bg-pink-500 hover:bg-pink-600 text-white h-8 px-3">
+              <span className="text-xs">Join Now</span>
             </Button>
-          </CardContent>
-        </Card>
-      </DashboardLayout>
+          </div>
+        </div>
+
+        <div className="space-y-6 p-4 max-w-4xl mx-auto">
+          {/* Hero Section */}
+          <Card className="bg-gradient-to-r from-pink-500 to-orange-400 text-white border-0">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <h1 className="text-2xl lg:text-3xl font-bold mb-2">🎯 Build Your Jaipur Empire</h1>
+                <p className="text-pink-100 mb-6">
+                  Join thousands earning JAICoins by inviting friends to discover amazing local deals!
+                </p>
+                <div className="grid grid-cols-3 gap-4 text-sm mb-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold">25K+</div>
+                    <div className="text-pink-100">Active Users</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold">50</div>
+                    <div className="text-pink-100">JAICoins/Referral</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold">₹10L+</div>
+                    <div className="text-pink-100">Rewards Distributed</div>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => setShowAuthModal(true)}
+                  className="w-full bg-white text-pink-600 hover:bg-pink-50 font-bold py-3"
+                >
+                  Join Now & Get 30 JAICoins Free!
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* How It Works */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-center">🚀 How It Works</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4">
+                  <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Share2 className="w-6 h-6 text-pink-600" />
+                  </div>
+                  <h3 className="font-bold mb-2">1. Share Your Link</h3>
+                  <p className="text-sm text-gray-600">Get your unique referral code and share with friends</p>
+                </div>
+                <div className="text-center p-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Users className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h3 className="font-bold mb-2">2. Friends Join</h3>
+                  <p className="text-sm text-gray-600">Your friends sign up using your referral code</p>
+                </div>
+                <div className="text-center p-4">
+                  <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Coins className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  <h3 className="font-bold mb-2">3. Earn Rewards</h3>
+                  <p className="text-sm text-gray-600">Get JAICoins for every milestone and activity</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Reward Structure */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Gift className="w-5 h-5 text-purple-600" />
+                <span>🎁 Reward Milestones</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {rewards.map((reward, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 rounded-lg border-2 bg-gray-50 border-gray-300">
+                    <div className="flex items-center space-x-3">
+                      <Clock className="w-5 h-5 text-gray-400" />
+                      <div>
+                        <p className="font-medium text-sm">{reward.referrals} Referrals</p>
+                        <p className="text-xs text-gray-600">{reward.reward}</p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary">Coming Soon</Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Earning Triggers */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Zap className="w-5 h-5 text-yellow-600" />
+                <span>⚡ Earning Opportunities</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {triggerEvents.map((trigger, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                    <div className="flex-1">
+                      <p className="font-medium text-sm flex items-center">
+                        {trigger.event}
+                        {trigger.streak && <Flame className="w-4 h-4 ml-2 text-orange-500" />}
+                      </p>
+                      <p className="text-xs text-gray-600">{trigger.timing}</p>
+                    </div>
+                    <Badge className="bg-yellow-500 text-yellow-900">{trigger.reward}</Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Final CTA */}
+          <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+            <CardContent className="p-6 text-center">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Ready to Start Earning?</h3>
+              <p className="text-gray-600 mb-4">
+                Join thousands of Jaipurites building their empire and earning JAICoins every day!
+              </p>
+              <Button 
+                onClick={() => setShowAuthModal(true)}
+                className="w-full bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white font-bold py-3"
+              >
+                Join MyJaipur & Get 30 JAICoins Free!
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+              <p className="text-xs text-gray-500 mt-2">
+                No credit card required • Start earning immediately
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      </div>
     );
   }
 
+  // Authenticated user view with DashboardLayout
   return (
     <DashboardLayout user={user} profile={profile} pageTitle="Referral Program" showBackButton>
       <div className="space-y-6 p-4 max-w-4xl mx-auto">
@@ -179,9 +332,9 @@ const ReferralProgramPage = () => {
         <Card className="bg-gradient-to-r from-pink-500 to-orange-400 text-white border-0">
           <CardContent className="p-6">
             <div className="text-center">
-              <h1 className="text-2xl lg:text-3xl font-bold mb-2">🎯 Build Your Jaipur Empire</h1>
+              <h1 className="text-2xl lg:text-3xl font-bold mb-2">🎯 Your Jaipur Empire</h1>
               <p className="text-pink-100 mb-4">
-                Invite friends, earn JAICoins, and become the ultimate Jaipur Champion!
+                Track your referrals, earnings, and climb the ranks to become the ultimate Jaipur Champion!
               </p>
               <div className="flex items-center justify-center space-x-6 text-sm">
                 <div className="text-center">
@@ -355,7 +508,10 @@ const ReferralProgramPage = () => {
               {triggerEvents.map((trigger, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
                   <div className="flex-1">
-                    <p className="font-medium text-sm">{trigger.event}</p>
+                    <p className="font-medium text-sm flex items-center">
+                      {trigger.event}
+                      {trigger.streak && <Flame className="w-4 h-4 ml-2 text-orange-500" />}
+                    </p>
                     <p className="text-xs text-gray-600">{trigger.timing}</p>
                   </div>
                   <div className="text-right">

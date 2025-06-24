@@ -54,6 +54,7 @@ const App = () => (
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/order-success" element={<OrderSuccessPage />} />
           <Route path="/help" element={<HelpPage />} />
+          {/* Public referral page - no authentication required */}
           <Route path="/referral-program" element={<ReferralProgramPage />} />
           <Route path="/merchant-onboarding" element={<MerchantOnboardingPage />} />
           <Route path="/merchant-dashboard" element={<MerchantDashboardPage />} />

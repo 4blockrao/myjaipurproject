@@ -5,25 +5,77 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, MapPin, Users } from "lucide-react";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  referralCode?: string;
 }
 
-const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
-  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'otp'>('login');
+const AuthModal = ({ isOpen, onClose, referralCode }: AuthModalProps) => {
+  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'otp'>('signup');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [city, setCity] = useState('Jaipur');
+  const [locality, setLocality] = useState('');
+  const [referralCodeInput, setReferralCodeInput] = useState(referralCode || '');
   const [otp, setOtp] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [localities, setLocalities] = useState<string[]>([]);
   const { toast } = useToast();
+
+  // Set referral code from prop
+  useEffect(() => {
+    if (referralCode) {
+      setReferralCodeInput(referralCode);
+      setAuthMode('signup'); // Force signup mode if referral code is present
+    }
+  }, [referralCode]);
+
+  // Fetch localities for Jaipur
+  useEffect(() => {
+    fetchLocalities();
+  }, []);
+
+  const fetchLocalities = async () => {
+    try {
+      // Get unique localities from existing profiles
+      const { data } = await supabase
+        .from('profiles')
+        .select('locality')
+        .not('locality', 'is', null)
+        .order('locality');
+      
+      const uniqueLocalities = [...new Set(data?.map(p => p.locality).filter(Boolean))];
+      
+      // Add some default Jaipur localities if none exist
+      const defaultLocalities = [
+        'Vaishali Nagar', 'Malviya Nagar', 'C-Scheme', 'Civil Lines', 'Bani Park',
+        'Raja Park', 'Mansarovar', 'Jagatpura', 'Sanganer', 'Tonk Road',
+        'Jhotwara', 'Bagru', 'Chomu', 'Amber', 'Govindgarh'
+      ];
+      
+      const allLocalities = uniqueLocalities.length > 0 
+        ? uniqueLocalities 
+        : defaultLocalities;
+      
+      setLocalities(allLocalities);
+    } catch (error) {
+      console.error('Error fetching localities:', error);
+      // Fallback to default localities
+      setLocalities([
+        'Vaishali Nagar', 'Malviya Nagar', 'C-Scheme', 'Civil Lines', 'Bani Park',
+        'Raja Park', 'Mansarovar', 'Jagatpura', 'Sanganer', 'Tonk Road'
+      ]);
+    }
+  };
 
   // Listen for auth state changes and close modal when user signs in
   useEffect(() => {
@@ -49,6 +101,18 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     return password.length >= 6;
   };
 
+  const validateReferralCode = async (code: string) => {
+    if (!code) return null; // Optional field
+    
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .eq('referral_code', code.toUpperCase())
+      .single();
+    
+    return data;
+  };
+
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -66,10 +130,22 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         if (!validatePassword(password)) {
           throw new Error('Password must be at least 6 characters long');
         }
+        if (!locality) {
+          throw new Error('Please select your locality');
+        }
 
-        console.log('Attempting signup with:', { email, name });
+        // Validate referral code if provided
+        let referrer = null;
+        if (referralCodeInput.trim()) {
+          referrer = await validateReferralCode(referralCodeInput.trim());
+          if (!referrer) {
+            throw new Error('Invalid referral code. Please check and try again.');
+          }
+        }
 
-        // Sign up with proper redirect URL (security best practice)
+        console.log('Attempting signup with:', { email, name, city, locality, referralCode: referralCodeInput });
+
+        // Sign up with proper redirect URL
         const redirectUrl = `${window.location.origin}/`;
         
         const { error } = await supabase.auth.signUp({
@@ -79,6 +155,10 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             emailRedirectTo: redirectUrl,
             data: {
               full_name: name.trim(),
+              city: city,
+              locality: locality,
+              referral_code_used: referralCodeInput.trim() || null,
+              referred_by: referrer?.id || null
             }
           }
         });
@@ -87,14 +167,18 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
         console.log('Signup successful');
         toast({
-          title: "Account created!",
-          description: "Your account has been created successfully. You can now sign in and start earning JaiCoins!"
+          title: "🎉 Welcome to MyJaipur!",
+          description: referralCodeInput 
+            ? `Account created! You've joined ${referrer?.full_name || 'your friend'}'s team and earned 30 JAICoins!`
+            : "Account created successfully! You've earned 30 JAICoins to get started!"
         });
         
         // Reset form and close modal
         setEmail('');
         setPassword('');
         setName('');
+        setLocality('');
+        setReferralCodeInput('');
         onClose();
       } else {
         // Sign in
@@ -154,7 +238,6 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   };
 
   const handlePhoneAuth = () => {
-    // Phone OTP is not implemented yet - showing placeholder
     toast({
       title: "Coming Soon",
       description: "Phone authentication will be available soon!",
@@ -163,7 +246,6 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   };
 
   const handleOtpVerification = () => {
-    // OTP verification placeholder
     toast({
       title: "Coming Soon",
       description: "OTP verification will be available soon!",
@@ -176,10 +258,12 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     setEmail('');
     setPassword('');
     setName('');
+    setLocality('');
+    setReferralCodeInput(referralCode || '');
     setPhone('');
     setOtp('');
     setShowPassword(false);
-    setAuthMode('login');
+    setAuthMode(referralCode ? 'signup' : 'login');
   };
 
   const handleClose = () => {
@@ -193,17 +277,26 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         <CardHeader className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-yellow-500 rounded-full"></div>
-            <span className="text-2xl font-bold text-pink-600">HiJaipur</span>
+            <span className="text-2xl font-bold text-pink-600">MyJaipur</span>
           </div>
           <CardTitle className="text-2xl">
             {authMode === 'login' ? 'Welcome Back!' : 
-             authMode === 'signup' ? 'Join HiJaipur' : 'Verify OTP'}
+             authMode === 'signup' ? 'Join MyJaipur' : 'Verify OTP'}
           </CardTitle>
           <CardDescription>
             {authMode === 'login' ? 'Sign in to discover amazing deals' :
-             authMode === 'signup' ? 'Start earning JaiCoins today' :
+             authMode === 'signup' ? (referralCode ? 'Complete your registration to join the team!' : 'Start earning JAICoins today') :
              `Enter the OTP sent to ${phone}`}
           </CardDescription>
+          {referralCode && authMode === 'signup' && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-2">
+              <div className="flex items-center space-x-2 text-green-700">
+                <Users className="w-4 h-4" />
+                <span className="text-sm font-medium">You're joining with a referral code!</span>
+              </div>
+              <p className="text-xs text-green-600 mt-1">You'll earn bonus JAICoins upon registration</p>
+            </div>
+          )}
         </CardHeader>
         
         <CardContent className="space-y-4">
@@ -236,18 +329,65 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           ) : (
             <form onSubmit={handleEmailAuth} className="space-y-4">
               {authMode === 'signup' && (
-                <div>
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your full name"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
+                <>
+                  <div>
+                    <Label htmlFor="name">Full Name *</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Enter your full name"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="city">City *</Label>
+                    <Select value={city} onValueChange={setCity} disabled={isLoading}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your city" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Jaipur">Jaipur</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="locality">Locality *</Label>
+                    <Select value={locality} onValueChange={setLocality} disabled={isLoading}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your locality" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-48">
+                        {localities.map((loc) => (
+                          <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="referralCode">Referral Code (Optional)</Label>
+                    <Input
+                      id="referralCode"
+                      type="text"
+                      value={referralCodeInput}
+                      onChange={(e) => setReferralCodeInput(e.target.value.toUpperCase())}
+                      placeholder="Enter referral code if you have one"
+                      disabled={isLoading || !!referralCode}
+                      className={referralCode ? "bg-green-50 border-green-300" : ""}
+                    />
+                    {referralCode && (
+                      <p className="text-xs text-green-600 mt-1">
+                        <Users className="w-3 h-3 inline mr-1" />
+                        Pre-filled from referral link
+                      </p>
+                    )}
+                  </div>
+                </>
               )}
               
               <div>
@@ -297,7 +437,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
               <Button 
                 type="submit"
                 className="w-full bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600"
-                disabled={isLoading || !email || !password || (authMode === 'signup' && !name)}
+                disabled={isLoading || !email || !password || (authMode === 'signup' && (!name || !locality))}
               >
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 {authMode === 'login' ? 'Sign In' : 'Create Account'}
