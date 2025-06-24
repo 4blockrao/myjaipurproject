@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import QRCodeGenerator from "@/components/QRCodeGenerator";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -88,7 +89,10 @@ interface Deal {
   merchant: Merchant;
 }
 
-const CouponsPage = ({ user, profile }) => {
+const CouponsPage = () => {
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [userBalance, setUserBalance] = useState(0);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
@@ -97,8 +101,45 @@ const CouponsPage = ({ user, profile }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchCoupons();
+    checkUser();
   }, []);
+
+  const checkUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      setUser(session.user);
+      await fetchUserProfile(session.user.id);
+      await fetchUserBalance(session.user.id);
+    }
+    await fetchCoupons();
+    setIsLoading(false);
+  };
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      setProfile(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
+
+  const fetchUserBalance = async (userId: string) => {
+    try {
+      const { data: balance } = await supabase.rpc('get_user_balance', {
+        user_uuid: userId
+      });
+      setUserBalance(balance || 0);
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+    }
+  };
 
   const fetchCoupons = async () => {
     try {
@@ -204,10 +245,13 @@ const CouponsPage = ({ user, profile }) => {
         description: "Failed to load your coupons",
         variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
     }
   };
+
+  // Calculate filtered coupon arrays
+  const activeCoupons = coupons.filter(coupon => coupon.status === "active");
+  const usedCoupons = coupons.filter(coupon => coupon.status === "used");
+  const expiredCoupons = coupons.filter(coupon => coupon.status === "expired");
 
   const handleCouponClick = (coupon: Coupon) => {
     setSelectedCoupon(coupon);
@@ -259,9 +303,11 @@ const CouponsPage = ({ user, profile }) => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
-      </div>
+      <DashboardLayout user={user} profile={profile} pageTitle="My Coupons" showBackButton>
+        <div className="flex items-center justify-center p-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
+        </div>
+      </DashboardLayout>
     );
   }
 
@@ -284,13 +330,13 @@ const CouponsPage = ({ user, profile }) => {
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-600">Active Coupons</p>
-                <p className="text-2xl font-bold text-blue-600">{mockCoupons.length}</p>
+                <p className="text-2xl font-bold text-blue-600">{activeCoupons.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {mockCoupons.length === 0 ? (
+        {coupons.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
