@@ -17,37 +17,6 @@ const JaiCoinZone = ({ user }: JaiCoinZoneProps) => {
   const userCoins = 280;
   const coinsToNextRank = 10;
 
-  const handleSpinWheel = async () => {
-    try {
-      const rewards = [5, 10, 15, 20, 25, 50];
-      const randomReward = rewards[Math.floor(Math.random() * rewards.length)];
-      
-      const { error } = await supabase
-        .from('jaicoin_transactions')
-        .insert({
-          user_id: user.id,
-          amount: randomReward,
-          type: 'earned',
-          source: 'spin_wheel',
-          description: 'Daily spin wheel reward'
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "🎉 Spin Successful!",
-        description: `You won ${randomReward} JaiCoins!`,
-      });
-    } catch (error) {
-      console.error('Error spinning wheel:', error);
-      toast({
-        title: "Error",
-        description: "Failed to spin the wheel. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
   const handleReferFriend = async () => {
     try {
       // Get user's referral code
@@ -142,13 +111,11 @@ const JaiCoinZone = ({ user }: JaiCoinZoneProps) => {
                 <div className="w-0 h-0 border-l-4 border-r-4 border-b-8 border-l-transparent border-r-transparent border-b-red-500"></div>
               </div>
             </div>
-            <Button 
-              onClick={handleSpinWheel}
-              className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 font-bold shadow-lg"
-            >
-              Spin Now!
-            </Button>
-            <p className="text-xs text-gray-600 mt-2">Next spin in 2h 34m</p>
+            <Link to="/dashboard?tab=gamification">
+              <Button className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 font-bold shadow-lg">
+                Spin Now!
+              </Button>
+            </Link>
           </CardContent>
         </Card>
 

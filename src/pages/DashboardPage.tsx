@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import SpinWheel from "@/components/SpinWheel";
 import {
   User, Coins, Trophy, TrendingUp, Gift, Users, Zap,
   Calendar, Target, Star, Award, Crown, Medal,
@@ -221,30 +223,6 @@ const DashboardPage = () => {
     }
   };
 
-  const handleSpinWheel = () => {
-    // Implement spin wheel logic
-    const rewards = [5, 10, 15, 20, 25, 50];
-    const randomReward = rewards[Math.floor(Math.random() * rewards.length)];
-    
-    // Award coins
-    supabase
-      .from('jaicoin_transactions')
-      .insert({
-        user_id: user.id,
-        amount: randomReward,
-        type: 'earned',
-        source: 'spin_wheel',
-        description: `Daily spin reward`
-      })
-      .then(() => {
-        toast({
-          title: "Spin Successful!",
-          description: `You won ${randomReward} JaiCoins!`,
-        });
-        fetchUserStats(user.id);
-      });
-  };
-
   const handleReferFriend = () => {
     const referralLink = `${window.location.origin}?ref=${profile?.referral_code}`;
     navigator.clipboard.writeText(referralLink);
@@ -429,10 +407,6 @@ const DashboardPage = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <Button onClick={handleSpinWheel} className="w-full bg-gradient-to-r from-yellow-400 to-orange-500">
-                      <Gift className="w-4 h-4 mr-2" />
-                      Daily Spin
-                    </Button>
                     <Button onClick={handleReferFriend} variant="outline" className="w-full">
                       <Users className="w-4 h-4 mr-2" />
                       Refer a Friend
@@ -481,7 +455,6 @@ const DashboardPage = () => {
 
           {/* Wallet Tab */}
           <TabsContent value="wallet">
-            {/* Wallet content will be implemented here */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -490,7 +463,30 @@ const DashboardPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">Wallet functionality will be implemented here</p>
+                <div className="text-center mb-6">
+                  <div className="text-4xl font-bold text-green-600 mb-2">{userStats.totalCoins}</div>
+                  <p className="text-gray-600">Total JaiCoins</p>
+                </div>
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Transaction History</h3>
+                  {transactions.length > 0 ? (
+                    <div className="space-y-3">
+                      {transactions.map((transaction) => (
+                        <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div>
+                            <p className="font-medium">{transaction.description}</p>
+                            <p className="text-sm text-gray-500">{new Date(transaction.created_at).toLocaleString()}</p>
+                          </div>
+                          <div className={`font-bold text-lg ${transaction.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
+                            {transaction.type === 'earned' ? '+' : '-'}{transaction.amount}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-8">No transactions yet</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -535,26 +531,7 @@ const DashboardPage = () => {
           <TabsContent value="gamification">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Spin Wheel */}
-              <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Gift className="w-5 h-5 text-yellow-600" />
-                    <span>Daily Spin Wheel</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <div className="w-32 h-32 mx-auto mb-6 relative">
-                    <div className="w-full h-full rounded-full bg-gradient-to-r from-pink-400 via-yellow-400 via-green-400 via-blue-400 to-purple-400 animate-spin-slow flex items-center justify-center">
-                      <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center">
-                        <Coins className="w-8 h-8 text-yellow-500" />
-                      </div>
-                    </div>
-                  </div>
-                  <Button onClick={handleSpinWheel} className="w-full bg-gradient-to-r from-yellow-400 to-orange-500">
-                    Spin Now!
-                  </Button>
-                </CardContent>
-              </Card>
+              <SpinWheel />
 
               {/* Achievements */}
               <Card>
