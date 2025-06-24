@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   User, Coins, Trophy, TrendingUp, Gift, Users, Zap,
   Calendar, Target, Star, Award, Crown, Medal,
-  Wallet, History, Settings, ChevronRight, Fire
+  Wallet, History, Settings, ChevronRight, Flame
 } from "lucide-react";
 
 interface UserStats {
@@ -27,7 +26,7 @@ interface UserStats {
 interface Transaction {
   id: string;
   amount: number;
-  type: 'earned' | 'spent';
+  type: string; // Changed from union type to string to match database
   source: string;
   description: string;
   created_at: string;
@@ -569,7 +568,7 @@ const DashboardPage = () => {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <Fire className="w-6 h-6 text-orange-500" />
+                        <Flame className="w-6 h-6 text-orange-500" />
                         <div>
                           <p className="font-medium">First Purchase</p>
                           <p className="text-sm text-gray-600">Make your first deal redemption</p>
