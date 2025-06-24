@@ -120,9 +120,9 @@ const LeaderboardPage = () => {
 
   const getRankIcon = (position: number) => {
     switch (position) {
-      case 1: return <Crown className="w-6 h-6 text-yellow-500" />;
-      case 2: return <Medal className="w-6 h-6 text-gray-400" />;
-      case 3: return <Award className="w-6 h-6 text-amber-600" />;
+      case 1: return <Crown className="w-5 h-5 text-yellow-500" />;
+      case 2: return <Medal className="w-5 h-5 text-gray-400" />;
+      case 3: return <Award className="w-5 h-5 text-amber-600" />;
       default: return <span className="w-6 h-6 flex items-center justify-center text-sm font-bold">#{position}</span>;
     }
   };
@@ -171,25 +171,25 @@ const LeaderboardPage = () => {
   };
 
   const LeaderboardCard = ({ entry, showCheer = true }: { entry: LeaderboardEntry; showCheer?: boolean }) => (
-    <Card className={`${entry.position <= 3 ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200' : ''}`}>
+    <Card className={`${entry.position <= 3 ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200' : 'hover:shadow-md transition-shadow'}`}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {getRankIcon(entry.position)}
-            <Avatar className={`w-12 h-12 ${getRankColor(entry.rank || 'Bronze')}`}>
-              <AvatarFallback className="text-white font-bold">
+            <Avatar className={`w-10 h-10 ${getRankColor(entry.rank || 'Bronze')}`}>
+              <AvatarFallback className="text-white font-bold text-sm">
                 {entry.full_name?.[0] || 'U'}
               </AvatarFallback>
             </Avatar>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="font-bold">{entry.full_name || 'Anonymous'}</span>
+                <span className="font-semibold text-sm">{entry.full_name || 'Anonymous'}</span>
                 {entry.streak && entry.streak > 7 && (
-                  <Flame className="w-4 h-4 text-orange-500" />
+                  <Flame className="w-3 h-3 text-orange-500" />
                 )}
               </div>
-              <div className="flex items-center space-x-4 text-sm text-gray-600">
-                <span>{entry.balance} JC</span>
+              <div className="flex items-center space-x-3 text-xs text-gray-600">
+                <span className="font-medium">{entry.balance} JC</span>
                 {entry.locality && (
                   <span className="flex items-center space-x-1">
                     <MapPin className="w-3 h-3" />
@@ -199,14 +199,14 @@ const LeaderboardPage = () => {
                 {entry.weeklyGains && (
                   <span className="flex items-center space-x-1 text-green-600">
                     <TrendingUp className="w-3 h-3" />
-                    <span>+{entry.weeklyGains} this week</span>
+                    <span>+{entry.weeklyGains}</span>
                   </span>
                 )}
               </div>
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <Badge variant="outline" className={getRankColor(entry.rank || 'Bronze')}>
+            <Badge variant="outline" className="text-xs">
               {entry.rank || 'Bronze'}
             </Badge>
             {showCheer && user && user.id !== entry.id && (
@@ -214,9 +214,9 @@ const LeaderboardPage = () => {
                 size="sm" 
                 variant="outline"
                 onClick={() => cheerUser(entry.id, entry.full_name)}
-                className="text-pink-600 border-pink-300 hover:bg-pink-50"
+                className="text-pink-600 border-pink-300 hover:bg-pink-50 h-7 px-2 text-xs"
               >
-                <Star className="w-4 h-4 mr-1" />
+                <Star className="w-3 h-3 mr-1" />
                 Cheer
               </Button>
             )}
@@ -241,17 +241,49 @@ const LeaderboardPage = () => {
 
   return (
     <DashboardLayout user={user} profile={profile} pageTitle="Leaderboard" showBackButton>
-      <div className="space-y-4 p-4 max-w-4xl mx-auto">
-        {/* User Position Card */}
-        {userPosition && (
+      <div className="space-y-4 p-4 max-w-6xl mx-auto">
+        {/* Header Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
+            <CardContent className="p-3 text-center">
+              <Trophy className="w-6 h-6 text-yellow-600 mx-auto mb-1" />
+              <div className="text-lg font-bold text-yellow-700">{userPosition?.position || '--'}</div>
+              <div className="text-xs text-gray-600">Your Rank</div>
+            </CardContent>
+          </Card>
           <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Trophy className="w-5 h-5 text-blue-600" />
-                <span>Your Position</span>
+            <CardContent className="p-3 text-center">
+              <Zap className="w-6 h-6 text-blue-600 mx-auto mb-1" />
+              <div className="text-lg font-bold text-blue-700">{userPosition?.balance || 0}</div>
+              <div className="text-xs text-gray-600">JAICoins</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+            <CardContent className="p-3 text-center">
+              <TrendingUp className="w-6 h-6 text-green-600 mx-auto mb-1" />
+              <div className="text-lg font-bold text-green-700">+{userPosition?.weeklyGains || 0}</div>
+              <div className="text-xs text-gray-600">This Week</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
+            <CardContent className="p-3 text-center">
+              <Flame className="w-6 h-6 text-orange-600 mx-auto mb-1" />
+              <div className="text-lg font-bold text-orange-700">{userPosition?.streak || 0}</div>
+              <div className="text-xs text-gray-600">Day Streak</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Your Position Highlight */}
+        {userPosition && (
+          <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center space-x-2 text-base">
+                <Target className="w-4 h-4 text-purple-600" />
+                <span>Your Current Position</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               <LeaderboardCard entry={userPosition} showCheer={false} />
             </CardContent>
           </Card>
@@ -260,22 +292,22 @@ const LeaderboardPage = () => {
         {/* Leaderboard Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="global">🌍 City Champions</TabsTrigger>
-            <TabsTrigger value="locality">📍 My Area</TabsTrigger>
+            <TabsTrigger value="global" className="text-sm">🌍 City Champions</TabsTrigger>
+            <TabsTrigger value="locality" className="text-sm">📍 My Area</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="global">
+          <TabsContent value="global" className="space-y-3 mt-4">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center space-x-2 text-lg">
                   <Trophy className="w-5 h-5 text-yellow-500" />
                   <span>Jaipur City Champions</span>
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm">
                   Top performers across all of Jaipur - updated in real-time!
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2 pt-0">
                 {globalLeaderboard.map(entry => (
                   <LeaderboardCard key={entry.id} entry={entry} />
                 ))}
@@ -283,18 +315,18 @@ const LeaderboardPage = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="locality">
+          <TabsContent value="locality" className="space-y-3 mt-4">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center space-x-2 text-lg">
                   <MapPin className="w-5 h-5 text-green-500" />
                   <span>Local Champions</span>
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm">
                   Your neighborhood heroes and local leaders
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2 pt-0">
                 {localityLeaderboard.length > 0 ? (
                   localityLeaderboard.map(entry => (
                     <LeaderboardCard key={entry.id} entry={entry} />
@@ -302,8 +334,8 @@ const LeaderboardPage = () => {
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>No local champions yet in your area!</p>
-                    <p className="text-sm mt-1">Be the first to climb the local leaderboard!</p>
+                    <p className="text-sm">No local champions yet in your area!</p>
+                    <p className="text-xs mt-1">Be the first to climb the local leaderboard!</p>
                   </div>
                 )}
               </CardContent>

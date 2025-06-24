@@ -65,8 +65,14 @@ const Index = () => {
     }
   };
 
+  const handleSearch = (searchTerm: string) => {
+    console.log('Search:', searchTerm);
+    // Implement search functionality
+  };
+
   // Mock data for components that need props
   const mockCategories = ["Food & Dining", "Beauty & Wellness", "Shopping", "Entertainment"];
+  const mockDealCounts = { total: 120, today: 15 };
 
   const mockDeals = [
     {
@@ -81,17 +87,20 @@ const Index = () => {
       image: '/placeholder.svg',
       is_featured: true,
       merchant_id: '1',
-      end_date: '2024-07-15'
+      end_date: '2024-07-15',
+      jaicoin_reward: 25,
+      created_at: '2024-06-20T10:00:00Z'
     }
   ];
 
   return (
     <div className="min-h-screen bg-white">
-      <HeroSection />
+      <HeroSection onSearch={handleSearch} />
       <CategoryShortcuts 
         categories={mockCategories}
         selectedCategory=""
         onCategorySelect={() => {}}
+        dealCounts={mockDealCounts}
       />
       <TodaysTopDeals deals={mockDeals} />
       <TopMerchants />
