@@ -248,7 +248,7 @@ const LiveLeaderboard = () => {
               <div className="flex items-center space-x-2">
                 <span className="font-bold">{entry.full_name || 'Anonymous'}</span>
                 {entry.streak && entry.streak > 7 && (
-                  <Flame className="w-4 h-4 text-orange-500" title={`${entry.streak} day streak`} />
+                  <Flame className="w-4 h-4 text-orange-500" />
                 )}
               </div>
               <div className="flex items-center space-x-4 text-sm text-gray-600">

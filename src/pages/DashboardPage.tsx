@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import SpinWheel from "@/components/SpinWheel";
-import LiveLeaderboard from "@/components/LiveLeaderboard";
+import LiveLeaderboard from "@/components/gamification/LiveLeaderboard";
 import {
   User, Coins, Trophy, TrendingUp, Gift, Users, Zap,
   Calendar, Target, Star, Award, Crown, Medal,
