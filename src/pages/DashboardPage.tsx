@@ -1,20 +1,17 @@
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import SpinWheel from "@/components/SpinWheel";
-import LiveLeaderboard from "@/components/gamification/LiveLeaderboard";
 import {
   User, Coins, Trophy, TrendingUp, Gift, Users, Zap,
-  Calendar, Target, Star, Award, Crown, Medal,
-  Wallet, History, Settings, ChevronRight, Flame
+  Star, Crown, Medal, Award, ArrowRight, Activity,
+  Calendar, Target, Flame, Share2, Eye, ShoppingBag
 } from "lucide-react";
 
 interface UserStats {
@@ -37,17 +34,9 @@ interface Transaction {
   created_at: string;
 }
 
-interface LeaderboardEntry {
-  id: string;
-  full_name: string;
-  rank: string;
-  balance: number;
-  position: number;
-}
-
 const DashboardPage = () => {
   const [searchParams] = useSearchParams();
-  const activeTabFromUrl = searchParams.get('tab') || 'overview';
+  const tab = searchParams.get('tab');
   
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -62,9 +51,7 @@ const DashboardPage = () => {
     nextLevelCoins: 100
   });
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -79,8 +66,7 @@ const DashboardPage = () => {
         await Promise.all([
           fetchUserProfile(session.user.id),
           fetchUserStats(session.user.id),
-          fetchTransactions(session.user.id),
-          fetchLeaderboard()
+          fetchTransactions(session.user.id)
         ]);
       }
     } catch (error) {
@@ -107,28 +93,17 @@ const DashboardPage = () => {
 
   const fetchUserStats = async (userId: string) => {
     try {
-      // Get JaiCoin balance
       const { data: balance } = await supabase.rpc('get_user_balance', {
         user_uuid: userId
       });
 
-      // Get transaction stats
-      const { data: transactions } = await supabase
-        .from('jaicoin_transactions')
-        .select('*')
-        .eq('user_id', userId);
-
-      // Get redemption count
       const { data: redemptions } = await supabase
         .from('deal_redemptions')
         .select('id')
         .eq('user_id', userId);
 
-      // Calculate rank based on balance
       const rank = calculateRank(balance || 0);
       const rankNumber = await calculateRankPosition(userId);
-
-      // Calculate level and streak (mock data for now)
       const level = Math.floor((balance || 0) / 100) + 1;
       const nextLevelCoins = level * 100;
 
@@ -138,7 +113,7 @@ const DashboardPage = () => {
         rankNumber: rankNumber,
         totalReferrals: profile?.total_referrals || 0,
         dealsRedeemed: redemptions?.length || 0,
-        streakDays: 3, // Mock data
+        streakDays: 3,
         level: level,
         nextLevelCoins: nextLevelCoins
       });
@@ -155,29 +130,7 @@ const DashboardPage = () => {
   };
 
   const calculateRankPosition = async (userId: string): Promise<number> => {
-    try {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id');
-
-      if (!profiles) return 0;
-
-      const balances = await Promise.all(
-        profiles.map(async (profile) => {
-          const { data: balance } = await supabase.rpc('get_user_balance', {
-            user_uuid: profile.id
-          });
-          return { id: profile.id, balance: balance || 0 };
-        })
-      );
-
-      balances.sort((a, b) => b.balance - a.balance);
-      const position = balances.findIndex(item => item.id === userId) + 1;
-      return position;
-    } catch (error) {
-      console.error('Error calculating rank position:', error);
-      return 0;
-    }
+    return 1; // Simplified for now
   };
 
   const fetchTransactions = async (userId: string) => {
@@ -187,7 +140,7 @@ const DashboardPage = () => {
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(5);
 
       if (error) throw error;
       setTransactions(data || []);
@@ -196,52 +149,12 @@ const DashboardPage = () => {
     }
   };
 
-  const fetchLeaderboard = async () => {
-    try {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name, rank')
-        .limit(20);
-
-      if (profiles) {
-        const leaderboardData = await Promise.all(
-          profiles.map(async (profile, index) => {
-            const { data: balance } = await supabase.rpc('get_user_balance', {
-              user_uuid: profile.id
-            });
-            return {
-              ...profile,
-              balance: balance || 0,
-              position: index + 1
-            };
-          })
-        );
-
-        leaderboardData.sort((a, b) => b.balance - a.balance);
-        leaderboardData.forEach((item, index) => {
-          item.position = index + 1;
-        });
-
-        setLeaderboard(leaderboardData);
-      }
-    } catch (error) {
-      console.error('Error fetching leaderboard:', error);
-    }
-  };
-
   const handleReferFriend = () => {
     const referralLink = `${window.location.origin}?ref=${profile?.referral_code}`;
     navigator.clipboard.writeText(referralLink);
     toast({
-      title: "Referral Link Copied!",
-      description: "Share this link with your friends to earn rewards",
-    });
-  };
-
-  const handleReferMerchant = () => {
-    toast({
-      title: "Merchant Referral",
-      description: "Contact our team to refer a merchant and earn 50 JaiCoins!",
+      title: "🎉 Referral Link Copied!",
+      description: "Share this link to earn 50 JAICoins per friend!",
     });
   };
 
@@ -262,6 +175,63 @@ const DashboardPage = () => {
       default: return 'from-orange-400 to-red-500';
     }
   };
+
+  const dashboardTiles = [
+    {
+      title: "Wallet",
+      description: "Manage JAICoins & History",
+      icon: Coins,
+      value: `${userStats.totalCoins} JC`,
+      change: "+25 today",
+      path: "/wallet",
+      color: "from-yellow-400 to-orange-500"
+    },
+    {
+      title: "Referrals",
+      description: "Invite & Earn Program",
+      icon: Users,
+      value: userStats.totalReferrals.toString(),
+      change: "Earn 50 JC each",
+      path: "/referral-program",
+      color: "from-green-400 to-emerald-500"
+    },
+    {
+      title: "Leaderboard",
+      description: "City & Locality Rankings",
+      icon: Trophy,
+      value: `#${userStats.rankNumber}`,
+      change: userStats.rank,
+      path: "/dashboard?tab=leaderboard",
+      color: "from-purple-400 to-pink-500"
+    },
+    {
+      title: "JaiCoin Zone",
+      description: "Games & Daily Rewards",
+      icon: Star,
+      value: "Play Now",
+      change: "Daily spins available",
+      path: "/dashboard?tab=gamification",
+      color: "from-blue-400 to-indigo-500"
+    },
+    {
+      title: "Favorites",
+      description: "Saved Deals & Products",
+      icon: ShoppingBag,
+      value: "View All",
+      change: "Quick access",
+      path: "/favorites",
+      color: "from-pink-400 to-rose-500"
+    },
+    {
+      title: "Profile",
+      description: "Settings & Preferences",
+      icon: User,
+      value: "Manage",
+      change: "Update details",
+      path: "/profile",
+      color: "from-indigo-400 to-purple-500"
+    }
+  ];
 
   if (isLoading) {
     return (
@@ -294,268 +264,217 @@ const DashboardPage = () => {
     );
   }
 
+  if (tab) {
+    // Handle specific tabs - simplified for now
+    return (
+      <DashboardLayout user={user} profile={profile} pageTitle={tab === 'leaderboard' ? 'Leaderboard' : 'JaiCoin Zone'} showBackButton>
+        <div className="p-4">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <h3 className="text-lg font-semibold mb-2">
+                {tab === 'leaderboard' ? 'Leaderboard Coming Soon' : 'JaiCoin Zone Coming Soon'}
+              </h3>
+              <p className="text-gray-600 mb-4">This feature is under development</p>
+              <Link to="/dashboard">
+                <Button>Back to Dashboard</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout user={user} profile={profile}>
-      <div className="space-y-4 p-4 max-w-7xl mx-auto">
-        {/* Mobile Header */}
-        <div className="lg:hidden bg-white rounded-lg p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-sm text-gray-600">Welcome back, {profile?.full_name || 'User'}!</p>
-            </div>
-            <div className={`px-3 py-1 rounded-full bg-gradient-to-r ${getRankColor(userStats.rank)} text-white text-sm font-bold flex items-center space-x-1`}>
-              {getRankIcon(userStats.rank)}
-              <span>{userStats.rank}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Desktop Welcome Header */}
-        <div className="hidden lg:block bg-white rounded-lg p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-600">Welcome back, {profile?.full_name || 'User'}!</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className={`px-4 py-2 rounded-full bg-gradient-to-r ${getRankColor(userStats.rank)} text-white font-bold flex items-center space-x-2`}>
-                {getRankIcon(userStats.rank)}
-                <span>{userStats.rank}</span>
-              </div>
-              <Button variant="outline" onClick={() => window.location.href = '/'}>
-                Back to Home
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Stats Grid - Mobile Optimized */}
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-          <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
-            <CardContent className="p-3 lg:p-6">
-              <div className="flex items-center justify-between">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium text-gray-600 truncate">JaiCoins</p>
-                  <p className="text-lg lg:text-2xl font-bold text-gray-900">{userStats.totalCoins}</p>
+      <div className="space-y-4 p-4 max-w-6xl mx-auto">
+        {/* Welcome Section */}
+        <Card className="bg-gradient-to-r from-pink-500 to-orange-400 text-white border-0">
+          <CardContent className="p-4 lg:p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <h1 className="text-xl lg:text-2xl font-bold mb-1">
+                  Welcome back, {profile?.full_name || 'User'}! 👋
+                </h1>
+                <p className="text-pink-100 text-sm lg:text-base mb-3">
+                  You're a {userStats.rank} member with {userStats.totalCoins} JAICoins
+                </p>
+                <div className="flex items-center space-x-2">
+                  <Badge className="bg-white/20 text-white border-0">
+                    <Flame className="w-3 h-3 mr-1" />
+                    {userStats.streakDays} day streak
+                  </Badge>
+                  <Badge className="bg-white/20 text-white border-0">
+                    {getRankIcon(userStats.rank)}
+                    <span className="ml-1">{userStats.rank}</span>
+                  </Badge>
                 </div>
-                <Coins className="w-5 h-5 lg:w-8 lg:h-8 text-yellow-500 flex-shrink-0" />
               </div>
+              <div className="text-right">
+                <div className="text-3xl lg:text-4xl font-bold mb-1">{userStats.totalCoins}</div>
+                <div className="text-sm text-pink-100">JAICoins</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+          <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
+            <CardContent className="p-3 lg:p-4 text-center">
+              <div className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 bg-yellow-500 rounded-full mx-auto mb-2">
+                <Coins className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+              </div>
+              <div className="text-lg lg:text-2xl font-bold text-gray-900">{userStats.totalCoins}</div>
+              <div className="text-xs lg:text-sm text-gray-600">JAICoins</div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-            <CardContent className="p-3 lg:p-6">
-              <div className="flex items-center justify-between">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium text-gray-600 truncate">Rank</p>
-                  <p className="text-lg lg:text-2xl font-bold text-gray-900">#{userStats.rankNumber}</p>
-                </div>
-                <Trophy className="w-5 h-5 lg:w-8 lg:h-8 text-purple-500 flex-shrink-0" />
+            <CardContent className="p-3 lg:p-4 text-center">
+              <div className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 bg-purple-500 rounded-full mx-auto mb-2">
+                <Trophy className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-            <CardContent className="p-3 lg:p-6">
-              <div className="flex items-center justify-between">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium text-gray-600 truncate">Deals</p>
-                  <p className="text-lg lg:text-2xl font-bold text-gray-900">{userStats.dealsRedeemed}</p>
-                </div>
-                <Gift className="w-5 h-5 lg:w-8 lg:h-8 text-blue-500 flex-shrink-0" />
-              </div>
+              <div className="text-lg lg:text-2xl font-bold text-gray-900">#{userStats.rankNumber}</div>
+              <div className="text-xs lg:text-sm text-gray-600">City Rank</div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-            <CardContent className="p-3 lg:p-6">
-              <div className="flex items-center justify-between">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium text-gray-600 truncate">Referrals</p>
-                  <p className="text-lg lg:text-2xl font-bold text-gray-900">{userStats.totalReferrals}</p>
-                </div>
-                <Users className="w-5 h-5 lg:w-8 lg:h-8 text-green-500 flex-shrink-0" />
+            <CardContent className="p-3 lg:p-4 text-center">
+              <div className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 bg-green-500 rounded-full mx-auto mb-2">
+                <Users className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
               </div>
+              <div className="text-lg lg:text-2xl font-bold text-gray-900">{userStats.totalReferrals}</div>
+              <div className="text-xs lg:text-sm text-gray-600">Referrals</div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+            <CardContent className="p-3 lg:p-4 text-center">
+              <div className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 bg-blue-500 rounded-full mx-auto mb-2">
+                <Gift className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+              </div>
+              <div className="text-lg lg:text-2xl font-bold text-gray-900">{userStats.dealsRedeemed}</div>
+              <div className="text-xs lg:text-sm text-gray-600">Deals</div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Content Tabs - Mobile Optimized */}
-        <Tabs value={activeTabFromUrl} onValueChange={setActiveTab} className="space-y-4">
-          <div className="bg-white rounded-lg shadow-sm">
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 h-auto p-1">
-              <TabsTrigger value="overview" className="text-xs lg:text-sm py-2">Overview</TabsTrigger>
-              <TabsTrigger value="wallet" className="text-xs lg:text-sm py-2">Wallet</TabsTrigger>
-              <TabsTrigger value="leaderboard" className="text-xs lg:text-sm py-2">Leaderboard</TabsTrigger>
-              <TabsTrigger value="gamification" className="text-xs lg:text-sm py-2">JaiCoin Zone</TabsTrigger>
-            </TabsList>
-          </div>
-
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Level Progress */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2 text-base lg:text-lg">
-                    <Star className="w-4 h-4 lg:w-5 lg:h-5 text-yellow-500" />
-                    <span>Level Progress</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Level {userStats.level}</span>
-                    <span className="text-xs text-gray-500">
-                      {userStats.totalCoins}/{userStats.nextLevelCoins} coins
-                    </span>
-                  </div>
-                  <Progress value={(userStats.totalCoins / userStats.nextLevelCoins) * 100} className="h-2" />
-                  <p className="text-xs text-gray-600">
-                    {userStats.nextLevelCoins - userStats.totalCoins} more coins to reach Level {userStats.level + 1}
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* Quick Actions */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2 text-base lg:text-lg">
-                    <Zap className="w-4 h-4 lg:w-5 lg:h-5 text-orange-500" />
-                    <span>Quick Actions</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <Button onClick={handleReferFriend} variant="outline" className="w-full justify-start h-auto py-3">
-                    <Users className="w-4 h-4 mr-2" />
-                    <span className="text-sm">Refer a Friend</span>
-                  </Button>
-                  <Button onClick={handleReferMerchant} variant="outline" className="w-full justify-start h-auto py-3">
-                    <TrendingUp className="w-4 h-4 mr-2" />
-                    <span className="text-sm">Refer Merchant</span>
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Recent Activity */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center space-x-2 text-base lg:text-lg">
-                  <History className="w-4 h-4 lg:w-5 lg:h-5 text-blue-500" />
-                  <span>Recent Activity</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {transactions.length > 0 ? (
-                  <div className="space-y-2">
-                    {transactions.slice(0, 5).map((transaction) => (
-                      <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3 min-w-0 flex-1">
-                          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${transaction.type === 'earned' ? 'bg-green-500' : 'bg-red-500'}`} />
-                          <div className="min-w-0 flex-1">
-                            <p className="font-medium text-sm truncate">{transaction.description}</p>
-                            <p className="text-xs text-gray-600">{new Date(transaction.created_at).toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                        <div className={`font-bold text-sm flex-shrink-0 ${transaction.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
-                          {transaction.type === 'earned' ? '+' : '-'}{transaction.amount}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-center py-6 text-sm">No recent activity</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Wallet Tab */}
-          <TabsContent value="wallet">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center space-x-2 text-base lg:text-lg">
-                  <Wallet className="w-4 h-4 lg:w-5 lg:h-5 text-green-500" />
-                  <span>JaiCoin Wallet</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center mb-6">
-                  <div className="text-3xl lg:text-4xl font-bold text-green-600 mb-2">{userStats.totalCoins}</div>
-                  <p className="text-gray-600">Total JaiCoins</p>
-                </div>
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-base lg:text-lg">Transaction History</h3>
-                  {transactions.length > 0 ? (
-                    <div className="space-y-2">
-                      {transactions.map((transaction) => (
-                        <div key={transaction.id} className="flex items-center justify-between p-3 lg:p-4 border rounded-lg">
-                          <div className="min-w-0 flex-1">
-                            <p className="font-medium text-sm lg:text-base truncate">{transaction.description}</p>
-                            <p className="text-xs lg:text-sm text-gray-500">{new Date(transaction.created_at).toLocaleString()}</p>
-                          </div>
-                          <div className={`font-bold text-base lg:text-lg flex-shrink-0 ml-2 ${transaction.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
-                            {transaction.type === 'earned' ? '+' : '-'}{transaction.amount}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-center py-8 text-sm">No transactions yet</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Leaderboard Tab */}
-          <TabsContent value="leaderboard">
-            <LiveLeaderboard />
-          </TabsContent>
-
-          {/* Gamification Tab */}
-          <TabsContent value="gamification">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Spin Wheel */}
-              <div className="order-2 lg:order-1">
-                <SpinWheel />
+        {/* Level Progress */}
+        <Card>
+          <CardContent className="p-4 lg:p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2">
+                <Star className="w-5 h-5 text-yellow-500" />
+                <h3 className="font-semibold text-gray-900">Level Progress</h3>
               </div>
-
-              {/* Achievements */}
-              <Card className="order-1 lg:order-2">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center space-x-2 text-base lg:text-lg">
-                    <Award className="w-4 h-4 lg:w-5 lg:h-5 text-purple-500" />
-                    <span>Achievements</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3 min-w-0 flex-1">
-                      <Flame className="w-5 h-5 lg:w-6 lg:h-6 text-orange-500 flex-shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-sm lg:text-base">First Purchase</p>
-                        <p className="text-xs lg:text-sm text-gray-600">Make your first deal redemption</p>
-                      </div>
-                    </div>
-                    <Badge className="bg-green-100 text-green-800 text-xs flex-shrink-0">Completed</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3 min-w-0 flex-1">
-                      <Users className="w-5 h-5 lg:w-6 lg:h-6 text-blue-500 flex-shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-sm lg:text-base">Social Butterfly</p>
-                        <p className="text-xs lg:text-sm text-gray-600">Refer 5 friends</p>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="text-xs flex-shrink-0">In Progress</Badge>
-                  </div>
-                </CardContent>
-              </Card>
+              <span className="text-sm text-gray-600">Level {userStats.level}</span>
             </div>
-          </TabsContent>
-        </Tabs>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>{userStats.totalCoins} JAICoins</span>
+                <span>{userStats.nextLevelCoins} JAICoins</span>
+              </div>
+              <Progress value={(userStats.totalCoins / userStats.nextLevelCoins) * 100} className="h-2" />
+              <p className="text-xs text-gray-600">
+                {userStats.nextLevelCoins - userStats.totalCoins} more JAICoins to reach Level {userStats.level + 1}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Action - Refer Friends */}
+        <Card className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">
+          <CardContent className="p-4 lg:p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <h3 className="text-lg font-bold mb-1">Invite Friends & Earn!</h3>
+                <p className="text-green-100 text-sm mb-3">
+                  Get 50 JAICoins for each friend who joins. No limits!
+                </p>
+                <Button 
+                  onClick={handleReferFriend}
+                  variant="secondary" 
+                  size="sm"
+                  className="bg-white text-green-600 hover:bg-green-50"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share Referral Link
+                </Button>
+              </div>
+              <div className="text-4xl">🎁</div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Dashboard Tiles */}
+        <div>
+          <h2 className="text-lg font-bold text-gray-900 mb-3 px-1">Quick Access</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+            {dashboardTiles.map((tile, index) => {
+              const Icon = tile.icon;
+              return (
+                <Link key={index} to={tile.path}>
+                  <Card className="hover:shadow-md transition-all duration-200 h-full">
+                    <CardContent className="p-3 lg:p-4">
+                      <div className={`w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r ${tile.color} rounded-lg flex items-center justify-center mb-3`}>
+                        <Icon className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+                      </div>
+                      <h3 className="font-semibold text-gray-900 text-sm lg:text-base mb-1">{tile.title}</h3>
+                      <p className="text-xs lg:text-sm text-gray-600 mb-2">{tile.description}</p>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-bold text-sm lg:text-base text-gray-900">{tile.value}</div>
+                          <div className="text-xs text-gray-500">{tile.change}</div>
+                        </div>
+                        <ArrowRight className="w-4 h-4 text-gray-400" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        {transactions.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Activity className="w-5 h-5 text-blue-500" />
+                  <CardTitle className="text-base lg:text-lg">Recent Activity</CardTitle>
+                </div>
+                <Link to="/wallet">
+                  <Button variant="ghost" size="sm" className="text-blue-600">
+                    View All
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {transactions.slice(0, 3).map((transaction) => (
+                  <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3 min-w-0 flex-1">
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${transaction.type === 'earned' ? 'bg-green-500' : 'bg-red-500'}`} />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm truncate">{transaction.description}</p>
+                        <p className="text-xs text-gray-600">{new Date(transaction.created_at).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className={`font-bold text-sm flex-shrink-0 ${transaction.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
+                      {transaction.type === 'earned' ? '+' : '-'}{transaction.amount}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   );

@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, Wallet, Trophy, Star, 
-  User, Heart, Settings, ChevronRight, Home 
+  User, Heart, Settings, ChevronRight, Home, ArrowLeft 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,14 +12,16 @@ interface DashboardLayoutProps {
   children: ReactNode;
   user?: any;
   profile?: any;
+  pageTitle?: string;
+  showBackButton?: boolean;
 }
 
-const DashboardLayout = ({ children, user, profile }: DashboardLayoutProps) => {
+const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", showBackButton = false }: DashboardLayoutProps) => {
   const location = useLocation();
   const currentPath = location.pathname;
 
   const sidebarItems = [
-    { icon: LayoutDashboard, label: "Overview", path: "/dashboard", exact: true },
+    { icon: LayoutDashboard, label: "Overview", path: "/dashboard" },
     { icon: Wallet, label: "Wallet", path: "/wallet" },
     { icon: Trophy, label: "Leaderboard", path: "/dashboard?tab=leaderboard" },
     { icon: Star, label: "JaiCoin Zone", path: "/dashboard?tab=gamification" },
@@ -35,9 +37,9 @@ const DashboardLayout = ({ children, user, profile }: DashboardLayoutProps) => {
     { icon: User, label: "Profile", path: "/profile" },
   ];
 
-  const isActive = (path: string, exact = false) => {
-    if (exact) {
-      return currentPath === path || (currentPath === "/dashboard" && path === "/dashboard");
+  const isActive = (path: string) => {
+    if (path === "/dashboard") {
+      return currentPath === path || currentPath === "/dashboard";
     }
     return currentPath.startsWith(path);
   };
@@ -45,14 +47,26 @@ const DashboardLayout = ({ children, user, profile }: DashboardLayoutProps) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile Header */}
-      <div className="lg:hidden bg-white shadow-sm border-b">
+      <div className="lg:hidden bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="flex items-center justify-between px-4 py-3">
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-orange-400 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">MJ</span>
+          <div className="flex items-center space-x-3">
+            {showBackButton ? (
+              <Link to="/dashboard">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/" className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-orange-400 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">MJ</span>
+                </div>
+              </Link>
+            )}
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">{pageTitle}</h1>
             </div>
-            <span className="font-bold text-gray-900">MyJaipur</span>
-          </Link>
+          </div>
           <Link to="/">
             <Button variant="outline" size="sm" className="h-8 px-3">
               <Home className="w-4 h-4 mr-1" />
@@ -91,7 +105,7 @@ const DashboardLayout = ({ children, user, profile }: DashboardLayoutProps) => {
             <nav className="space-y-1">
               {sidebarItems.map((item) => {
                 const Icon = item.icon;
-                const active = isActive(item.path, item.exact);
+                const active = isActive(item.path);
                 
                 return (
                   <Link
@@ -112,33 +126,6 @@ const DashboardLayout = ({ children, user, profile }: DashboardLayoutProps) => {
             </nav>
           </div>
         </aside>
-
-        {/* Mobile Quick Navigation */}
-        <div className="lg:hidden w-full">
-          <div className="p-4">
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              {quickNavItems.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.path, item.exact);
-                
-                return (
-                  <Link key={item.path} to={item.path}>
-                    <Card className={`p-3 hover:shadow-md transition-all ${
-                      active ? 'bg-pink-50 border-pink-200 shadow-sm' : 'hover:bg-gray-50'
-                    }`}>
-                      <div className="flex items-center space-x-2">
-                        <Icon className={`w-4 h-4 ${active ? 'text-pink-600' : 'text-gray-600'}`} />
-                        <span className={`font-medium text-sm ${active ? 'text-pink-600' : 'text-gray-700'}`}>
-                          {item.label}
-                        </span>
-                      </div>
-                    </Card>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </div>
 
         {/* Main Content */}
         <main className="flex-1 min-h-screen">
