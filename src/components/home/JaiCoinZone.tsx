@@ -3,20 +3,112 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Coins, Gift, Users, TrendingUp, Zap } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 
 interface JaiCoinZoneProps {
   user: any;
 }
 
 const JaiCoinZone = ({ user }: JaiCoinZoneProps) => {
+  const { toast } = useToast();
   const userRank = 12;
   const userCoins = 280;
   const coinsToNextRank = 10;
 
+  const handleSpinWheel = async () => {
+    try {
+      const rewards = [5, 10, 15, 20, 25, 50];
+      const randomReward = rewards[Math.floor(Math.random() * rewards.length)];
+      
+      const { error } = await supabase
+        .from('jaicoin_transactions')
+        .insert({
+          user_id: user.id,
+          amount: randomReward,
+          type: 'earned',
+          source: 'spin_wheel',
+          description: 'Daily spin wheel reward'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "🎉 Spin Successful!",
+        description: `You won ${randomReward} JaiCoins!`,
+      });
+    } catch (error) {
+      console.error('Error spinning wheel:', error);
+      toast({
+        title: "Error",
+        description: "Failed to spin the wheel. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleReferFriend = async () => {
+    try {
+      // Get user's referral code
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('referral_code')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.referral_code) {
+        const referralLink = `${window.location.origin}?ref=${profile.referral_code}`;
+        await navigator.clipboard.writeText(referralLink);
+        
+        toast({
+          title: "📱 Referral Link Copied!",
+          description: "Share this link with friends to earn 30 JaiCoins each!",
+        });
+      }
+    } catch (error) {
+      console.error('Error copying referral link:', error);
+      toast({
+        title: "Error",
+        description: "Failed to copy referral link",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleReferMerchant = () => {
+    toast({
+      title: "🏪 Merchant Referral",
+      description: "Contact our team at merchants@myjaipur.com to refer a business and earn 50 JaiCoins!",
+    });
+  };
+
+  const handleRedeemDeal = () => {
+    window.location.href = '/deals';
+  };
+
   const actions = [
-    { title: "Refer a Friend", reward: 30, icon: Users, color: "from-blue-400 to-blue-600" },
-    { title: "Refer Merchant", reward: 50, icon: TrendingUp, color: "from-green-400 to-green-600" },
-    { title: "Redeem Deal", reward: 5, icon: Gift, color: "from-purple-400 to-purple-600" },
+    { 
+      title: "Refer a Friend", 
+      reward: 30, 
+      icon: Users, 
+      color: "from-blue-400 to-blue-600",
+      action: handleReferFriend
+    },
+    { 
+      title: "Refer Merchant", 
+      reward: 50, 
+      icon: TrendingUp, 
+      color: "from-green-400 to-green-600",
+      action: handleReferMerchant
+    },
+    { 
+      title: "Redeem Deal", 
+      reward: 5, 
+      icon: Gift, 
+      color: "from-purple-400 to-purple-600",
+      action: handleRedeemDeal
+    },
   ];
 
   return (
@@ -50,7 +142,10 @@ const JaiCoinZone = ({ user }: JaiCoinZoneProps) => {
                 <div className="w-0 h-0 border-l-4 border-r-4 border-b-8 border-l-transparent border-r-transparent border-b-red-500"></div>
               </div>
             </div>
-            <Button className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 font-bold shadow-lg">
+            <Button 
+              onClick={handleSpinWheel}
+              className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 font-bold shadow-lg"
+            >
               Spin Now!
             </Button>
             <p className="text-xs text-gray-600 mt-2">Next spin in 2h 34m</p>
@@ -76,7 +171,12 @@ const JaiCoinZone = ({ user }: JaiCoinZoneProps) => {
                       <p className="text-xs text-gray-600">Earn +{action.reward} coins</p>
                     </div>
                   </div>
-                  <Button size="sm" variant="outline" className="text-pink-600 border-pink-300 hover:bg-pink-50">
+                  <Button 
+                    onClick={action.action}
+                    size="sm" 
+                    variant="outline" 
+                    className="text-pink-600 border-pink-300 hover:bg-pink-50"
+                  >
                     Start
                   </Button>
                 </div>
@@ -117,9 +217,11 @@ const JaiCoinZone = ({ user }: JaiCoinZoneProps) => {
               </div>
             </div>
 
-            <Button className="w-full mt-4 bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600">
-              View Full Leaderboard
-            </Button>
+            <Link to="/dashboard?tab=leaderboard">
+              <Button className="w-full mt-4 bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600">
+                View Full Leaderboard
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

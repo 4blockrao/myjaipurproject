@@ -1,7 +1,9 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Coins, Users, Zap } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Leaderboard = () => {
   const topUsers = [
@@ -37,9 +39,11 @@ const Leaderboard = () => {
           <Trophy className="w-6 h-6 text-yellow-600" />
           <h2 className="text-3xl font-bold text-gray-900">JAICoin Leaderboard</h2>
         </div>
-        <Button variant="outline" size="sm" className="text-yellow-600 border-yellow-300 hover:bg-yellow-50">
-          View Full Rankings
-        </Button>
+        <Link to="/dashboard?tab=leaderboard">
+          <Button variant="outline" size="sm" className="text-yellow-600 border-yellow-300 hover:bg-yellow-50">
+            View Full Rankings
+          </Button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -156,9 +160,11 @@ const Leaderboard = () => {
               Challenge a Friend
             </Button>
             
-            <Button variant="outline" className="w-full text-purple-600 border-purple-300 hover:bg-purple-50">
-              View Full Stats
-            </Button>
+            <Link to="/dashboard?tab=leaderboard">
+              <Button variant="outline" className="w-full text-purple-600 border-purple-300 hover:bg-purple-50">
+                View Full Stats
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
