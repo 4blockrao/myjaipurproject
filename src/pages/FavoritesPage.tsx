@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Heart, Ticket, Clock, MapPin, Star, Share2, Download, Trash2, QrCode } from "lucide-react";
 import { Link } from "react-router-dom";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
 interface SavedDeal {
   id: string;
@@ -36,6 +36,7 @@ interface PurchasedCoupon {
 
 const FavoritesPage = () => {
   const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [savedDeals, setSavedDeals] = useState<SavedDeal[]>([]);
   const [purchasedCoupons, setPurchasedCoupons] = useState<PurchasedCoupon[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,17 +57,29 @@ const FavoritesPage = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
       setUser(session.user);
-    } else {
-      // Redirect to login if not authenticated
-      window.location.href = '/';
+      await fetchUserProfile(session.user.id);
     }
     setIsLoading(false);
   };
 
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      setProfile(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
+
   const fetchSavedDeals = async () => {
     try {
-      // Note: This would require a user_saved_deals table in a real implementation
-      // For now, we'll show some mock data
+      // Mock data - in real implementation, fetch from database
       const mockSavedDeals: SavedDeal[] = [
         {
           id: "1",
@@ -92,8 +105,7 @@ const FavoritesPage = () => {
 
   const fetchPurchasedCoupons = async () => {
     try {
-      // Note: This would require a user_coupons table in a real implementation
-      // For now, we'll show some mock data
+      // Mock data - in real implementation, fetch from database
       const mockCoupons: PurchasedCoupon[] = [
         {
           id: "1",
@@ -153,7 +165,6 @@ const FavoritesPage = () => {
   };
 
   const downloadCoupon = (coupon: PurchasedCoupon) => {
-    // In a real implementation, this would generate a PDF or image
     toast({
       title: "Coupon Downloaded",
       description: "Your coupon has been saved to downloads"
@@ -162,44 +173,35 @@ const FavoritesPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
-      </div>
+      <DashboardLayout user={user} profile={profile} pageTitle="Favorites">
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
+        </div>
+      </DashboardLayout>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="p-8 text-center max-w-md">
-          <h2 className="text-2xl font-bold mb-4">Sign In Required</h2>
-          <p className="text-gray-600 mb-6">Please sign in to view your favorites and coupons</p>
-          <Button onClick={() => window.location.href = '/'}>
-            Go to Home
-          </Button>
+      <DashboardLayout user={user} profile={profile} pageTitle="Favorites">
+        <Card className="m-4">
+          <CardHeader className="text-center">
+            <CardTitle>Sign In Required</CardTitle>
+            <CardDescription>Please sign in to view your favorites and coupons</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button className="w-full" onClick={() => window.location.href = '/'}>
+              Go to Home
+            </Button>
+          </CardContent>
         </Card>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b shadow-sm">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Favorites & Coupons</h1>
-              <p className="text-gray-600">Manage your saved deals and purchased coupons</p>
-            </div>
-            <Button onClick={() => window.location.href = '/'} variant="outline">
-              Back to Home
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-4 py-8">
+    <DashboardLayout user={user} profile={profile} pageTitle="Favorites" showBackButton>
+      <div className="p-4 max-w-6xl mx-auto space-y-6">
         <Tabs defaultValue="saved" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 max-w-md">
             <TabsTrigger value="saved" className="flex items-center gap-2">
@@ -396,7 +398,7 @@ const FavoritesPage = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

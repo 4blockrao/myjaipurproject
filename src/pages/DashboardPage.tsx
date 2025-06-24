@@ -10,7 +10,7 @@ import {
   User, Coins, Trophy, TrendingUp, Gift, Users, Zap,
   Star, Crown, Medal, Award, ArrowRight, Activity,
   Calendar, Target, Flame, Share2, Eye, ShoppingBag,
-  Wallet, Heart, Settings
+  Wallet, Heart, Settings, Receipt
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -23,6 +23,7 @@ interface UserStats {
   streakDays: number;
   level: number;
   nextLevelCoins: number;
+  activeOrders: number;
 }
 
 interface Transaction {
@@ -45,7 +46,8 @@ const DashboardPage = () => {
     dealsRedeemed: 0,
     streakDays: 0,
     level: 1,
-    nextLevelCoins: 100
+    nextLevelCoins: 100,
+    activeOrders: 0
   });
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -112,7 +114,8 @@ const DashboardPage = () => {
         dealsRedeemed: redemptions?.length || 0,
         streakDays: 3,
         level: level,
-        nextLevelCoins: nextLevelCoins
+        nextLevelCoins: nextLevelCoins,
+        activeOrders: 2 // Mock data
       });
     } catch (error) {
       console.error('Error fetching user stats:', error);
@@ -175,6 +178,15 @@ const DashboardPage = () => {
       color: "from-yellow-400 to-orange-500"
     },
     {
+      title: "My Orders",
+      description: "Coupons & QR Codes",
+      icon: Receipt,
+      value: `${userStats.activeOrders} Active`,
+      change: "View all orders",
+      path: "/orders",
+      color: "from-blue-400 to-indigo-500"
+    },
+    {
       title: "Referrals",
       description: "Invite & Earn Program",
       icon: Users,
@@ -209,15 +221,6 @@ const DashboardPage = () => {
       change: "Quick access",
       path: "/favorites",
       color: "from-pink-400 to-rose-500"
-    },
-    {
-      title: "Settings",
-      description: "Profile & Preferences",
-      icon: Settings,
-      value: "Manage",
-      change: "Update details",
-      path: "/profile?tab=settings",
-      color: "from-indigo-400 to-purple-500"
     }
   ];
 
@@ -320,10 +323,10 @@ const DashboardPage = () => {
           <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
             <CardContent className="p-3 lg:p-4 text-center">
               <div className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 bg-blue-500 rounded-full mx-auto mb-2">
-                <Gift className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+                <Receipt className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
               </div>
-              <div className="text-lg lg:text-2xl font-bold text-gray-900">{userStats.dealsRedeemed}</div>
-              <div className="text-xs lg:text-sm text-gray-600">Deals</div>
+              <div className="text-lg lg:text-2xl font-bold text-gray-900">{userStats.activeOrders}</div>
+              <div className="text-xs lg:text-sm text-gray-600">Active Orders</div>
             </CardContent>
           </Card>
         </div>

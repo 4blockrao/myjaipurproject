@@ -11,6 +11,7 @@ import LeaderboardPage from "./pages/LeaderboardPage";
 import JAICoinZonePage from "./pages/JAICoinZonePage";
 import ProfilePage from "./pages/ProfilePage";
 import FavoritesPage from "./pages/FavoritesPage";
+import OrdersPage from "./pages/OrdersPage";
 import DealsPage from "./pages/DealsPage";
 import DealDetailPage from "./pages/DealDetailPage";
 import MerchantPage from "./pages/MerchantPage";
@@ -45,6 +46,7 @@ const App = () => (
           <Route path="/jaicoin-zone" element={<JAICoinZonePage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
           <Route path="/deals" element={<DealsPage />} />
           <Route path="/deal/:id" element={<DealDetailPage />} />
           <Route path="/merchant/:id" element={<MerchantPage />} />

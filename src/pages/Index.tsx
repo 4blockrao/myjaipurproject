@@ -65,19 +65,44 @@ const Index = () => {
     }
   };
 
+  // Mock data for components that need props
+  const mockCategories = [
+    { id: 'food', name: 'Food & Dining', icon: '🍽️', count: 45 },
+    { id: 'beauty', name: 'Beauty & Wellness', icon: '💄', count: 32 },
+    { id: 'shopping', name: 'Shopping', icon: '🛍️', count: 28 },
+    { id: 'entertainment', name: 'Entertainment', icon: '🎬', count: 15 }
+  ];
+
+  const mockDeals = [
+    {
+      id: '1',
+      title: '50% off at Rajasthani Thali House',
+      description: 'Traditional Rajasthani cuisine',
+      discount: 50,
+      originalPrice: 800,
+      discountedPrice: 400,
+      location: 'C-Scheme, Jaipur',
+      category: 'food',
+      image: '/placeholder.svg',
+      rating: 4.5,
+      reviewCount: 120
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-white">
-      <HeroSection 
-        user={user} 
-        profile={profile} 
-        onAuthClick={() => setShowAuthModal(true)} 
+      <HeroSection onAuthClick={() => setShowAuthModal(true)} />
+      <CategoryShortcuts 
+        categories={mockCategories}
+        selectedCategory=""
+        onCategorySelect={() => {}}
+        dealCounts={mockCategories.reduce((acc, cat) => ({ ...acc, [cat.id]: cat.count }), {})}
       />
-      <CategoryShortcuts />
-      <TodaysTopDeals />
+      <TodaysTopDeals deals={mockDeals} />
       <TopMerchants />
       <ReferEarnSection user={user} profile={profile} />
       <TrustIndicators />
-      <StickyBottomNav user={user} />
+      <StickyBottomNav />
       
       <AuthModal 
         isOpen={showAuthModal} 
