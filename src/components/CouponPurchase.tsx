@@ -97,7 +97,8 @@ const CouponPurchase = ({ dealId }: { dealId: string }) => {
   };
 
   const generateCouponCode = () => {
-    return 'JAI' + Math.random().toString(36).substr(2, 8).toUpperCase();
+    const randomNumber = Math.floor(Math.random() * 90000) + 10000; // Generates 5-digit number (10000-99999)
+    return 'A' + randomNumber.toString();
   };
 
   const handlePurchase = async () => {

@@ -52,13 +52,17 @@ const OrderSuccessPage = () => {
 
   const fetchOrderDetails = async () => {
     try {
+      // Generate coupon code with A + 5-digit numeric format
+      const randomNumber = Math.floor(Math.random() * 90000) + 10000;
+      const couponCode = 'A' + randomNumber.toString();
+      
       // Mock data - in real implementation, fetch from orders table
       const mockOrderDetails: OrderDetails = {
         id: orderId!,
         status: "confirmed",
         total_amount: 400,
         created_at: new Date().toISOString(),
-        coupon_code: "JAI2024" + Math.random().toString(36).substr(2, 6).toUpperCase(),
+        coupon_code: couponCode,
         deal: {
           id: "1",
           title: "Royal Rajasthani Thali Experience",
