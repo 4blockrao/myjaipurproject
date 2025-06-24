@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -350,7 +349,7 @@ const CheckoutPage = () => {
                       <Checkbox
                         id="jaicoins"
                         checked={useJaiCoins}
-                        onCheckedChange={setUseJaiCoins}
+                        onCheckedChange={(checked) => setUseJaiCoins(checked === true)}
                       />
                       <Coins className="w-5 h-5 text-yellow-500" />
                       <div>

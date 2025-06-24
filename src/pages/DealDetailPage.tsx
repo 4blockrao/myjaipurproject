@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -388,11 +387,9 @@ const DealDetailPage = () => {
                     <CardHeader>
                       <div className="flex items-start gap-4">
                         <Avatar className="w-16 h-16">
-                          <AvatarContent>
-                            <div className="w-full h-full bg-gradient-to-br from-pink-400 to-orange-400 flex items-center justify-center text-white font-bold text-xl">
-                              {deal.merchants.business_name.charAt(0)}
-                            </div>
-                          </AvatarContent>
+                          <div className="w-full h-full bg-gradient-to-br from-pink-400 to-orange-400 flex items-center justify-center text-white font-bold text-xl rounded-full">
+                            {deal.merchants.business_name.charAt(0)}
+                          </div>
                           <AvatarFallback>{deal.merchants.business_name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
@@ -465,11 +462,9 @@ const DealDetailPage = () => {
                         <div key={review.id} className="border-b border-gray-100 pb-6 last:border-0">
                           <div className="flex items-start gap-3">
                             <Avatar>
-                              <AvatarContent>
-                                <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white font-bold">
-                                  {review.user_name.charAt(0)}
-                                </div>
-                              </AvatarContent>
+                              <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white font-bold rounded-full">
+                                {review.user_name.charAt(0)}
+                              </div>
                               <AvatarFallback>{review.user_name.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
