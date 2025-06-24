@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Home, MapPin, Ticket, Camera, User } from "lucide-react";
+import { Home, Search, Heart, User, LayoutDashboard } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const StickyBottomNav = () => {
@@ -10,18 +10,19 @@ const StickyBottomNav = () => {
 
   const navItems = [
     { icon: Home, label: "Home", path: "/", badge: null },
-    { icon: MapPin, label: "Nearby", path: "/deals", badge: null },
-    { icon: Ticket, label: "My Coupons", path: "/favorites", badge: 3 },
-    { icon: Camera, label: "Scan QR", path: "/scan", badge: null },
+    { icon: Search, label: "Explore", path: "/deals", badge: null },
+    { icon: Heart, label: "Favorites", path: "/favorites", badge: 3 },
+    { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", badge: null },
     { icon: User, label: "Profile", path: "/profile", badge: null },
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg">
-      <div className="flex items-center justify-around py-2 px-4">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg safe-area-pb">
+      <div className="flex items-center justify-around py-2 px-2">
         {navItems.map((item, index) => {
           const Icon = item.icon;
-          const isActive = currentPath === item.path;
+          const isActive = currentPath === item.path || 
+            (item.path === "/dashboard" && currentPath.startsWith("/dashboard"));
           
           return (
             <Link key={index} to={item.path} className="flex-1">
@@ -29,7 +30,7 @@ const StickyBottomNav = () => {
                 variant="ghost"
                 size="sm"
                 className={`
-                  w-full h-auto px-2 py-3 flex flex-col items-center space-y-1 relative
+                  w-full h-auto px-1 py-3 flex flex-col items-center space-y-1 relative
                   ${isActive 
                     ? "text-pink-600 bg-pink-50" 
                     : "text-gray-600 hover:text-pink-600 hover:bg-pink-50"

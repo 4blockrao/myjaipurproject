@@ -120,6 +120,63 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+
+  /* Mobile safe area */
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Mobile optimizations */
+  .mobile-container {
+    @apply max-w-sm mx-auto px-4;
+  }
+
+  /* Touch target improvements */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Focus improvements for accessibility */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2;
+  }
+
+  /* Button hover effects */
+  .btn-hover-lift {
+    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  }
+
+  /* Glassmorphism effect */
+  .glass {
+    @apply bg-white/80 backdrop-blur-lg border border-white/20;
+  }
+}
+
+/* Mobile responsiveness improvements */
+@media (max-width: 768px) {
+  .container {
+    @apply px-4;
+  }
+  
+  /* Ensure text is readable on mobile */
+  h1 { @apply text-2xl; }
+  h2 { @apply text-xl; }
+  h3 { @apply text-lg; }
+  
+  /* Better spacing on mobile */
+  .space-y-6 > * + * {
+    @apply mt-4;
+  }
+  
+  /* Improved button sizing on mobile */
+  .btn {
+    @apply py-3 px-4 text-base;
+  }
 }
 
 @keyframes scale-in {
@@ -153,26 +210,6 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* Custom focus styles */
-.focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2;
-}
-
-/* Button hover effects */
-.btn-hover-lift {
-  @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
-}
-
-/* Card hover effects */
-.card-hover {
-  @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
-}
-
-/* Glassmorphism effect */
-.glass {
-  @apply bg-white/80 backdrop-blur-lg border border-white/20;
 }
 
 /* Pink city theme colors */

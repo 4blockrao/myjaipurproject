@@ -1,5 +1,5 @@
-
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import SpinWheel from "@/components/SpinWheel";
 import {
   User, Coins, Trophy, TrendingUp, Gift, Users, Zap,
@@ -43,6 +44,9 @@ interface LeaderboardEntry {
 }
 
 const DashboardPage = () => {
+  const [searchParams] = useSearchParams();
+  const activeTabFromUrl = searchParams.get('tab') || 'overview';
+  
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [userStats, setUserStats] = useState<UserStats>({
@@ -259,19 +263,21 @@ const DashboardPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your dashboard...</p>
+      <DashboardLayout user={user} profile={profile}>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading your dashboard...</p>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
+      <DashboardLayout user={user} profile={profile}>
+        <Card className="max-w-md mx-auto mt-8">
           <CardHeader className="text-center">
             <CardTitle>Please Sign In</CardTitle>
             <CardDescription>You need to be logged in to view your dashboard</CardDescription>
@@ -282,15 +288,15 @@ const DashboardPage = () => {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-6">
+    <DashboardLayout user={user} profile={profile}>
+      <div className="space-y-6">
+        {/* Welcome Header - Desktop Only */}
+        <div className="hidden lg:block">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
@@ -307,67 +313,65 @@ const DashboardPage = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Quick Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
-            <CardContent className="p-6">
+            <CardContent className="p-4 lg:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">JaiCoins</p>
-                  <p className="text-3xl font-bold text-gray-900">{userStats.totalCoins}</p>
+                  <p className="text-xs lg:text-sm font-medium text-gray-600">JaiCoins</p>
+                  <p className="text-xl lg:text-3xl font-bold text-gray-900">{userStats.totalCoins}</p>
                 </div>
-                <Coins className="w-8 h-8 text-yellow-500" />
+                <Coins className="w-6 h-6 lg:w-8 lg:h-8 text-yellow-500" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-            <CardContent className="p-6">
+            <CardContent className="p-4 lg:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Rank</p>
-                  <p className="text-3xl font-bold text-gray-900">#{userStats.rankNumber}</p>
+                  <p className="text-xs lg:text-sm font-medium text-gray-600">Rank</p>
+                  <p className="text-xl lg:text-3xl font-bold text-gray-900">#{userStats.rankNumber}</p>
                 </div>
-                <Trophy className="w-8 h-8 text-purple-500" />
+                <Trophy className="w-6 h-6 lg:w-8 lg:h-8 text-purple-500" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-            <CardContent className="p-6">
+            <CardContent className="p-4 lg:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Deals Redeemed</p>
-                  <p className="text-3xl font-bold text-gray-900">{userStats.dealsRedeemed}</p>
+                  <p className="text-xs lg:text-sm font-medium text-gray-600">Deals</p>
+                  <p className="text-xl lg:text-3xl font-bold text-gray-900">{userStats.dealsRedeemed}</p>
                 </div>
-                <Gift className="w-8 h-8 text-blue-500" />
+                <Gift className="w-6 h-6 lg:w-8 lg:h-8 text-blue-500" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-            <CardContent className="p-6">
+            <CardContent className="p-4 lg:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Referrals</p>
-                  <p className="text-3xl font-bold text-gray-900">{userStats.totalReferrals}</p>
+                  <p className="text-xs lg:text-sm font-medium text-gray-600">Referrals</p>
+                  <p className="text-xl lg:text-3xl font-bold text-gray-900">{userStats.totalReferrals}</p>
                 </div>
-                <Users className="w-8 h-8 text-green-500" />
+                <Users className="w-6 h-6 lg:w-8 lg:h-8 text-green-500" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="wallet">Wallet</TabsTrigger>
-            <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-            <TabsTrigger value="gamification">JaiCoin Zone</TabsTrigger>
+        {/* Main Content Tabs */}
+        <Tabs value={activeTabFromUrl} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+            <TabsTrigger value="overview" className="text-xs lg:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="wallet" className="text-xs lg:text-sm">Wallet</TabsTrigger>
+            <TabsTrigger value="leaderboard" className="text-xs lg:text-sm">Leaderboard</TabsTrigger>
+            <TabsTrigger value="gamification" className="text-xs lg:text-sm">JaiCoin Zone</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -376,7 +380,7 @@ const DashboardPage = () => {
               {/* Level Progress */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className="flex items-center space-x-2 text-lg">
                     <Star className="w-5 h-5 text-yellow-500" />
                     <span>Level Progress</span>
                   </CardTitle>
@@ -400,18 +404,18 @@ const DashboardPage = () => {
               {/* Quick Actions */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className="flex items-center space-x-2 text-lg">
                     <Zap className="w-5 h-5 text-orange-500" />
                     <span>Quick Actions</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <Button onClick={handleReferFriend} variant="outline" className="w-full">
+                    <Button onClick={handleReferFriend} variant="outline" className="w-full justify-start">
                       <Users className="w-4 h-4 mr-2" />
                       Refer a Friend
                     </Button>
-                    <Button onClick={handleReferMerchant} variant="outline" className="w-full">
+                    <Button onClick={handleReferMerchant} variant="outline" className="w-full justify-start">
                       <TrendingUp className="w-4 h-4 mr-2" />
                       Refer Merchant
                     </Button>
@@ -423,7 +427,7 @@ const DashboardPage = () => {
             {/* Recent Activity */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+                <CardTitle className="flex items-center space-x-2 text-lg">
                   <History className="w-5 h-5 text-blue-500" />
                   <span>Recent Activity</span>
                 </CardTitle>
@@ -536,7 +540,7 @@ const DashboardPage = () => {
               {/* Achievements */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+                  <CardTitle className="flex items-center space-x-2 text-lg">
                     <Award className="w-5 h-5 text-purple-500" />
                     <span>Achievements</span>
                   </CardTitle>
@@ -570,7 +574,7 @@ const DashboardPage = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
