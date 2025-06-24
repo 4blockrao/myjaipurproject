@@ -22,6 +22,8 @@ import AnalyticsPage from "./pages/AnalyticsPage";
 import DealDetailPage from "./pages/DealDetailPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
+import ScanPage from "./pages/ScanPage";
+import ExplorePage from "./pages/ExplorePage";
 import DataDashboard from "./components/DataDashboard";
 import SystemAudit from "./components/SystemAudit";
 import NotFound from "./pages/NotFound";
@@ -61,6 +63,8 @@ const App = () => {
             <Route path="/deal/:id" element={<DealDetailPage />} />
             <Route path="/checkout/:orderId" element={<CheckoutPage />} />
             <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
+            <Route path="/scan" element={<ScanPage />} />
+            <Route path="/explore" element={<ExplorePage />} />
             <Route path="/admin/data" element={<DataDashboard />} />
             <Route path="/admin/audit" element={<SystemAudit />} />
             <Route path="*" element={<NotFound />} />

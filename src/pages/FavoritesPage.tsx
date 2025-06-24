@@ -1,78 +1,183 @@
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, MapPin, Globe, Coins, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Heart, Ticket, Clock, MapPin, Star, Share2, Download, Trash2, QrCode } from "lucide-react";
+import { Link } from "react-router-dom";
+
+interface SavedDeal {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  discount_percentage: number;
+  original_price: number;
+  discounted_price: number;
+  location: string;
+  end_date: string;
+  merchants?: {
+    business_name: string;
+    average_rating: number;
+  };
+}
+
+interface PurchasedCoupon {
+  id: string;
+  coupon_code: string;
+  purchase_date: string;
+  expiry_date: string;
+  is_used: boolean;
+  deal: SavedDeal;
+}
 
 const FavoritesPage = () => {
-  const [favorites, setFavorites] = useState<any[]>([]);
+  const [user, setUser] = useState<any>(null);
+  const [savedDeals, setSavedDeals] = useState<SavedDeal[]>([]);
+  const [purchasedCoupons, setPurchasedCoupons] = useState<PurchasedCoupon[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchFavorites();
+    checkUser();
   }, []);
 
-  const fetchFavorites = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+  useEffect(() => {
+    if (user) {
+      fetchSavedDeals();
+      fetchPurchasedCoupons();
+    }
+  }, [user]);
 
-      // For now, we'll show sample favorites since we don't have a favorites table
-      // In a real app, you'd fetch from a user_favorites table
-      const sampleFavorites = [
+  const checkUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      setUser(session.user);
+    } else {
+      // Redirect to login if not authenticated
+      window.location.href = '/';
+    }
+    setIsLoading(false);
+  };
+
+  const fetchSavedDeals = async () => {
+    try {
+      // Note: This would require a user_saved_deals table in a real implementation
+      // For now, we'll show some mock data
+      const mockSavedDeals: SavedDeal[] = [
         {
-          id: '1',
-          title: 'Premium Spa Package - 60% Off',
-          business_name: 'Serenity Spa & Wellness',
-          original_price: 5000,
-          discounted_price: 2000,
-          discount_percentage: 60,
-          location: 'C-Scheme',
-          jaicoin_reward: 50,
-          category: 'Beauty & Wellness',
-          is_online: false
-        },
-        {
-          id: '2',
-          title: 'Fine Dining Experience',
-          business_name: 'Royal Heritage Restaurant',
-          original_price: 3000,
-          discounted_price: 2100,
-          discount_percentage: 30,
-          location: 'City Palace Road',
-          jaicoin_reward: 75,
-          category: 'Food & Dining',
-          is_online: false
+          id: "1",
+          title: "50% off at Rajasthani Thali House",
+          description: "Traditional Rajasthani cuisine with authentic flavors",
+          category: "Food & Dining",
+          discount_percentage: 50,
+          original_price: 800,
+          discounted_price: 400,
+          location: "C-Scheme, Jaipur",
+          end_date: "2024-07-15",
+          merchants: {
+            business_name: "Rajasthani Thali House",
+            average_rating: 4.5
+          }
         }
       ];
-
-      setFavorites(sampleFavorites);
+      setSavedDeals(mockSavedDeals);
     } catch (error) {
-      console.error('Error fetching favorites:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Error fetching saved deals:', error);
     }
   };
 
-  const removeFavorite = (dealId: string) => {
-    setFavorites(favorites.filter(fav => fav.id !== dealId));
+  const fetchPurchasedCoupons = async () => {
+    try {
+      // Note: This would require a user_coupons table in a real implementation
+      // For now, we'll show some mock data
+      const mockCoupons: PurchasedCoupon[] = [
+        {
+          id: "1",
+          coupon_code: "SAVE50JH",
+          purchase_date: "2024-06-20",
+          expiry_date: "2024-07-20",
+          is_used: false,
+          deal: {
+            id: "1",
+            title: "Spa & Wellness Package",
+            description: "Relaxing spa experience",
+            category: "Beauty & Wellness",
+            discount_percentage: 40,
+            original_price: 2000,
+            discounted_price: 1200,
+            location: "Malviya Nagar, Jaipur",
+            end_date: "2024-07-20",
+            merchants: {
+              business_name: "Serenity Spa",
+              average_rating: 4.8
+            }
+          }
+        }
+      ];
+      setPurchasedCoupons(mockCoupons);
+    } catch (error) {
+      console.error('Error fetching purchased coupons:', error);
+    }
+  };
+
+  const removeSavedDeal = async (dealId: string) => {
+    try {
+      setSavedDeals(prev => prev.filter(deal => deal.id !== dealId));
+      toast({
+        title: "Removed from favorites",
+        description: "Deal has been removed from your saved list"
+      });
+    } catch (error) {
+      console.error('Error removing saved deal:', error);
+    }
+  };
+
+  const shareDeal = (deal: SavedDeal) => {
+    if (navigator.share) {
+      navigator.share({
+        title: deal.title,
+        text: `Check out this amazing deal: ${deal.discount_percentage}% off!`,
+        url: `${window.location.origin}/deal/${deal.id}`
+      });
+    } else {
+      navigator.clipboard.writeText(`${window.location.origin}/deal/${deal.id}`);
+      toast({
+        title: "Link copied",
+        description: "Deal link has been copied to clipboard"
+      });
+    }
+  };
+
+  const downloadCoupon = (coupon: PurchasedCoupon) => {
+    // In a real implementation, this would generate a PDF or image
     toast({
-      title: "Removed from Favorites",
-      description: "Deal has been removed from your favorites."
+      title: "Coupon Downloaded",
+      description: "Your coupon has been saved to downloads"
     });
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading favorites...</p>
-        </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="p-8 text-center max-w-md">
+          <h2 className="text-2xl font-bold mb-4">Sign In Required</h2>
+          <p className="text-gray-600 mb-6">Please sign in to view your favorites and coupons</p>
+          <Button onClick={() => window.location.href = '/'}>
+            Go to Home
+          </Button>
+        </Card>
       </div>
     );
   }
@@ -80,112 +185,216 @@ const FavoritesPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-8">
+      <div className="bg-white border-b shadow-sm">
+        <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Favorites</h1>
-              <p className="text-gray-600">Deals you've saved for later</p>
+              <h1 className="text-3xl font-bold text-gray-900">My Favorites & Coupons</h1>
+              <p className="text-gray-600">Manage your saved deals and purchased coupons</p>
             </div>
-            <Link to="/">
-              <Button variant="outline">Back to Home</Button>
-            </Link>
+            <Button onClick={() => window.location.href = '/'} variant="outline">
+              Back to Home
+            </Button>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {favorites.length === 0 ? (
-          <div className="text-center py-16">
-            <Heart className="w-16 h-16 text-gray-300 mx-auto mb-6" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">No Favorites Yet</h2>
-            <p className="text-gray-600 mb-8">Start exploring deals and save your favorites here</p>
-            <Link to="/deals">
-              <Button className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500">
-                Browse Deals
-              </Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {favorites.map((deal) => (
-              <Card key={deal.id} className="group hover:shadow-lg transition-shadow border-0 shadow-md">
-                <div className="relative">
-                  <div className="h-48 bg-gradient-to-br from-pink-100 via-orange-100 to-yellow-100 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-3xl mb-2">
-                        {deal.category === 'Food & Dining' ? '🍽️' : 
-                         deal.category === 'Beauty & Wellness' ? '💆‍♀️' : 
-                         deal.category === 'Shopping' ? '🛍️' : '✨'}
-                      </div>
-                      <div className="text-sm font-medium text-gray-600">{deal.category}</div>
-                    </div>
-                  </div>
-                  <div className="absolute top-4 right-4">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="bg-white/90 hover:bg-red-50 border-red-200 text-red-600"
-                      onClick={() => removeFavorite(deal.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  {deal.discount_percentage > 0 && (
-                    <div className="absolute top-4 left-4">
-                      <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                        {deal.discount_percentage}% OFF
-                      </span>
-                    </div>
-                  )}
-                </div>
-                
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg group-hover:text-pink-600 transition-colors line-clamp-2">
-                    {deal.title}
-                  </CardTitle>
-                  <CardDescription className="font-medium text-gray-900">
-                    {deal.business_name}
-                  </CardDescription>
-                </CardHeader>
-                
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-2xl font-bold text-gray-900">₹{deal.discounted_price?.toLocaleString()}</span>
-                        {deal.original_price > 0 && (
-                          <span className="text-sm line-through text-gray-500">₹{deal.original_price?.toLocaleString()}</span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center space-x-1 text-gray-600">
-                        {deal.is_online ? (
-                          <Globe className="w-4 h-4 text-blue-500" />
-                        ) : (
-                          <MapPin className="w-4 h-4 text-red-500" />
-                        )}
-                        <span>{deal.location}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Coins className="w-4 h-4 text-yellow-500" />
-                        <span className="text-yellow-700 font-medium">+{deal.jaicoin_reward}</span>
-                      </div>
-                    </div>
-                    
-                    <Link to="/deals">
-                      <Button className="w-full bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white font-medium">
-                        View Deal
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
+        <Tabs defaultValue="saved" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 max-w-md">
+            <TabsTrigger value="saved" className="flex items-center gap-2">
+              <Heart className="w-4 h-4" />
+              Saved Deals ({savedDeals.length})
+            </TabsTrigger>
+            <TabsTrigger value="coupons" className="flex items-center gap-2">
+              <Ticket className="w-4 h-4" />
+              My Coupons ({purchasedCoupons.length})
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Saved Deals Tab */}
+          <TabsContent value="saved">
+            {savedDeals.length === 0 ? (
+              <Card className="p-12 text-center">
+                <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">No saved deals yet</h3>
+                <p className="text-gray-500 mb-6">Start saving deals you love for easy access later</p>
+                <Button onClick={() => window.location.href = '/deals'}>
+                  Browse Deals
+                </Button>
               </Card>
-            ))}
-          </div>
-        )}
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {savedDeals.map((deal) => (
+                  <Card key={deal.id} className="group hover:shadow-lg transition-all duration-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-3">
+                        <Badge variant="outline" className="text-xs">
+                          {deal.category}
+                        </Badge>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => shareDeal(deal)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeSavedDeal(deal.id)}
+                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <h3 className="font-semibold text-lg mb-2">{deal.title}</h3>
+                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{deal.description}</p>
+                      
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <MapPin className="w-4 h-4" />
+                          <span>{deal.location}</span>
+                        </div>
+                        {deal.merchants && (
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <span>{deal.merchants.business_name}</span>
+                            <div className="flex items-center gap-1">
+                              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                              <span>{deal.merchants.average_rating?.toFixed(1)}</span>
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <Clock className="w-3 h-3" />
+                          <span>Ends {new Date(deal.end_date).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-bold text-pink-600">₹{deal.discounted_price}</span>
+                          <span className="text-sm text-gray-500 line-through">₹{deal.original_price}</span>
+                        </div>
+                        <Badge className="bg-green-100 text-green-700">
+                          {deal.discount_percentage}% OFF
+                        </Badge>
+                      </div>
+
+                      <Link to={`/deal/${deal.id}`}>
+                        <Button className="w-full bg-gradient-to-r from-pink-500 to-orange-400">
+                          View Deal
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Purchased Coupons Tab */}
+          <TabsContent value="coupons">
+            {purchasedCoupons.length === 0 ? (
+              <Card className="p-12 text-center">
+                <Ticket className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">No coupons purchased yet</h3>
+                <p className="text-gray-500 mb-6">Purchase deals to get exclusive coupons</p>
+                <Button onClick={() => window.location.href = '/deals'}>
+                  Browse Deals
+                </Button>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                {purchasedCoupons.map((coupon) => (
+                  <Card key={coupon.id} className={`${coupon.is_used ? 'opacity-60' : ''}`}>
+                    <CardContent className="p-6">
+                      <div className="flex flex-col md:flex-row gap-6">
+                        {/* Coupon Code Section */}
+                        <div className="md:w-1/3">
+                          <div className="bg-gradient-to-br from-pink-500 to-orange-400 rounded-lg p-6 text-white text-center">
+                            <QrCode className="w-12 h-12 mx-auto mb-3" />
+                            <h3 className="text-xl font-bold mb-2">{coupon.coupon_code}</h3>
+                            <Badge className={`${coupon.is_used ? 'bg-gray-500' : 'bg-green-500'}`}>
+                              {coupon.is_used ? 'Used' : 'Active'}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        {/* Deal Details Section */}
+                        <div className="md:w-2/3">
+                          <div className="flex items-start justify-between mb-3">
+                            <Badge variant="outline">{coupon.deal.category}</Badge>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => downloadCoupon(coupon)}
+                                disabled={coupon.is_used}
+                              >
+                                <Download className="w-4 h-4 mr-1" />
+                                Download
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => shareDeal(coupon.deal)}
+                              >
+                                <Share2 className="w-4 h-4 mr-1" />
+                                Share
+                              </Button>
+                            </div>
+                          </div>
+
+                          <h3 className="text-xl font-semibold mb-2">{coupon.deal.title}</h3>
+                          <p className="text-gray-600 mb-3">{coupon.deal.description}</p>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                              <p className="text-sm text-gray-500">Merchant</p>
+                              <p className="font-medium">{coupon.deal.merchants?.business_name}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Location</p>
+                              <p className="font-medium">{coupon.deal.location}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Purchased On</p>
+                              <p className="font-medium">{new Date(coupon.purchase_date).toLocaleDateString()}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Expires On</p>
+                              <p className="font-medium text-red-600">{new Date(coupon.expiry_date).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg font-bold text-pink-600">₹{coupon.deal.discounted_price}</span>
+                              <span className="text-sm text-gray-500 line-through">₹{coupon.deal.original_price}</span>
+                              <Badge className="bg-green-100 text-green-700">
+                                {coupon.deal.discount_percentage}% OFF
+                              </Badge>
+                            </div>
+                            {!coupon.is_used && (
+                              <Button className="bg-gradient-to-r from-pink-500 to-orange-400">
+                                Use Coupon
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
