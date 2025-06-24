@@ -14,7 +14,7 @@ import {
   User, Mail, MapPin, Calendar, Coins, Shield, Smartphone, 
   Globe, LogOut, Edit, Save, X, Eye, Settings, Bell, 
   Monitor, Clock, AlertTriangle, Download, Trash2,
-  Lock, Key, Activity, ExternalLink
+  Lock, Key, Activity, ExternalLink, Loader2
 } from "lucide-react";
 
 interface UserSession {
