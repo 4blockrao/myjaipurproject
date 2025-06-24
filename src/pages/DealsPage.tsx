@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Search, Filter, MapPin, Star, Clock, Percent, 
   Heart, Share2, Eye, TrendingUp, Zap, Gift,
-  Grid, List, SlidersHorizontal, Calendar
+  Grid, List, SlidersHorizontal, Calendar, ArrowLeft
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -30,6 +29,7 @@ interface Deal {
   is_featured: boolean;
   current_redemptions: number;
   max_redemptions: number;
+  created_at?: string;
   merchants?: {
     business_name: string;
     average_rating: number;
