@@ -2,10 +2,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Coins, Gift, Users, TrendingUp, Zap } from "lucide-react";
+import { Coins, Gift, Users, TrendingUp, Zap, Star, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import ScratchCard from "../gamification/ScratchCard";
 
 interface JaiCoinZoneProps {
   user: any;
@@ -13,6 +15,9 @@ interface JaiCoinZoneProps {
 
 const JaiCoinZone = ({ user }: JaiCoinZoneProps) => {
   const { toast } = useToast();
+  const [showScratchCard, setShowScratchCard] = useState(false);
+  const [scratchCardTrigger, setScratchCardTrigger] = useState<'welcome' | 'referral' | 'daily' | 'achievement'>('daily');
+  
   const userRank = 12;
   const userCoins = 280;
   const coinsToNextRank = 10;
@@ -32,8 +37,12 @@ const JaiCoinZone = ({ user }: JaiCoinZoneProps) => {
         
         toast({
           title: "📱 Referral Link Copied!",
-          description: "Share this link with friends to earn 30 JaiCoins each!",
+          description: "Share this link with friends to earn 50 JaiCoins each!",
         });
+
+        // Show scratch card for referral action
+        setScratchCardTrigger('referral');
+        setShowScratchCard(true);
       }
     } catch (error) {
       console.error('Error copying referral link:', error);
@@ -48,7 +57,7 @@ const JaiCoinZone = ({ user }: JaiCoinZoneProps) => {
   const handleReferMerchant = () => {
     toast({
       title: "🏪 Merchant Referral",
-      description: "Contact our team at merchants@myjaipur.com to refer a business and earn 50 JaiCoins!",
+      description: "Contact our team at merchants@myjaipur.com to refer a business and earn 100 JaiCoins!",
     });
   };
 
@@ -56,28 +65,51 @@ const JaiCoinZone = ({ user }: JaiCoinZoneProps) => {
     window.location.href = '/deals';
   };
 
+  const handleDailyScratch = () => {
+    setScratchCardTrigger('daily');
+    setShowScratchCard(true);
+  };
+
   const actions = [
     { 
       title: "Refer a Friend", 
-      reward: 30, 
+      reward: 50, 
       icon: Users, 
       color: "from-blue-400 to-blue-600",
-      action: handleReferFriend
+      action: handleReferFriend,
+      description: "Earn when they sign up + redeem"
     },
     { 
       title: "Refer Merchant", 
-      reward: 50, 
+      reward: 100, 
       icon: TrendingUp, 
       color: "from-green-400 to-green-600",
-      action: handleReferMerchant
+      action: handleReferMerchant,
+      description: "Higher rewards for business referrals"
     },
     { 
       title: "Redeem Deal", 
       reward: 5, 
       icon: Gift, 
       color: "from-purple-400 to-purple-600",
-      action: handleRedeemDeal
+      action: handleRedeemDeal,
+      description: "Earn on every deal redemption"
     },
+    { 
+      title: "Daily Scratch", 
+      reward: '5-100', 
+      icon: Star, 
+      color: "from-yellow-400 to-orange-600",
+      action: handleDailyScratch,
+      description: "Daily surprise rewards!"
+    },
+  ];
+
+  const culturalRanks = [
+    { rank: 'Local Explorer', icon: '🚶', color: 'text-gray-600' },
+    { rank: 'Jaipur Star', icon: '⭐', color: 'text-blue-600' },
+    { rank: 'Jaipur Legend', icon: '🏆', color: 'text-yellow-600' },
+    { rank: 'Jaipur Maharaja', icon: '👑', color: 'text-purple-600' },
   ];
 
   return (
@@ -88,19 +120,19 @@ const JaiCoinZone = ({ user }: JaiCoinZoneProps) => {
           <h2 className="text-3xl font-bold text-gray-900">JAICoin Zone</h2>
           <Zap className="w-8 h-8 text-yellow-500 animate-pulse" />
         </div>
-        <p className="text-gray-600 text-lg">Earn coins, spin the wheel, climb the leaderboard!</p>
+        <p className="text-gray-600 text-lg">Earn coins, climb ranks, become a Jaipur Legend!</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Daily Spin Wheel */}
+        {/* Enhanced Daily Spin Wheel */}
         <Card className="col-span-1 lg:col-span-1 bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
           <CardHeader className="text-center">
             <CardTitle className="text-xl font-bold text-gray-900 flex items-center justify-center space-x-2">
               <Gift className="w-6 h-6 text-yellow-600" />
-              <span>Daily Spin</span>
+              <span>Daily Rewards</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-center">
+          <CardContent className="text-center space-y-4">
             <div className="w-32 h-32 mx-auto mb-6 relative">
               <div className="w-full h-full rounded-full bg-gradient-to-r from-pink-400 via-yellow-400 via-green-400 via-blue-400 to-purple-400 animate-spin-slow flex items-center justify-center">
                 <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center">
@@ -111,15 +143,26 @@ const JaiCoinZone = ({ user }: JaiCoinZoneProps) => {
                 <div className="w-0 h-0 border-l-4 border-r-4 border-b-8 border-l-transparent border-r-transparent border-b-red-500"></div>
               </div>
             </div>
-            <Link to="/dashboard?tab=gamification">
-              <Button className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 font-bold shadow-lg">
-                Spin Now!
+            
+            <div className="space-y-2">
+              <Link to="/dashboard?tab=gamification">
+                <Button className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 font-bold shadow-lg mb-2">
+                  Spin Wheel!
+                </Button>
+              </Link>
+              
+              <Button 
+                onClick={handleDailyScratch}
+                variant="outline" 
+                className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+              >
+                Daily Scratch Card
               </Button>
-            </Link>
+            </div>
           </CardContent>
         </Card>
 
-        {/* JAICoin Actions */}
+        {/* Enhanced JAICoin Actions */}
         <Card className="col-span-1 lg:col-span-1 bg-gradient-to-br from-pink-50 to-purple-50 border-pink-200">
           <CardHeader>
             <CardTitle className="text-xl font-bold text-gray-900">Earn More Coins</CardTitle>
@@ -128,23 +171,23 @@ const JaiCoinZone = ({ user }: JaiCoinZoneProps) => {
             {actions.map((action, index) => {
               const Icon = action.icon;
               return (
-                <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border">
+                <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
                   <div className="flex items-center space-x-3">
                     <div className={`w-10 h-10 rounded-lg bg-gradient-to-r ${action.color} flex items-center justify-center`}>
                       <Icon className="w-5 h-5 text-white" />
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <p className="font-semibold text-sm text-gray-900">{action.title}</p>
-                      <p className="text-xs text-gray-600">Earn +{action.reward} coins</p>
+                      <p className="text-xs text-gray-600">{action.description}</p>
+                      <p className="text-xs text-green-600 font-bold">+{action.reward} coins</p>
                     </div>
                   </div>
                   <Button 
                     onClick={action.action}
                     size="sm" 
-                    variant="outline" 
-                    className="text-pink-600 border-pink-300 hover:bg-pink-50"
+                    className="bg-pink-500 hover:bg-pink-600 text-white"
                   >
-                    Start
+                    Go
                   </Button>
                 </div>
               );
@@ -152,46 +195,51 @@ const JaiCoinZone = ({ user }: JaiCoinZoneProps) => {
           </CardContent>
         </Card>
 
-        {/* Mini Leaderboard */}
+        {/* Cultural Jaipur Ranking System */}
         <Card className="col-span-1 lg:col-span-1 bg-gradient-to-br from-indigo-50 to-blue-50 border-indigo-200">
           <CardHeader>
             <CardTitle className="text-xl font-bold text-gray-900 flex items-center space-x-2">
-              <TrendingUp className="w-6 h-6 text-indigo-600" />
-              <span>Your Rank</span>
+              <Crown className="w-6 h-6 text-indigo-600" />
+              <span>Your Jaipur Journey</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-center mb-6">
-              <div className="text-4xl font-bold text-indigo-600 mb-2">#{userRank}</div>
-              <p className="text-gray-600">with {userCoins} JAICoins</p>
+              <div className="text-4xl mb-2">⭐</div>
+              <div className="text-2xl font-bold text-indigo-600 mb-2">Jaipur Star</div>
+              <p className="text-gray-600">Rank #{userRank} with {userCoins} JAICoins</p>
               <Badge className="mt-2 bg-yellow-100 text-yellow-800">
-                {coinsToNextRank} coins to Top 10!
+                {coinsToNextRank} coins to Jaipur Legend!
               </Badge>
             </div>
             
-            <div className="space-y-2">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">🥇 Raj Sharma</span>
-                <span className="font-semibold">1,250</span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">🥈 Priya Singh</span>
-                <span className="font-semibold">1,100</span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">🥉 Amit Kumar</span>
-                <span className="font-semibold">950</span>
-              </div>
+            {/* Cultural Rank Progression */}
+            <div className="space-y-3 mb-4">
+              {culturalRanks.map((rankInfo, index) => (
+                <div key={index} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-lg">{rankInfo.icon}</span>
+                    <span className={`font-medium ${rankInfo.color}`}>{rankInfo.rank}</span>
+                  </div>
+                  <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+                </div>
+              ))}
             </div>
 
             <Link to="/dashboard?tab=leaderboard">
-              <Button className="w-full mt-4 bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600">
+              <Button className="w-full bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600">
                 View Full Leaderboard
               </Button>
             </Link>
           </CardContent>
         </Card>
       </div>
+
+      <ScratchCard 
+        isOpen={showScratchCard}
+        onClose={() => setShowScratchCard(false)}
+        trigger={scratchCardTrigger}
+      />
     </section>
   );
 };

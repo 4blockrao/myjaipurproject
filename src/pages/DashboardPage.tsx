@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import SpinWheel from "@/components/SpinWheel";
+import LiveLeaderboard from "@/components/LiveLeaderboard";
 import {
   User, Coins, Trophy, TrendingUp, Gift, Users, Zap,
   Calendar, Target, Star, Award, Crown, Medal,
@@ -497,38 +498,7 @@ const DashboardPage = () => {
 
           {/* Leaderboard Tab */}
           <TabsContent value="leaderboard">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Trophy className="w-5 h-5 text-yellow-500" />
-                  <span>Leaderboard</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {leaderboard.map((entry, index) => (
-                    <div key={entry.id} className={`flex items-center justify-between p-3 rounded-lg ${
-                      entry.id === user.id ? 'bg-yellow-50 border border-yellow-200' : 'bg-gray-50'
-                    }`}>
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
-                          index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-orange-500' : 'bg-blue-500'
-                        }`}>
-                          {index + 1}
-                        </div>
-                        <div>
-                          <p className="font-medium">{entry.full_name || 'Anonymous'}</p>
-                          <Badge variant="outline">{entry.rank}</Badge>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold">{entry.balance} coins</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <LiveLeaderboard />
           </TabsContent>
 
           {/* Gamification Tab */}
