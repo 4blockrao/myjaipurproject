@@ -1,6 +1,4 @@
-
 import { useState, useEffect } from "react";
-import { useSearchParams, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,8 +9,10 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import {
   User, Coins, Trophy, TrendingUp, Gift, Users, Zap,
   Star, Crown, Medal, Award, ArrowRight, Activity,
-  Calendar, Target, Flame, Share2, Eye, ShoppingBag
+  Calendar, Target, Flame, Share2, Eye, ShoppingBag,
+  Wallet, Heart, Settings
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface UserStats {
   totalCoins: number;
@@ -35,9 +35,6 @@ interface Transaction {
 }
 
 const DashboardPage = () => {
-  const [searchParams] = useSearchParams();
-  const tab = searchParams.get('tab');
-  
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [userStats, setUserStats] = useState<UserStats>({
@@ -167,20 +164,11 @@ const DashboardPage = () => {
     }
   };
 
-  const getRankColor = (rank: string) => {
-    switch (rank) {
-      case 'Diamond': return 'from-purple-500 to-pink-500';
-      case 'Gold': return 'from-yellow-400 to-orange-500';
-      case 'Silver': return 'from-gray-300 to-gray-500';
-      default: return 'from-orange-400 to-red-500';
-    }
-  };
-
   const dashboardTiles = [
     {
       title: "Wallet",
       description: "Manage JAICoins & History",
-      icon: Coins,
+      icon: Wallet,
       value: `${userStats.totalCoins} JC`,
       change: "+25 today",
       path: "/wallet",
@@ -201,7 +189,7 @@ const DashboardPage = () => {
       icon: Trophy,
       value: `#${userStats.rankNumber}`,
       change: userStats.rank,
-      path: "/dashboard?tab=leaderboard",
+      path: "/leaderboard",
       color: "from-purple-400 to-pink-500"
     },
     {
@@ -210,25 +198,25 @@ const DashboardPage = () => {
       icon: Star,
       value: "Play Now",
       change: "Daily spins available",
-      path: "/dashboard?tab=gamification",
+      path: "/jaicoin-zone",
       color: "from-blue-400 to-indigo-500"
     },
     {
       title: "Favorites",
       description: "Saved Deals & Products",
-      icon: ShoppingBag,
+      icon: Heart,
       value: "View All",
       change: "Quick access",
       path: "/favorites",
       color: "from-pink-400 to-rose-500"
     },
     {
-      title: "Profile",
-      description: "Settings & Preferences",
-      icon: User,
+      title: "Settings",
+      description: "Profile & Preferences",
+      icon: Settings,
       value: "Manage",
       change: "Update details",
-      path: "/profile",
+      path: "/profile?tab=settings",
       color: "from-indigo-400 to-purple-500"
     }
   ];
@@ -260,27 +248,6 @@ const DashboardPage = () => {
             </Button>
           </CardContent>
         </Card>
-      </DashboardLayout>
-    );
-  }
-
-  if (tab) {
-    // Handle specific tabs - simplified for now
-    return (
-      <DashboardLayout user={user} profile={profile} pageTitle={tab === 'leaderboard' ? 'Leaderboard' : 'JaiCoin Zone'} showBackButton>
-        <div className="p-4">
-          <Card>
-            <CardContent className="p-6 text-center">
-              <h3 className="text-lg font-semibold mb-2">
-                {tab === 'leaderboard' ? 'Leaderboard Coming Soon' : 'JaiCoin Zone Coming Soon'}
-              </h3>
-              <p className="text-gray-600 mb-4">This feature is under development</p>
-              <Link to="/dashboard">
-                <Button>Back to Dashboard</Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
       </DashboardLayout>
     );
   }

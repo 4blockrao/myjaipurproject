@@ -6,7 +6,6 @@ import {
   User, Heart, Settings, ChevronRight, Home, ArrowLeft 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -23,30 +22,23 @@ const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", sho
   const sidebarItems = [
     { icon: LayoutDashboard, label: "Overview", path: "/dashboard" },
     { icon: Wallet, label: "Wallet", path: "/wallet" },
-    { icon: Trophy, label: "Leaderboard", path: "/dashboard?tab=leaderboard" },
-    { icon: Star, label: "JaiCoin Zone", path: "/dashboard?tab=gamification" },
+    { icon: Trophy, label: "Leaderboard", path: "/leaderboard" },
+    { icon: Star, label: "JaiCoin Zone", path: "/jaicoin-zone" },
     { icon: Heart, label: "Favorites", path: "/favorites" },
     { icon: User, label: "Profile", path: "/profile" },
     { icon: Settings, label: "Settings", path: "/profile?tab=settings" },
   ];
 
-  const quickNavItems = [
-    { icon: LayoutDashboard, label: "Overview", path: "/dashboard" },
-    { icon: Wallet, label: "Wallet", path: "/wallet" },
-    { icon: Heart, label: "Favorites", path: "/favorites" },
-    { icon: User, label: "Profile", path: "/profile" },
-  ];
-
   const isActive = (path: string) => {
     if (path === "/dashboard") {
-      return currentPath === path || currentPath === "/dashboard";
+      return currentPath === path;
     }
     return currentPath.startsWith(path);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile Header */}
+      {/* Consistent Mobile Header for all dashboard pages */}
       <div className="lg:hidden bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center space-x-3">
@@ -65,6 +57,9 @@ const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", sho
             )}
             <div>
               <h1 className="text-lg font-bold text-gray-900">{pageTitle}</h1>
+              {profile?.full_name && (
+                <p className="text-xs text-gray-600">Welcome, {profile.full_name}</p>
+              )}
             </div>
           </div>
           <Link to="/">
