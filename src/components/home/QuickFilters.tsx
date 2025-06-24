@@ -1,7 +1,6 @@
-
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, TrendingUp, Clock, Star, Fire, Zap } from "lucide-react";
+import { MapPin, TrendingUp, Clock, Star, Flame, Zap } from "lucide-react";
 
 interface QuickFiltersProps {
   selectedCategory: string;
@@ -29,7 +28,7 @@ const QuickFilters = ({
   ];
 
   const filters = [
-    { id: "all", name: "All", icon: Fire, color: "bg-gray-100 text-gray-700" },
+    { id: "all", name: "All", icon: Flame, color: "bg-gray-100 text-gray-700" },
     { id: "nearby", name: "Nearby", icon: MapPin, color: "bg-blue-100 text-blue-700" },
     { id: "trending", name: "Trending", icon: TrendingUp, color: "bg-green-100 text-green-700" },
     { id: "ending-soon", name: "Ending Soon", icon: Clock, color: "bg-red-100 text-red-700" },
