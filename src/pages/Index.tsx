@@ -18,6 +18,7 @@ import DealsNearMe from "@/components/home/DealsNearMe";
 import TopMerchants from "@/components/home/TopMerchants";
 import Leaderboard from "@/components/home/Leaderboard";
 import LocalityGrid from "@/components/home/LocalityGrid";
+import ReferEarnSection from "@/components/home/ReferEarnSection";
 
 interface UserProfile {
   id: string;
@@ -221,6 +222,9 @@ const Index = () => {
 
         {/* Today's Hot Deals */}
         <TodaysTopDeals deals={sortedAndFilteredDeals} />
+
+        {/* Refer and Earn Section */}
+        <ReferEarnSection user={user} profile={profile} />
 
         {/* All Products */}
         <AllProducts />

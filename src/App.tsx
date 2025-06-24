@@ -28,6 +28,7 @@ import MerchantOnboardingPage from "./pages/MerchantOnboardingPage";
 import MerchantPage from "./pages/MerchantPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import ChallengesPage from "./pages/ChallengesPage";
+import ReferralProgramPage from "./pages/ReferralProgramPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -97,6 +98,9 @@ const App = () => {
           <Routes>
             {/* Home page with custom layout */}
             <Route path="/" element={<Index />} />
+            
+            {/* Referral Program page with custom layout */}
+            <Route path="/referral-program" element={<ReferralProgramPage />} />
             
             {/* Pages with standard app layout */}
             <Route path="/deals" element={
