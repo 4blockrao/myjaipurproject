@@ -1,31 +1,24 @@
+
 import { useState, useEffect } from "react";
-import { ArrowLeft, MapPin, Search, Star, Filter, Menu, Bell, Heart, Mic, ShoppingCart, Coins, TrendingUp, Users, Gift, Camera, Database, AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import CategoryGrid from "@/components/CategoryGrid";
 import LocalityPrompt from "@/components/LocalityPrompt";
 import AuthModal from "@/components/AuthModal";
-import JaiCoinWallet from "@/components/JaiCoinWallet";
-import DealsNearMe from "@/components/home/DealsNearMe";
-import TopSellingDeals from "@/components/home/TopSellingDeals";
+import StickyBottomNav from "@/components/home/StickyBottomNav";
+import HeroSection from "@/components/home/HeroSection";
+import ModernNavigation from "@/components/home/ModernNavigation";
+import QuickFilters from "@/components/home/QuickFilters";
+import TrustIndicators from "@/components/home/TrustIndicators";
 import TodaysTopDeals from "@/components/home/TodaysTopDeals";
+import FeaturedProducts from "@/components/home/FeaturedProducts";
+import AllProducts from "@/components/home/AllProducts";
 import TopProducts from "@/components/home/TopProducts";
-import HeroBanner from "@/components/home/HeroBanner";
-import CategoryShortcuts from "@/components/home/CategoryShortcuts";
 import JaiCoinZone from "@/components/home/JaiCoinZone";
+import TopSellingDeals from "@/components/home/TopSellingDeals";
+import DealsNearMe from "@/components/home/DealsNearMe";
 import TopMerchants from "@/components/home/TopMerchants";
 import Leaderboard from "@/components/home/Leaderboard";
 import LocalityGrid from "@/components/home/LocalityGrid";
-import StickyBottomNav from "@/components/home/StickyBottomNav";
-import FeaturedProducts from "@/components/home/FeaturedProducts";
-import AllProducts from "@/components/home/AllProducts";
-import { Link } from "react-router-dom";
 
 interface UserProfile {
   id: string;
@@ -40,6 +33,7 @@ const Index = () => {
   const [showLocalityPrompt, setShowLocalityPrompt] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedFilter, setSelectedFilter] = useState("all");
   const [deals, setDeals] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -132,6 +126,10 @@ const Index = () => {
     }
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
   const filteredDeals = deals.filter(deal => {
     const matchesSearch = !searchQuery || 
       deal.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -143,6 +141,24 @@ const Index = () => {
       deal.location?.toLowerCase().includes(profile.locality.toLowerCase());
     
     return matchesSearch && matchesCategory && matchesLocation;
+  });
+
+  const sortedAndFilteredDeals = [...filteredDeals].sort((a, b) => {
+    switch (selectedFilter) {
+      case "nearby":
+        return profile?.locality && a.location?.includes(profile.locality) ? -1 : 1;
+      case "trending":
+        return (b.current_redemptions || 0) - (a.current_redemptions || 0);
+      case "ending-soon":
+        if (!a.end_date || !b.end_date) return 0;
+        return new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
+      case "top-rated":
+        return (b.merchants?.average_rating || 0) - (a.merchants?.average_rating || 0);
+      case "new":
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      default:
+        return 0;
+    }
   });
 
   const categories = [
@@ -159,10 +175,6 @@ const Index = () => {
     return acc;
   }, {} as Record<string, number>);
 
-  const handleCategorySelect = (category: string) => {
-    setSelectedCategory(category);
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50 flex items-center justify-center">
@@ -176,132 +188,55 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-orange-50 to-yellow-50">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 shadow-lg backdrop-blur-lg bg-opacity-95">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo and Location */}
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-white">
-                MyJaipur
-              </h1>
-              <div className="hidden md:flex items-center space-x-2 text-sm text-white/90 bg-white/20 px-3 py-1 rounded-full">
-                <MapPin className="w-4 h-4" />
-                <span>{profile?.locality || 'Select Location'}</span>
-              </div>
+    <div className="min-h-screen bg-white">
+      {/* Modern Navigation */}
+      <ModernNavigation 
+        user={user} 
+        profile={profile} 
+        onAuthModal={() => setShowAuthModal(true)} 
+      />
 
-              {/* Admin Quick Access */}
-              <div className="hidden md:flex items-center space-x-2">
-                <Link to="/admin/data">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 flex items-center gap-1">
-                    <Database className="w-4 h-4" />
-                    <span className="text-xs">Data</span>
-                  </Button>
-                </Link>
-                <Link to="/admin/audit">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 flex items-center gap-1">
-                    <AlertTriangle className="w-4 h-4" />
-                    <span className="text-xs">Audit</span>
-                  </Button>
-                </Link>
-              </div>
-            </div>
+      {/* Hero Section */}
+      <HeroSection 
+        userLocality={profile?.locality} 
+        onSearch={handleSearch} 
+      />
 
-            {/* Search Bar */}
-            <div className="flex-1 max-w-md mx-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Search for biryani, jewelry, spa..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-10 bg-white/90 border-white/30 focus:bg-white text-gray-800 placeholder-gray-500"
-                />
-                <Button variant="ghost" size="sm" className="absolute right-1 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                  <Mic className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* User Actions */}
-            <div className="flex items-center space-x-2">
-              {user ? (
-                <>
-                  <JaiCoinWallet />
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 relative">
-                    <Bell className="w-4 h-4" />
-                    <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full p-0 flex items-center justify-center">
-                      3
-                    </Badge>
-                  </Button>
-                  <Link to="/profile">
-                    <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
-                      <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                        {profile?.full_name?.charAt(0) || 'U'}
-                      </div>
-                    </Button>
-                  </Link>
-                </>
-              ) : (
-                <Button onClick={() => setShowAuthModal(true)} className="bg-white text-pink-600 hover:bg-gray-100 font-semibold">
-                  Sign In
-                </Button>
-              )}
-
-              {/* Mobile Admin Access */}
-              <div className="md:hidden flex items-center space-x-1">
-                <Link to="/admin/data">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 p-2">
-                    <Database className="w-4 h-4" />
-                  </Button>
-                </Link>
-                <Link to="/admin/audit">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 p-2">
-                    <AlertTriangle className="w-4 h-4" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Hero Banner */}
-      <HeroBanner user={user} profile={profile} />
-
-      {/* Category Shortcuts */}
-      <CategoryShortcuts 
-        categories={categories}
+      {/* Quick Filters */}
+      <QuickFilters
         selectedCategory={selectedCategory}
         onCategorySelect={setSelectedCategory}
+        selectedFilter={selectedFilter}
+        onFilterSelect={setSelectedFilter}
         dealCounts={dealCounts}
       />
 
+      {/* Trust Indicators */}
+      <TrustIndicators />
+
       {/* Main Content */}
-      <div className="container mx-auto px-4 space-y-12">
+      <div className="container mx-auto px-4 space-y-16 py-12">
         
         {/* Featured Products */}
         <FeaturedProducts />
 
-        {/* Today's Hot Deals Near You */}
-        <TodaysTopDeals deals={filteredDeals} />
+        {/* Today's Hot Deals */}
+        <TodaysTopDeals deals={sortedAndFilteredDeals} />
 
         {/* All Products */}
         <AllProducts />
 
         {/* Products You Can Buy Today */}
-        <TopProducts deals={filteredDeals} />
+        <TopProducts deals={sortedAndFilteredDeals} />
 
         {/* JAICoin Gamification Zone - Only show if user is logged in */}
         {user && <JaiCoinZone user={user} />}
 
         {/* Top Selling Deals */}
-        <TopSellingDeals deals={filteredDeals} />
+        <TopSellingDeals deals={sortedAndFilteredDeals} />
 
         {/* Deals Near Me */}
-        <DealsNearMe deals={filteredDeals} userLocality={profile?.locality} />
+        <DealsNearMe deals={sortedAndFilteredDeals} userLocality={profile?.locality} />
 
         {/* Top Merchants */}
         <TopMerchants />
@@ -311,103 +246,6 @@ const Index = () => {
 
         {/* Browse by Locality */}
         <LocalityGrid />
-
-        {/* Personalized Feed */}
-        <section className="py-8">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Picked Just for You</h2>
-            <p className="text-gray-600">Based on your preferences and activity</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredDeals.slice(0, 6).map((deal) => (
-              <Card key={deal.id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md overflow-hidden bg-white">
-                <div className="relative">
-                  <div className="h-48 bg-gradient-to-br from-pink-100 via-orange-100 to-yellow-100 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-3xl mb-2">
-                        {deal.category === 'Food & Dining' ? '🍽️' : 
-                         deal.category === 'Beauty & Wellness' ? '💆‍♀️' : 
-                         deal.category === 'Shopping' ? '🛍️' : 
-                         deal.category === 'Electronics' ? '📱' : 
-                         deal.category === 'Health & Fitness' ? '💪' : '✨'}
-                      </div>
-                      <div className="text-sm font-medium text-gray-600">{deal.subcategory}</div>
-                    </div>
-                  </div>
-                  
-                  {deal.is_featured && (
-                    <div className="absolute top-4 left-4">
-                      <Badge className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-bold animate-pulse">
-                        ⭐ RECOMMENDED
-                      </Badge>
-                    </div>
-                  )}
-                  
-                  {deal.discount_percentage > 0 && (
-                    <div className="absolute top-4 right-4">
-                      <Badge className="bg-red-500 text-white font-bold">
-                        {deal.discount_percentage}% OFF
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-                
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg group-hover:text-pink-600 transition-colors line-clamp-2">
-                    {deal.title}
-                  </CardTitle>
-                  <CardDescription className="flex items-center justify-between">
-                    <span className="font-medium text-gray-900">{deal.merchants?.business_name}</span>
-                    {deal.merchants?.is_verified && (
-                      <Badge variant="outline" className="text-green-700 border-green-200">
-                        ✓ Verified
-                      </Badge>
-                    )}
-                  </CardDescription>
-                </CardHeader>
-                
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-2xl font-bold text-gray-900">₹{deal.discounted_price?.toLocaleString()}</span>
-                        {deal.original_price > 0 && (
-                          <span className="text-sm line-through text-gray-500">₹{deal.original_price?.toLocaleString()}</span>
-                        )}
-                      </div>
-                      {deal.merchants?.average_rating > 0 && (
-                        <div className="flex items-center space-x-1">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-medium">{deal.merchants.average_rating}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <div className="flex items-center space-x-1">
-                        <MapPin className="w-4 h-4" />
-                        <span>{deal.location}</span>
-                      </div>
-                      {deal.jaicoin_reward > 0 && (
-                        <div className="flex items-center space-x-1 text-yellow-700">
-                          <Coins className="w-4 h-4" />
-                          <span className="font-medium">+{deal.jaicoin_reward}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <Link to={`/deal/${deal.id}`}>
-                      <Button className="w-full bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 font-semibold">
-                        Get Deal
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
       </div>
 
       {/* Sticky Bottom Navigation (Mobile) */}
