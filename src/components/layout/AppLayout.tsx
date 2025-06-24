@@ -27,9 +27,11 @@ const AppLayout = ({
         onAuthModal={onAuthModal || (() => {})} 
       />
       
-      {/* Main Content */}
-      <main className="pb-20 md:pb-0">
-        {children}
+      {/* Main Content with proper mobile spacing */}
+      <main className="pb-20 md:pb-8 pt-2">
+        <div className="min-h-screen">
+          {children}
+        </div>
       </main>
       
       {/* Mobile Bottom Navigation */}

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,7 +31,7 @@ interface UserStats {
 interface Transaction {
   id: string;
   amount: number;
-  type: string; // Changed from union type to string to match database
+  type: string;
   source: string;
   description: string;
   created_at: string;
@@ -265,10 +266,10 @@ const DashboardPage = () => {
   if (isLoading) {
     return (
       <DashboardLayout user={user} profile={profile}>
-        <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center justify-center min-h-[50vh]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading your dashboard...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 text-sm">Loading your dashboard...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -278,12 +279,12 @@ const DashboardPage = () => {
   if (!user) {
     return (
       <DashboardLayout user={user} profile={profile}>
-        <Card className="max-w-md mx-auto mt-8">
-          <CardHeader className="text-center">
-            <CardTitle>Please Sign In</CardTitle>
-            <CardDescription>You need to be logged in to view your dashboard</CardDescription>
+        <Card className="mx-4 mt-4">
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="text-lg">Please Sign In</CardTitle>
+            <CardDescription className="text-sm">You need to be logged in to view your dashboard</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-4">
             <Button className="w-full" onClick={() => window.location.href = '/'}>
               Go to Home
             </Button>
@@ -295,9 +296,23 @@ const DashboardPage = () => {
 
   return (
     <DashboardLayout user={user} profile={profile}>
-      <div className="space-y-6">
-        {/* Welcome Header - Desktop Only */}
-        <div className="hidden lg:block">
+      <div className="space-y-4 p-4 max-w-7xl mx-auto">
+        {/* Mobile Header */}
+        <div className="lg:hidden bg-white rounded-lg p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-sm text-gray-600">Welcome back, {profile?.full_name || 'User'}!</p>
+            </div>
+            <div className={`px-3 py-1 rounded-full bg-gradient-to-r ${getRankColor(userStats.rank)} text-white text-sm font-bold flex items-center space-x-1`}>
+              {getRankIcon(userStats.rank)}
+              <span>{userStats.rank}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Welcome Header */}
+        <div className="hidden lg:block bg-white rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
@@ -315,144 +330,142 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Quick Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Quick Stats Grid - Mobile Optimized */}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
           <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
-            <CardContent className="p-4 lg:p-6">
+            <CardContent className="p-3 lg:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs lg:text-sm font-medium text-gray-600">JaiCoins</p>
-                  <p className="text-xl lg:text-3xl font-bold text-gray-900">{userStats.totalCoins}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-gray-600 truncate">JaiCoins</p>
+                  <p className="text-lg lg:text-2xl font-bold text-gray-900">{userStats.totalCoins}</p>
                 </div>
-                <Coins className="w-6 h-6 lg:w-8 lg:h-8 text-yellow-500" />
+                <Coins className="w-5 h-5 lg:w-8 lg:h-8 text-yellow-500 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-            <CardContent className="p-4 lg:p-6">
+            <CardContent className="p-3 lg:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs lg:text-sm font-medium text-gray-600">Rank</p>
-                  <p className="text-xl lg:text-3xl font-bold text-gray-900">#{userStats.rankNumber}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-gray-600 truncate">Rank</p>
+                  <p className="text-lg lg:text-2xl font-bold text-gray-900">#{userStats.rankNumber}</p>
                 </div>
-                <Trophy className="w-6 h-6 lg:w-8 lg:h-8 text-purple-500" />
+                <Trophy className="w-5 h-5 lg:w-8 lg:h-8 text-purple-500 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-            <CardContent className="p-4 lg:p-6">
+            <CardContent className="p-3 lg:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs lg:text-sm font-medium text-gray-600">Deals</p>
-                  <p className="text-xl lg:text-3xl font-bold text-gray-900">{userStats.dealsRedeemed}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-gray-600 truncate">Deals</p>
+                  <p className="text-lg lg:text-2xl font-bold text-gray-900">{userStats.dealsRedeemed}</p>
                 </div>
-                <Gift className="w-6 h-6 lg:w-8 lg:h-8 text-blue-500" />
+                <Gift className="w-5 h-5 lg:w-8 lg:h-8 text-blue-500 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-            <CardContent className="p-4 lg:p-6">
+            <CardContent className="p-3 lg:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs lg:text-sm font-medium text-gray-600">Referrals</p>
-                  <p className="text-xl lg:text-3xl font-bold text-gray-900">{userStats.totalReferrals}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-gray-600 truncate">Referrals</p>
+                  <p className="text-lg lg:text-2xl font-bold text-gray-900">{userStats.totalReferrals}</p>
                 </div>
-                <Users className="w-6 h-6 lg:w-8 lg:h-8 text-green-500" />
+                <Users className="w-5 h-5 lg:w-8 lg:h-8 text-green-500 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Content Tabs */}
-        <Tabs value={activeTabFromUrl} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
-            <TabsTrigger value="overview" className="text-xs lg:text-sm">Overview</TabsTrigger>
-            <TabsTrigger value="wallet" className="text-xs lg:text-sm">Wallet</TabsTrigger>
-            <TabsTrigger value="leaderboard" className="text-xs lg:text-sm">Leaderboard</TabsTrigger>
-            <TabsTrigger value="gamification" className="text-xs lg:text-sm">JaiCoin Zone</TabsTrigger>
-          </TabsList>
+        {/* Main Content Tabs - Mobile Optimized */}
+        <Tabs value={activeTabFromUrl} onValueChange={setActiveTab} className="space-y-4">
+          <div className="bg-white rounded-lg shadow-sm">
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 h-auto p-1">
+              <TabsTrigger value="overview" className="text-xs lg:text-sm py-2">Overview</TabsTrigger>
+              <TabsTrigger value="wallet" className="text-xs lg:text-sm py-2">Wallet</TabsTrigger>
+              <TabsTrigger value="leaderboard" className="text-xs lg:text-sm py-2">Leaderboard</TabsTrigger>
+              <TabsTrigger value="gamification" className="text-xs lg:text-sm py-2">JaiCoin Zone</TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TabsContent value="overview" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Level Progress */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2 text-lg">
-                    <Star className="w-5 h-5 text-yellow-500" />
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center space-x-2 text-base lg:text-lg">
+                    <Star className="w-4 h-4 lg:w-5 lg:h-5 text-yellow-500" />
                     <span>Level Progress</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Level {userStats.level}</span>
-                      <span className="text-sm text-gray-500">
-                        {userStats.totalCoins}/{userStats.nextLevelCoins} coins
-                      </span>
-                    </div>
-                    <Progress value={(userStats.totalCoins / userStats.nextLevelCoins) * 100} />
-                    <p className="text-xs text-gray-600">
-                      {userStats.nextLevelCoins - userStats.totalCoins} more coins to reach Level {userStats.level + 1}
-                    </p>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Level {userStats.level}</span>
+                    <span className="text-xs text-gray-500">
+                      {userStats.totalCoins}/{userStats.nextLevelCoins} coins
+                    </span>
                   </div>
+                  <Progress value={(userStats.totalCoins / userStats.nextLevelCoins) * 100} className="h-2" />
+                  <p className="text-xs text-gray-600">
+                    {userStats.nextLevelCoins - userStats.totalCoins} more coins to reach Level {userStats.level + 1}
+                  </p>
                 </CardContent>
               </Card>
 
               {/* Quick Actions */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2 text-lg">
-                    <Zap className="w-5 h-5 text-orange-500" />
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center space-x-2 text-base lg:text-lg">
+                    <Zap className="w-4 h-4 lg:w-5 lg:h-5 text-orange-500" />
                     <span>Quick Actions</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <Button onClick={handleReferFriend} variant="outline" className="w-full justify-start">
-                      <Users className="w-4 h-4 mr-2" />
-                      Refer a Friend
-                    </Button>
-                    <Button onClick={handleReferMerchant} variant="outline" className="w-full justify-start">
-                      <TrendingUp className="w-4 h-4 mr-2" />
-                      Refer Merchant
-                    </Button>
-                  </div>
+                <CardContent className="space-y-2">
+                  <Button onClick={handleReferFriend} variant="outline" className="w-full justify-start h-auto py-3">
+                    <Users className="w-4 h-4 mr-2" />
+                    <span className="text-sm">Refer a Friend</span>
+                  </Button>
+                  <Button onClick={handleReferMerchant} variant="outline" className="w-full justify-start h-auto py-3">
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    <span className="text-sm">Refer Merchant</span>
+                  </Button>
                 </CardContent>
               </Card>
             </div>
 
             {/* Recent Activity */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <History className="w-5 h-5 text-blue-500" />
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center space-x-2 text-base lg:text-lg">
+                  <History className="w-4 h-4 lg:w-5 lg:h-5 text-blue-500" />
                   <span>Recent Activity</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {transactions.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {transactions.slice(0, 5).map((transaction) => (
                       <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-2 h-2 rounded-full ${transaction.type === 'earned' ? 'bg-green-500' : 'bg-red-500'}`} />
-                          <div>
-                            <p className="font-medium text-sm">{transaction.description}</p>
+                        <div className="flex items-center space-x-3 min-w-0 flex-1">
+                          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${transaction.type === 'earned' ? 'bg-green-500' : 'bg-red-500'}`} />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-sm truncate">{transaction.description}</p>
                             <p className="text-xs text-gray-600">{new Date(transaction.created_at).toLocaleDateString()}</p>
                           </div>
                         </div>
-                        <div className={`font-bold ${transaction.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className={`font-bold text-sm flex-shrink-0 ${transaction.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
                           {transaction.type === 'earned' ? '+' : '-'}{transaction.amount}
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-center py-4">No recent activity</p>
+                  <p className="text-gray-500 text-center py-6 text-sm">No recent activity</p>
                 )}
               </CardContent>
             </Card>
@@ -461,35 +474,35 @@ const DashboardPage = () => {
           {/* Wallet Tab */}
           <TabsContent value="wallet">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Wallet className="w-5 h-5 text-green-500" />
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center space-x-2 text-base lg:text-lg">
+                  <Wallet className="w-4 h-4 lg:w-5 lg:h-5 text-green-500" />
                   <span>JaiCoin Wallet</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-center mb-6">
-                  <div className="text-4xl font-bold text-green-600 mb-2">{userStats.totalCoins}</div>
+                  <div className="text-3xl lg:text-4xl font-bold text-green-600 mb-2">{userStats.totalCoins}</div>
                   <p className="text-gray-600">Total JaiCoins</p>
                 </div>
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Transaction History</h3>
+                  <h3 className="font-semibold text-base lg:text-lg">Transaction History</h3>
                   {transactions.length > 0 ? (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {transactions.map((transaction) => (
-                        <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div>
-                            <p className="font-medium">{transaction.description}</p>
-                            <p className="text-sm text-gray-500">{new Date(transaction.created_at).toLocaleString()}</p>
+                        <div key={transaction.id} className="flex items-center justify-between p-3 lg:p-4 border rounded-lg">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-sm lg:text-base truncate">{transaction.description}</p>
+                            <p className="text-xs lg:text-sm text-gray-500">{new Date(transaction.created_at).toLocaleString()}</p>
                           </div>
-                          <div className={`font-bold text-lg ${transaction.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
+                          <div className={`font-bold text-base lg:text-lg flex-shrink-0 ml-2 ${transaction.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
                             {transaction.type === 'earned' ? '+' : '-'}{transaction.amount}
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-500 text-center py-8">No transactions yet</p>
+                    <p className="text-gray-500 text-center py-8 text-sm">No transactions yet</p>
                   )}
                 </div>
               </CardContent>
@@ -503,40 +516,40 @@ const DashboardPage = () => {
 
           {/* Gamification Tab */}
           <TabsContent value="gamification">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Spin Wheel */}
-              <SpinWheel />
+              <div className="order-2 lg:order-1">
+                <SpinWheel />
+              </div>
 
               {/* Achievements */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2 text-lg">
-                    <Award className="w-5 h-5 text-purple-500" />
+              <Card className="order-1 lg:order-2">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center space-x-2 text-base lg:text-lg">
+                    <Award className="w-4 h-4 lg:w-5 lg:h-5 text-purple-500" />
                     <span>Achievements</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <Flame className="w-6 h-6 text-orange-500" />
-                        <div>
-                          <p className="font-medium">First Purchase</p>
-                          <p className="text-sm text-gray-600">Make your first deal redemption</p>
-                        </div>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3 min-w-0 flex-1">
+                      <Flame className="w-5 h-5 lg:w-6 lg:h-6 text-orange-500 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm lg:text-base">First Purchase</p>
+                        <p className="text-xs lg:text-sm text-gray-600">Make your first deal redemption</p>
                       </div>
-                      <Badge className="bg-green-100 text-green-800">Completed</Badge>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <Users className="w-6 h-6 text-blue-500" />
-                        <div>
-                          <p className="font-medium">Social Butterfly</p>
-                          <p className="text-sm text-gray-600">Refer 5 friends</p>
-                        </div>
+                    <Badge className="bg-green-100 text-green-800 text-xs flex-shrink-0">Completed</Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3 min-w-0 flex-1">
+                      <Users className="w-5 h-5 lg:w-6 lg:h-6 text-blue-500 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm lg:text-base">Social Butterfly</p>
+                        <p className="text-xs lg:text-sm text-gray-600">Refer 5 friends</p>
                       </div>
-                      <Badge variant="outline">In Progress</Badge>
                     </div>
+                    <Badge variant="outline" className="text-xs flex-shrink-0">In Progress</Badge>
                   </div>
                 </CardContent>
               </Card>

@@ -18,7 +18,7 @@ const StickyBottomNav = () => {
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg safe-area-pb">
-      <div className="flex items-center justify-around py-2 px-2">
+      <div className="flex items-center justify-around py-1 px-1">
         {navItems.map((item, index) => {
           const Icon = item.icon;
           const isActive = currentPath === item.path || 
@@ -30,7 +30,7 @@ const StickyBottomNav = () => {
                 variant="ghost"
                 size="sm"
                 className={`
-                  w-full h-auto px-1 py-3 flex flex-col items-center space-y-1 relative
+                  w-full h-auto px-1 py-2 flex flex-col items-center space-y-1 relative
                   ${isActive 
                     ? "text-pink-600 bg-pink-50" 
                     : "text-gray-600 hover:text-pink-600 hover:bg-pink-50"
@@ -38,12 +38,12 @@ const StickyBottomNav = () => {
                 `}
               >
                 {item.badge && (
-                  <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full p-0 flex items-center justify-center">
+                  <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 rounded-full p-0 flex items-center justify-center">
                     {item.badge}
                   </Badge>
                 )}
                 
-                <Icon className={`w-5 h-5 ${isActive ? "text-pink-600" : "text-gray-600"}`} />
+                <Icon className={`w-4 h-4 ${isActive ? "text-pink-600" : "text-gray-600"}`} />
                 
                 <span className={`text-xs font-medium ${isActive ? "text-pink-600" : "text-gray-600"}`}>
                   {item.label}
