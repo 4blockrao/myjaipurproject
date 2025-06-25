@@ -74,26 +74,53 @@ const SettingsPage = () => {
         .single();
 
       if (error) throw error;
+      
+      console.log('Profile data:', data);
       setProfile(data);
+      
+      // Set form data with fallback values for fields that might not exist
       setFormData({
         full_name: data.full_name || '',
         email: data.email || '',
         phone: data.phone || '',
-        city: data.city || '',
+        city: data.city || '', // Will be empty if column doesn't exist
         locality: data.locality || '',
-        bio: data.bio || ''
+        bio: data.bio || '' // Will be empty if column doesn't exist
       });
     } catch (error) {
       console.error('Error fetching profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load profile data. Some features may be limited.",
+        variant: "destructive"
+      });
     }
   };
 
   const handleSaveProfile = async () => {
+    if (!user) return;
+    
     setIsSaving(true);
     try {
+      // Only update fields that exist in the current schema
+      const updateData: any = {
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: formData.phone,
+        locality: formData.locality
+      };
+
+      // Only include city and bio if they exist in the profile (meaning columns exist)
+      if (profile && 'city' in profile) {
+        updateData.city = formData.city;
+      }
+      if (profile && 'bio' in profile) {
+        updateData.bio = formData.bio;
+      }
+
       const { error } = await supabase
         .from('profiles')
-        .update(formData)
+        .update(updateData)
         .eq('id', user.id);
 
       if (error) throw error;
@@ -105,9 +132,10 @@ const SettingsPage = () => {
       
       await fetchUserProfile(user.id);
     } catch (error: any) {
+      console.error('Update error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to update profile",
         variant: "destructive"
       });
     } finally {
@@ -134,19 +162,28 @@ const SettingsPage = () => {
         .from('avatars')
         .getPublicUrl(filePath);
 
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', user.id);
+      // Only update avatar_url if the column exists
+      if (profile && 'avatar_url' in profile) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ avatar_url: publicUrl })
+          .eq('id', user.id);
 
-      if (updateError) throw updateError;
+        if (updateError) throw updateError;
 
-      toast({
-        title: "Avatar Updated",
-        description: "Your profile picture has been updated successfully.",
-      });
+        toast({
+          title: "Avatar Updated",
+          description: "Your profile picture has been updated successfully.",
+        });
 
-      await fetchUserProfile(user.id);
+        await fetchUserProfile(user.id);
+      } else {
+        toast({
+          title: "Feature Not Available",
+          description: "Avatar upload feature requires database migration. Please contact support.",
+          variant: "destructive"
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Upload Failed",
@@ -164,7 +201,30 @@ const SettingsPage = () => {
     return (
       <DashboardLayout user={user} profile={profile} pageTitle="Settings" showBackButton>
         <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading settings...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!user) {
+    return (
+      <DashboardLayout user={user} profile={profile} pageTitle="Settings" showBackButton>
+        <div className="p-4">
+          <Card>
+            <CardHeader className="text-center">
+              <CardTitle>Access Denied</CardTitle>
+              <CardDescription>Please sign in to access settings</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => window.location.href = '/'} className="w-full">
+                Go to Home
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </DashboardLayout>
     );
@@ -261,14 +321,6 @@ const SettingsPage = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="city">City</Label>
-                    <Input
-                      id="city"
-                      value={formData.city}
-                      onChange={(e) => setFormData({...formData, city: e.target.value})}
-                    />
-                  </div>
-                  <div className="md:col-span-2">
                     <Label htmlFor="locality">Locality</Label>
                     <Input
                       id="locality"
@@ -276,6 +328,28 @@ const SettingsPage = () => {
                       onChange={(e) => setFormData({...formData, locality: e.target.value})}
                     />
                   </div>
+                  {/* Only show city and bio fields if they exist in the profile */}
+                  {profile && 'city' in profile && (
+                    <div>
+                      <Label htmlFor="city">City</Label>
+                      <Input
+                        id="city"
+                        value={formData.city}
+                        onChange={(e) => setFormData({...formData, city: e.target.value})}
+                      />
+                    </div>
+                  )}
+                  {profile && 'bio' in profile && (
+                    <div className="md:col-span-2">
+                      <Label htmlFor="bio">Bio</Label>
+                      <Input
+                        id="bio"
+                        value={formData.bio}
+                        onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                        placeholder="Tell us about yourself..."
+                      />
+                    </div>
+                  )}
                 </div>
                 <Button onClick={handleSaveProfile} disabled={isSaving} className="w-full">
                   {isSaving ? "Saving..." : "Save Changes"}
@@ -292,17 +366,25 @@ const SettingsPage = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">User ID</span>
-                  <Badge variant="outline">{profile?.user_id_code || 'Loading...'}</Badge>
+                  <Badge variant="outline">
+                    {profile?.user_id_code || profile?.referral_code || 'Not Set'}
+                  </Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Referral Code</span>
-                  <Badge variant="outline">{profile?.referral_code || 'Loading...'}</Badge>
+                  <Badge variant="outline">{profile?.referral_code || 'Not Set'}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Member Since</span>
                   <span className="text-sm text-gray-600">
                     {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
                   </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Account Status</span>
+                  <Badge variant={profile?.is_pro ? "default" : "secondary"}>
+                    {profile?.is_pro ? "Pro Member" : "Basic Member"}
+                  </Badge>
                 </div>
               </CardContent>
             </Card>
