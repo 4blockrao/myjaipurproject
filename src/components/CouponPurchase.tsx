@@ -96,11 +96,6 @@ const CouponPurchase = ({ dealId }: { dealId: string }) => {
     }
   };
 
-  const generateCouponCode = () => {
-    const randomNumber = Math.floor(Math.random() * 90000) + 10000; // Generates 5-digit number (10000-99999)
-    return 'A' + randomNumber.toString();
-  };
-
   const handlePurchase = async () => {
     if (!user) {
       toast({
@@ -113,13 +108,11 @@ const CouponPurchase = ({ dealId }: { dealId: string }) => {
 
     if (!deal) return;
 
-    setIsPurchasing(true);
-
-    try {
-      // For free coupons, directly create the coupon
-      if (deal.coupon_type === 'free') {
-        // Generate unique coupon code
-        const couponCode = generateCouponCode();
+    if (deal.coupon_type === 'free') {
+      // For free coupons, create directly
+      setIsPurchasing(true);
+      try {
+        const couponCode = `A${Math.floor(Math.random() * 90000) + 10000}`;
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + deal.validity_days);
 
@@ -156,23 +149,20 @@ const CouponPurchase = ({ dealId }: { dealId: string }) => {
           description: `Your free coupon (${couponCode}) has been added to your wallet`,
         });
 
-        // Redirect to coupons page
         navigate('/coupons');
-      } else {
-        // For paid coupons, go to checkout
-        const orderId = `order_${Date.now()}`;
-        navigate(`/checkout/${orderId}`);
+      } catch (error) {
+        console.error('Error claiming coupon:', error);
+        toast({
+          title: "Claim Failed",
+          description: "Something went wrong. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsPurchasing(false);
       }
-
-    } catch (error) {
-      console.error('Error purchasing coupon:', error);
-      toast({
-        title: "Purchase Failed",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsPurchasing(false);
+    } else {
+      // For paid coupons, go to checkout
+      navigate(`/checkout/${deal.id}`);
     }
   };
 

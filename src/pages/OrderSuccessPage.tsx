@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,69 +18,118 @@ interface OrderDetails {
   id: string;
   status: string;
   total_amount: number;
+  quantity: number;
+  jaicoin_used: number;
   created_at: string;
-  coupon_code: string;
+  order_code: string;
   deal: {
     id: string;
     title: string;
     description: string;
     discount_percentage: number;
+    discounted_price: number;
     location: string;
-    end_date: string;
+    validity_days: number;
+    jaicoin_reward: number;
     merchant: {
       business_name: string;
       address: string;
       phone: string;
       website?: string;
-      rating: number;
     };
   };
-  jaicoins_earned: number;
+  coupon?: {
+    coupon_code: string;
+    expires_at: string;
+  };
 }
 
 const OrderSuccessPage = () => {
   const { orderId } = useParams<{ orderId: string }>();
+  const navigate = useNavigate();
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedCoupon, setCopiedCoupon] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchOrderDetails();
-    // Confetti effect could be added here
+    if (orderId) {
+      fetchOrderDetails();
+    }
   }, [orderId]);
 
   const fetchOrderDetails = async () => {
     try {
-      // Generate coupon code with A + 5-digit numeric format
-      const randomNumber = Math.floor(Math.random() * 90000) + 10000;
-      const couponCode = 'A' + randomNumber.toString();
-      
-      // Mock data - in real implementation, fetch from orders table
-      const mockOrderDetails: OrderDetails = {
-        id: orderId!,
-        status: "confirmed",
-        total_amount: 400,
-        created_at: new Date().toISOString(),
-        coupon_code: couponCode,
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .select(`
+          *,
+          deals!inner(
+            *,
+            merchants!inner(
+              business_name,
+              address,
+              phone,
+              website
+            )
+          )
+        `)
+        .eq("id", orderId)
+        .single();
+
+      if (orderError) throw orderError;
+
+      // Check if there's a coupon for this order
+      const { data: coupon } = await supabase
+        .from("coupons")
+        .select("coupon_code, expires_at")
+        .eq("deal_id", order.deals.id)
+        .eq("user_id", order.user_id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      // Award JaiCoins for the purchase
+      if (order.deals.jaicoin_reward > 0) {
+        await supabase
+          .from("jaicoin_transactions")
+          .insert({
+            user_id: order.user_id,
+            amount: order.deals.jaicoin_reward,
+            type: "earned",
+            source: "order_reward",
+            description: `Earned for purchasing: ${order.deals.title}`
+          });
+      }
+
+      const formattedOrder: OrderDetails = {
+        id: order.id,
+        status: order.status,
+        total_amount: order.total_amount,
+        quantity: order.quantity,
+        jaicoin_used: order.jaicoin_used,
+        created_at: order.created_at,
+        order_code: order.order_code,
         deal: {
-          id: "1",
-          title: "Royal Rajasthani Thali Experience",
-          description: "Authentic Royal Rajasthani Thali featuring over 15 traditional dishes",
-          discount_percentage: 50,
-          location: "C-Scheme, Jaipur",
-          end_date: "2024-07-31T23:59:59Z",
+          id: order.deals.id,
+          title: order.deals.title,
+          description: order.deals.description || "",
+          discount_percentage: order.deals.discount_percentage || 0,
+          discounted_price: order.deals.discounted_price,
+          location: order.deals.location || "",
+          validity_days: order.deals.validity_days || 30,
+          jaicoin_reward: order.deals.jaicoin_reward || 0,
           merchant: {
-            business_name: "Royal Heritage Restaurant",
-            address: "123 Heritage Plaza, C-Scheme, Jaipur, Rajasthan 302001",
-            phone: "+91 141-555-0123",
-            website: "www.royalheritage.com",
-            rating: 4.7
+            business_name: order.deals.merchants.business_name,
+            address: order.deals.merchants.address || "",
+            phone: order.deals.merchants.phone || "",
+            website: order.deals.merchants.website
           }
         },
-        jaicoins_earned: 40
+        coupon: coupon || undefined
       };
-      setOrderDetails(mockOrderDetails);
+
+      setOrderDetails(formattedOrder);
     } catch (error) {
       console.error('Error fetching order details:', error);
       toast({
@@ -94,8 +143,8 @@ const OrderSuccessPage = () => {
   };
 
   const copyCouponCode = () => {
-    if (orderDetails) {
-      navigator.clipboard.writeText(orderDetails.coupon_code);
+    if (orderDetails?.coupon) {
+      navigator.clipboard.writeText(orderDetails.coupon.coupon_code);
       setCopiedCoupon(true);
       toast({
         title: "Coupon Code Copied",
@@ -103,46 +152,6 @@ const OrderSuccessPage = () => {
       });
       setTimeout(() => setCopiedCoupon(false), 2000);
     }
-  };
-
-  const downloadCoupon = () => {
-    // In real implementation, this would generate a PDF/image
-    toast({
-      title: "Coupon Downloaded",
-      description: "Your coupon has been saved to downloads"
-    });
-  };
-
-  const shareDeal = () => {
-    if (navigator.share && orderDetails) {
-      navigator.share({
-        title: `I just got ${orderDetails.deal.discount_percentage}% off at ${orderDetails.deal.merchant.business_name}!`,
-        text: "Check out MyJaipur for amazing deals in the Pink City!",
-        url: `${window.location.origin}/deal/${orderDetails.deal.id}`
-      });
-    } else {
-      navigator.clipboard.writeText(`${window.location.origin}/deal/${orderDetails.deal.id}`);
-      toast({
-        title: "Link Copied",
-        description: "Share this deal with your friends!"
-      });
-    }
-  };
-
-  const sendCouponEmail = () => {
-    // In real implementation, this would trigger an email
-    toast({
-      title: "Email Sent",
-      description: "Coupon details have been sent to your email"
-    });
-  };
-
-  const sendCouponSMS = () => {
-    // In real implementation, this would trigger an SMS
-    toast({
-      title: "SMS Sent",
-      description: "Coupon code has been sent to your phone"
-    });
   };
 
   if (isLoading) {
@@ -175,9 +184,9 @@ const OrderSuccessPage = () => {
           <div className="animate-bounce mb-6">
             <CheckCircle className="w-20 h-20 mx-auto" />
           </div>
-          <h1 className="text-4xl font-bold mb-4">Payment Successful! 🎉</h1>
+          <h1 className="text-4xl font-bold mb-4">Order Successful! 🎉</h1>
           <p className="text-xl opacity-90 mb-2">Your order has been confirmed</p>
-          <p className="opacity-75">Order #{orderDetails.id}</p>
+          <p className="opacity-75">Order #{orderDetails.order_code}</p>
         </div>
       </div>
 
@@ -186,64 +195,56 @@ const OrderSuccessPage = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Digital Coupon */}
-            <Card className="border-2 border-green-200 bg-gradient-to-br from-white to-green-50">
-              <CardHeader className="text-center">
-                <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-                  <QrCode className="w-8 h-8 text-green-600" />
-                  Your Digital Coupon
-                </CardTitle>
-                <CardDescription>Show this code at the merchant to redeem your deal</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Coupon Code */}
-                <div className="bg-gradient-to-r from-pink-500 to-orange-400 rounded-lg p-8 text-white text-center">
-                  <QrCode className="w-16 h-16 mx-auto mb-4" />
-                  <h3 className="text-3xl font-bold mb-2">{orderDetails.coupon_code}</h3>
-                  <Badge className="bg-white text-gray-800">
-                    {orderDetails.deal.discount_percentage}% OFF
-                  </Badge>
-                </div>
+            {orderDetails.coupon && (
+              <Card className="border-2 border-green-200 bg-gradient-to-br from-white to-green-50">
+                <CardHeader className="text-center">
+                  <CardTitle className="flex items-center justify-center gap-2 text-2xl">
+                    <QrCode className="w-8 h-8 text-green-600" />
+                    Your Digital Coupon
+                  </CardTitle>
+                  <CardDescription>Show this code at the merchant to redeem your deal</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Coupon Code */}
+                  <div className="bg-gradient-to-r from-pink-500 to-orange-400 rounded-lg p-8 text-white text-center">
+                    <QrCode className="w-16 h-16 mx-auto mb-4" />
+                    <h3 className="text-3xl font-bold mb-2">{orderDetails.coupon.coupon_code}</h3>
+                    <Badge className="bg-white text-gray-800">
+                      Deal Voucher
+                    </Badge>
+                  </div>
 
-                {/* Action Buttons */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <Button 
-                    onClick={copyCouponCode}
-                    variant="outline"
-                    className={copiedCoupon ? "bg-green-50 border-green-200" : ""}
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    {copiedCoupon ? "Copied!" : "Copy"}
-                  </Button>
-                  <Button onClick={downloadCoupon} variant="outline">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download
-                  </Button>
-                  <Button onClick={sendCouponEmail} variant="outline">
-                    <Mail className="w-4 h-4 mr-2" />
-                    Email
-                  </Button>
-                  <Button onClick={sendCouponSMS} variant="outline">
-                    <Smartphone className="w-4 h-4 mr-2" />
-                    SMS
-                  </Button>
-                </div>
+                  {/* Action Buttons */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button 
+                      onClick={copyCouponCode}
+                      variant="outline"
+                      className={copiedCoupon ? "bg-green-50 border-green-200" : ""}
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      {copiedCoupon ? "Copied!" : "Copy Code"}
+                    </Button>
+                    <Button variant="outline">
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </Button>
+                  </div>
 
-                {/* Important Note */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-blue-800 mb-2">How to Redeem:</h4>
-                  <ol className="text-blue-700 text-sm space-y-1">
-                    <li>1. Visit the merchant location</li>
-                    <li>2. Show this coupon code to the staff</li>
-                    <li>3. Enjoy your discount!</li>
-                  </ol>
-                </div>
-              </CardContent>
-            </Card>
+                  {/* Expiry Info */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-blue-800 mb-2">Valid Until:</h4>
+                    <p className="text-blue-700 text-sm">
+                      {new Date(orderDetails.coupon.expires_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Deal Details */}
             <Card>
               <CardHeader>
-                <CardTitle>Deal Details</CardTitle>
+                <CardTitle>Order Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -257,11 +258,24 @@ const OrderSuccessPage = () => {
 
                 <Separator />
 
-                <div>
-                  <h4 className="font-semibold mb-2">Valid Until</h4>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Calendar className="w-4 h-4" />
-                    <span>{new Date(orderDetails.deal.end_date).toLocaleDateString()}</span>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Quantity:</span>
+                    <p className="font-semibold">{orderDetails.quantity}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Total Amount:</span>
+                    <p className="font-semibold">₹{orderDetails.total_amount}</p>
+                  </div>
+                  {orderDetails.jaicoin_used > 0 && (
+                    <div>
+                      <span className="text-gray-600">JaiCoins Used:</span>
+                      <p className="font-semibold text-yellow-600">{orderDetails.jaicoin_used}</p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-gray-600">Order Date:</span>
+                    <p className="font-semibold">{new Date(orderDetails.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
               </CardContent>
@@ -279,38 +293,28 @@ const OrderSuccessPage = () => {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold">{orderDetails.deal.merchant.business_name}</h3>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-medium">{orderDetails.deal.merchant.rating}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="font-semibold mb-2">Address</h4>
                     <p className="text-gray-600 text-sm">{orderDetails.deal.merchant.address}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Phone className="w-4 h-4" />
-                      <span className="text-sm">{orderDetails.deal.merchant.phone}</span>
+                    <div className="flex items-center gap-4 mt-2">
+                      {orderDetails.deal.merchant.phone && (
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Phone className="w-4 h-4" />
+                          <span className="text-sm">{orderDetails.deal.merchant.phone}</span>
+                        </div>
+                      )}
+                      {orderDetails.deal.merchant.website && (
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Globe className="w-4 h-4" />
+                          <a 
+                            href={orderDetails.deal.merchant.website} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-pink-600 hover:underline"
+                          >
+                            Visit Website
+                          </a>
+                        </div>
+                      )}
                     </div>
-                    {orderDetails.deal.merchant.website && (
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <Globe className="w-4 h-4" />
-                        <a 
-                          href={orderDetails.deal.merchant.website} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-sm text-pink-600 hover:underline"
-                        >
-                          {orderDetails.deal.merchant.website}
-                        </a>
-                      </div>
-                    )}
                   </div>
                 </div>
               </CardContent>
@@ -326,32 +330,34 @@ const OrderSuccessPage = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
-                  <span>Order Total</span>
-                  <span className="font-bold">₹{orderDetails.total_amount}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Payment Status</span>
+                  <span>Status</span>
                   <Badge className="bg-green-100 text-green-700">Confirmed</Badge>
                 </div>
                 <div className="flex justify-between">
-                  <span>Order Date</span>
-                  <span>{new Date(orderDetails.created_at).toLocaleDateString()}</span>
+                  <span>Total Paid</span>
+                  <span className="font-bold">₹{orderDetails.total_amount}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Order ID</span>
+                  <span className="font-mono text-sm">{orderDetails.order_code}</span>
                 </div>
               </CardContent>
             </Card>
 
             {/* Rewards Earned */}
-            <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
-              <CardContent className="p-6 text-center">
-                <Trophy className="w-12 h-12 text-yellow-500 mx-auto mb-3" />
-                <h3 className="text-lg font-semibold mb-2">Congratulations!</h3>
-                <p className="text-gray-600 mb-3">You've earned rewards for this purchase</p>
-                <div className="flex items-center justify-center gap-2">
-                  <Coins className="w-5 h-5 text-yellow-500" />
-                  <span className="text-xl font-bold text-yellow-600">+{orderDetails.jaicoins_earned} JaiCoins</span>
-                </div>
-              </CardContent>
-            </Card>
+            {orderDetails.deal.jaicoin_reward > 0 && (
+              <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
+                <CardContent className="p-6 text-center">
+                  <Trophy className="w-12 h-12 text-yellow-500 mx-auto mb-3" />
+                  <h3 className="text-lg font-semibold mb-2">Congratulations!</h3>
+                  <p className="text-gray-600 mb-3">You've earned JaiCoins for this purchase</p>
+                  <div className="flex items-center justify-center gap-2">
+                    <Coins className="w-5 h-5 text-yellow-500" />
+                    <span className="text-xl font-bold text-yellow-600">+{orderDetails.deal.jaicoin_reward} JaiCoins</span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Quick Actions */}
             <Card>
@@ -359,60 +365,28 @@ const OrderSuccessPage = () => {
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button onClick={shareDeal} variant="outline" className="w-full justify-start">
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Share this deal
-                </Button>
-                <Link to="/favorites">
+                <Link to="/orders">
+                  <Button variant="outline" className="w-full justify-start">
+                    <ArrowRight className="w-4 h-4 mr-2" />
+                    View All Orders
+                  </Button>
+                </Link>
+                <Link to="/coupons">
                   <Button variant="outline" className="w-full justify-start">
                     <Heart className="w-4 h-4 mr-2" />
-                    View my coupons
+                    My Coupons
                   </Button>
                 </Link>
                 <Link to="/deals">
                   <Button variant="outline" className="w-full justify-start">
-                    <ArrowRight className="w-4 h-4 mr-2" />
-                    Browse more deals
+                    <Gift className="w-4 h-4 mr-2" />
+                    Browse More Deals
                   </Button>
                 </Link>
               </CardContent>
             </Card>
-
-            {/* Referral Bonus */}
-            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-              <CardContent className="p-6 text-center">
-                <Users className="w-12 h-12 text-purple-500 mx-auto mb-3" />
-                <h3 className="text-lg font-semibold mb-2">Invite Friends & Earn</h3>
-                <p className="text-gray-600 text-sm mb-3">Share MyJaipur with friends and earn ₹100 for each signup</p>
-                <Button size="sm" className="bg-purple-500 hover:bg-purple-600">
-                  <Gift className="w-4 h-4 mr-2" />
-                  Invite Now
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         </div>
-
-        {/* Support Information */}
-        <Card className="mt-8">
-          <CardContent className="p-6 text-center">
-            <h3 className="text-lg font-semibold mb-2">Need Help?</h3>
-            <p className="text-gray-600 mb-4">
-              If you have any questions about your order or need assistance with redemption, our support team is here to help.
-            </p>
-            <div className="flex justify-center gap-4">
-              <Link to="/help">
-                <Button variant="outline">
-                  Contact Support
-                </Button>
-              </Link>
-              <Button variant="outline">
-                <Phone className="w-4 h-4 mr-2" />
-                Call +91 141-555-0123
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
