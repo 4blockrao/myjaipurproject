@@ -30,6 +30,7 @@ import ProMembershipPage from "./pages/ProMembershipPage";
 import GamificationPage from "./pages/GamificationPage";
 import ChallengesPage from "./pages/ChallengesPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
+import SettingsPage from "./pages/SettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ const App = () => (
           <Route path="/gamification" element={<GamificationPage />} />
           <Route path="/challenges" element={<ChallengesPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

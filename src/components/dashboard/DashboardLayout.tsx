@@ -3,9 +3,11 @@ import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, Wallet, Trophy, Star, 
-  User, Heart, Settings, ChevronRight, Home, ArrowLeft, Ticket 
+  User, Heart, Settings, ChevronRight, Home, ArrowLeft, Ticket,
+  ShoppingBag, Receipt, Users, Gift, HelpCircle, Store, BarChart3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -20,14 +22,19 @@ const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", sho
   const currentPath = location.pathname;
 
   const sidebarItems = [
-    { icon: LayoutDashboard, label: "Overview", path: "/dashboard" },
+    { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
     { icon: Wallet, label: "Wallet", path: "/wallet" },
+    { icon: ShoppingBag, label: "My Orders", path: "/orders" },
+    { icon: Ticket, label: "My Coupons", path: "/coupons" },
+    { icon: Heart, label: "Favorites", path: "/favorites" },
     { icon: Trophy, label: "Leaderboard", path: "/leaderboard" },
     { icon: Star, label: "JaiCoin Zone", path: "/jaicoin-zone" },
-    { icon: Heart, label: "Favorites", path: "/favorites" },
-    { icon: Ticket, label: "My Coupons", path: "/coupons" },
-    { icon: User, label: "Profile", path: "/profile" },
-    { icon: Settings, label: "Settings", path: "/profile?tab=settings" },
+    { icon: Users, label: "Referral Program", path: "/referral-program" },
+    { icon: Gift, label: "Pro Membership", path: "/pro-membership" },
+    { icon: BarChart3, label: "Analytics", path: "/analytics" },
+    { icon: Store, label: "Merchant Hub", path: "/merchant-dashboard" },
+    { icon: HelpCircle, label: "Help & Support", path: "/help" },
+    { icon: Settings, label: "Settings", path: "/settings" },
   ];
 
   const isActive = (path: string) => {
@@ -35,6 +42,10 @@ const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", sho
       return currentPath === path;
     }
     return currentPath.startsWith(path);
+  };
+
+  const getInitials = (name: string) => {
+    return name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
   };
 
   return (
@@ -82,18 +93,21 @@ const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", sho
               </div>
               <div>
                 <h2 className="font-bold text-gray-900">MyJaipur</h2>
-                <p className="text-xs text-gray-600">Dashboard</p>
+                <p className="text-xs text-gray-600">Your Local Hub</p>
               </div>
             </Link>
 
             <div className="mb-6">
               <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-orange-400 rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-white" />
-                </div>
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={profile?.avatar_url} alt={profile?.full_name} />
+                  <AvatarFallback className="bg-gradient-to-r from-pink-500 to-orange-400 text-white font-bold">
+                    {getInitials(profile?.full_name || 'User')}
+                  </AvatarFallback>
+                </Avatar>
                 <div className="min-w-0 flex-1">
                   <h3 className="font-semibold text-gray-900 truncate">{profile?.full_name || 'User'}</h3>
-                  <p className="text-sm text-gray-600">Dashboard</p>
+                  <p className="text-sm text-gray-600">ID: {profile?.user_id_code || 'Loading...'}</p>
                 </div>
               </div>
             </div>

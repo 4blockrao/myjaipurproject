@@ -99,25 +99,54 @@ const ReferralProgramPage = () => {
     }
   };
 
-  const copyReferralLink = async () => {
-    if (profile?.referral_code) {
-      const referralLink = `${window.location.origin}?ref=${profile.referral_code}`;
-      await navigator.clipboard.writeText(referralLink);
+  const copyInvitationCode = async () => {
+    if (profile?.user_id_code) {
+      await navigator.clipboard.writeText(profile.user_id_code);
       toast({
-        title: "🎉 Referral Link Copied!",
-        description: "Share this with friends to start earning!",
+        title: "🎉 Invitation Code Copied!",
+        description: "Share this code with friends to start earning!",
       });
     }
   };
 
-  const copyUserIdCode = async () => {
+  const shareToWhatsApp = () => {
     if (profile?.user_id_code) {
-      await navigator.clipboard.writeText(profile.user_id_code);
-      toast({
-        title: "🎉 User ID Copied!",
-        description: "Share this ID for friends to find and follow you!",
-      });
+      const message = `🎯 Join MyJaipur and discover amazing local deals in Jaipur! 
+
+🎁 Use my invitation code: ${profile.user_id_code}
+💰 Get 30 free JAICoins when you sign up
+🏆 Earn rewards on every deal you redeem
+
+Join thousands of Jaipurites saving money every day!
+${window.location.origin}?ref=${profile.user_id_code}`;
+      
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
     }
+  };
+
+  const shareToFacebook = () => {
+    if (profile?.user_id_code) {
+      const url = `${window.location.origin}?ref=${profile.user_id_code}`;
+      const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(`Join MyJaipur with my invitation code ${profile.user_id_code} and get 30 free JAICoins!`)}`;
+      window.open(facebookUrl, '_blank');
+    }
+  };
+
+  const shareToTwitter = () => {
+    if (profile?.user_id_code) {
+      const message = `🎯 Join MyJaipur with invitation code ${profile.user_id_code} and get 30 free JAICoins! Discover amazing local deals in Jaipur. ${window.location.origin}?ref=${profile.user_id_code}`;
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`;
+      window.open(twitterUrl, '_blank');
+    }
+  };
+
+  const shareToInstagram = () => {
+    copyInvitationCode();
+    toast({
+      title: "📱 Instagram Share",
+      description: "Invitation code copied! Share it in your Instagram story or post.",
+    });
   };
 
   const levels = [
@@ -144,7 +173,7 @@ const ReferralProgramPage = () => {
     { event: "Friend redeems first deal", reward: "50 JAICoins", timing: "Within 7 days", streak: false },
     { event: "Friend stays active (30 days)", reward: "100 JAICoins", timing: "After 30 days", streak: false },
     { event: "Daily streak bonus", reward: "10-50 JAICoins", timing: "Daily", streak: true },
-    { event: "Weekly streak bonus", reward: "100 JAICoins", timing: "Every Sunday", streak: true },
+    { event: "Weekly streak bonus", reward: "100 JAICoins", timing: "Weekly", streak: true },
     { event: "Monthly top referrer", reward: "500 JAICoins", timing: "End of month", streak: false },
     { event: "Perfect week (7 referrals)", reward: "200 JAICoins", timing: "Weekly", streak: true }
   ];
@@ -364,44 +393,91 @@ const ReferralProgramPage = () => {
           </CardContent>
         </Card>
 
-        {/* User ID and Referral Code */}
+        {/* Your Invitation Code */}
         <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Users className="w-5 h-5 text-blue-600" />
-              <span>Your Invitation Codes</span>
+              <span>Your Invitation Code</span>
             </CardTitle>
             <CardDescription>
-              Share these codes with friends to connect and earn rewards
+              Share this unique code with friends to earn rewards
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* User ID Code */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">User ID (for finding you):</label>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Invitation Code:</label>
               <div className="flex space-x-2">
-                <div className="flex-1 p-3 bg-white rounded-lg border text-center">
-                  <span className="font-mono font-bold text-xl text-blue-600">{profile?.user_id_code || 'Loading...'}</span>
+                <div className="flex-1 p-4 bg-white rounded-lg border text-center">
+                  <span className="font-mono font-bold text-2xl text-blue-600">{profile?.user_id_code || 'Loading...'}</span>
                 </div>
-                <Button onClick={copyUserIdCode} size="sm" className="px-3 bg-blue-500 hover:bg-blue-600">
+                <Button onClick={copyInvitationCode} size="sm" className="px-4 bg-blue-500 hover:bg-blue-600">
                   <Copy className="w-4 h-4" />
                 </Button>
               </div>
-              <p className="text-xs text-gray-500 mt-1">Friends can use this 6-digit code to find and connect with you</p>
+              <p className="text-xs text-gray-500 mt-2">
+                Friends can use this code when signing up to connect with you and earn you both rewards
+              </p>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Referral Code */}
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Referral Code (for earning rewards):</label>
-              <div className="flex space-x-2">
-                <div className="flex-1 p-3 bg-white rounded-lg border text-center">
-                  <span className="font-mono font-bold text-xl text-green-600">{profile?.referral_code || 'Loading...'}</span>
+        {/* Share Your Invitation */}
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Share2 className="w-5 h-5 text-green-600" />
+              <span>Share Your Invitation</span>
+            </CardTitle>
+            <CardDescription>
+              Spread the word and start earning JAICoins!
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Button 
+                onClick={shareToWhatsApp}
+                variant="outline" 
+                className="h-auto py-4 bg-green-50 border-green-200 hover:bg-green-100"
+              >
+                <div className="text-center">
+                  <MessageCircle className="w-6 h-6 mx-auto mb-2 text-green-600" />
+                  <div className="text-sm font-medium">WhatsApp</div>
                 </div>
-                <Button onClick={copyReferralLink} size="sm" className="px-3 bg-green-500 hover:bg-green-600">
-                  <Copy className="w-4 h-4" />
-                </Button>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">New users who sign up with this code will earn you JAICoins</p>
+              </Button>
+              
+              <Button 
+                onClick={shareToInstagram}
+                variant="outline" 
+                className="h-auto py-4 bg-pink-50 border-pink-200 hover:bg-pink-100"
+              >
+                <div className="text-center">
+                  <Instagram className="w-6 h-6 mx-auto mb-2 text-pink-600" />
+                  <div className="text-sm font-medium">Instagram</div>
+                </div>
+              </Button>
+              
+              <Button 
+                onClick={shareToFacebook}
+                variant="outline" 
+                className="h-auto py-4 bg-blue-50 border-blue-200 hover:bg-blue-100"
+              >
+                <div className="text-center">
+                  <Facebook className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+                  <div className="text-sm font-medium">Facebook</div>
+                </div>
+              </Button>
+              
+              <Button 
+                onClick={shareToTwitter}
+                variant="outline" 
+                className="h-auto py-4 bg-blue-50 border-blue-200 hover:bg-blue-100"
+              >
+                <div className="text-center">
+                  <Twitter className="w-6 h-6 mx-auto mb-2 text-blue-400" />
+                  <div className="text-sm font-medium">Twitter</div>
+                </div>
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -435,83 +511,6 @@ const ReferralProgramPage = () => {
                   );
                 })}
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Share Your Link */}
-        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Share2 className="w-5 h-5 text-green-600" />
-              <span>Share Your Magic Link</span>
-            </CardTitle>
-            <CardDescription>
-              Your unique referral code: <Badge className="ml-2">{profile?.referral_code}</Badge>
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {profile?.referral_code && (
-              <div className="flex space-x-2">
-                <div className="flex-1 p-3 bg-white rounded-lg border text-sm font-mono">
-                  {`${window.location.origin}?ref=${profile.referral_code}`}
-                </div>
-                <Button onClick={copyReferralLink} size="sm" className="px-3">
-                  <Copy className="w-4 h-4" />
-                </Button>
-              </div>
-            )}
-            
-            <div className="grid grid-cols-4 gap-2">
-              {[
-                { name: "WhatsApp", icon: MessageCircle, color: "bg-green-500" },
-                { name: "Instagram", icon: Instagram, color: "bg-pink-500" },
-                { name: "Facebook", icon: Facebook, color: "bg-blue-500" },
-                { name: "Twitter", icon: Twitter, color: "bg-blue-400" }
-              ].map((platform, index) => {
-                const Icon = platform.icon;
-                return (
-                  <Button key={index} variant="outline" size="sm" className="h-auto py-3">
-                    <div className="text-center">
-                      <Icon className="w-5 h-5 mx-auto mb-1" />
-                      <div className="text-xs">{platform.name}</div>
-                    </div>
-                  </Button>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* How to Maximize Earnings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Target className="w-5 h-5 text-blue-600" />
-              <span>💡 Pro Tips to Maximize Earnings</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {[
-                { tip: "Share in active WhatsApp groups", reward: "Higher conversion", icon: MessageCircle },
-                { tip: "Post on Instagram stories with location tags", reward: "Reach local audience", icon: Instagram },
-                { tip: "Target deal lovers and foodies", reward: "Quality referrals", icon: Heart },
-                { tip: "Explain the free JAICoins benefit", reward: "Faster signups", icon: Coins },
-                { tip: "Share during weekend evenings", reward: "Peak engagement", icon: Clock },
-                { tip: "Use our pre-made graphics", reward: "Professional appeal", icon: Smartphone }
-              ].map((item, index) => {
-                const Icon = item.icon;
-                return (
-                  <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                    <Icon className="w-5 h-5 text-blue-500 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">{item.tip}</p>
-                      <p className="text-xs text-green-600">→ {item.reward}</p>
-                    </div>
-                  </div>
-                );
-              })}
             </div>
           </CardContent>
         </Card>
