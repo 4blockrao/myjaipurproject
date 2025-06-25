@@ -115,7 +115,7 @@ const DashboardPage = () => {
         streakDays: 3,
         level: level,
         nextLevelCoins: nextLevelCoins,
-        activeOrders: 2 // Mock data
+        activeOrders: 2
       });
     } catch (error) {
       console.error('Error fetching user stats:', error);
@@ -130,7 +130,7 @@ const DashboardPage = () => {
   };
 
   const calculateRankPosition = async (userId: string): Promise<number> => {
-    return 1; // Simplified for now
+    return 1;
   };
 
   const fetchTransactions = async (userId: string) => {
@@ -227,7 +227,7 @@ const DashboardPage = () => {
   if (isLoading) {
     return (
       <DashboardLayout user={user} profile={profile}>
-        <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="flex items-center justify-center min-h-[50vh] p-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto mb-4"></div>
             <p className="text-gray-600 text-sm">Loading your dashboard...</p>
@@ -240,109 +240,111 @@ const DashboardPage = () => {
   if (!user) {
     return (
       <DashboardLayout user={user} profile={profile}>
-        <Card className="mx-4 mt-4">
-          <CardHeader className="text-center pb-4">
-            <CardTitle className="text-lg">Please Sign In</CardTitle>
-            <CardDescription className="text-sm">You need to be logged in to view your dashboard</CardDescription>
-          </CardHeader>
-          <CardContent className="pb-4">
-            <Button className="w-full" onClick={() => window.location.href = '/'}>
-              Go to Home
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="p-4">
+          <Card className="mx-auto max-w-md">
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="text-lg">Please Sign In</CardTitle>
+              <CardDescription className="text-sm">You need to be logged in to view your dashboard</CardDescription>
+            </CardHeader>
+            <CardContent className="pb-4">
+              <Button className="w-full" onClick={() => window.location.href = '/'}>
+                Go to Home
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </DashboardLayout>
     );
   }
 
   return (
     <DashboardLayout user={user} profile={profile}>
-      <div className="space-y-4 p-4 max-w-6xl mx-auto">
-        {/* Welcome Section */}
+      <div className="space-y-4 p-3 sm:p-4 max-w-6xl mx-auto">
+        {/* Enhanced Mobile-Friendly Welcome Section */}
         <Card className="bg-gradient-to-r from-pink-500 to-orange-400 text-white border-0">
-          <CardContent className="p-4 lg:p-6">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
               <div className="flex-1">
-                <h1 className="text-xl lg:text-2xl font-bold mb-1">
+                <h1 className="text-xl sm:text-2xl font-bold mb-2 leading-tight">
                   Welcome back, {profile?.full_name || 'User'}! 👋
                 </h1>
-                <p className="text-pink-100 text-sm lg:text-base mb-3">
+                <p className="text-pink-100 text-sm sm:text-base mb-3">
                   You're a {userStats.rank} member with {userStats.totalCoins} JAICoins
                 </p>
-                <div className="flex items-center space-x-2">
-                  <Badge className="bg-white/20 text-white border-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className="bg-white/20 text-white border-0 text-xs sm:text-sm">
                     <Flame className="w-3 h-3 mr-1" />
                     {userStats.streakDays} day streak
                   </Badge>
-                  <Badge className="bg-white/20 text-white border-0">
+                  <Badge className="bg-white/20 text-white border-0 text-xs sm:text-sm">
                     {getRankIcon(userStats.rank)}
                     <span className="ml-1">{userStats.rank}</span>
                   </Badge>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-3xl lg:text-4xl font-bold mb-1">{userStats.totalCoins}</div>
-                <div className="text-sm text-pink-100">JAICoins</div>
+              <div className="text-center sm:text-right">
+                <div className="text-2xl sm:text-4xl font-bold mb-1">{userStats.totalCoins}</div>
+                <div className="text-xs sm:text-sm text-pink-100">JAICoins</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Quick Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+        {/* Mobile-Optimized Quick Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
-            <CardContent className="p-3 lg:p-4 text-center">
-              <div className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 bg-yellow-500 rounded-full mx-auto mb-2">
-                <Coins className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+            <CardContent className="p-3 sm:p-4 text-center">
+              <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-yellow-500 rounded-full mx-auto mb-2">
+                <Coins className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div className="text-lg lg:text-2xl font-bold text-gray-900">{userStats.totalCoins}</div>
-              <div className="text-xs lg:text-sm text-gray-600">JAICoins</div>
+              <div className="text-lg sm:text-2xl font-bold text-gray-900">{userStats.totalCoins}</div>
+              <div className="text-xs sm:text-sm text-gray-600">JAICoins</div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-            <CardContent className="p-3 lg:p-4 text-center">
-              <div className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 bg-purple-500 rounded-full mx-auto mb-2">
-                <Trophy className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+            <CardContent className="p-3 sm:p-4 text-center">
+              <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-purple-500 rounded-full mx-auto mb-2">
+                <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div className="text-lg lg:text-2xl font-bold text-gray-900">#{userStats.rankNumber}</div>
-              <div className="text-xs lg:text-sm text-gray-600">City Rank</div>
+              <div className="text-lg sm:text-2xl font-bold text-gray-900">#{userStats.rankNumber}</div>
+              <div className="text-xs sm:text-sm text-gray-600">City Rank</div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-            <CardContent className="p-3 lg:p-4 text-center">
-              <div className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 bg-green-500 rounded-full mx-auto mb-2">
-                <Users className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+            <CardContent className="p-3 sm:p-4 text-center">
+              <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-green-500 rounded-full mx-auto mb-2">
+                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div className="text-lg lg:text-2xl font-bold text-gray-900">{userStats.totalReferrals}</div>
-              <div className="text-xs lg:text-sm text-gray-600">Referrals</div>
+              <div className="text-lg sm:text-2xl font-bold text-gray-900">{userStats.totalReferrals}</div>
+              <div className="text-xs sm:text-sm text-gray-600">Referrals</div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-            <CardContent className="p-3 lg:p-4 text-center">
-              <div className="flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 bg-blue-500 rounded-full mx-auto mb-2">
-                <Receipt className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+            <CardContent className="p-3 sm:p-4 text-center">
+              <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-full mx-auto mb-2">
+                <Receipt className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div className="text-lg lg:text-2xl font-bold text-gray-900">{userStats.activeOrders}</div>
-              <div className="text-xs lg:text-sm text-gray-600">Active Orders</div>
+              <div className="text-lg sm:text-2xl font-bold text-gray-900">{userStats.activeOrders}</div>
+              <div className="text-xs sm:text-sm text-gray-600">Active Orders</div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Level Progress */}
+        {/* Mobile-Optimized Level Progress */}
         <Card>
-          <CardContent className="p-4 lg:p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <Star className="w-5 h-5 text-yellow-500" />
-                <h3 className="font-semibold text-gray-900">Level Progress</h3>
+                <h3 className="font-semibold text-gray-900 text-sm sm:text-base">Level Progress</h3>
               </div>
-              <span className="text-sm text-gray-600">Level {userStats.level}</span>
+              <span className="text-xs sm:text-sm text-gray-600">Level {userStats.level}</span>
             </div>
             <div className="space-y-2">
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-xs sm:text-sm">
                 <span>{userStats.totalCoins} JAICoins</span>
                 <span>{userStats.nextLevelCoins} JAICoins</span>
               </div>
@@ -354,12 +356,12 @@ const DashboardPage = () => {
           </CardContent>
         </Card>
 
-        {/* Quick Action - Refer Friends */}
+        {/* Mobile-Optimized Referral Section */}
         <Card className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">
-          <CardContent className="p-4 lg:p-6">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
               <div className="flex-1">
-                <h3 className="text-lg font-bold mb-1">Invite Friends & Earn!</h3>
+                <h3 className="text-lg sm:text-xl font-bold mb-1">Invite Friends & Earn!</h3>
                 <p className="text-green-100 text-sm mb-3">
                   Get 50 JAICoins for each friend who joins. No limits!
                 </p>
@@ -367,35 +369,35 @@ const DashboardPage = () => {
                   onClick={handleReferFriend}
                   variant="secondary" 
                   size="sm"
-                  className="bg-white text-green-600 hover:bg-green-50"
+                  className="bg-white text-green-600 hover:bg-green-50 w-full sm:w-auto"
                 >
                   <Share2 className="w-4 h-4 mr-2" />
                   Share Referral Link
                 </Button>
               </div>
-              <div className="text-4xl">🎁</div>
+              <div className="text-2xl sm:text-4xl text-center sm:text-right">🎁</div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Dashboard Tiles */}
+        {/* Mobile-Optimized Dashboard Tiles */}
         <div>
           <h2 className="text-lg font-bold text-gray-900 mb-3 px-1">Quick Access</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {dashboardTiles.map((tile, index) => {
               const Icon = tile.icon;
               return (
                 <Link key={index} to={tile.path}>
-                  <Card className="hover:shadow-md transition-all duration-200 h-full">
-                    <CardContent className="p-3 lg:p-4">
-                      <div className={`w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r ${tile.color} rounded-lg flex items-center justify-center mb-3`}>
-                        <Icon className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+                  <Card className="hover:shadow-md transition-all duration-200 h-full touch-target">
+                    <CardContent className="p-4">
+                      <div className={`w-10 h-10 bg-gradient-to-r ${tile.color} rounded-lg flex items-center justify-center mb-3`}>
+                        <Icon className="w-5 h-5 text-white" />
                       </div>
-                      <h3 className="font-semibold text-gray-900 text-sm lg:text-base mb-1">{tile.title}</h3>
-                      <p className="text-xs lg:text-sm text-gray-600 mb-2">{tile.description}</p>
+                      <h3 className="font-semibold text-gray-900 text-base mb-1">{tile.title}</h3>
+                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">{tile.description}</p>
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-bold text-sm lg:text-base text-gray-900">{tile.value}</div>
+                          <div className="font-bold text-base text-gray-900">{tile.value}</div>
                           <div className="text-xs text-gray-500">{tile.change}</div>
                         </div>
                         <ArrowRight className="w-4 h-4 text-gray-400" />
@@ -408,19 +410,19 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Recent Activity */}
+        {/* Mobile-Optimized Recent Activity */}
         {transactions.length > 0 && (
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Activity className="w-5 h-5 text-blue-500" />
-                  <CardTitle className="text-base lg:text-lg">Recent Activity</CardTitle>
+                  <CardTitle className="text-base sm:text-lg">Recent Activity</CardTitle>
                 </div>
                 <Link to="/wallet">
-                  <Button variant="ghost" size="sm" className="text-blue-600">
+                  <Button variant="ghost" size="sm" className="text-blue-600 text-xs sm:text-sm">
                     View All
-                    <ArrowRight className="w-4 h-4 ml-1" />
+                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
                   </Button>
                 </Link>
               </div>
@@ -430,13 +432,17 @@ const DashboardPage = () => {
                 {transactions.slice(0, 3).map((transaction) => (
                   <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3 min-w-0 flex-1">
-                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${transaction.type === 'earned' ? 'bg-green-500' : 'bg-red-500'}`} />
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                        transaction.type === 'earned' ? 'bg-green-500' : 'bg-red-500'
+                      }`} />
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-sm truncate">{transaction.description}</p>
                         <p className="text-xs text-gray-600">{new Date(transaction.created_at).toLocaleDateString()}</p>
                       </div>
                     </div>
-                    <div className={`font-bold text-sm flex-shrink-0 ${transaction.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
+                    <div className={`font-bold text-sm flex-shrink-0 ${
+                      transaction.type === 'earned' ? 'text-green-600' : 'text-red-600'
+                    }`}>
                       {transaction.type === 'earned' ? '+' : '-'}{transaction.amount}
                     </div>
                   </div>

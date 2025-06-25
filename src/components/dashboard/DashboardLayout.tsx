@@ -1,13 +1,14 @@
 
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, Wallet, Trophy, Star, 
   User, Heart, Settings, ChevronRight, Home, ArrowLeft, Ticket,
-  ShoppingBag, Receipt, Users, Gift, HelpCircle, Store, BarChart3
+  ShoppingBag, Receipt, Users, Gift, HelpCircle, Store, BarChart3, Menu, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -20,6 +21,7 @@ interface DashboardLayoutProps {
 const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", showBackButton = false }: DashboardLayoutProps) => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const sidebarItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -48,9 +50,13 @@ const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", sho
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
   };
 
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Consistent Mobile Header for all dashboard pages */}
+      {/* Enhanced Mobile Header */}
       <div className="lg:hidden bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center space-x-3">
@@ -61,12 +67,87 @@ const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", sho
                 </Button>
               </Link>
             ) : (
-              <Link to="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-orange-400 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">MJ</span>
-                </div>
-              </Link>
+              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Menu className="w-5 h-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-80 p-0">
+                  <div className="flex flex-col h-full">
+                    {/* Mobile Menu Header */}
+                    <div className="p-6 border-b">
+                      <div className="flex items-center justify-between mb-4">
+                        <Link to="/" className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-orange-400 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">MJ</span>
+                          </div>
+                          <div>
+                            <h2 className="font-bold text-gray-900">MyJaipur</h2>
+                            <p className="text-xs text-gray-600">Your Local Hub</p>
+                          </div>
+                        </Link>
+                        <SheetClose asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </SheetClose>
+                      </div>
+
+                      {/* User Profile in Mobile Menu */}
+                      <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage src={profile?.avatar_url} alt={profile?.full_name} />
+                          <AvatarFallback className="bg-gradient-to-r from-pink-500 to-orange-400 text-white font-bold">
+                            {getInitials(profile?.full_name || 'User')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-gray-900 truncate">{profile?.full_name || 'User'}</h3>
+                          <p className="text-sm text-gray-600">ID: {profile?.user_id_code || 'Loading...'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Mobile Navigation */}
+                    <nav className="flex-1 p-4 space-y-1">
+                      {sidebarItems.map((item) => {
+                        const Icon = item.icon;
+                        const active = isActive(item.path);
+                        
+                        return (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            onClick={closeMobileMenu}
+                            className={`flex items-center space-x-3 px-3 py-3 rounded-lg transition-colors group ${
+                              active 
+                                ? 'bg-pink-50 text-pink-600 border-r-2 border-pink-600' 
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            <Icon className="w-5 h-5" />
+                            <span className="font-medium">{item.label}</span>
+                            {active && <ChevronRight className="w-4 h-4 ml-auto" />}
+                          </Link>
+                        );
+                      })}
+                    </nav>
+
+                    {/* Mobile Menu Footer */}
+                    <div className="p-4 border-t">
+                      <Link to="/" onClick={closeMobileMenu}>
+                        <Button variant="outline" className="w-full">
+                          <Home className="w-4 h-4 mr-2" />
+                          Back to Home
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
             )}
+            
             <div>
               <h1 className="text-lg font-bold text-gray-900">{pageTitle}</h1>
               {profile?.full_name && (
@@ -74,6 +155,7 @@ const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", sho
               )}
             </div>
           </div>
+          
           <Link to="/">
             <Button variant="outline" size="sm" className="h-8 px-3">
               <Home className="w-4 h-4 mr-1" />
