@@ -1,10 +1,9 @@
-
 import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, Wallet, Trophy, Star, 
   User, Heart, Settings, ChevronRight, Home, ArrowLeft, Ticket,
-  ShoppingBag, Receipt, Users, Gift, HelpCircle, Store, BarChart3, Menu, X
+  ShoppingBag, Receipt, Users, Gift, HelpCircle, Menu, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,8 +32,6 @@ const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", sho
     { icon: Star, label: "JaiCoin Zone", path: "/jaicoin-zone" },
     { icon: Users, label: "Referral Program", path: "/referral-program" },
     { icon: Gift, label: "Pro Membership", path: "/pro-membership" },
-    { icon: BarChart3, label: "Analytics", path: "/analytics" },
-    { icon: Store, label: "Merchant Hub", path: "/merchant-dashboard" },
     { icon: HelpCircle, label: "Help & Support", path: "/help" },
     { icon: Settings, label: "Settings", path: "/settings" },
   ];

@@ -15,7 +15,7 @@ const MobileOptimizedLayout = ({
   className,
   containerClassName,
   padding = "md",
-  maxWidth = "4xl"
+  maxWidth = "2xl"
 }: MobileOptimizedLayoutProps) => {
   const paddingClasses = {
     none: "",
@@ -30,7 +30,6 @@ const MobileOptimizedLayout = ({
     lg: "max-w-lg",
     xl: "max-w-xl",
     "2xl": "max-w-2xl",
-    "4xl": "max-w-4xl",
     full: "max-w-full"
   };
 
