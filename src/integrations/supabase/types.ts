@@ -1004,6 +1004,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
+          bio: string | null
+          city: string | null
           created_at: string | null
           email: string | null
           full_name: string | null
@@ -1019,8 +1022,12 @@ export type Database = {
           subscription_status: string | null
           total_referrals: number | null
           updated_at: string | null
+          user_id_code: string | null
         }
         Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
@@ -1036,8 +1043,12 @@ export type Database = {
           subscription_status?: string | null
           total_referrals?: number | null
           updated_at?: string | null
+          user_id_code?: string | null
         }
         Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
@@ -1053,6 +1064,7 @@ export type Database = {
           subscription_status?: string | null
           total_referrals?: number | null
           updated_at?: string | null
+          user_id_code?: string | null
         }
         Relationships: []
       }

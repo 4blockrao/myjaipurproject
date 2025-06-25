@@ -78,20 +78,20 @@ const SettingsPage = () => {
       console.log('Profile data:', data);
       setProfile(data);
       
-      // Set form data with fallback values for fields that might not exist
+      // Set form data with safe access to all fields
       setFormData({
-        full_name: data.full_name || '',
-        email: data.email || '',
-        phone: data.phone || '',
-        city: data.city || '', // Will be empty if column doesn't exist
-        locality: data.locality || '',
-        bio: data.bio || '' // Will be empty if column doesn't exist
+        full_name: data?.full_name || '',
+        email: data?.email || '',
+        phone: data?.phone || '',
+        city: data?.city || '',
+        locality: data?.locality || '',
+        bio: data?.bio || ''
       });
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
         title: "Error",
-        description: "Failed to load profile data. Some features may be limited.",
+        description: "Failed to load profile data. Please try again.",
         variant: "destructive"
       });
     }
@@ -102,21 +102,15 @@ const SettingsPage = () => {
     
     setIsSaving(true);
     try {
-      // Only update fields that exist in the current schema
-      const updateData: any = {
+      // Update all profile fields
+      const updateData = {
         full_name: formData.full_name,
         email: formData.email,
         phone: formData.phone,
-        locality: formData.locality
+        city: formData.city,
+        locality: formData.locality,
+        bio: formData.bio
       };
-
-      // Only include city and bio if they exist in the profile (meaning columns exist)
-      if (profile && 'city' in profile) {
-        updateData.city = formData.city;
-      }
-      if (profile && 'bio' in profile) {
-        updateData.bio = formData.bio;
-      }
 
       const { error } = await supabase
         .from('profiles')
@@ -162,28 +156,20 @@ const SettingsPage = () => {
         .from('avatars')
         .getPublicUrl(filePath);
 
-      // Only update avatar_url if the column exists
-      if (profile && 'avatar_url' in profile) {
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ avatar_url: publicUrl })
-          .eq('id', user.id);
+      // Update avatar_url in profile
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl } as any)
+        .eq('id', user.id);
 
-        if (updateError) throw updateError;
+      if (updateError) throw updateError;
 
-        toast({
-          title: "Avatar Updated",
-          description: "Your profile picture has been updated successfully.",
-        });
+      toast({
+        title: "Avatar Updated",
+        description: "Your profile picture has been updated successfully.",
+      });
 
-        await fetchUserProfile(user.id);
-      } else {
-        toast({
-          title: "Feature Not Available",
-          description: "Avatar upload feature requires database migration. Please contact support.",
-          variant: "destructive"
-        });
-      }
+      await fetchUserProfile(user.id);
     } catch (error: any) {
       toast({
         title: "Upload Failed",
@@ -321,6 +307,14 @@ const SettingsPage = () => {
                     />
                   </div>
                   <div>
+                    <Label htmlFor="city">City</Label>
+                    <Input
+                      id="city"
+                      value={formData.city}
+                      onChange={(e) => setFormData({...formData, city: e.target.value})}
+                    />
+                  </div>
+                  <div>
                     <Label htmlFor="locality">Locality</Label>
                     <Input
                       id="locality"
@@ -328,28 +322,15 @@ const SettingsPage = () => {
                       onChange={(e) => setFormData({...formData, locality: e.target.value})}
                     />
                   </div>
-                  {/* Only show city and bio fields if they exist in the profile */}
-                  {profile && 'city' in profile && (
-                    <div>
-                      <Label htmlFor="city">City</Label>
-                      <Input
-                        id="city"
-                        value={formData.city}
-                        onChange={(e) => setFormData({...formData, city: e.target.value})}
-                      />
-                    </div>
-                  )}
-                  {profile && 'bio' in profile && (
-                    <div className="md:col-span-2">
-                      <Label htmlFor="bio">Bio</Label>
-                      <Input
-                        id="bio"
-                        value={formData.bio}
-                        onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                        placeholder="Tell us about yourself..."
-                      />
-                    </div>
-                  )}
+                  <div className="md:col-span-2">
+                    <Label htmlFor="bio">Bio</Label>
+                    <Input
+                      id="bio"
+                      value={formData.bio}
+                      onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                      placeholder="Tell us about yourself..."
+                    />
+                  </div>
                 </div>
                 <Button onClick={handleSaveProfile} disabled={isSaving} className="w-full">
                   {isSaving ? "Saving..." : "Save Changes"}
