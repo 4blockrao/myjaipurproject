@@ -7,8 +7,8 @@ import TodaysTopDeals from "@/components/home/TodaysTopDeals";
 import TopMerchants from "@/components/home/TopMerchants";
 import TrustIndicators from "@/components/home/TrustIndicators";
 import ReferEarnSection from "@/components/home/ReferEarnSection";
-import StickyBottomNav from "@/components/home/StickyBottomNav";
 import AuthModal from "@/components/AuthModal";
+import AppLayout from "@/components/layout/AppLayout";
 
 const Index = () => {
   const [user, setUser] = useState<any>(null);
@@ -94,26 +94,32 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      <HeroSection onSearch={handleSearch} />
-      <CategoryShortcuts 
-        categories={mockCategories}
-        selectedCategory=""
-        onCategorySelect={() => {}}
-        dealCounts={mockDealCounts}
-      />
-      <TodaysTopDeals deals={mockDeals} />
-      <TopMerchants />
-      <ReferEarnSection user={user} profile={profile} />
-      <TrustIndicators />
-      <StickyBottomNav />
-      
-      <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)}
-        referralCode={referralCode}
-      />
-    </div>
+    <AppLayout 
+      user={user} 
+      profile={profile} 
+      onAuthModal={() => setShowAuthModal(true)}
+      showBottomNav={true}
+    >
+      <div className="min-h-screen bg-white">
+        <HeroSection onSearch={handleSearch} />
+        <CategoryShortcuts 
+          categories={mockCategories}
+          selectedCategory=""
+          onCategorySelect={() => {}}
+          dealCounts={mockDealCounts}
+        />
+        <TodaysTopDeals deals={mockDeals} />
+        <TopMerchants />
+        <ReferEarnSection user={user} profile={profile} />
+        <TrustIndicators />
+        
+        <AuthModal 
+          isOpen={showAuthModal} 
+          onClose={() => setShowAuthModal(false)}
+          referralCode={referralCode}
+        />
+      </div>
+    </AppLayout>
   );
 };
 

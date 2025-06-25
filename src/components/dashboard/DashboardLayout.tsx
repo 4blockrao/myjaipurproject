@@ -1,3 +1,4 @@
+
 import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
@@ -53,55 +54,55 @@ const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", sho
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Enhanced Mobile Header */}
+      {/* Mobile Header */}
       <div className="lg:hidden bg-white shadow-sm border-b sticky top-0 z-50">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center space-x-3">
+        <div className="flex items-center justify-between px-3 py-3">
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
             {showBackButton ? (
               <Link to="/dashboard">
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Button variant="ghost" size="sm" className="h-9 w-9 p-0 flex-shrink-0">
                   <ArrowLeft className="w-4 h-4" />
                 </Button>
               </Link>
             ) : (
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0 flex-shrink-0">
                     <Menu className="w-5 h-5" />
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-80 p-0">
                   <div className="flex flex-col h-full">
                     {/* Mobile Menu Header */}
-                    <div className="p-6 border-b">
+                    <div className="p-6 border-b bg-gradient-to-r from-pink-500 to-orange-400">
                       <div className="flex items-center justify-between mb-4">
                         <Link to="/" className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-orange-400 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">MJ</span>
+                          <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                            <span className="text-pink-600 font-bold text-sm">MJ</span>
                           </div>
                           <div>
-                            <h2 className="font-bold text-gray-900">MyJaipur</h2>
-                            <p className="text-xs text-gray-600">Your Local Hub</p>
+                            <h2 className="font-bold text-white">MyJaipur</h2>
+                            <p className="text-xs text-pink-100">Your Local Hub</p>
                           </div>
                         </Link>
                         <SheetClose asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-white">
                             <X className="w-4 h-4" />
                           </Button>
                         </SheetClose>
                       </div>
 
                       {/* User Profile in Mobile Menu */}
-                      <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                        <Avatar className="w-10 h-10">
+                      <div className="flex items-center space-x-3 p-3 bg-white/20 rounded-lg">
+                        <Avatar className="w-10 h-10 flex-shrink-0">
                           <AvatarImage src={profile?.avatar_url} alt={profile?.full_name} />
-                          <AvatarFallback className="bg-gradient-to-r from-pink-500 to-orange-400 text-white font-bold">
+                          <AvatarFallback className="bg-white text-pink-600 font-bold">
                             {getInitials(profile?.full_name || 'User')}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0 flex-1">
-                          <h3 className="font-semibold text-gray-900 truncate">{profile?.full_name || 'User'}</h3>
-                          <p className="text-sm text-gray-600">ID: {profile?.user_id_code || 'Loading...'}</p>
+                          <h3 className="font-semibold text-white truncate text-sm">{profile?.full_name || 'User'}</h3>
+                          <p className="text-xs text-pink-100">ID: {profile?.user_id_code || 'Loading...'}</p>
                         </div>
                       </div>
                     </div>
@@ -123,9 +124,9 @@ const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", sho
                                 : 'text-gray-700 hover:bg-gray-50'
                             }`}
                           >
-                            <Icon className="w-5 h-5" />
-                            <span className="font-medium">{item.label}</span>
-                            {active && <ChevronRight className="w-4 h-4 ml-auto" />}
+                            <Icon className="w-5 h-5 flex-shrink-0" />
+                            <span className="font-medium text-sm">{item.label}</span>
+                            {active && <ChevronRight className="w-4 h-4 ml-auto flex-shrink-0" />}
                           </Link>
                         );
                       })}
@@ -145,16 +146,16 @@ const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", sho
               </Sheet>
             )}
             
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">{pageTitle}</h1>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg font-bold text-gray-900 truncate">{pageTitle}</h1>
               {profile?.full_name && (
-                <p className="text-xs text-gray-600">Welcome, {profile.full_name}</p>
+                <p className="text-xs text-gray-600 truncate">Welcome, {profile.full_name}</p>
               )}
             </div>
           </div>
           
           <Link to="/">
-            <Button variant="outline" size="sm" className="h-8 px-3">
+            <Button variant="outline" size="sm" className="h-8 px-3 flex-shrink-0">
               <Home className="w-4 h-4 mr-1" />
               <span className="text-xs">Home</span>
             </Button>

@@ -18,19 +18,20 @@ const StickyBottomNav = () => {
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg safe-area-pb">
-      <div className="flex items-center justify-around py-1 px-1">
+      <div className="flex items-center justify-around py-2 px-2">
         {navItems.map((item, index) => {
           const Icon = item.icon;
           const isActive = currentPath === item.path || 
             (item.path === "/dashboard" && currentPath.startsWith("/dashboard"));
           
           return (
-            <Link key={index} to={item.path} className="flex-1">
+            <Link key={index} to={item.path} className="flex-1 max-w-[80px]">
               <Button
                 variant="ghost"
                 size="sm"
                 className={`
                   w-full h-auto px-1 py-2 flex flex-col items-center space-y-1 relative
+                  min-h-[60px] touch-target
                   ${isActive 
                     ? "text-pink-600 bg-pink-50" 
                     : "text-gray-600 hover:text-pink-600 hover:bg-pink-50"
@@ -43,9 +44,9 @@ const StickyBottomNav = () => {
                   </Badge>
                 )}
                 
-                <Icon className={`w-4 h-4 ${isActive ? "text-pink-600" : "text-gray-600"}`} />
+                <Icon className={`w-5 h-5 ${isActive ? "text-pink-600" : "text-gray-600"}`} />
                 
-                <span className={`text-xs font-medium ${isActive ? "text-pink-600" : "text-gray-600"}`}>
+                <span className={`text-xs font-medium leading-tight text-center ${isActive ? "text-pink-600" : "text-gray-600"}`}>
                   {item.label}
                 </span>
               </Button>
