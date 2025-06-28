@@ -10,12 +10,52 @@ import TopMerchants from "@/components/home/TopMerchants";
 import ReferEarnSection from "@/components/home/ReferEarnSection";
 import TrustIndicators from "@/components/home/TrustIndicators";
 import { HealthCheck } from "@/components/HealthCheck";
+import { useQuery } from "@tanstack/react-query";
 
 const Index = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Fetch deals with React Query
+  const { data: deals = [], isLoading: dealsLoading } = useQuery({
+    queryKey: ['deals', selectedCategory, searchQuery],
+    queryFn: async () => {
+      let query = supabase
+        .from('deals')
+        .select('*')
+        .eq('approval_status', 'approved')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(6);
+
+      if (selectedCategory !== "all") {
+        query = query.eq('category', selectedCategory);
+      }
+
+      if (searchQuery) {
+        query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Get categories and deal counts
+  const categories = ["all", "Food & Dining", "Beauty & Wellness", "Shopping", "Electronics", "Health & Fitness", "Services"];
+  const dealCounts = categories.reduce((acc, category) => {
+    if (category === "all") {
+      acc[category] = deals.length;
+    } else {
+      acc[category] = deals.filter(deal => deal.category === category).length;
+    }
+    return acc;
+  }, {} as Record<string, number>);
 
   useEffect(() => {
     checkUser();
@@ -69,6 +109,14 @@ const Index = () => {
     }
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+  };
+
   return (
     <AppLayout 
       user={user} 
@@ -76,9 +124,20 @@ const Index = () => {
       onAuthModal={() => setShowAuthModal(true)}
     >
       <div className="min-h-screen">
-        <HeroSection user={user} onAuthModal={() => setShowAuthModal(true)} />
-        <CategoryShortcuts />
-        <ImprovedTodaysTopDeals />
+        <HeroSection 
+          userLocality={profile?.locality}
+          onSearch={handleSearch}
+        />
+        <CategoryShortcuts 
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategorySelect={handleCategorySelect}
+          dealCounts={dealCounts}
+        />
+        <ImprovedTodaysTopDeals 
+          deals={deals}
+          isLoading={dealsLoading}
+        />
         <TopMerchants />
         <ReferEarnSection user={user} profile={profile} />
         <TrustIndicators />

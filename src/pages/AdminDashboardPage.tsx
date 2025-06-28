@@ -82,7 +82,7 @@ const AdminDashboardPage = () => {
     );
   }
 
-  if (!user || (!isAdmin && !canManageUsers())) {
+  if (!user || (!isAdmin && !canManageUsers)) {
     return (
       <AppLayout user={user} profile={profile}>
         <div className="container mx-auto px-4 py-8">
