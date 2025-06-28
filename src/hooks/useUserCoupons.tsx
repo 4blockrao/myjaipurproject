@@ -6,6 +6,15 @@ export const useUserCoupons = () => {
   return useQuery({
     queryKey: ["user-coupons"],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.log('No authenticated user for coupons');
+        return [];
+      }
+
+      console.log('Fetching coupons for user:', user.id);
+      
       const { data: coupons, error } = await supabase
         .from("coupons")
         .select(`
@@ -21,6 +30,7 @@ export const useUserCoupons = () => {
             phone
           )
         `)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -28,6 +38,7 @@ export const useUserCoupons = () => {
         throw error;
       }
 
+      console.log('Coupons fetched:', coupons?.length || 0);
       return coupons || [];
     },
   });

@@ -7,14 +7,16 @@ import TodaysTopDeals from "@/components/home/TodaysTopDeals";
 import TopMerchants from "@/components/home/TopMerchants";
 import TrustIndicators from "@/components/home/TrustIndicators";
 import ReferEarnSection from "@/components/home/ReferEarnSection";
-import AuthModal from "@/components/AuthModal";
+import AuthModal from "@/components/auth/AuthModal";
 import AppLayout from "@/components/layout/AppLayout";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 
 const Index = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [referralCode, setReferralCode] = useState<string>('');
+  const { redirectPath, handleAuthRedirect, clearRedirectPath } = useAuthRedirect();
 
   useEffect(() => {
     // Check for referral code in URL parameters
@@ -31,21 +33,27 @@ const Index = () => {
   }, []);
 
   const checkUser = async () => {
+    // Set up auth state listener first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state change:', event, session?.user?.id);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        // Fetch user profile after setting user
+        setTimeout(() => {
+          fetchUserProfile(session.user.id);
+        }, 0);
+      } else {
+        setProfile(null);
+      }
+    });
+
+    // Then check for existing session
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
       setUser(session.user);
       fetchUserProfile(session.user.id);
     }
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-      } else {
-        setProfile(null);
-      }
-    });
 
     return () => subscription.unsubscribe();
   };
@@ -58,7 +66,12 @@ const Index = () => {
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+      
+      console.log('Profile loaded:', data);
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -68,6 +81,16 @@ const Index = () => {
   const handleSearch = (searchTerm: string) => {
     console.log('Search:', searchTerm);
     // Implement search functionality
+  };
+
+  const handleAuthModalOpen = () => {
+    handleAuthRedirect(window.location.pathname);
+    setShowAuthModal(true);
+  };
+
+  const handleAuthModalClose = () => {
+    setShowAuthModal(false);
+    clearRedirectPath();
   };
 
   // Mock data for components that need props
@@ -97,7 +120,7 @@ const Index = () => {
     <AppLayout 
       user={user} 
       profile={profile} 
-      onAuthModal={() => setShowAuthModal(true)}
+      onAuthModal={handleAuthModalOpen}
       showBottomNav={true}
     >
       <div className="min-h-screen bg-white">
@@ -115,8 +138,9 @@ const Index = () => {
         
         <AuthModal 
           isOpen={showAuthModal} 
-          onClose={() => setShowAuthModal(false)}
+          onClose={handleAuthModalClose}
           referralCode={referralCode}
+          redirectPath={redirectPath}
         />
       </div>
     </AppLayout>

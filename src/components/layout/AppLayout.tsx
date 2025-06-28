@@ -7,34 +7,23 @@ interface AppLayoutProps {
   children: ReactNode;
   user?: any;
   profile?: any;
-  onAuthModal?: () => void;
+  onAuthModal: () => void;
   showBottomNav?: boolean;
 }
 
-const AppLayout = ({ 
-  children, 
-  user, 
-  profile, 
-  onAuthModal, 
-  showBottomNav = true 
-}: AppLayoutProps) => {
+const AppLayout = ({ children, user, profile, onAuthModal, showBottomNav = true }: AppLayoutProps) => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Global Header - Always Present */}
+    <div className="min-h-screen bg-white">
       <ModernNavigation 
         user={user} 
         profile={profile} 
-        onAuthModal={onAuthModal || (() => {})} 
+        onAuthModal={onAuthModal}
       />
       
-      {/* Main Content with proper mobile spacing */}
-      <main className="pb-20 md:pb-8 pt-2">
-        <div className="min-h-screen">
-          {children}
-        </div>
+      <main className={showBottomNav ? "pb-20 md:pb-0" : ""}>
+        {children}
       </main>
       
-      {/* Mobile Bottom Navigation */}
       {showBottomNav && <StickyBottomNav />}
     </div>
   );

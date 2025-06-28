@@ -6,6 +6,15 @@ export const useUserOrders = () => {
   return useQuery({
     queryKey: ["user-orders"],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.log('No authenticated user for orders');
+        return [];
+      }
+
+      console.log('Fetching orders for user:', user.id);
+      
       const { data: orders, error } = await supabase
         .from("orders")
         .select(`
@@ -21,6 +30,7 @@ export const useUserOrders = () => {
             address
           )
         `)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -28,6 +38,7 @@ export const useUserOrders = () => {
         throw error;
       }
 
+      console.log('Orders fetched:', orders?.length || 0);
       return orders || [];
     },
   });
