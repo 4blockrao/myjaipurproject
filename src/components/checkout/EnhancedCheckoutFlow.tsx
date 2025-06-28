@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { useCreateOrder } from "@/hooks/useCreateOrder";
 import { useUserBalance } from "@/hooks/useUserBalance";
 import { ValidatedInput } from "@/components/ui/validated-input";
 import { QuantitySelector } from "@/components/checkout/QuantitySelector";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { 
   ArrowLeft, CreditCard, Coins, Gift, CheckCircle,
   MapPin, Calendar, Phone, Users, Shield, AlertTriangle
@@ -61,6 +61,18 @@ const EnhancedCheckoutFlow = () => {
   useEffect(() => {
     checkUser();
     if (dealId) {
+      // Validate dealId is a proper UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(dealId)) {
+        console.error('Invalid deal ID format:', dealId);
+        toast({
+          title: "Invalid Deal",
+          description: "The deal link is invalid",
+          variant: "destructive"
+        });
+        navigate('/deals');
+        return;
+      }
       fetchDealDetails();
     }
   }, [dealId]);
@@ -80,6 +92,7 @@ const EnhancedCheckoutFlow = () => {
 
   const fetchDealDetails = async () => {
     try {
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('deals')
         .select(`
@@ -175,7 +188,7 @@ const EnhancedCheckoutFlow = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
+        <LoadingSpinner size="lg" text="Loading deal details..." />
       </div>
     );
   }
@@ -298,7 +311,7 @@ const EnhancedCheckoutFlow = () => {
             </Card>
 
             {/* JaiCoins */}
-            {jaiCoinsBalance > 0 && (
+            {jaiCoinsBalance && jaiCoinsBalance > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -404,10 +417,7 @@ const EnhancedCheckoutFlow = () => {
                   className="w-full bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-lg py-6"
                 >
                   {createOrderMutation.isPending ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      Processing...
-                    </div>
+                    <LoadingSpinner size="sm" text="Processing..." />
                   ) : (
                     <div className="flex items-center gap-2">
                       <CreditCard className="w-5 h-5" />

@@ -16,6 +16,7 @@ const Index = () => {
   const [profile, setProfile] = useState<any>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [referralCode, setReferralCode] = useState<string>('');
+  const [dealsLoading, setDealsLoading] = useState(true);
   const { redirectPath, handleAuthRedirect, clearRedirectPath } = useAuthRedirect();
 
   useEffect(() => {
@@ -30,6 +31,11 @@ const Index = () => {
     }
 
     checkUser();
+    
+    // Simulate loading delay for deals
+    setTimeout(() => {
+      setDealsLoading(false);
+    }, 1500);
   }, []);
 
   const checkUser = async () => {
@@ -99,7 +105,7 @@ const Index = () => {
 
   const mockDeals = [
     {
-      id: '1',
+      id: '550e8400-e29b-41d4-a716-446655440001',
       title: '50% off at Rajasthani Thali House',
       description: 'Traditional Rajasthani cuisine with authentic flavors',
       discount_percentage: 50,
@@ -113,6 +119,22 @@ const Index = () => {
       end_date: '2024-07-15',
       jaicoin_reward: 25,
       created_at: '2024-06-20T10:00:00Z'
+    },
+    {
+      id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      title: 'Spa & Wellness Package',
+      description: 'Rejuvenating spa experience with full body massage',
+      discount_percentage: 60,
+      original_price: 1200,
+      discounted_price: 480,
+      location: 'Malviya Nagar, Jaipur',
+      category: 'wellness',
+      image: '/placeholder.svg',
+      is_featured: false,
+      merchant_id: '2',
+      end_date: '2024-07-20',
+      jaicoin_reward: 35,
+      created_at: '2024-06-21T10:00:00Z'
     }
   ];
 
@@ -131,7 +153,7 @@ const Index = () => {
           onCategorySelect={() => {}}
           dealCounts={mockDealCounts}
         />
-        <ImprovedTodaysTopDeals deals={mockDeals} />
+        <ImprovedTodaysTopDeals deals={mockDeals} isLoading={dealsLoading} />
         <TopMerchants />
         <ReferEarnSection user={user} profile={profile} />
         <TrustIndicators />

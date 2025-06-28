@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MapPin, Clock, Star, Coins, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 interface Deal {
   id: string;
@@ -24,9 +25,10 @@ interface Deal {
 
 interface TodaysTopDealsProps {
   deals: Deal[];
+  isLoading?: boolean;
 }
 
-const ImprovedTodaysTopDeals = ({ deals }: TodaysTopDealsProps) => {
+const ImprovedTodaysTopDeals = ({ deals, isLoading = false }: TodaysTopDealsProps) => {
   const navigate = useNavigate();
 
   const handleDealClick = (dealId: string) => {
@@ -45,6 +47,31 @@ const ImprovedTodaysTopDeals = ({ deals }: TodaysTopDealsProps) => {
     const diffDays = Math.floor(diffHours / 24);
     return `${diffDays}d left`;
   };
+
+  if (isLoading) {
+    return (
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold mb-2">Today's Top Deals</h2>
+            <p className="text-gray-600">Loading amazing offers...</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="overflow-hidden animate-pulse">
+                <div className="h-48 bg-gray-200"></div>
+                <CardContent className="p-4 space-y-3">
+                  <div className="h-4 bg-gray-200 rounded"></div>
+                  <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-8 bg-gray-200 rounded"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   if (!deals || deals.length === 0) {
     return (
