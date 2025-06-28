@@ -217,9 +217,13 @@ export type Database = {
       }
       deals: {
         Row: {
+          approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
           category: string | null
           coupon_type: string | null
           created_at: string | null
+          created_by: string | null
           current_redemptions: number | null
           deal_type: string | null
           description: string | null
@@ -241,6 +245,7 @@ export type Database = {
           product_details: Json | null
           product_id: string | null
           purchase_price: number | null
+          rejection_reason: string | null
           start_date: string | null
           subcategory: string | null
           tags: string[] | null
@@ -251,9 +256,13 @@ export type Database = {
           validity_days: number | null
         }
         Insert: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           category?: string | null
           coupon_type?: string | null
           created_at?: string | null
+          created_by?: string | null
           current_redemptions?: number | null
           deal_type?: string | null
           description?: string | null
@@ -275,6 +284,7 @@ export type Database = {
           product_details?: Json | null
           product_id?: string | null
           purchase_price?: number | null
+          rejection_reason?: string | null
           start_date?: string | null
           subcategory?: string | null
           tags?: string[] | null
@@ -285,9 +295,13 @@ export type Database = {
           validity_days?: number | null
         }
         Update: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           category?: string | null
           coupon_type?: string | null
           created_at?: string | null
+          created_by?: string | null
           current_redemptions?: number | null
           deal_type?: string | null
           description?: string | null
@@ -309,6 +323,7 @@ export type Database = {
           product_details?: Json | null
           product_id?: string | null
           purchase_price?: number | null
+          rejection_reason?: string | null
           start_date?: string | null
           subcategory?: string | null
           tags?: string[] | null
@@ -587,6 +602,8 @@ export type Database = {
         Row: {
           address: string | null
           approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
           average_rating: number | null
           business_name: string
           business_type: string | null
@@ -613,6 +630,8 @@ export type Database = {
         Insert: {
           address?: string | null
           approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           average_rating?: number | null
           business_name: string
           business_type?: string | null
@@ -639,6 +658,8 @@ export type Database = {
         Update: {
           address?: string | null
           approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           average_rating?: number | null
           business_name?: string
           business_type?: string | null
@@ -1324,6 +1345,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1384,13 +1441,45 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: number
       }
+      get_user_roles: {
+        Args: { _user_id: string }
+        Returns: {
+          role: Database["public"]["Enums"]["app_role"]
+          assigned_at: string
+          metadata: Json
+        }[]
+      }
+      has_any_role: {
+        Args: {
+          _user_id: string
+          _roles: Database["public"]["Enums"]["app_role"][]
+        }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
       is_pro_member: {
         Args: { user_uuid: string }
         Returns: boolean
       }
+      upgrade_to_pro_user: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "user"
+        | "pro_user"
+        | "merchant"
+        | "listing_agent"
+        | "listing_supervisor"
+        | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1505,6 +1594,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "user",
+        "pro_user",
+        "merchant",
+        "listing_agent",
+        "listing_supervisor",
+        "admin",
+      ],
+    },
   },
 } as const

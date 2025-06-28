@@ -1,79 +1,82 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Index from "./pages/Index";
-import EnhancedCheckoutFlow from "./components/checkout/EnhancedCheckoutFlow";
-import DashboardPage from "./pages/DashboardPage";
-import WalletPage from "./pages/WalletPage";
-import LeaderboardPage from "./pages/LeaderboardPage";
-import JAICoinZonePage from "./pages/JAICoinZonePage";
-import ProfilePage from "./pages/ProfilePage";
-import FavoritesPage from "./pages/FavoritesPage";
-import CouponsPage from "./pages/CouponsPage";
-import OrdersPage from "./pages/OrdersPage";
 import DealsPage from "./pages/DealsPage";
 import DealDetailPage from "./pages/DealDetailPage";
-import MerchantPage from "./pages/MerchantPage";
-import CategoriesPage from "./pages/CategoriesPage";
-import ExplorePage from "./pages/ExplorePage";
-import ScanPage from "./pages/ScanPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import NewCheckoutPage from "./pages/NewCheckoutPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
+import OrdersPage from "./pages/OrdersPage";
+import ProfilePage from "./pages/ProfilePage";
+import WalletPage from "./pages/WalletPage";
+import CouponsPage from "./pages/CouponsPage";
+import FavoritesPage from "./pages/FavoritesPage";
+import SettingsPage from "./pages/SettingsPage";
 import HelpPage from "./pages/HelpPage";
-import NotFound from "./pages/NotFound";
 import ReferralProgramPage from "./pages/ReferralProgramPage";
-import MerchantOnboardingPage from "./pages/MerchantOnboardingPage";
-import MerchantDashboardPage from "./pages/MerchantDashboardPage";
 import ProMembershipPage from "./pages/ProMembershipPage";
 import GamificationPage from "./pages/GamificationPage";
+import JAICoinZonePage from "./pages/JAICoinZonePage";
+import LeaderboardPage from "./pages/LeaderboardPage";
 import ChallengesPage from "./pages/ChallengesPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
-import SettingsPage from "./pages/SettingsPage";
+import DashboardPage from "./pages/DashboardPage";
+import ExplorePage from "./pages/ExplorePage";
+import CategoriesPage from "./pages/CategoriesPage";
+import ScanPage from "./pages/ScanPage";
+import MerchantOnboardingPage from "./pages/MerchantOnboardingPage";
+import MerchantDashboardPage from "./pages/MerchantDashboardPage";
+import MerchantPortalPage from "./pages/MerchantPortalPage";
+import MerchantPage from "./pages/MerchantPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
       <Toaster />
       <Sonner />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/wallet" element={<WalletPage />} />
-          <Route path="/leaderboard" element={<LeaderboardPage />} />
-          <Route path="/jaicoin-zone" element={<JAICoinZonePage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/favorites" element={<FavoritesPage />} />
-          <Route path="/coupons" element={<CouponsPage />} />
-          <Route path="/orders" element={<OrdersPage />} />
           <Route path="/deals" element={<DealsPage />} />
           <Route path="/deal/:id" element={<DealDetailPage />} />
-          <Route path="/merchant/:id" element={<MerchantPage />} />
-          <Route path="/categories" element={<CategoriesPage />} />
-          <Route path="/explore" element={<ExplorePage />} />
-          <Route path="/scan" element={<ScanPage />} />
-          <Route path="/checkout/:dealId" element={<EnhancedCheckoutFlow />} />
           <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
+          <Route path="/new-checkout" element={<NewCheckoutPage />} />
           <Route path="/order-success" element={<OrderSuccessPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/wallet" element={<WalletPage />} />
+          <Route path="/coupons" element={<CouponsPage />} />
+          <Route path="/favorites" element={<FavoritesPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/help" element={<HelpPage />} />
-          <Route path="/referral-program" element={<ReferralProgramPage />} />
-          <Route path="/merchant-onboarding" element={<MerchantOnboardingPage />} />
-          <Route path="/merchant-dashboard" element={<MerchantDashboardPage />} />
-          <Route path="/pro-membership" element={<ProMembershipPage />} />
+          <Route path="/referral" element={<ReferralProgramPage />} />
+          <Route path="/pro" element={<ProMembershipPage />} />
           <Route path="/gamification" element={<GamificationPage />} />
+          <Route path="/jaicoin-zone" element={<JAICoinZonePage />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/challenges" element={<ChallengesPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/scan" element={<ScanPage />} />
+          <Route path="/merchant-onboarding" element={<MerchantOnboardingPage />} />
+          <Route path="/merchant-dashboard" element={<MerchantDashboardPage />} />
+          <Route path="/merchant-portal" element={<MerchantPortalPage />} />
+          <Route path="/merchant" element={<MerchantPage />} />
+          <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </QueryClientProvider>
+  );
+}
 
 export default App;

@@ -48,7 +48,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       </main>
       
       {showBottomNav && user && (
-        <StickyBottomNav user={user} profile={profile} />
+        <StickyBottomNav />
       )}
     </div>
   );

@@ -1,55 +1,55 @@
 
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Home, Search, Heart, User, LayoutDashboard } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Home, Search, Heart, User, ShoppingBag, Shield } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useUserRoles } from "@/hooks/useUserRoles";
 
 const StickyBottomNav = () => {
   const location = useLocation();
-  const currentPath = location.pathname;
+  const [user, setUser] = useState<any>(null);
+  const { canManageDeals, isAdmin } = useUserRoles(user?.id);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+    };
+    getUser();
+  }, []);
 
   const navItems = [
-    { icon: Home, label: "Home", path: "/", badge: null },
-    { icon: Search, label: "Explore", path: "/deals", badge: null },
-    { icon: Heart, label: "Favorites", path: "/favorites", badge: 3 },
-    { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", badge: null },
-    { icon: User, label: "Profile", path: "/profile", badge: null },
+    { icon: Home, label: "Home", path: "/" },
+    { icon: Search, label: "Deals", path: "/deals" },
+    { icon: ShoppingBag, label: "Orders", path: "/orders" },
+    { icon: Heart, label: "Favorites", path: "/favorites" },
+    { icon: User, label: "Profile", path: "/profile" }
   ];
 
+  // Add admin nav item for authorized users
+  if (canManageDeals || isAdmin) {
+    navItems.splice(4, 0, { icon: Shield, label: "Admin", path: "/admin" });
+  }
+
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg safe-area-pb">
-      <div className="flex items-center justify-around py-2 px-2">
-        {navItems.map((item, index) => {
-          const Icon = item.icon;
-          const isActive = currentPath === item.path || 
-            (item.path === "/dashboard" && currentPath.startsWith("/dashboard"));
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50">
+      <div className="flex justify-around items-center max-w-md mx-auto">
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          const IconComponent = item.icon;
           
           return (
-            <Link key={index} to={item.path} className="flex-1 max-w-[80px]">
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`
-                  w-full h-auto px-1 py-2 flex flex-col items-center space-y-1 relative
-                  min-h-[60px] touch-target
-                  ${isActive 
-                    ? "text-pink-600 bg-pink-50" 
-                    : "text-gray-600 hover:text-pink-600 hover:bg-pink-50"
-                  }
-                `}
-              >
-                {item.badge && (
-                  <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 rounded-full p-0 flex items-center justify-center">
-                    {item.badge}
-                  </Badge>
-                )}
-                
-                <Icon className={`w-5 h-5 ${isActive ? "text-pink-600" : "text-gray-600"}`} />
-                
-                <span className={`text-xs font-medium leading-tight text-center ${isActive ? "text-pink-600" : "text-gray-600"}`}>
-                  {item.label}
-                </span>
-              </Button>
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
+                isActive 
+                  ? "text-pink-600 bg-pink-50" 
+                  : "text-gray-600 hover:text-pink-600 hover:bg-pink-50"
+              }`}
+            >
+              <IconComponent className="w-5 h-5 mb-1" />
+              <span className="text-xs font-medium">{item.label}</span>
             </Link>
           );
         })}
