@@ -15,7 +15,7 @@ interface Deal {
   discounted_price: number;
   location: string;
   category: string;
-  image: string;
+  image_url: string;
   is_featured: boolean;
   merchant_id: string;
   end_date: string;
@@ -113,7 +113,7 @@ const ImprovedTodaysTopDeals = ({ deals, isLoading = false }: TodaysTopDealsProp
             >
               <div className="relative">
                 <img 
-                  src={deal.image || "/placeholder.svg"} 
+                  src={deal.image_url || "/placeholder.svg"} 
                   alt={deal.title}
                   className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
