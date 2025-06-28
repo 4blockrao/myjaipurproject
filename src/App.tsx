@@ -1,10 +1,10 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import EnhancedCheckoutFlow from "./components/checkout/EnhancedCheckoutFlow";
 import DashboardPage from "./pages/DashboardPage";
 import WalletPage from "./pages/WalletPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
@@ -56,7 +56,7 @@ const App = () => (
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/explore" element={<ExplorePage />} />
           <Route path="/scan" element={<ScanPage />} />
-          <Route path="/checkout/:orderId" element={<CheckoutPage />} />
+          <Route path="/checkout/:dealId" element={<EnhancedCheckoutFlow />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
           <Route path="/order-success" element={<OrderSuccessPage />} />

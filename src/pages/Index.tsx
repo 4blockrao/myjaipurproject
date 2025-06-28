@@ -1,13 +1,13 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import HeroSection from "@/components/home/HeroSection";
+import ImprovedHeroSection from "@/components/home/ImprovedHeroSection";
 import CategoryShortcuts from "@/components/home/CategoryShortcuts";
-import TodaysTopDeals from "@/components/home/TodaysTopDeals";
+import ImprovedTodaysTopDeals from "@/components/home/ImprovedTodaysTopDeals";
 import TopMerchants from "@/components/home/TopMerchants";
 import TrustIndicators from "@/components/home/TrustIndicators";
 import ReferEarnSection from "@/components/home/ReferEarnSection";
-import AuthModal from "@/components/auth/AuthModal";
+import EnhancedAuthModal from "@/components/auth/EnhancedAuthModal";
 import AppLayout from "@/components/layout/AppLayout";
 import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 
@@ -101,7 +101,7 @@ const Index = () => {
     {
       id: '1',
       title: '50% off at Rajasthani Thali House',
-      description: 'Traditional Rajasthani cuisine',
+      description: 'Traditional Rajasthani cuisine with authentic flavors',
       discount_percentage: 50,
       original_price: 800,
       discounted_price: 400,
@@ -124,19 +124,19 @@ const Index = () => {
       showBottomNav={true}
     >
       <div className="min-h-screen bg-white">
-        <HeroSection onSearch={handleSearch} />
+        <ImprovedHeroSection onSearch={handleSearch} />
         <CategoryShortcuts 
           categories={mockCategories}
           selectedCategory=""
           onCategorySelect={() => {}}
           dealCounts={mockDealCounts}
         />
-        <TodaysTopDeals deals={mockDeals} />
+        <ImprovedTodaysTopDeals deals={mockDeals} />
         <TopMerchants />
         <ReferEarnSection user={user} profile={profile} />
         <TrustIndicators />
         
-        <AuthModal 
+        <EnhancedAuthModal 
           isOpen={showAuthModal} 
           onClose={handleAuthModalClose}
           referralCode={referralCode}
