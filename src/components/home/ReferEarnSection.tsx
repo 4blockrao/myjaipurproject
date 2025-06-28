@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   Users, Coins, Gift, Star, Trophy, Crown,
   Share2, ChevronRight, Sparkles, Target
@@ -18,29 +20,53 @@ interface ReferEarnSectionProps {
 const ReferEarnSection = ({ user, profile }: ReferEarnSectionProps) => {
   const [userBalance, setUserBalance] = useState(0);
   const [referralCount, setReferralCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
       fetchUserData();
+    } else {
+      setIsLoading(false);
     }
   }, [user]);
 
   const fetchUserData = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setIsLoading(false);
+      return;
+    }
 
-    // Get user balance
-    const { data: balance } = await supabase.rpc('get_user_balance', {
-      user_uuid: user.id
-    });
-    setUserBalance(balance || 0);
+    try {
+      setIsLoading(true);
+      
+      // Get user balance
+      const { data: balance, error: balanceError } = await supabase.rpc('get_user_balance', {
+        user_uuid: user.id
+      });
+      
+      if (balanceError) {
+        console.error('Error fetching balance:', balanceError);
+      } else {
+        setUserBalance(balance || 0);
+      }
 
-    // Get referral count
-    const { data: referrals } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('referred_by', user.id);
-    setReferralCount(referrals?.length || 0);
+      // Get referral count
+      const { data: referrals, error: referralError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('referred_by', user.id);
+      
+      if (referralError) {
+        console.error('Error fetching referrals:', referralError);
+      } else {
+        setReferralCount(referrals?.length || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const copyReferralCode = async () => {
@@ -82,6 +108,16 @@ const ReferEarnSection = ({ user, profile }: ReferEarnSectionProps) => {
     { icon: Trophy, title: "Rank System", subtitle: "Become Jaipur Maharaja" },
     { icon: Star, title: "VIP Access", subtitle: "Exclusive deals & events" }
   ];
+
+  if (isLoading) {
+    return (
+      <section className="relative overflow-hidden px-4 py-8 lg:px-8 lg:py-16">
+        <div className="flex items-center justify-center min-h-[200px]">
+          <LoadingSpinner size="lg" />
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="relative overflow-hidden px-4 py-8 lg:px-8 lg:py-16">

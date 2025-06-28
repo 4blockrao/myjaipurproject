@@ -34,9 +34,12 @@ export const useUserRoles = (userId?: string) => {
       
       const userRoles = data?.map((item: UserRoleData) => item.role) || [];
       setRoles(userRoles);
+      setError(null);
     } catch (err: any) {
       console.error('Error fetching user roles:', err);
       setError(err.message);
+      // Set default user role if error occurs
+      setRoles(['user']);
     } finally {
       setIsLoading(false);
     }
@@ -50,16 +53,16 @@ export const useUserRoles = (userId?: string) => {
     return rolesToCheck.some(role => roles.includes(role));
   };
 
-  const isUser = () => hasRole('user');
-  const isProUser = () => hasRole('pro_user');
-  const isMerchant = () => hasRole('merchant');
-  const isListingAgent = () => hasRole('listing_agent');
-  const isListingSupervisor = () => hasRole('listing_supervisor');
-  const isAdmin = () => hasRole('admin');
+  const isUser = hasRole('user');
+  const isProUser = hasRole('pro_user');
+  const isMerchant = hasRole('merchant');
+  const isListingAgent = hasRole('listing_agent');
+  const isListingSupervisor = hasRole('listing_supervisor');
+  const isAdmin = hasRole('admin');
 
-  const canManageDeals = () => hasAnyRole(['listing_agent', 'listing_supervisor', 'admin']);
-  const canApproveDeals = () => hasAnyRole(['listing_supervisor', 'admin']);
-  const canManageUsers = () => hasAnyRole(['listing_supervisor', 'admin']);
+  const canManageDeals = hasAnyRole(['listing_agent', 'listing_supervisor', 'admin']);
+  const canApproveDeals = hasAnyRole(['listing_supervisor', 'admin']);
+  const canManageUsers = hasAnyRole(['listing_supervisor', 'admin']);
 
   const assignRole = async (targetUserId: string, role: UserRole) => {
     try {
@@ -102,9 +105,9 @@ export const useUserRoles = (userId?: string) => {
     isListingAgent,
     isListingSupervisor,
     isAdmin,
-    canManageDeals,
-    canApproveDeals,
-    canManageUsers,
+    canManageDeals: canManageDeals,
+    canApproveDeals: canApproveDeals,
+    canManageUsers: canManageUsers,
     assignRole,
     refetch: () => userId && fetchUserRoles(userId)
   };
