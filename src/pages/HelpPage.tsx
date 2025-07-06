@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { 
   Search, MessageCircle, Phone, Mail, Clock, 
   HelpCircle, Book, Video, Users, Star,
@@ -14,6 +16,8 @@ import {
 } from "lucide-react";
 
 const HelpPage = () => {
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [contactForm, setContactForm] = useState({
     name: "",
@@ -22,6 +26,37 @@ const HelpPage = () => {
     message: ""
   });
   const { toast } = useToast();
+
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  const checkUser = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+        await fetchUserProfile(session.user.id);
+      }
+    } catch (error) {
+      console.error('Error checking user:', error);
+    }
+  };
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      setProfile(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const faqCategories = [
     {
@@ -161,7 +196,6 @@ const HelpPage = () => {
 
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real implementation, this would send the message to support
     toast({
       title: "Message Sent",
       description: "We'll get back to you within 24 hours"
@@ -170,20 +204,15 @@ const HelpPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b shadow-sm">
-        <div className="container mx-auto px-4 py-6">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Help Center</h1>
-            <p className="text-gray-600">Find answers to your questions and get support</p>
-          </div>
+    <DashboardLayout user={user} profile={profile} pageTitle="Help & Support" showBackButton>
+      <div className="space-y-6 p-4 max-w-6xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Help Center</h1>
+          <p className="text-gray-600">Find answers to your questions and get support</p>
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 py-8">
         {/* Search Bar */}
-        <div className="max-w-2xl mx-auto mb-12">
+        <div className="max-w-2xl mx-auto mb-8">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
@@ -196,7 +225,7 @@ const HelpPage = () => {
         </div>
 
         {/* Quick Contact Options */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {contactOptions.map((option, index) => (
             <Card key={index} className={`border-2 ${option.color} hover:shadow-lg transition-shadow cursor-pointer`}>
               <CardContent className="p-6 text-center">
@@ -344,7 +373,7 @@ const HelpPage = () => {
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
