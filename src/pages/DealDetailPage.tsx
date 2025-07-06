@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +53,7 @@ interface Review {
 
 const DealDetailPage = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [deal, setDeal] = useState<Deal | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [relatedDeals, setRelatedDeals] = useState<Deal[]>([]);
@@ -197,9 +198,9 @@ const DealDetailPage = () => {
 
   const handlePurchase = () => {
     if (!deal) return;
-    // In real implementation, this would create an order and redirect to checkout
+    // Create an order and navigate to checkout
     const orderId = `order_${Date.now()}`;
-    window.location.href = `/checkout/${orderId}`;
+    navigate(`/checkout/${orderId}`);
   };
 
   const getRemainingTime = () => {

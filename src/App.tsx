@@ -64,7 +64,9 @@ function App() {
             <Route path="/deals" element={<DealsPage />} />
             <Route path="/deal/:id" element={<DealDetailPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/checkout/:orderId" element={<CheckoutPage />} />
             <Route path="/new-checkout" element={<NewCheckoutPage />} />
+            <Route path="/new-checkout/:orderId" element={<NewCheckoutPage />} />
             <Route path="/order-success" element={<OrderSuccessPage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/my-deals" element={<UserDealsPage />} />
