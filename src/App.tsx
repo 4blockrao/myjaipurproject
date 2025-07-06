@@ -75,6 +75,7 @@ function App() {
             <Route path="/referral" element={<ReferralProgramPage />} />
             <Route path="/referral-program" element={<ReferralProgramPage />} />
             <Route path="/pro" element={<ProMembershipPage />} />
+            <Route path="/pro-membership" element={<ProMembershipPage />} />
             <Route path="/gamification" element={<GamificationPage />} />
             <Route path="/jaicoin-zone" element={<JAICoinZonePage />} />
             <Route path="/leaderboard" element={<LeaderboardPage />} />

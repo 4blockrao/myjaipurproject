@@ -1,27 +1,18 @@
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import MembershipPlans from "@/components/membership/MembershipPlans";
+import MembershipTestimonials from "@/components/membership/MembershipTestimonials";
 import { 
-  Crown, Star, Zap, Gift, Shield, Percent, 
-  Clock, Users, Calendar, Check, X,
-  Sparkles, Award, TrendingUp, Phone
+  Crown, Gift, Shield, Calendar, Check, Phone,
+  Zap, Star, TrendingUp
 } from "lucide-react";
-
-interface MembershipPlan {
-  id: string;
-  name: string;
-  price: number;
-  duration: 'monthly' | 'yearly';
-  features: string[];
-  popularBadge?: boolean;
-  savingsPercent?: number;
-}
 
 const ProMembershipPage = () => {
   const [user, setUser] = useState<any>(null);
@@ -31,11 +22,11 @@ const ProMembershipPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const membershipPlans: MembershipPlan[] = [
+  const membershipPlans = [
     {
       id: 'basic',
       name: 'Basic',
-      price: billingCycle === 'monthly' ? 0 : 0,
+      price: 0,
       duration: billingCycle,
       features: [
         'Access to basic deals',
@@ -152,7 +143,7 @@ const ProMembershipPage = () => {
       if (session?.user) {
         setUser(session.user);
         await fetchUserProfile(session.user.id);
-        setCurrentPlan('basic'); // Mock - in real implementation, fetch from user profile
+        setCurrentPlan('basic');
       }
     } catch (error) {
       console.error('Error checking user:', error);
@@ -186,13 +177,11 @@ const ProMembershipPage = () => {
       return;
     }
 
-    // In a real implementation, this would integrate with payment gateway
     toast({
       title: "Redirecting to Payment",
       description: "You'll be redirected to complete your subscription"
     });
     
-    // Mock payment flow
     setTimeout(() => {
       setCurrentPlan(planId);
       toast({
@@ -200,14 +189,6 @@ const ProMembershipPage = () => {
         description: `Welcome to ${planId === 'pro' ? 'Pro' : 'Premium'} membership!`
       });
     }, 2000);
-  };
-
-  const handleCancelSubscription = async () => {
-    // In a real implementation, this would call the subscription management API
-    toast({
-      title: "Subscription Cancelled",
-      description: "Your subscription will remain active until the end of the current billing period"
-    });
   };
 
   if (isLoading) {
@@ -272,11 +253,6 @@ const ProMembershipPage = () => {
                     </p>
                   </div>
                 </div>
-                {currentPlan !== 'basic' && (
-                  <Button variant="outline" onClick={handleCancelSubscription} size="sm">
-                    Manage Subscription
-                  </Button>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -303,81 +279,12 @@ const ProMembershipPage = () => {
         </div>
 
         {/* Pricing Plans */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {membershipPlans.map((plan) => (
-            <Card 
-              key={plan.id} 
-              className={`relative ${
-                plan.popularBadge ? 'border-2 border-pink-500 shadow-lg scale-105' : ''
-              } ${currentPlan === plan.id ? 'ring-2 ring-green-500 bg-green-50' : ''}`}
-            >
-              {plan.popularBadge && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-pink-500 text-white px-3 py-1">
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    Most Popular
-                  </Badge>
-                </div>
-              )}
-              
-              {currentPlan === plan.id && (
-                <div className="absolute -top-3 right-4">
-                  <Badge className="bg-green-500 text-white">
-                    <Check className="w-3 h-3 mr-1" />
-                    Current Plan
-                  </Badge>
-                </div>
-              )}
-
-              <CardHeader className="text-center pb-4">
-                <CardTitle className="text-xl">{plan.name}</CardTitle>
-                <div className="space-y-2">
-                  <div className="text-2xl font-bold">
-                    ₹{plan.price}
-                    <span className="text-sm font-normal text-gray-600">
-                      /{plan.duration === 'monthly' ? 'month' : 'year'}
-                    </span>
-                  </div>
-                  {plan.savingsPercent && (
-                    <Badge className="bg-green-100 text-green-700">
-                      Save {plan.savingsPercent}%
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-4 pt-0">
-                <ul className="space-y-2">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                
-                <Button 
-                  className={`w-full ${
-                    plan.popularBadge 
-                      ? 'bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700' 
-                      : ''
-                  }`}
-                  variant={plan.id === 'basic' ? 'outline' : 'default'}
-                  onClick={() => plan.id !== 'basic' && plan.id !== currentPlan && handleSubscribe(plan.id)}
-                  disabled={plan.id === currentPlan || (plan.id === 'basic' && !user)}
-                  size="sm"
-                >
-                  {plan.id === currentPlan 
-                    ? 'Current Plan' 
-                    : plan.id === 'basic' 
-                      ? 'Free Plan' 
-                      : `Upgrade to ${plan.name}`
-                  }
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <MembershipPlans 
+          plans={membershipPlans}
+          currentPlan={currentPlan}
+          onSubscribe={handleSubscribe}
+          user={user}
+        />
 
         {/* Pro Features Highlight */}
         <div>
@@ -396,59 +303,7 @@ const ProMembershipPage = () => {
         </div>
 
         {/* Customer Testimonials */}
-        <div>
-          <h2 className="text-2xl font-bold text-center mb-6">What Our Pro Members Say</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="bg-gradient-to-br from-pink-50 to-purple-50 border-pink-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-1 mb-3">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 text-sm mb-3">"{testimonial.text}"</p>
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <p className="font-semibold text-sm">{testimonial.name}</p>
-                      <p className="text-xs text-gray-600">{testimonial.location}</p>
-                    </div>
-                    <Badge className="bg-green-100 text-green-700 text-xs">
-                      Saved {testimonial.savings}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* FAQ Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-center">Frequently Asked Questions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-semibold mb-2 text-sm">Can I cancel my subscription anytime?</h4>
-                <p className="text-gray-600 text-xs">Yes, you can cancel your subscription at any time. Your benefits will continue until the end of your current billing period.</p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2 text-sm">Do I get a refund if I cancel early?</h4>
-                <p className="text-gray-600 text-xs">We offer a 7-day money-back guarantee for new subscribers. After that, no refunds are provided for unused time.</p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2 text-sm">What payment methods do you accept?</h4>
-                <p className="text-gray-600 text-xs">We accept all major credit cards, debit cards, UPI, net banking, and digital wallets.</p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2 text-sm">Can I upgrade or downgrade my plan?</h4>
-                <p className="text-gray-600 text-xs">Yes, you can change your plan at any time. Changes will be prorated and reflected in your next billing cycle.</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <MembershipTestimonials testimonials={testimonials} />
 
         {/* Contact Support */}
         <div className="text-center">
