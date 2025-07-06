@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +20,9 @@ interface Deal {
   couponType: 'free' | 'paid_discount' | 'full_value';
   purchasePrice: number;
   minOrderValue: number;
+  shareReward: number;
+  clickReward: number;
+  redemptionReward: number;
 }
 
 const MerchantOnboarding = () => {
@@ -50,20 +52,50 @@ const MerchantOnboarding = () => {
     usageTerms: '',
     couponType: 'paid_discount',
     purchasePrice: 0,
-    minOrderValue: 0
+    minOrderValue: 0,
+    shareReward: 5,
+    clickReward: 2,
+    redemptionReward: 10
   }]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [referralCode, setReferralCode] = useState<string>('');
+  const [referrerProfile, setReferrerProfile] = useState<any>(null);
   const { toast } = useToast();
 
-  useState(() => {
+  useEffect(() => {
     checkUser();
-  });
+    checkReferralCode();
+  }, []);
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setUser(user);
+  };
+
+  const checkReferralCode = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+      setReferralCode(refCode);
+      fetchReferrerProfile(refCode);
+    }
+  };
+
+  const fetchReferrerProfile = async (refCode: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, referral_code')
+        .eq('referral_code', refCode.toUpperCase())
+        .single();
+
+      if (error) throw error;
+      setReferrerProfile(data);
+    } catch (error) {
+      console.error('Error fetching referrer profile:', error);
+    }
   };
 
   const businessTypes = [
@@ -93,7 +125,10 @@ const MerchantOnboarding = () => {
       usageTerms: '',
       couponType: 'paid_discount',
       purchasePrice: 0,
-      minOrderValue: 0
+      minOrderValue: 0,
+      shareReward: 5,
+      clickReward: 2,
+      redemptionReward: 10
     }]);
   };
 
@@ -124,7 +159,7 @@ const MerchantOnboarding = () => {
     setIsSubmitting(true);
 
     try {
-      // Convert deals to proper format for database
+      // Convert deals to proper format for database with reward structure
       const dealsData = deals.map(deal => ({
         title: deal.title,
         description: deal.description,
@@ -135,29 +170,41 @@ const MerchantOnboarding = () => {
         usage_terms: deal.usageTerms,
         coupon_type: deal.couponType,
         purchase_price: deal.purchasePrice,
-        min_order_value: deal.minOrderValue
+        min_order_value: deal.minOrderValue,
+        share_reward: deal.shareReward,
+        click_reward: deal.clickReward,
+        redemption_reward: deal.redemptionReward
       }));
+
+      const applicationData = {
+        user_id: user.id,
+        merchant_name: formData.merchantName,
+        business_type: formData.businessType,
+        contact_email: formData.contactEmail,
+        contact_phone: formData.contactPhone,
+        address: formData.address,
+        location: formData.location,
+        description: formData.description,
+        social_handles: formData.socialHandles,
+        deals_data: dealsData as any
+      };
+
+      // Add referral information if available
+      if (referrerProfile) {
+        (applicationData as any).referred_by = referrerProfile.id;
+      }
 
       const { error } = await supabase
         .from('merchant_applications')
-        .insert({
-          user_id: user.id,
-          merchant_name: formData.merchantName,
-          business_type: formData.businessType,
-          contact_email: formData.contactEmail,
-          contact_phone: formData.contactPhone,
-          address: formData.address,
-          location: formData.location,
-          description: formData.description,
-          social_handles: formData.socialHandles,
-          deals_data: dealsData as any
-        });
+        .insert(applicationData);
 
       if (error) throw error;
 
       toast({
         title: "Application Submitted!",
-        description: "Your merchant application has been submitted for review. You'll receive an email once it's approved.",
+        description: referrerProfile 
+          ? `Your merchant application has been submitted for review. ${referrerProfile.full_name} will receive referral rewards once approved!`
+          : "Your merchant application has been submitted for review. You'll receive an email once it's approved.",
       });
 
       // Reset form
@@ -182,7 +229,10 @@ const MerchantOnboarding = () => {
         usageTerms: '',
         couponType: 'paid_discount',
         purchasePrice: 0,
-        minOrderValue: 0
+        minOrderValue: 0,
+        shareReward: 5,
+        clickReward: 2,
+        redemptionReward: 10
       }]);
 
     } catch (error) {
@@ -203,6 +253,15 @@ const MerchantOnboarding = () => {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">Merchant Onboarding</h1>
           <p className="text-gray-600 text-lg">Join our platform and start offering amazing deals to customers</p>
+          
+          {referrerProfile && (
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-blue-800">
+                🎉 You were referred by <strong>{referrerProfile.full_name}</strong>! 
+                They'll receive rewards when your application is approved.
+              </p>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -213,9 +272,7 @@ const MerchantOnboarding = () => {
                 <Building2 className="w-5 h-5" />
                 Business Information
               </CardTitle>
-              <CardDescription>
-                Tell us about your business
-              </CardDescription>
+              <CardDescription>Tell us about your business</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -480,6 +537,53 @@ const MerchantOnboarding = () => {
                         />
                       </div>
                     </div>
+
+                    {/* Referral Reward Configuration */}
+                    <Card className="bg-blue-50 border-blue-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Referral Rewards Configuration</CardTitle>
+                        <CardDescription className="text-xs">
+                          Set rewards for users who share, click, and redeem this deal
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <Label className="text-xs">Share Reward (JC)</Label>
+                            <Input
+                              type="number"
+                              value={deal.shareReward}
+                              onChange={(e) => updateDeal(index, 'shareReward', Number(e.target.value))}
+                              min="0"
+                              className="h-8"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Earned when deal is shared</p>
+                          </div>
+                          <div>
+                            <Label className="text-xs">Click Reward (JC)</Label>
+                            <Input
+                              type="number"
+                              value={deal.clickReward}
+                              onChange={(e) => updateDeal(index, 'clickReward', Number(e.target.value))}
+                              min="0"
+                              className="h-8"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Earned per shared link click</p>
+                          </div>
+                          <div>
+                            <Label className="text-xs">Redemption Reward (JC)</Label>
+                            <Input
+                              type="number"
+                              value={deal.redemptionReward}
+                              onChange={(e) => updateDeal(index, 'redemptionReward', Number(e.target.value))}
+                              min="0"
+                              className="h-8"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Earned when deal is redeemed</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
