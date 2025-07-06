@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -66,6 +65,7 @@ function App() {
             <Route path="/new-checkout" element={<NewCheckoutPage />} />
             <Route path="/order-success" element={<OrderSuccessPage />} />
             <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/my-deals" element={<UserDealsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/coupons" element={<CouponsPage />} />
