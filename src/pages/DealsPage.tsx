@@ -1,19 +1,18 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import AppLayout from "@/components/layout/AppLayout";
 import { 
-  Search, Filter, MapPin, Star, Clock, Percent, 
-  Heart, Share2, Eye, TrendingUp, Zap, Gift,
-  Grid, List, SlidersHorizontal, Calendar, ArrowLeft
+  Search, Filter, MapPin, Clock, Star, 
+  Heart, Share2, ShoppingCart, Percent,
+  TrendingUp, Gift, Users
 } from "lucide-react";
-import { Link } from "react-router-dom";
 
 interface Deal {
   id: string;
@@ -25,78 +24,236 @@ interface Deal {
   discounted_price: number;
   location: string;
   image_url?: string;
+  start_date: string;
   end_date: string;
-  is_featured: boolean;
-  current_redemptions: number;
-  max_redemptions: number;
-  created_at?: string;
+  terms_conditions?: string;
+  max_redemptions?: number;
+  current_redemptions?: number;
   merchants?: {
+    id: string;
     business_name: string;
+    business_type: string;
+    address: string;
+    phone: string;
+    website?: string;
     average_rating: number;
-    is_verified: boolean;
+    total_reviews: number;
+    description?: string;
   };
 }
 
 const DealsPage = () => {
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [deals, setDeals] = useState<Deal[]>([]);
-  const [filteredDeals, setFilteredDeals] = useState<Deal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [priceRange, setPriceRange] = useState([0, 5000]);
-  const [sortBy, setSortBy] = useState("featured");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [showFilters, setShowFilters] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState("Jaipur");
+  const [sortBy, setSortBy] = useState("relevance");
   const { toast } = useToast();
 
-  const categories = [
-    { id: "all", name: "All Categories", count: 0 },
-    { id: "Food & Dining", name: "Food & Dining", count: 0 },
-    { id: "Beauty & Wellness", name: "Beauty & Wellness", count: 0 },
-    { id: "Shopping", name: "Shopping", count: 0 },
-    { id: "Electronics", name: "Electronics", count: 0 },
-    { id: "Services", name: "Services", count: 0 },
-    { id: "Health & Fitness", name: "Health & Fitness", count: 0 },
-    { id: "Entertainment", name: "Entertainment", count: 0 },
-    { id: "Travel & Tourism", name: "Travel & Tourism", count: 0 }
-  ];
-
-  const sortOptions = [
-    { id: "featured", name: "Featured" },
-    { id: "discount", name: "Highest Discount" },
-    { id: "price_low", name: "Price: Low to High" },
-    { id: "price_high", name: "Price: High to Low" },
-    { id: "rating", name: "Highest Rated" },
-    { id: "newest", name: "Newest First" },
-    { id: "ending_soon", name: "Ending Soon" },
-    { id: "popular", name: "Most Popular" }
-  ];
-
   useEffect(() => {
+    checkUser();
     fetchDeals();
-  }, []);
+  }, [selectedCategory, searchQuery, selectedLocation, sortBy]);
 
-  useEffect(() => {
-    filterAndSortDeals();
-  }, [deals, searchQuery, selectedCategory, priceRange, sortBy]);
+  const checkUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      setUser(session.user);
+      await fetchUserProfile(session.user.id);
+    }
+  };
 
-  const fetchDeals = async () => {
+  const fetchUserProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('deals')
-        .select(`
-          *,
-          merchants(
-            business_name,
-            average_rating,
-            is_verified
-          )
-        `)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-      if (error) throw error;
-      setDeals(data || []);
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      setProfile(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
+
+  const fetchDeals = async () => {
+    setIsLoading(true);
+    try {
+      // Mock data - in real implementation, fetch from deals table
+      const mockDeals: Deal[] = [
+        {
+          id: "1",
+          title: "Royal Rajasthani Thali Experience",
+          description: "Indulge in an authentic Royal Rajasthani Thali featuring over 15 traditional dishes including Dal Baati Churma, Gatte ki Sabzi, Ker Sangri, and much more. Experience the rich culinary heritage of Rajasthan in our beautifully decorated restaurant with live folk music.",
+          category: "Food & Dining",
+          discount_percentage: 50,
+          original_price: 800,
+          discounted_price: 400,
+          location: "C-Scheme, Jaipur",
+          image_url: "/placeholder.svg",
+          start_date: "2024-06-01T00:00:00Z",
+          end_date: "2024-07-31T23:59:59Z",
+          terms_conditions: "Valid for dine-in only. Cannot be combined with other offers. Advanced booking recommended. Valid for up to 4 people per coupon.",
+          max_redemptions: 100,
+          current_redemptions: 45,
+          merchants: {
+            id: "1",
+            business_name: "Royal Heritage Restaurant",
+            business_type: "Restaurant",
+            address: "123 Heritage Plaza, C-Scheme, Jaipur, Rajasthan 302001",
+            phone: "+91 141-555-0123",
+            website: "www.royalheritage.com",
+            average_rating: 4.7,
+            total_reviews: 324,
+            description: "Established in 1985, Royal Heritage Restaurant has been serving authentic Rajasthani cuisine to locals and tourists alike. Our chefs use traditional recipes passed down through generations."
+          }
+        },
+        {
+          id: "2",
+          title: "Spa Day with Aromatherapy Massage",
+          description: "Relax and rejuvenate with our signature aromatherapy massage. Choose from a variety of essential oils to customize your experience. Includes access to sauna and steam room.",
+          category: "Beauty & Wellness",
+          discount_percentage: 30,
+          original_price: 1500,
+          discounted_price: 1050,
+          location: "Vaishali Nagar, Jaipur",
+          image_url: "/placeholder.svg",
+          start_date: "2024-06-15T00:00:00Z",
+          end_date: "2024-08-15T23:59:59Z",
+          terms_conditions: "Valid for appointments booked in advance. Not valid on weekends. Cannot be combined with other offers.",
+          max_redemptions: 75,
+          current_redemptions: 22,
+          merchants: {
+            id: "2",
+            business_name: "Serene Spa & Wellness",
+            business_type: "Spa",
+            address: "456 Tranquility Lane, Vaishali Nagar, Jaipur, Rajasthan 302021",
+            phone: "+91 141-555-0456",
+            website: "www.serenespa.com",
+            average_rating: 4.9,
+            total_reviews: 456,
+            description: "Serene Spa & Wellness is dedicated to providing a tranquil escape from the stresses of daily life. Our experienced therapists offer a range of treatments to relax and rejuvenate your body and mind."
+          }
+        },
+        {
+          id: "3",
+          title: "Handcrafted Leather Handbag",
+          description: "Shop our exclusive collection of handcrafted leather handbags. Each piece is made with the finest quality leather and designed with attention to detail. Perfect for adding a touch of elegance to your wardrobe.",
+          category: "Shopping",
+          discount_percentage: 25,
+          original_price: 2500,
+          discounted_price: 1875,
+          location: "Bapu Bazaar, Jaipur",
+          image_url: "/placeholder.svg",
+          start_date: "2024-07-01T00:00:00Z",
+          end_date: "2024-09-30T23:59:59Z",
+          terms_conditions: "Valid on select items only. Cannot be combined with other discounts. Exchange only within 7 days of purchase.",
+          max_redemptions: 50,
+          current_redemptions: 15,
+          merchants: {
+            id: "3",
+            business_name: "Artisan Leather Boutique",
+            business_type: "Retail",
+            address: "789 Leather Street, Bapu Bazaar, Jaipur, Rajasthan 302003",
+            phone: "+91 141-555-0789",
+            website: "www.artisanleather.com",
+            average_rating: 4.6,
+            total_reviews: 234,
+            description: "Artisan Leather Boutique specializes in handcrafted leather goods made by local artisans. We are committed to preserving traditional craftsmanship and providing unique, high-quality products to our customers."
+          }
+        },
+        {
+          id: "4",
+          title: "Premium Noise Cancelling Headphones",
+          description: "Experience crystal-clear audio with our premium noise cancelling headphones. Perfect for travel, work, or relaxation. Features Bluetooth 5.0, comfortable earcups, and long battery life.",
+          category: "Electronics",
+          discount_percentage: 40,
+          original_price: 3500,
+          discounted_price: 2100,
+          location: "Sardar Patel Marg, Jaipur",
+          image_url: "/placeholder.svg",
+          start_date: "2024-07-15T00:00:00Z",
+          end_date: "2024-10-31T23:59:59Z",
+          terms_conditions: "Valid for online purchases only. Free shipping on orders over ₹500. 1-year warranty included.",
+          max_redemptions: 60,
+          current_redemptions: 30,
+          merchants: {
+            id: "4",
+            business_name: "Tech Gadgets Emporium",
+            business_type: "Electronics Store",
+            address: "101 Tech Plaza, Sardar Patel Marg, Jaipur, Rajasthan 302004",
+            phone: "+91 141-555-1010",
+            website: "www.techgadgets.com",
+            average_rating: 4.8,
+            total_reviews: 567,
+            description: "Tech Gadgets Emporium offers a wide range of electronics and gadgets from top brands. Our knowledgeable staff is dedicated to providing excellent customer service and helping you find the perfect tech solutions for your needs."
+          }
+        },
+        {
+          id: "5",
+          title: "Yoga and Meditation Retreat",
+          description: "Join our rejuvenating yoga and meditation retreat in the serene outskirts of Jaipur. Includes daily yoga sessions, guided meditation, healthy meals, and nature walks. Perfect for all skill levels.",
+          category: "Health & Fitness",
+          discount_percentage: 35,
+          original_price: 4000,
+          discounted_price: 2600,
+          location: "Amer Road, Jaipur",
+          image_url: "/placeholder.svg",
+          start_date: "2024-08-01T00:00:00Z",
+          end_date: "2024-11-30T23:59:59Z",
+          terms_conditions: "Valid for bookings made before July 31, 2024. Non-refundable deposit required. Limited spots available.",
+          max_redemptions: 40,
+          current_redemptions: 10,
+          merchants: {
+            id: "5",
+            business_name: "Zenith Wellness Center",
+            business_type: "Wellness Center",
+            address: "222 Serenity Villa, Amer Road, Jaipur, Rajasthan 302005",
+            phone: "+91 141-555-2222",
+            website: "www.zenithwellness.com",
+            average_rating: 4.9,
+            total_reviews: 678,
+            description: "Zenith Wellness Center is committed to promoting holistic health and well-being. Our experienced instructors and therapists offer a variety of programs and services to help you achieve your wellness goals."
+          }
+        },
+        {
+          id: "6",
+          title: "Home Cleaning Services",
+          description: "Get your home sparkling clean with our professional cleaning services. Our experienced cleaners use eco-friendly products and pay attention to every detail. Book your appointment today!",
+          category: "Services",
+          discount_percentage: 20,
+          original_price: 1200,
+          discounted_price: 960,
+          location: "All Areas, Jaipur",
+          image_url: "/placeholder.svg",
+          start_date: "2024-08-15T00:00:00Z",
+          end_date: "2024-12-31T23:59:59Z",
+          terms_conditions: "Valid for first-time customers only. Minimum 2-hour booking required. Additional charges may apply for extra services.",
+          max_redemptions: 80,
+          current_redemptions: 50,
+          merchants: {
+            id: "6",
+            business_name: "Clean Sweep Home Services",
+            business_type: "Cleaning Services",
+            address: "333 Clean Street, All Areas, Jaipur, Rajasthan 302006",
+            phone: "+91 141-555-3333",
+            website: "www.cleansweep.com",
+            average_rating: 4.7,
+            total_reviews: 345,
+            description: "Clean Sweep Home Services provides reliable and affordable cleaning solutions for homes and businesses. Our dedicated team is committed to delivering exceptional results and ensuring your complete satisfaction."
+          }
+        },
+      ];
+      setDeals(mockDeals);
     } catch (error) {
       console.error('Error fetching deals:', error);
       toast({
@@ -109,416 +266,155 @@ const DealsPage = () => {
     }
   };
 
-  const filterAndSortDeals = () => {
-    let filtered = deals;
-
-    // Filter by search query
-    if (searchQuery) {
-      filtered = filtered.filter(deal =>
-        deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        deal.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        deal.merchants?.business_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        deal.location?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Filter by category
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter(deal => deal.category === selectedCategory);
-    }
-
-    // Filter by price range
-    filtered = filtered.filter(deal => 
-      deal.discounted_price >= priceRange[0] && deal.discounted_price <= priceRange[1]
-    );
-
-    // Sort deals
-    switch (sortBy) {
-      case "discount":
-        filtered.sort((a, b) => (b.discount_percentage || 0) - (a.discount_percentage || 0));
-        break;
-      case "price_low":
-        filtered.sort((a, b) => (a.discounted_price || 0) - (b.discounted_price || 0));
-        break;
-      case "price_high":
-        filtered.sort((a, b) => (b.discounted_price || 0) - (a.discounted_price || 0));
-        break;
-      case "rating":
-        filtered.sort((a, b) => (b.merchants?.average_rating || 0) - (a.merchants?.average_rating || 0));
-        break;
-      case "newest":
-        filtered.sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime());
-        break;
-      case "ending_soon":
-        filtered.sort((a, b) => new Date(a.end_date).getTime() - new Date(b.end_date).getTime());
-        break;
-      case "popular":
-        filtered.sort((a, b) => (b.current_redemptions || 0) - (a.current_redemptions || 0));
-        break;
-      default:
-        // Featured: prioritize featured deals, then by creation date
-        filtered.sort((a, b) => {
-          if (a.is_featured && !b.is_featured) return -1;
-          if (!a.is_featured && b.is_featured) return 1;
-          return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
-        });
-        break;
-    }
-
-    setFilteredDeals(filtered);
-  };
-
-  const toggleSave = (dealId: string) => {
-    // Implement save/unsave functionality
+  const handleSaveDeal = (dealId: string) => {
     toast({
-      title: "Added to Favorites",
-      description: "Deal saved to your favorites list"
+      title: "Save Deal",
+      description: `Deal ${dealId} saved successfully!`
     });
   };
 
-  const shareDeal = (deal: Deal) => {
-    if (navigator.share) {
-      navigator.share({
-        title: deal.title,
-        text: `Check out this amazing deal: ${deal.discount_percentage}% off!`,
-        url: `/deal/${deal.id}`
-      });
-    } else {
-      navigator.clipboard.writeText(`${window.location.origin}/deal/${deal.id}`);
-      toast({
-        title: "Link Copied",
-        description: "Deal link copied to clipboard"
-      });
-    }
+  const handleShareDeal = (dealId: string) => {
+    toast({
+      title: "Share Deal",
+      description: `Deal ${dealId} shared successfully!`
+    });
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b shadow-sm sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Discover Amazing Deals</h1>
-              <p className="text-gray-600">Find the best offers from top merchants in Jaipur</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="bg-green-50 text-green-700">
-                {filteredDeals.length} deals found
-              </Badge>
-              <Button onClick={() => window.location.href = '/'} variant="outline">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Home
-              </Button>
+    <AppLayout user={user} profile={profile}>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white border-b shadow-sm">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <h1 className="text-2xl font-bold">Deals in Jaipur</h1>
+                <Badge variant="secondary">
+                  <MapPin className="w-3 h-3 mr-1" />
+                  {selectedLocation}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="search"
+                  placeholder="Search deals..."
+                  className="sm:w-64"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Button variant="outline">
+                  <Search className="w-4 h-4 mr-2" />
+                  Search
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search Bar */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                placeholder="Search deals, restaurants, services..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            {/* Quick Filters */}
-            <div className="flex flex-wrap gap-2">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={sortBy} onValueChange={setSortBy}>
+        {/* Filters */}
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Select onValueChange={setSortBy}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
-                  {sortOptions.map((option) => (
-                    <SelectItem key={option.id} value={option.id}>
-                      {option.name}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="relevance">Relevance</SelectItem>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="popular">Popular</SelectItem>
+                  <SelectItem value="price-asc">Price: Low to High</SelectItem>
+                  <SelectItem value="price-desc">Price: High to Low</SelectItem>
                 </SelectContent>
               </Select>
 
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2"
-              >
-                <SlidersHorizontal className="w-4 h-4" />
-                Filters
-              </Button>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={viewMode === "grid" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setViewMode("grid")}
-                >
-                  <Grid className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant={viewMode === "list" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setViewMode("list")}
-                >
-                  <List className="w-4 h-4" />
-                </Button>
-              </div>
+              <Select onValueChange={(value) => setSelectedCategory(value)}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="Food & Dining">Food & Dining</SelectItem>
+                  <SelectItem value="Beauty & Wellness">Beauty & Wellness</SelectItem>
+                  <SelectItem value="Shopping">Shopping</SelectItem>
+                  <SelectItem value="Electronics">Electronics</SelectItem>
+                  <SelectItem value="Health & Fitness">Health & Fitness</SelectItem>
+                  <SelectItem value="Services">Services</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+            <Button variant="ghost">
+              <Filter className="w-4 h-4 mr-2" />
+              Filters
+            </Button>
           </div>
+        </div>
 
-          {/* Advanced Filters */}
-          {showFilters && (
-            <div className="mt-6 pt-6 border-t">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Price Range: ₹{priceRange[0]} - ₹{priceRange[1]}
-                  </label>
-                  <Slider
-                    value={priceRange}
-                    onValueChange={setPriceRange}
-                    max={5000}
-                    min={0}
-                    step={50}
-                    className="w-full"
-                  />
-                </div>
-              </div>
+        {/* Deals Grid */}
+        <div className="container mx-auto px-4 py-8">
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <div className="h-48 bg-gray-200 rounded-t-lg"></div>
+                  <CardContent className="p-4">
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {deals.map((deal) => (
+                <Card key={deal.id} className="hover:shadow-lg transition-shadow">
+                  <div className="aspect-video bg-gradient-to-br from-pink-100 to-orange-100 rounded-t-lg flex items-center justify-center relative">
+                    {deal.image_url ? (
+                      <img
+                        src={deal.image_url}
+                        alt={deal.title}
+                        className="w-full h-full object-cover rounded-t-lg"
+                      />
+                    ) : (
+                      <div className="text-6xl">🍽️</div>
+                    )}
+                    <Badge className="absolute top-4 left-4 bg-red-500 text-white">
+                      {deal.discount_percentage}% OFF
+                    </Badge>
+                  </div>
+                  <CardContent className="p-4">
+                    <CardTitle className="text-lg font-semibold line-clamp-1">{deal.title}</CardTitle>
+                    <CardDescription className="text-sm text-gray-500 line-clamp-2">{deal.description}</CardDescription>
+                    <div className="flex items-center justify-between mt-4">
+                      <div>
+                        <span className="text-xl font-bold text-pink-600">₹{deal.discounted_price}</span>
+                        <span className="text-gray-500 line-through ml-2">₹{deal.original_price}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => handleSaveDeal(deal.id)}>
+                          <Heart className="w-4 h-4 mr-2" />
+                          Save
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleShareDeal(deal.id)}>
+                          <Share2 className="w-4 h-4 mr-2" />
+                          Share
+                        </Button>
+                        <Link to={`/deal/${deal.id}`}>
+                          <Button size="sm">
+                            <ShoppingCart className="w-4 h-4 mr-2" />
+                            View
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
         </div>
-
-        {/* Deals Grid/List */}
-        {filteredDeals.length === 0 ? (
-          <Card className="p-12 text-center">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">No deals found</h3>
-            <p className="text-gray-500 mb-4">Try adjusting your search or filter criteria</p>
-            <Button onClick={() => {
-              setSearchQuery("");
-              setSelectedCategory("all");
-              setPriceRange([0, 5000]);
-            }}>
-              Clear Filters
-            </Button>
-          </Card>
-        ) : (
-          <div className={viewMode === "grid" 
-            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-            : "space-y-4"
-          }>
-            {filteredDeals.map((deal) => (
-              <Card key={deal.id} className={`group hover:shadow-lg transition-all duration-200 ${
-                viewMode === "list" ? "flex" : ""
-              }`}>
-                {viewMode === "grid" ? (
-                  <>
-                    <div className="relative">
-                      <div className="aspect-video bg-gradient-to-br from-pink-100 to-orange-100 rounded-t-lg flex items-center justify-center">
-                        {deal.image_url ? (
-                          <img
-                            src={deal.image_url}
-                            alt={deal.title}
-                            className="w-full h-full object-cover rounded-t-lg"
-                          />
-                        ) : (
-                          <div className="text-4xl">🎯</div>
-                        )}
-                      </div>
-                      <div className="absolute top-3 left-3">
-                        <Badge className="bg-red-500 text-white">
-                          {deal.discount_percentage}% OFF
-                        </Badge>
-                      </div>
-                      <div className="absolute top-3 right-3 flex gap-2">
-                        {deal.is_featured && (
-                          <Badge className="bg-yellow-500 text-yellow-900">
-                            <Star className="w-3 h-3 mr-1" />
-                            Featured
-                          </Badge>
-                        )}
-                        {deal.merchants?.is_verified && (
-                          <Badge className="bg-blue-500 text-white">
-                            Verified
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="absolute bottom-3 right-3 flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            toggleSave(deal.id);
-                          }}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Heart className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            shareDeal(deal);
-                          }}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Share2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <CardContent className="p-4">
-                      <Link to={`/deal/${deal.id}`}>
-                        <h3 className="font-semibold text-lg mb-2 group-hover:text-pink-600 transition-colors line-clamp-2">
-                          {deal.title}
-                        </h3>
-                      </Link>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                        {deal.description}
-                      </p>
-                      
-                      {deal.merchants && (
-                        <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                          <span>{deal.merchants.business_name}</span>
-                          <div className="flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            <span>{deal.merchants.average_rating?.toFixed(1)}</span>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                        <MapPin className="w-4 h-4" />
-                        <span>{deal.location}</span>
-                      </div>
-
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl font-bold text-pink-600">
-                            ₹{deal.discounted_price}
-                          </span>
-                          {deal.original_price > deal.discounted_price && (
-                            <span className="text-sm text-gray-500 line-through">
-                              ₹{deal.original_price}
-                            </span>
-                          )}
-                        </div>
-                        <Badge variant="outline" className="text-xs">
-                          {deal.max_redemptions - deal.current_redemptions} left
-                        </Badge>
-                      </div>
-
-                      <div className="flex items-center gap-1 text-xs text-gray-500 mb-3">
-                        <Clock className="w-3 h-3" />
-                        <span>Ends {new Date(deal.end_date).toLocaleDateString()}</span>
-                      </div>
-
-                      <Link to={`/deal/${deal.id}`}>
-                        <Button className="w-full bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500">
-                          View Deal
-                        </Button>
-                      </Link>
-                    </CardContent>
-                  </>
-                ) : (
-                  // List view layout
-                  <div className="flex">
-                    <div className="w-48 h-32 bg-gradient-to-br from-pink-100 to-orange-100 rounded-l-lg flex items-center justify-center relative">
-                      {deal.image_url ? (
-                        <img
-                          src={deal.image_url}
-                          alt={deal.title}
-                          className="w-full h-full object-cover rounded-l-lg"
-                        />
-                      ) : (
-                        <div className="text-3xl">🎯</div>
-                      )}
-                      <Badge className="absolute top-2 left-2 bg-red-500 text-white text-xs">
-                        {deal.discount_percentage}% OFF
-                      </Badge>
-                    </div>
-                    <CardContent className="flex-1 p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <Link to={`/deal/${deal.id}`}>
-                          <h3 className="font-semibold text-lg group-hover:text-pink-600 transition-colors">
-                            {deal.title}
-                          </h3>
-                        </Link>
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="ghost" onClick={() => toggleSave(deal.id)}>
-                            <Heart className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => shareDeal(deal)}>
-                            <Share2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                        {deal.description}
-                      </p>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xl font-bold text-pink-600">
-                              ₹{deal.discounted_price}
-                            </span>
-                            {deal.original_price > deal.discounted_price && (
-                              <span className="text-sm text-gray-500 line-through">
-                                ₹{deal.original_price}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1 text-sm text-gray-500">
-                            <MapPin className="w-3 h-3" />
-                            <span>{deal.location}</span>
-                          </div>
-                        </div>
-                        <Link to={`/deal/${deal.id}`}>
-                          <Button size="sm" className="bg-gradient-to-r from-pink-500 to-orange-400">
-                            View Deal
-                          </Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </div>
-                )}
-              </Card>
-            ))}
-          </div>
-        )}
       </div>
-    </div>
+    </AppLayout>
   );
 };
 
