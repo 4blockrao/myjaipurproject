@@ -96,7 +96,6 @@ const CheckoutPage = () => {
       setUser(session.user);
       await fetchUserProfile(session.user.id);
     } else {
-      // Redirect to login
       navigate('/');
     }
   };
@@ -116,7 +115,7 @@ const CheckoutPage = () => {
 
       if (data) {
         setProfile(data);
-        // Pre-fill contact info from profile
+        // Pre-fill contact info from profile and user
         setContactInfo({
           email: data.email || user?.email || "",
           phone: data.phone || "",
@@ -130,7 +129,6 @@ const CheckoutPage = () => {
 
   const fetchOrderDetails = async () => {
     // Mock data - in real implementation, fetch from orders table
-    // If we have an orderId, we can fetch specific order details
     const mockOrderItems: OrderItem[] = [
       {
         id: orderId || "1",
@@ -156,7 +154,7 @@ const CheckoutPage = () => {
 
   const getJaiCoinsDiscount = () => {
     if (!useJaiCoins) return 0;
-    const maxDiscount = Math.min(jaiCoinsBalance, getSubtotal() * 0.1); // Max 10% discount
+    const maxDiscount = Math.min(jaiCoinsBalance, getSubtotal() * 0.1);
     return Math.floor(maxDiscount);
   };
 
@@ -218,14 +216,47 @@ const CheckoutPage = () => {
 
     setIsProcessing(true);
     
-    // Mock payment processing
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    // Generate success order ID if we don't have one
-    const successOrderId = orderId || `order_${Date.now()}`;
-    
-    // Redirect to success page
-    navigate(`/order-success/${successOrderId}`);
+    try {
+      // Create order in database
+      const orderData = {
+        user_id: user.id,
+        deal_id: orderItems[0]?.id,
+        quantity: orderItems[0]?.quantity || 1,
+        total_amount: getTotalAmount(),
+        jaicoin_used: getJaiCoinsDiscount(),
+        payment_method: selectedPaymentMethod,
+        customer_name: currentContactInfo.name,
+        customer_phone: currentContactInfo.phone,
+        status: 'pending'
+      };
+
+      const { data: order, error } = await supabase
+        .from('orders')
+        .insert([orderData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Order creation error:', error);
+        throw error;
+      }
+
+      // Mock payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Redirect to success page with actual order ID
+      navigate(`/order-success/${order.id}`);
+      
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Payment Failed",
+        description: "There was an error processing your payment. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (!user) {
@@ -305,7 +336,7 @@ const CheckoutPage = () => {
                   )}
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {!buyingForSomeoneElse && (
+                  {!buyingForSomeoneElse && profile && (
                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-4">
                       <p className="text-sm text-blue-800">
                         ✓ Information pre-filled from your profile
@@ -348,7 +379,7 @@ const CheckoutPage = () => {
                           }
                         }}
                         placeholder="Enter email address"
-                        disabled={!buyingForSomeoneElse}
+                        disabled={!buyingForSomeoneElse && !!contactInfo.email}
                       />
                     </div>
                   </div>
@@ -565,16 +596,6 @@ const CheckoutPage = () => {
 
                   <div className="text-xs text-gray-500 text-center">
                     By completing your purchase, you agree to our Terms of Service and Privacy Policy
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Estimated Delivery */}
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="w-4 h-4 text-gray-500" />
-                    <span className="text-gray-600">Digital coupon delivered instantly</span>
                   </div>
                 </CardContent>
               </Card>

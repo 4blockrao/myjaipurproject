@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AppLayout from "@/components/layout/AppLayout";
 import AuthModal from "@/components/auth/AuthModal";
-import HeroSection from "@/components/home/HeroSection";
-import CategoryShortcuts from "@/components/home/CategoryShortcuts";
+import EnhancedHeroSection from "@/components/home/EnhancedHeroSection";
+import CategoryShowcase from "@/components/home/CategoryShowcase";
 import ImprovedTodaysTopDeals from "@/components/home/ImprovedTodaysTopDeals";
 import TopMerchants from "@/components/home/TopMerchants";
 import ReferEarnSection from "@/components/home/ReferEarnSection";
@@ -47,7 +47,11 @@ const Index = () => {
   });
 
   // Get categories and deal counts
-  const categories = ["all", "Food & Dining", "Beauty & Wellness", "Shopping", "Electronics", "Health & Fitness", "Services"];
+  const categories = [
+    "all", "Food & Dining", "Beauty & Wellness", "Shopping", "Electronics", 
+    "Health & Fitness", "Automotive", "Services", "Travel", "Education"
+  ];
+  
   const dealCounts = categories.reduce((acc, category) => {
     if (category === "all") {
       acc[category] = deals.length;
@@ -124,15 +128,13 @@ const Index = () => {
       onAuthModal={() => setShowAuthModal(true)}
     >
       <div className="min-h-screen">
-        <HeroSection 
+        <EnhancedHeroSection 
           userLocality={profile?.locality}
           onSearch={handleSearch}
         />
-        <CategoryShortcuts 
-          categories={categories}
-          selectedCategory={selectedCategory}
-          onCategorySelect={handleCategorySelect}
+        <CategoryShowcase 
           dealCounts={dealCounts}
+          onCategorySelect={handleCategorySelect}
         />
         <ImprovedTodaysTopDeals 
           deals={deals}

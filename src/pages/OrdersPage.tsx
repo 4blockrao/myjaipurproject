@@ -1,219 +1,202 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, Clock, CheckCircle, XCircle, Eye } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import MobileOptimizedLayout from "@/components/layout/MobileOptimizedLayout";
-import { useUserOrders } from "@/hooks/useUserOrders";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { CalendarDays, Package, MapPin, Phone, Mail } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 
 const OrdersPage = () => {
-  const navigate = useNavigate();
-  const { data: orders, isLoading, error } = useUserOrders();
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
 
-  if (isLoading) {
-    return (
-      <DashboardLayout pageTitle="My Orders" showBackButton>
-        <MobileOptimizedLayout>
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading your orders...</p>
-            </div>
-          </div>
-        </MobileOptimizedLayout>
-      </DashboardLayout>
-    );
-  }
+  useEffect(() => {
+    checkUser();
+  }, []);
 
-  if (error) {
-    return (
-      <DashboardLayout pageTitle="My Orders" showBackButton>
-        <MobileOptimizedLayout>
-          <div className="text-center py-12">
-            <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Orders</h3>
-            <p className="text-gray-600 mb-4">We couldn't load your orders. Please try again.</p>
-            <Button onClick={() => window.location.reload()}>
-              Try Again
-            </Button>
-          </div>
-        </MobileOptimizedLayout>
-      </DashboardLayout>
-    );
-  }
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case "pending":
-        return <Clock className="w-4 h-4 text-yellow-600" />;
-      case "cancelled":
-        return <XCircle className="w-4 h-4 text-red-600" />;
-      default:
-        return <Package className="w-4 h-4 text-gray-600" />;
+  const checkUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      setUser(session.user);
+      await fetchUserProfile(session.user.id);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-100 text-green-800";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "cancelled":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+  const fetchUserProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    setProfile(data);
   };
 
-  const filterOrdersByStatus = (status?: string) => {
-    if (!orders) return [];
-    if (!status) return orders;
-    return orders.filter(order => order.status === status);
-  };
+  const { data: orders = [], isLoading } = useQuery({
+    queryKey: ['user-orders', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          deals (
+            title,
+            original_price,
+            discounted_price,
+            merchants (
+              business_name,
+              phone,
+              email
+            )
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-  const allOrders = filterOrdersByStatus();
-  const pendingOrders = filterOrdersByStatus("pending");
-  const completedOrders = filterOrdersByStatus("completed");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id
+  });
 
-  const OrderCard = ({ order }: { order: any }) => (
-    <Card className="mb-4 hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-lg font-semibold">
-              {order.deals?.title || "Order"}
-            </CardTitle>
-            <p className="text-sm text-gray-600">
-              Order #{order.order_code}
-            </p>
-          </div>
-          <div className="flex items-center space-x-2">
-            {getStatusIcon(order.status)}
-            <Badge className={getStatusColor(order.status)}>
-              {order.status}
-            </Badge>
-          </div>
+  if (!user) {
+    return (
+      <AppLayout>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <Card className="p-8 text-center max-w-md">
+            <h2 className="text-2xl font-bold mb-4">Sign In Required</h2>
+            <p className="text-gray-600 mb-6">Please sign in to view your orders</p>
+            <Link to="/">
+              <Button>Go to Home</Button>
+            </Link>
+          </Card>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Total Amount</span>
-            <span className="font-semibold">₹{order.total_amount}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Quantity</span>
-            <span>{order.quantity}</span>
-          </div>
-          {order.jaicoin_used > 0 && (
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">JaiCoins Used</span>
-              <span className="text-orange-600 font-medium">{order.jaicoin_used} coins</span>
-            </div>
-          )}
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">Order Date</span>
-            <span className="text-sm">
-              {new Date(order.created_at).toLocaleDateString()}
-            </span>
-          </div>
-          {order.merchants && (
-            <div className="pt-2 border-t">
-              <p className="text-sm font-medium text-gray-900">
-                {order.merchants.business_name}
-              </p>
-              <p className="text-xs text-gray-600">
-                {order.merchants.address}
-              </p>
-            </div>
-          )}
-        </div>
-        <div className="flex space-x-2 mt-4">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={() => navigate(`/order/${order.id}`)}
-          >
-            <Eye className="w-4 h-4 mr-2" />
-            View Details
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
+      </AppLayout>
+    );
+  }
 
   return (
-    <DashboardLayout pageTitle="My Orders" showBackButton>
-      <MobileOptimizedLayout>
-        {!orders || orders.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Orders Yet</h3>
-            <p className="text-gray-600 mb-6">
-              You haven't placed any orders yet. Start exploring deals to make your first purchase!
-            </p>
-            <Button onClick={() => navigate("/deals")}>
-              Browse Deals
-            </Button>
+    <AppLayout user={user} profile={profile}>
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">My Orders</h1>
+            <p className="text-gray-600">Track and manage your orders</p>
           </div>
-        ) : (
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              <TabsTrigger value="all">All ({allOrders.length})</TabsTrigger>
-              <TabsTrigger value="pending">Pending ({pendingOrders.length})</TabsTrigger>
-              <TabsTrigger value="completed">Completed ({completedOrders.length})</TabsTrigger>
-            </TabsList>
 
-            <TabsContent value="all">
-              <div className="space-y-4">
-                {allOrders.map((order) => (
-                  <OrderCard key={order.id} order={order} />
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="pending">
-              <div className="space-y-4">
-                {pendingOrders.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">No pending orders</p>
-                  </div>
-                ) : (
-                  pendingOrders.map((order) => (
-                    <OrderCard key={order.id} order={order} />
-                  ))
-                )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="completed">
-              <div className="space-y-4">
-                {completedOrders.length === 0 ? (
-                  <div className="text-center py-8">
-                    <CheckCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">No completed orders</p>
-                  </div>
-                ) : (
-                  completedOrders.map((order) => (
-                    <OrderCard key={order.id} order={order} />
-                  ))
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
-        )}
-      </MobileOptimizedLayout>
-    </DashboardLayout>
+          {isLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-32 bg-white rounded-lg animate-pulse" />
+              ))}
+            </div>
+          ) : orders.length === 0 ? (
+            <Card className="p-12 text-center">
+              <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">No Orders Yet</h2>
+              <p className="text-gray-600 mb-6">Start exploring deals to place your first order</p>
+              <Link to="/deals">
+                <Button>Browse Deals</Button>
+              </Link>
+            </Card>
+          ) : (
+            <div className="space-y-6">
+              {orders.map((order) => (
+                <Card key={order.id} className="overflow-hidden">
+                  <CardHeader className="bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-lg">Order #{order.order_code}</CardTitle>
+                        <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                          <div className="flex items-center gap-1">
+                            <CalendarDays className="w-4 h-4" />
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Package className="w-4 h-4" />
+                            Qty: {order.quantity}
+                          </div>
+                        </div>
+                      </div>
+                      <Badge 
+                        variant={
+                          order.status === 'completed' ? 'default' : 
+                          order.status === 'pending' ? 'secondary' : 'destructive'
+                        }
+                      >
+                        {order.status}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-2">{order.deals?.title}</h3>
+                        <p className="text-gray-600">{order.deals?.merchants?.business_name}</p>
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-2">Order Details</h4>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span>Amount:</span>
+                              <span>₹{order.total_amount}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>JaiCoins Used:</span>
+                              <span>{order.jaicoin_used || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Payment:</span>
+                              <span className="capitalize">{order.payment_method}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-2">Contact Info</h4>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Phone className="w-4 h-4 text-gray-400" />
+                              <span>{order.customer_phone || 'Not provided'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Mail className="w-4 h-4 text-gray-400" />
+                              <span>{order.deals?.merchants?.email || 'Not available'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {order.delivery_address && (
+                        <>
+                          <Separator />
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-2">Delivery Address</h4>
+                            <div className="flex items-start gap-2 text-sm text-gray-600">
+                              <MapPin className="w-4 h-4 mt-0.5" />
+                              <span>{order.delivery_address}</span>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </AppLayout>
   );
 };
 
