@@ -118,7 +118,7 @@ const CheckoutPage = () => {
         setProfile(data);
         // Pre-fill contact info from profile
         setContactInfo({
-          email: data.email || session.user.email || "",
+          email: data.email || user?.email || "",
           phone: data.phone || "",
           name: data.full_name || ""
         });
