@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, MapPin, Star, TrendingUp, Gift, Users, Zap, Clock, Fire, Trophy } from "lucide-react";
+import { Search, MapPin, Star, TrendingUp, Gift, Users, Zap, Clock, Flame, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface ModernHeroSectionProps {
@@ -49,7 +49,7 @@ const ModernHeroSection = ({ userLocality, onSearch }: ModernHeroSectionProps) =
           {/* Top Badge */}
           <div className="mb-8">
             <Badge className="mb-6 bg-gradient-to-r from-pink-500 to-orange-500 text-white px-6 py-3 text-lg font-medium">
-              <Fire className="w-5 h-5 mr-2" />
+              <Flame className="w-5 h-5 mr-2" />
               Jaipur's #1 Deal Discovery Platform
             </Badge>
             
