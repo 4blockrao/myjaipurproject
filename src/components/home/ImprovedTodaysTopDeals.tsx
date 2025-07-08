@@ -21,6 +21,11 @@ interface Deal {
   end_date: string;
   jaicoin_reward: number;
   created_at: string;
+  merchants?: {
+    business_name: string;
+    is_verified: boolean;
+    average_rating: number;
+  };
 }
 
 interface TodaysTopDealsProps {
@@ -36,6 +41,8 @@ const ImprovedTodaysTopDeals = ({ deals, isLoading = false }: TodaysTopDealsProp
   };
 
   const formatTimeRemaining = (endDate: string) => {
+    if (!endDate) return "Limited time";
+    
     const now = new Date();
     const end = new Date(endDate);
     const diffTime = end.getTime() - now.getTime();
@@ -52,12 +59,12 @@ const ImprovedTodaysTopDeals = ({ deals, isLoading = false }: TodaysTopDealsProp
     return (
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold mb-2">Today's Top Deals</h2>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Today's Top Deals</h2>
             <p className="text-gray-600">Loading amazing offers...</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
+            {[1, 2, 3, 4, 5, 6].map((i) => (
               <Card key={i} className="overflow-hidden animate-pulse">
                 <div className="h-48 bg-gray-200"></div>
                 <CardContent className="p-4 space-y-3">
@@ -78,20 +85,26 @@ const ImprovedTodaysTopDeals = ({ deals, isLoading = false }: TodaysTopDealsProp
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <h2 className="text-3xl font-bold mb-4">Today's Top Deals</h2>
-            <p className="text-gray-600">No deals available at the moment. Check back soon!</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Today's Top Deals</h2>
+            <p className="text-gray-600 mb-8">No deals available at the moment. Check back soon!</p>
+            <Button onClick={() => navigate('/deals')} className="bg-pink-500 hover:bg-pink-600">
+              Browse All Categories
+            </Button>
           </div>
         </div>
       </section>
     );
   }
 
+  // Show up to 6 deals on homepage
+  const displayDeals = deals.slice(0, 6);
+
   return (
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-12">
           <div>
-            <h2 className="text-3xl font-bold mb-2">Today's Top Deals</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-2">Today's Top Deals</h2>
             <p className="text-gray-600">Limited time offers you can't miss</p>
           </div>
           <Button 
@@ -105,28 +118,51 @@ const ImprovedTodaysTopDeals = ({ deals, isLoading = false }: TodaysTopDealsProp
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {deals.map((deal) => (
+          {displayDeals.map((deal) => (
             <Card 
               key={deal.id} 
-              className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group"
+              className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group bg-white"
               onClick={() => handleDealClick(deal.id)}
             >
               <div className="relative">
-                <img 
-                  src={deal.image_url || "/placeholder.svg"} 
-                  alt={deal.title}
-                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
+                <div className="h-48 bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                  {deal.image_url ? (
+                    <img 
+                      src={deal.image_url} 
+                      alt={deal.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="text-center">
+                      <div className="text-4xl mb-2">
+                        {deal.category === 'Food & Dining' ? '🍽️' : 
+                         deal.category === 'Beauty & Wellness' ? '💆‍♀️' : 
+                         deal.category === 'Shopping' ? '🛍️' : 
+                         deal.category === 'Electronics' ? '📱' : 
+                         deal.category === 'Health & Fitness' ? '💪' : 
+                         deal.category === 'Automotive' ? '🚗' :
+                         deal.category === 'Services' ? '🔧' :
+                         deal.category === 'Travel' ? '✈️' :
+                         deal.category === 'Education' ? '🎓' : '✨'}
+                      </div>
+                      <span className="text-sm text-gray-600">{deal.category}</span>
+                    </div>
+                  )}
+                </div>
+                
                 <div className="absolute top-4 left-4 flex flex-col gap-2">
                   {deal.is_featured && (
-                    <Badge className="bg-yellow-500 text-white">
+                    <Badge className="bg-yellow-500 text-white font-bold">
                       ⭐ Featured
                     </Badge>
                   )}
-                  <Badge className="bg-red-500 text-white">
-                    {deal.discount_percentage}% OFF
-                  </Badge>
+                  {deal.discount_percentage > 0 && (
+                    <Badge className="bg-red-500 text-white font-bold">
+                      {deal.discount_percentage}% OFF
+                    </Badge>
+                  )}
                 </div>
+                
                 <div className="absolute top-4 right-4">
                   <Badge variant="outline" className="bg-white/90 text-orange-600 border-orange-200">
                     <Clock className="w-3 h-3 mr-1" />
@@ -151,22 +187,26 @@ const ImprovedTodaysTopDeals = ({ deals, isLoading = false }: TodaysTopDealsProp
               <CardContent className="pt-0">
                 <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
                   <MapPin className="w-4 h-4" />
-                  <span className="truncate">{deal.location}</span>
+                  <span className="truncate">{deal.location || 'Jaipur'}</span>
                 </div>
 
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl font-bold text-pink-600">
-                      ₹{deal.discounted_price}
+                      ₹{deal.discounted_price?.toLocaleString() || 'N/A'}
                     </span>
-                    <span className="text-lg text-gray-500 line-through">
-                      ₹{deal.original_price}
-                    </span>
+                    {deal.original_price > 0 && (
+                      <span className="text-lg text-gray-500 line-through">
+                        ₹{deal.original_price?.toLocaleString()}
+                      </span>
+                    )}
                   </div>
-                  <div className="flex items-center gap-1 text-yellow-600">
-                    <Coins className="w-4 h-4" />
-                    <span className="text-sm font-medium">+{deal.jaicoin_reward}</span>
-                  </div>
+                  {deal.jaicoin_reward > 0 && (
+                    <div className="flex items-center gap-1 text-yellow-600">
+                      <Coins className="w-4 h-4" />
+                      <span className="text-sm font-medium">+{deal.jaicoin_reward}</span>
+                    </div>
+                  )}
                 </div>
 
                 <Button 
@@ -183,7 +223,7 @@ const ImprovedTodaysTopDeals = ({ deals, isLoading = false }: TodaysTopDealsProp
           ))}
         </div>
 
-        <div className="text-center mt-8 md:hidden">
+        <div className="text-center mt-12 md:hidden">
           <Button 
             variant="outline" 
             onClick={() => navigate('/deals')}

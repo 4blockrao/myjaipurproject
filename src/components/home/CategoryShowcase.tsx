@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Utensils, Scissors, ShoppingBag, Smartphone, Dumbbell, Car, Camera, Plane, GraduationCap } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface CategoryShowcaseProps {
   dealCounts: Record<string, number>;
@@ -11,6 +11,8 @@ interface CategoryShowcaseProps {
 }
 
 const CategoryShowcase = ({ dealCounts, onCategorySelect }: CategoryShowcaseProps) => {
+  const navigate = useNavigate();
+
   const categories = [
     {
       id: "Food & Dining",
@@ -95,6 +97,12 @@ const CategoryShowcase = ({ dealCounts, onCategorySelect }: CategoryShowcaseProp
     }
   ];
 
+  const handleCategoryClick = (categoryId: string) => {
+    console.log('Category clicked:', categoryId);
+    onCategorySelect(categoryId);
+    navigate(`/deals?category=${encodeURIComponent(categoryId)}`);
+  };
+
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
@@ -112,7 +120,7 @@ const CategoryShowcase = ({ dealCounts, onCategorySelect }: CategoryShowcaseProp
             <Card 
               key={category.id} 
               className={`group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md ${category.bgColor}`}
-              onClick={() => onCategorySelect(category.id)}
+              onClick={() => handleCategoryClick(category.id)}
             >
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
@@ -143,15 +151,14 @@ const CategoryShowcase = ({ dealCounts, onCategorySelect }: CategoryShowcaseProp
         </div>
 
         <div className="text-center mt-12">
-          <Link to="/categories">
-            <Button 
-              size="lg" 
-              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-8 py-4"
-            >
-              View All Categories
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
+          <Button 
+            size="lg" 
+            className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-8 py-4"
+            onClick={() => navigate('/categories')}
+          >
+            View All Categories
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
         </div>
       </div>
     </section>

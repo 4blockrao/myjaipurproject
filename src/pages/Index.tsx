@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AppLayout from "@/components/layout/AppLayout";
 import AuthModal from "@/components/auth/AuthModal";
-import EnhancedHeroSection from "@/components/home/EnhancedHeroSection";
+import ModernHeroSection from "@/components/home/ModernHeroSection";
 import CategoryShowcase from "@/components/home/CategoryShowcase";
 import ImprovedTodaysTopDeals from "@/components/home/ImprovedTodaysTopDeals";
 import TopMerchants from "@/components/home/TopMerchants";
@@ -11,6 +11,7 @@ import ReferEarnSection from "@/components/home/ReferEarnSection";
 import TrustIndicators from "@/components/home/TrustIndicators";
 import { HealthCheck } from "@/components/HealthCheck";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [user, setUser] = useState<any>(null);
@@ -19,18 +20,27 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const { toast } = useToast();
 
-  // Fetch deals with React Query
-  const { data: deals = [], isLoading: dealsLoading } = useQuery({
+  // Fetch deals with React Query - Fixed query
+  const { data: deals = [], isLoading: dealsLoading, error } = useQuery({
     queryKey: ['deals', selectedCategory, searchQuery],
     queryFn: async () => {
+      console.log('Fetching deals with category:', selectedCategory, 'search:', searchQuery);
+      
       let query = supabase
         .from('deals')
-        .select('*')
+        .select(`
+          *,
+          merchants (
+            business_name,
+            is_verified,
+            average_rating
+          )
+        `)
         .eq('approval_status', 'approved')
         .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(6);
+        .order('created_at', { ascending: false });
 
       if (selectedCategory !== "all") {
         query = query.eq('category', selectedCategory);
@@ -41,12 +51,24 @@ const Index = () => {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching deals:', error);
+        toast({
+          title: "Error loading deals",
+          description: "Please refresh the page to try again.",
+          variant: "destructive",
+        });
+        throw error;
+      }
+      
+      console.log('Fetched deals:', data?.length || 0);
       return data || [];
-    }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  // Get categories and deal counts
+  // Get categories and deal counts - Fixed categories
   const categories = [
     "all", "Food & Dining", "Beauty & Wellness", "Shopping", "Electronics", 
     "Health & Fitness", "Automotive", "Services", "Travel", "Education"
@@ -60,6 +82,8 @@ const Index = () => {
     }
     return acc;
   }, {} as Record<string, number>);
+
+  console.log('Deal counts:', dealCounts);
 
   useEffect(() => {
     checkUser();
@@ -114,10 +138,12 @@ const Index = () => {
   };
 
   const handleSearch = (query: string) => {
+    console.log('Search query:', query);
     setSearchQuery(query);
   };
 
   const handleCategorySelect = (category: string) => {
+    console.log('Selected category:', category);
     setSelectedCategory(category);
   };
 
@@ -128,7 +154,7 @@ const Index = () => {
       onAuthModal={() => setShowAuthModal(true)}
     >
       <div className="min-h-screen">
-        <EnhancedHeroSection 
+        <ModernHeroSection 
           userLocality={profile?.locality}
           onSearch={handleSearch}
         />
