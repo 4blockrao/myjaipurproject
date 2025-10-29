@@ -1,24 +1,16 @@
-# Welcome to your Lovable project
+# JAI - Jaipur Deals Platform
 
-## Project info
+## About
 
-**URL**: https://lovable.dev/projects/4272fd15-a84c-4eb7-82a5-c5b44bd2db8c
+JAI is Jaipur's premier deal discovery platform, offering exclusive deals and deep discounts on food, activities, shopping, and more.
 
-## How can I edit this code?
+## Development
 
-There are several ways of editing your application.
+This project is built with React, TypeScript, Vite, and Tailwind CSS.
 
-**Use Lovable**
+## Getting Started
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/4272fd15-a84c-4eb7-82a5-c5b44bd2db8c) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Clone the repository and install dependencies. Requires Node.js & npm - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
 Follow these steps:
 
@@ -60,14 +52,6 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+## Deployment
 
-Simply open [Lovable](https://lovable.dev/projects/4272fd15-a84c-4eb7-82a5-c5b44bd2db8c) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Deploy using your preferred hosting platform (Vercel, Netlify, etc.).
