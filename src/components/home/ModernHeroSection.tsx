@@ -50,7 +50,7 @@ const ModernHeroSection = ({ userLocality, onSearch }: ModernHeroSectionProps) =
           <div className="mb-8">
             <Badge className="mb-6 bg-gradient-to-r from-pink-500 to-orange-500 text-white px-6 py-3 text-lg font-medium">
               <Flame className="w-5 h-5 mr-2" />
-              Jaipur's #1 Deal Discovery Platform
+              Jaipur's Premier Deals Platform
             </Badge>
             
             {/* Main Heading */}

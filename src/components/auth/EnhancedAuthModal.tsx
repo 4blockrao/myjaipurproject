@@ -134,7 +134,7 @@ const EnhancedAuthModal = ({ isOpen, onClose, referralCode = "", redirectPath }:
 
         toast({
           title: "Account Created!",
-          description: "Welcome to MyJaipur! You can now start exploring deals.",
+          description: "Welcome to JaipurCircle! You can now start exploring amazing deals.",
         });
       }
 
@@ -174,7 +174,7 @@ const EnhancedAuthModal = ({ isOpen, onClose, referralCode = "", redirectPath }:
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-pink-500" />
-            {isLogin ? "Welcome Back" : "Join MyJaipur"}
+            {isLogin ? "Welcome Back" : "Join JaipurCircle"}
           </DialogTitle>
         </DialogHeader>
 

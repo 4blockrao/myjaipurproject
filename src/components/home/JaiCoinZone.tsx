@@ -57,7 +57,7 @@ const JaiCoinZone = ({ user }: JaiCoinZoneProps) => {
   const handleReferMerchant = () => {
     toast({
       title: "🏪 Merchant Referral",
-      description: "Contact our team at merchants@myjaipur.com to refer a business and earn 100 JaiCoins!",
+      description: "Contact our team at merchants@jaipurcircle.com to refer a business and earn 100 JaiCoins!",
     });
   };
 

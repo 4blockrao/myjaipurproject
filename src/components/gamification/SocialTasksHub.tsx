@@ -64,7 +64,7 @@ const SocialTasksHub = () => {
       {
         id: 'join-whatsapp',
         title: 'Join WhatsApp Channel',
-        description: 'Join our official MyJaipur WhatsApp channel for exclusive updates',
+        description: 'Join our official JaipurCircle WhatsApp channel for exclusive updates',
         reward: 20,
         type: 'one-time',
         platform: 'whatsapp',
@@ -74,7 +74,7 @@ const SocialTasksHub = () => {
       {
         id: 'follow-instagram',
         title: 'Follow on Instagram',
-        description: 'Follow @MyJaipur on Instagram for daily deals and updates',
+        description: 'Follow @JaipurCircle on Instagram for daily deals and updates',
         reward: 15,
         type: 'one-time',
         platform: 'instagram',
@@ -84,7 +84,7 @@ const SocialTasksHub = () => {
       {
         id: 'follow-twitter',
         title: 'Follow on Twitter/X',
-        description: 'Follow @MyJaipur on X for real-time notifications',
+        description: 'Follow @JaipurCircle on X for real-time notifications',
         reward: 15,
         type: 'one-time',
         platform: 'twitter',
@@ -117,7 +117,7 @@ const SocialTasksHub = () => {
       {
         id: 'instagram-story',
         title: 'Share Instagram Story',
-        description: 'Share a deal on your Instagram story tagging @MyJaipur',
+        description: 'Share a deal on your Instagram story tagging @JaipurCircle',
         reward: 15,
         type: 'daily',
         platform: 'instagram',
@@ -152,7 +152,7 @@ const SocialTasksHub = () => {
       {
         id: 'review-post',
         title: 'Share Review Post',
-        description: 'Share a review of your experience with MyJaipur',
+        description: 'Share a review of your experience with JaipurCircle',
         reward: 25,
         type: 'weekly',
         platform: 'general',

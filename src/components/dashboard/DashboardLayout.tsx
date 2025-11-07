@@ -81,8 +81,8 @@ const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", sho
                             <span className="text-pink-600 font-bold text-sm">MJ</span>
                           </div>
                           <div>
-                            <h2 className="font-bold text-white">MyJaipur</h2>
-                            <p className="text-xs text-pink-100">Your Local Hub</p>
+                            <h2 className="font-bold text-white">JaipurCircle</h2>
+                            <p className="text-xs text-pink-100">Your Deals Hub</p>
                           </div>
                         </Link>
                         <SheetClose asChild>
@@ -172,8 +172,8 @@ const DashboardLayout = ({ children, user, profile, pageTitle = "Dashboard", sho
                 <span className="text-white font-bold">MJ</span>
               </div>
               <div>
-                <h2 className="font-bold text-gray-900">MyJaipur</h2>
-                <p className="text-xs text-gray-600">Your Local Hub</p>
+                <h2 className="font-bold text-gray-900">JaipurCircle</h2>
+                <p className="text-xs text-gray-600">Your Deals Hub</p>
               </div>
             </Link>
 

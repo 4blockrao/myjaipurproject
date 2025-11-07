@@ -167,7 +167,7 @@ const AuthModal = ({ isOpen, onClose, referralCode }: AuthModalProps) => {
 
         console.log('Signup successful');
         toast({
-          title: "🎉 Welcome to MyJaipur!",
+          title: "🎉 Welcome to JaipurCircle!",
           description: referralCodeInput 
             ? `Account created! You've joined ${referrer?.full_name || 'your friend'}'s team and earned 30 JAICoins!`
             : "Account created successfully! You've earned 30 JAICoins to get started!"
@@ -277,11 +277,11 @@ const AuthModal = ({ isOpen, onClose, referralCode }: AuthModalProps) => {
         <CardHeader className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-yellow-500 rounded-full"></div>
-            <span className="text-2xl font-bold text-pink-600">MyJaipur</span>
+            <span className="text-2xl font-bold text-pink-600">JaipurCircle</span>
           </div>
           <CardTitle className="text-2xl">
             {authMode === 'login' ? 'Welcome Back!' : 
-             authMode === 'signup' ? 'Join MyJaipur' : 'Verify OTP'}
+             authMode === 'signup' ? 'Join JaipurCircle' : 'Verify OTP'}
           </CardTitle>
           <CardDescription>
             {authMode === 'login' ? 'Sign in to discover amazing deals' :

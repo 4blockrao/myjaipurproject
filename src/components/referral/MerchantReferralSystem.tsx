@@ -164,9 +164,9 @@ const MerchantReferralSystem = () => {
   };
 
   const generateReferralMessage = () => {
-    const message = `🚀 Join MyJaipur's Merchant Network!
+    const message = `🚀 Join JaipurCircle's Merchant Network!
 
-I'm inviting you to list your business on MyJaipur - the fastest growing deals platform in Jaipur!
+I'm inviting you to list your business on JaipurCircle - the fastest growing deals platform in Jaipur!
 
 ✅ FREE merchant listing
 ✅ Reach thousands of customers
@@ -367,7 +367,7 @@ Start growing your business today! 💪`;
                   Generate Message
                 </Button>
                 <Button 
-                  onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Join MyJaipur's Merchant Network! ${window.location.origin}/merchant-onboarding?ref=${referralCode}`)}`)}
+                  onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Join JaipurCircle's Merchant Network! ${window.location.origin}/merchant-onboarding?ref=${referralCode}`)}`)}
                   className="bg-green-500 hover:bg-green-600"
                 >
                   Share on WhatsApp

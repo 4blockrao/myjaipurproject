@@ -64,7 +64,7 @@ const HelpPage = () => {
       icon: Book,
       faqs: [
         {
-          question: "How do I create an account on MyJaipur?",
+          question: "How do I create an account on JaipurCircle?",
           answer: "Click on 'Sign In Securely' at the top of the page, then choose 'Sign Up' to create a new account with your email and password. You'll receive a verification email to confirm your account."
         },
         {
@@ -158,7 +158,7 @@ const HelpPage = () => {
       title: "Email Support",
       description: "Send us your questions and concerns",
       icon: Mail,
-      action: "support@myjaipur.com",
+      action: "support@jaipurcircle.com",
       availability: "Response within 24 hours",
       color: "bg-purple-50 text-purple-700 border-purple-200"
     }

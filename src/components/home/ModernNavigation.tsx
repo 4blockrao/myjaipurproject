@@ -67,8 +67,8 @@ const ModernNavigation = ({ user, profile, onAuthModal }: ModernNavigationProps)
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center">
               <MapPin className="w-4 h-4 sm:w-6 sm:h-6 text-pink-600" />
             </div>
-            <span className="text-lg sm:text-2xl font-bold text-white hidden xs:block">MyJaipur</span>
-            <span className="text-lg font-bold text-white block xs:hidden">MJ</span>
+            <span className="text-lg sm:text-2xl font-bold text-white hidden xs:block">JaipurCircle</span>
+            <span className="text-lg font-bold text-white block xs:hidden">JC</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -195,8 +195,8 @@ const ModernNavigation = ({ user, profile, onAuthModal }: ModernNavigationProps)
                           <MapPin className="w-5 h-5 text-pink-600" />
                         </div>
                         <div>
-                          <h2 className="font-bold text-white">MyJaipur</h2>
-                          <p className="text-xs text-pink-100">Your Local Hub</p>
+                          <h2 className="font-bold text-white">JaipurCircle</h2>
+                          <p className="text-xs text-pink-100">Your Deals Hub</p>
                         </div>
                       </Link>
                       <SheetClose asChild>

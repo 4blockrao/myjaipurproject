@@ -226,7 +226,7 @@ const DealShare = ({ isOpen, onClose }: DealShareProps) => {
   const shareViaWhatsApp = () => {
     if (!selectedDeal) return;
     const savings = selectedDeal.original_price - selectedDeal.discounted_price;
-    const message = `🔥 Amazing ${selectedDeal.category} Deal!\n\n"${selectedDeal.title}"\n💰 Save ₹${savings} (${selectedDeal.discount_percentage}% OFF)\n🏪 ${selectedDeal.merchants.business_name}\n\nGet it here: ${getShareUrl()}\n\nShared via MyJaipur 🎯`;
+    const message = `🔥 Amazing ${selectedDeal.category} Deal!\n\n"${selectedDeal.title}"\n💰 Save ₹${savings} (${selectedDeal.discount_percentage}% OFF)\n🏪 ${selectedDeal.merchants.business_name}\n\nGet it here: ${getShareUrl()}\n\nShared via JaipurCircle 🎯`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -234,7 +234,7 @@ const DealShare = ({ isOpen, onClose }: DealShareProps) => {
   const shareViaTelegram = () => {
     if (!selectedDeal) return;
     const savings = selectedDeal.original_price - selectedDeal.discounted_price;
-    const message = `🔥 Amazing ${selectedDeal.category} Deal!\n\n"${selectedDeal.title}"\n💰 Save ₹${savings} (${selectedDeal.discount_percentage}% OFF)\n🏪 ${selectedDeal.merchants.business_name}\n\nGet it here: ${getShareUrl()}\n\nShared via MyJaipur 🎯`;
+    const message = `🔥 Amazing ${selectedDeal.category} Deal!\n\n"${selectedDeal.title}"\n💰 Save ₹${savings} (${selectedDeal.discount_percentage}% OFF)\n🏪 ${selectedDeal.merchants.business_name}\n\nGet it here: ${getShareUrl()}\n\nShared via JaipurCircle 🎯`;
     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(getShareUrl())}&text=${encodeURIComponent(message)}`;
     window.open(telegramUrl, '_blank');
   };
@@ -242,7 +242,7 @@ const DealShare = ({ isOpen, onClose }: DealShareProps) => {
   const shareViaEmail = () => {
     if (!selectedDeal) return;
     const subject = `🔥 Amazing Deal: ${selectedDeal.title} - Save ${selectedDeal.discount_percentage}%!`;
-    const body = `Hey,\n\nI found this amazing deal and thought you'd love it!\n\n${selectedDeal.title} from ${selectedDeal.merchants.business_name} - Save ₹${selectedDeal.original_price - selectedDeal.discounted_price} (${selectedDeal.discount_percentage}% OFF)!\n\nGet it here: ${getShareUrl()}\n\nShared via MyJaipur 🎯`;
+    const body = `Hey,\n\nI found this amazing deal and thought you'd love it!\n\n${selectedDeal.title} from ${selectedDeal.merchants.business_name} - Save ₹${selectedDeal.original_price - selectedDeal.discounted_price} (${selectedDeal.discount_percentage}% OFF)!\n\nGet it here: ${getShareUrl()}\n\nShared via JaipurCircle 🎯`;
     const emailUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(emailUrl);
   };
@@ -250,7 +250,7 @@ const DealShare = ({ isOpen, onClose }: DealShareProps) => {
   const shareViaSMS = () => {
     if (!selectedDeal) return;
     const savings = selectedDeal.original_price - selectedDeal.discounted_price;
-    const message = `🔥 Amazing ${selectedDeal.category} Deal!\n\n"${selectedDeal.title}"\n💰 Save ₹${savings} (${selectedDeal.discount_percentage}% OFF)\n🏪 ${selectedDeal.merchants.business_name}\n\nGet it here: ${getShareUrl()}\n\nShared via MyJaipur 🎯`;
+    const message = `🔥 Amazing ${selectedDeal.category} Deal!\n\n"${selectedDeal.title}"\n💰 Save ₹${savings} (${selectedDeal.discount_percentage}% OFF)\n🏪 ${selectedDeal.merchants.business_name}\n\nGet it here: ${getShareUrl()}\n\nShared via JaipurCircle 🎯`;
     const smsUrl = `sms:?body=${encodeURIComponent(message)}`;
     window.open(smsUrl);
   };
@@ -263,7 +263,7 @@ const DealShare = ({ isOpen, onClose }: DealShareProps) => {
 
   const shareViaTwitter = () => {
     if (!selectedDeal) return;
-    const message = `🔥 Amazing ${selectedDeal.category} Deal!\n\n"${selectedDeal.title}"\n💰 Save ₹${selectedDeal.original_price - selectedDeal.discounted_price} (${selectedDeal.discount_percentage}% OFF)\n🏪 ${selectedDeal.merchants.business_name}\n\nGet it here: ${getShareUrl()}\n\nShared via MyJaipur 🎯`;
+    const message = `🔥 Amazing ${selectedDeal.category} Deal!\n\n"${selectedDeal.title}"\n💰 Save ₹${selectedDeal.original_price - selectedDeal.discounted_price} (${selectedDeal.discount_percentage}% OFF)\n🏪 ${selectedDeal.merchants.business_name}\n\nGet it here: ${getShareUrl()}\n\nShared via JaipurCircle 🎯`;
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(getShareUrl())}`;
     window.open(twitterUrl, '_blank', 'width=600,height=400');
   };

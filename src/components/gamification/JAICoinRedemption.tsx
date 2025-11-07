@@ -65,7 +65,7 @@ const JAICoinRedemption = () => {
     {
       id: 'beta-access',
       title: 'VIP Beta Access',
-      description: 'Early access to MyJaipur platform with exclusive deals',
+      description: 'Early access to JaipurCircle platform with exclusive deals',
       cost: 200,
       category: 'digital',
       icon: Crown,
@@ -353,7 +353,7 @@ const JAICoinRedemption = () => {
             <CardHeader>
               <CardTitle>Post-Launch Rewards</CardTitle>
               <CardDescription>
-                These rewards will become available after MyJaipur officially launches
+                These rewards will become available after JaipurCircle officially launches
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

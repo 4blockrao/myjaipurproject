@@ -18,7 +18,7 @@ const ReferralProgramPage = () => {
             Complete Referral Program
           </h1>
           <p className="text-gray-600 text-lg">
-            Earn JAICoins by referring friends and merchants to MyJaipur
+            Earn JAICoins by referring friends and merchants to JaipurCircle
           </p>
         </div>
 

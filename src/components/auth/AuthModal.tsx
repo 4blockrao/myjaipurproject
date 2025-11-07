@@ -84,7 +84,7 @@ const AuthModal = ({ isOpen, onClose, referralCode = '', redirectPath }: AuthMod
         }
       } else {
         toast({
-          title: "🎉 Welcome to MyJaipur!",
+          title: "🎉 Welcome to JaipurCircle!",
           description: "Account created successfully! You've earned 30 JAICoins as welcome bonus.",
         });
         handleAuthSuccess();
@@ -124,7 +124,7 @@ const AuthModal = ({ isOpen, onClose, referralCode = '', redirectPath }: AuthMod
       } else {
         toast({
           title: "Welcome back!",
-          description: "You've successfully signed in to MyJaipur.",
+          description: "You've successfully signed in to JaipurCircle.",
         });
         handleAuthSuccess();
       }
@@ -156,7 +156,7 @@ const AuthModal = ({ isOpen, onClose, referralCode = '', redirectPath }: AuthMod
       <DialogContent className="sm:max-w-md w-[95%] mx-auto">
         <DialogHeader>
           <DialogTitle className="text-center text-xl font-bold">
-            Welcome to MyJaipur
+            Welcome to JaipurCircle
           </DialogTitle>
         </DialogHeader>
 
