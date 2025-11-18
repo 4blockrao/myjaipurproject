@@ -270,15 +270,6 @@ const ReferEarnSection = ({ user, profile }: ReferEarnSectionProps) => {
           </div>
         </div>
 
-        {/* Bottom CTA */}
-        <div className="text-center mt-6 lg:mt-8">
-          <Link to="/referral-program">
-            <Button variant="outline" size="lg" className="border-pink-300 text-pink-600 hover:bg-pink-50 h-auto py-3 px-6">
-              <span className="text-sm lg:text-base">Explore Complete Referral Program</span>
-              <ChevronRight className="w-4 h-4 lg:w-5 lg:h-5 ml-2" />
-            </Button>
-          </Link>
-        </div>
       </div>
     </section>
   );
