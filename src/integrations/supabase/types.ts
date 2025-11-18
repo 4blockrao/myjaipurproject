@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -1393,89 +1393,71 @@ export type Database = {
     Functions: {
       award_badge: {
         Args: {
-          user_uuid: string
-          badge_type: string
-          badge_name: string
           badge_description: string
+          badge_name: string
+          badge_type: string
+          user_uuid: string
         }
         Returns: undefined
       }
       award_referral_reward: {
         Args: {
-          referrer_uuid: string
-          merchant_uuid: string
-          reward_type_param: string
-          reward_amount: number
           coupon_uuid?: string
+          merchant_uuid: string
           milestone_count_param?: number
+          referrer_uuid: string
+          reward_amount: number
+          reward_type_param: string
         }
         Returns: undefined
       }
-      generate_coupon_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_redemption_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_referral_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_coupon_code: { Args: never; Returns: string }
+      generate_redemption_code: { Args: never; Returns: string }
+      generate_referral_code: { Args: never; Returns: string }
       get_order_details: {
         Args: { order_uuid: string }
         Returns: {
-          id: string
-          order_code: string
-          quantity: number
-          total_amount: number
-          jaicoin_used: number
-          status: string
-          payment_method: string
           customer_name: string
-          deal_title: string
           deal_discounted_price: number
-          deal_jaicoin_reward: number
           deal_is_product_sale: boolean
-          merchant_business_name: string
+          deal_jaicoin_reward: number
+          deal_title: string
+          id: string
+          jaicoin_used: number
           merchant_address: string
+          merchant_business_name: string
+          order_code: string
+          payment_method: string
+          quantity: number
+          status: string
+          total_amount: number
         }[]
       }
-      get_user_balance: {
-        Args: { user_uuid: string }
-        Returns: number
-      }
+      get_user_balance: { Args: { user_uuid: string }; Returns: number }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: {
-          role: Database["public"]["Enums"]["app_role"]
           assigned_at: string
           metadata: Json
+          role: Database["public"]["Enums"]["app_role"]
         }[]
       }
       has_any_role: {
         Args: {
-          _user_id: string
           _roles: Database["public"]["Enums"]["app_role"][]
+          _user_id: string
         }
         Returns: boolean
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
-      is_pro_member: {
-        Args: { user_uuid: string }
-        Returns: boolean
-      }
-      upgrade_to_pro_user: {
-        Args: { _user_id: string }
-        Returns: undefined
-      }
+      is_pro_member: { Args: { user_uuid: string }; Returns: boolean }
+      upgrade_to_pro_user: { Args: { _user_id: string }; Returns: undefined }
     }
     Enums: {
       app_role:
