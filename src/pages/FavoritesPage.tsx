@@ -165,43 +165,37 @@ const FavoritesPage = () => {
 
   return (
     <DashboardLayout user={user} profile={profile} pageTitle="Favorites" showBackButton>
-      <div className="p-4 max-w-6xl mx-auto space-y-6">
-        {/* Header Section */}
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Quick Actions */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Saved Deals</h1>
-            <p className="text-gray-600">Your favorite deals and offers</p>
-          </div>
           <div className="flex items-center space-x-3">
             <Heart className="w-6 h-6 text-pink-500" />
             <Badge variant="outline">{savedDeals.length} saved</Badge>
           </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="flex space-x-3">
-          <Link to="/deals">
-            <Button variant="outline" size="sm">
-              Browse More Deals
-            </Button>
-          </Link>
-          <Link to="/orders">
-            <Button variant="outline" size="sm">
-              View My Coupons
-            </Button>
-          </Link>
+          <div className="flex space-x-2">
+            <Link to="/deals">
+              <Button variant="outline" size="sm">
+                Browse More
+              </Button>
+            </Link>
+            <Link to="/coupons">
+              <Button variant="outline" size="sm">
+                My Coupons
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Saved Deals Grid */}
         {savedDeals.length === 0 ? (
-          <Card className="p-12 text-center">
-            <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <div className="text-center py-12">
+            <Heart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-600 mb-2">No saved deals yet</h3>
             <p className="text-gray-500 mb-6">Start saving deals you love for easy access later</p>
-            <Button onClick={() => window.location.href = '/deals'}>
-              Browse Deals
-            </Button>
-          </Card>
+            <Link to="/deals">
+              <Button>Browse Deals</Button>
+            </Link>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {savedDeals.map((deal) => (
