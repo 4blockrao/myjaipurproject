@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import AppLayout from "@/components/layout/AppLayout";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import MobileOptimizedLayout from "@/components/layout/MobileOptimizedLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -66,50 +66,46 @@ const OrdersPage = () => {
 
   if (!user) {
     return (
-      <AppLayout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <Card className="p-8 text-center max-w-md">
+      <DashboardLayout pageTitle="My Orders" showBackButton>
+        <MobileOptimizedLayout>
+          <div className="text-center py-12">
+            <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-4">Sign In Required</h2>
             <p className="text-gray-600 mb-6">Please sign in to view your orders</p>
             <Link to="/">
               <Button>Go to Home</Button>
             </Link>
-          </Card>
-        </div>
-      </AppLayout>
+          </div>
+        </MobileOptimizedLayout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <AppLayout user={user} profile={profile}>
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">My Orders</h1>
-            <p className="text-gray-600">Track and manage your orders</p>
-          </div>
-
-          {isLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-32 bg-white rounded-lg animate-pulse" />
-              ))}
+    <DashboardLayout user={user} profile={profile} pageTitle="My Orders" showBackButton>
+      <MobileOptimizedLayout>
+        {isLoading ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading your orders...</p>
             </div>
-          ) : orders.length === 0 ? (
-            <Card className="p-12 text-center">
-              <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">No Orders Yet</h2>
-              <p className="text-gray-600 mb-6">Start exploring deals to place your first order</p>
-              <Link to="/deals">
-                <Button>Browse Deals</Button>
-              </Link>
-            </Card>
-          ) : (
-            <div className="space-y-6">
-              {orders.map((order) => (
-                <Card key={order.id} className="overflow-hidden">
-                  <CardHeader className="bg-gray-50">
-                    <div className="flex items-center justify-between">
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="text-center py-12">
+            <Package className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+            <h2 className="text-xl font-bold text-gray-900 mb-2">No Orders Yet</h2>
+            <p className="text-gray-600 mb-6">Start exploring deals to place your first order</p>
+            <Link to="/deals">
+              <Button>Browse Deals</Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {orders.map((order) => (
+              <Card key={order.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                <CardHeader className="bg-gray-50">
+                  <div className="flex items-center justify-between">
                       <div>
                         <CardTitle className="text-lg">Order #{order.order_code}</CardTitle>
                         <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
@@ -190,13 +186,12 @@ const OrdersPage = () => {
                       )}
                     </div>
                   </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </AppLayout>
+              </Card>
+            ))}
+          </div>
+        )}
+      </MobileOptimizedLayout>
+    </DashboardLayout>
   );
 };
 

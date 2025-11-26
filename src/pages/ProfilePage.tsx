@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import MobileOptimizedLayout from "@/components/layout/MobileOptimizedLayout";
 import UserPortal from "@/components/auth/UserPortal";
 
 const ProfilePage = () => {
@@ -39,19 +40,24 @@ const ProfilePage = () => {
 
   if (isLoading) {
     return (
-      <DashboardLayout user={user} profile={profile} pageTitle="Profile">
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
-        </div>
+      <DashboardLayout user={user} profile={profile} pageTitle="Profile" showBackButton>
+        <MobileOptimizedLayout>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading profile...</p>
+            </div>
+          </div>
+        </MobileOptimizedLayout>
       </DashboardLayout>
     );
   }
 
   return (
     <DashboardLayout user={user} profile={profile} pageTitle="Profile" showBackButton>
-      <div className="p-4">
+      <MobileOptimizedLayout>
         <UserPortal />
-      </div>
+      </MobileOptimizedLayout>
     </DashboardLayout>
   );
 };
