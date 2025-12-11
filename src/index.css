@@ -126,6 +126,10 @@
     padding-bottom: env(safe-area-inset-bottom, 20px);
   }
 
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
   /* Mobile optimizations */
   .mobile-container {
     @apply max-w-sm mx-auto px-4;

@@ -2,13 +2,26 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#e91e63" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="JaipurCircle" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    
+    <!-- SEO Meta Tags -->
     <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
     <title>JaipurCircle - Discover Amazing Deals & Discounts in Jaipur</title>
     <meta name="description" content="JaipurCircle - Your trusted platform for exclusive deals, deep discounts and amazing offers in Jaipur. Save big on dining, shopping, services and more!" />
     <meta name="author" content="JaipurCircle" />
     <meta name="keywords" content="Jaipur deals, discounts Jaipur, offers Jaipur, JaipurCircle, Pink City deals, shopping Jaipur, dining deals" />
 
+    <!-- Open Graph -->
     <meta property="og:title" content="JaipurCircle - Discover Amazing Deals in Jaipur" />
     <meta property="og:description" content="Join JaipurCircle for exclusive deals and deep discounts across Jaipur. Your go-to platform for the best offers in the Pink City!" />
     <meta property="og:url" content="https://www.jaipurcircle.com" />
@@ -16,6 +29,25 @@
     <meta property="og:type" content="website" />
 
     <meta name="twitter:card" content="summary_large_image" />
+    
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <style>
+      html, body {
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      body {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      @media (display-mode: standalone) {
+        body { -webkit-user-select: none; user-select: none; }
+      }
+      * { -webkit-tap-highlight-color: transparent; }
+    </style>
   </head>
 
   <body>

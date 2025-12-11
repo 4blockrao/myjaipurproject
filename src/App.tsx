@@ -35,6 +35,7 @@ import MerchantPortalPage from "./pages/MerchantPortalPage";
 import MerchantPage from "./pages/MerchantPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import NotFound from "./pages/NotFound";
+import InstallPage from "./pages/InstallPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -95,6 +96,7 @@ function App() {
             <Route path="/merchant-portal" element={<MerchantPortalPage />} />
             <Route path="/merchant" element={<MerchantPage />} />
             <Route path="/admin" element={<AdminDashboardPage />} />
+            <Route path="/install" element={<InstallPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
