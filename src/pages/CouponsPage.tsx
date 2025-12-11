@@ -1,15 +1,13 @@
-
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Ticket, Clock, CheckCircle, XCircle, QrCode, Copy } from "lucide-react";
+import { Ticket, CheckCircle, XCircle, Copy, QrCode, Clock, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import MobileOptimizedLayout from "@/components/layout/MobileOptimizedLayout";
+import NativeDashboardLayout from "@/components/layout/NativeDashboardLayout";
+import { NativeCard } from "@/components/ui/native-card";
 import { useUserCoupons } from "@/hooks/useUserCoupons";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const CouponsPage = () => {
   const navigate = useNavigate();
@@ -17,64 +15,62 @@ const CouponsPage = () => {
 
   const copyCouponCode = (code: string) => {
     navigator.clipboard.writeText(code);
-    toast.success("Coupon code copied to clipboard!");
+    toast.success("Coupon code copied!");
   };
 
   if (isLoading) {
     return (
-      <DashboardLayout pageTitle="My Coupons" showBackButton>
-        <MobileOptimizedLayout>
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading your coupons...</p>
-            </div>
-          </div>
-        </MobileOptimizedLayout>
-      </DashboardLayout>
+      <NativeDashboardLayout title="My Coupons">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
+        </div>
+      </NativeDashboardLayout>
     );
   }
 
   if (error) {
     return (
-      <DashboardLayout pageTitle="My Coupons" showBackButton>
-        <MobileOptimizedLayout>
-          <div className="text-center py-12">
-            <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Coupons</h3>
-            <p className="text-gray-600 mb-4">We couldn't load your coupons. Please try again.</p>
-            <Button onClick={() => window.location.reload()}>
-              Try Again
-            </Button>
+      <NativeDashboardLayout title="My Coupons">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+          <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mb-4">
+            <XCircle className="w-10 h-10 text-red-500" />
           </div>
-        </MobileOptimizedLayout>
-      </DashboardLayout>
+          <h3 className="text-lg font-semibold mb-2">Failed to Load</h3>
+          <p className="text-muted-foreground mb-4">We couldn't load your coupons</p>
+          <Button onClick={() => window.location.reload()} className="rounded-xl">
+            Try Again
+          </Button>
+        </div>
+      </NativeDashboardLayout>
     );
   }
 
-  const getStatusIcon = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case "active":
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
+        return { 
+          icon: <CheckCircle className="w-4 h-4" />, 
+          bg: "bg-emerald-100 text-emerald-700",
+          label: "Active"
+        };
       case "redeemed":
-        return <CheckCircle className="w-4 h-4 text-blue-600" />;
+        return { 
+          icon: <CheckCircle className="w-4 h-4" />, 
+          bg: "bg-blue-100 text-blue-700",
+          label: "Used"
+        };
       case "expired":
-        return <XCircle className="w-4 h-4 text-red-600" />;
+        return { 
+          icon: <XCircle className="w-4 h-4" />, 
+          bg: "bg-red-100 text-red-700",
+          label: "Expired"
+        };
       default:
-        return <Ticket className="w-4 h-4 text-gray-600" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "redeemed":
-        return "bg-blue-100 text-blue-800";
-      case "expired":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+        return { 
+          icon: <Ticket className="w-4 h-4" />, 
+          bg: "bg-muted text-muted-foreground",
+          label: status
+        };
     }
   };
 
@@ -91,162 +87,159 @@ const CouponsPage = () => {
   const CouponCard = ({ coupon }: { coupon: any }) => {
     const isExpired = new Date(coupon.expires_at) < new Date();
     const daysUntilExpiry = Math.ceil((new Date(coupon.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+    const statusConfig = getStatusConfig(coupon.status);
     
     return (
-      <Card className="mb-4 hover:shadow-md transition-shadow">
-        <CardHeader className="pb-3">
+      <NativeCard variant="default" padding="none" className="overflow-hidden">
+        {/* Coupon Header with Discount */}
+        <div className="bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 border-b border-border/30">
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg font-semibold">
-                {coupon.deals?.title || "Coupon"}
-              </CardTitle>
-              <p className="text-sm text-gray-600">
-                Code: {coupon.coupon_code}
-              </p>
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                <Tag className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-primary">₹{coupon.discount_amount}</p>
+                <p className="text-xs text-muted-foreground">OFF</p>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              {getStatusIcon(coupon.status)}
-              <Badge className={getStatusColor(coupon.status)}>
-                {coupon.status}
-              </Badge>
-            </div>
+            <Badge className={cn("rounded-full px-2.5 py-1 text-xs", statusConfig.bg)}>
+              {statusConfig.icon}
+              <span className="ml-1">{statusConfig.label}</span>
+            </Badge>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Discount</span>
-              <span className="font-semibold text-green-600">₹{coupon.discount_amount}</span>
-            </div>
-            {coupon.purchase_amount > 0 && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Purchase Amount</span>
-                <span>₹{coupon.purchase_amount}</span>
-              </div>
+        </div>
+
+        {/* Coupon Body */}
+        <div className="p-4 space-y-3">
+          <div>
+            <h3 className="font-semibold text-foreground line-clamp-1">
+              {coupon.deals?.title || "Coupon"}
+            </h3>
+            {coupon.merchants && (
+              <p className="text-sm text-muted-foreground">
+                {coupon.merchants.business_name}
+              </p>
             )}
+          </div>
+
+          {/* Coupon Code */}
+          <div className="flex items-center gap-2 bg-muted/50 rounded-xl px-3 py-2">
+            <code className="flex-1 text-sm font-mono font-semibold tracking-wide">
+              {coupon.coupon_code}
+            </code>
+            {coupon.status === "active" && !isExpired && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 rounded-lg"
+                onClick={() => copyCouponCode(coupon.coupon_code)}
+              >
+                <Copy className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+
+          {/* Details */}
+          <div className="grid grid-cols-2 gap-2 text-sm">
             {coupon.min_order_value > 0 && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Min Order</span>
-                <span>₹{coupon.min_order_value}</span>
+              <div className="text-muted-foreground">
+                <span className="block text-xs">Min Order</span>
+                <span className="font-medium text-foreground">₹{coupon.min_order_value}</span>
               </div>
             )}
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Expires</span>
-              <span className={`text-sm ${daysUntilExpiry <= 3 && !isExpired ? 'text-red-600 font-medium' : ''}`}>
+            <div className="text-muted-foreground">
+              <span className="block text-xs">Expires</span>
+              <span className={cn(
+                "font-medium",
+                daysUntilExpiry <= 3 && !isExpired ? "text-red-600" : "text-foreground"
+              )}>
                 {isExpired ? 'Expired' : daysUntilExpiry <= 0 ? 'Today' : `${daysUntilExpiry} days`}
               </span>
             </div>
-            {coupon.merchants && (
-              <div className="pt-2 border-t">
-                <p className="text-sm font-medium text-gray-900">
-                  {coupon.merchants.business_name}
-                </p>
-                <p className="text-xs text-gray-600">
-                  {coupon.merchants.address}
-                </p>
-              </div>
-            )}
-            {coupon.usage_terms && (
-              <div className="pt-2 border-t">
-                <p className="text-xs text-gray-600">
-                  <span className="font-medium">Terms:</span> {coupon.usage_terms}
-                </p>
-              </div>
-            )}
           </div>
-          {coupon.status === "active" && !isExpired && (
-            <div className="flex space-x-2 mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() => copyCouponCode(coupon.coupon_code)}
-              >
-                <Copy className="w-4 h-4 mr-2" />
-                Copy Code
-              </Button>
-              {coupon.qr_code && (
-                <Button
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    // TODO: Show QR code modal
-                    toast.info("QR code feature coming soon!");
-                  }}
-                >
-                  <QrCode className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
+
+          {/* Terms */}
+          {coupon.usage_terms && (
+            <p className="text-xs text-muted-foreground pt-2 border-t border-border/30 line-clamp-2">
+              {coupon.usage_terms}
+            </p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </NativeCard>
     );
   };
 
-  return (
-    <DashboardLayout pageTitle="My Coupons" showBackButton>
-      <MobileOptimizedLayout>
-        {!coupons || coupons.length === 0 ? (
-          <div className="text-center py-12">
-            <Ticket className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Coupons Yet</h3>
-            <p className="text-gray-600 mb-6">
-              You haven't purchased any coupons yet. Browse our deals to get amazing discounts!
-            </p>
-            <Button onClick={() => navigate("/deals")}>
-              Browse Deals
-            </Button>
-          </div>
-        ) : (
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              <TabsTrigger value="all">All ({allCoupons.length})</TabsTrigger>
-              <TabsTrigger value="active">Active ({activeCoupons.length})</TabsTrigger>
-              <TabsTrigger value="redeemed">Used ({redeemedCoupons.length})</TabsTrigger>
-            </TabsList>
+  const EmptyState = ({ message, icon: Icon }: { message: string; icon: any }) => (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+        <Icon className="w-8 h-8 text-muted-foreground" />
+      </div>
+      <p className="text-muted-foreground">{message}</p>
+    </div>
+  );
 
-            <TabsContent value="all">
-              <div className="space-y-4">
-                {allCoupons.map((coupon) => (
+  return (
+    <NativeDashboardLayout title="My Coupons" subtitle={`${allCoupons.length} coupons`}>
+      {!coupons || coupons.length === 0 ? (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+          <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+            <Ticket className="w-10 h-10 text-muted-foreground" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">No Coupons Yet</h3>
+          <p className="text-muted-foreground mb-6">
+            Browse deals to get amazing discount coupons
+          </p>
+          <Button onClick={() => navigate("/deals")} className="rounded-xl">
+            Browse Deals
+          </Button>
+        </div>
+      ) : (
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 h-10 bg-muted/50 rounded-xl p-1 mb-4">
+            <TabsTrigger value="all" className="rounded-lg text-xs">
+              All ({allCoupons.length})
+            </TabsTrigger>
+            <TabsTrigger value="active" className="rounded-lg text-xs">
+              Active ({activeCoupons.length})
+            </TabsTrigger>
+            <TabsTrigger value="used" className="rounded-lg text-xs">
+              Used ({redeemedCoupons.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="space-y-3 mt-0">
+            {allCoupons.map((coupon) => (
+              <CouponCard key={coupon.id} coupon={coupon} />
+            ))}
+          </TabsContent>
+
+          <TabsContent value="active" className="mt-0">
+            {activeCoupons.length === 0 ? (
+              <EmptyState message="No active coupons" icon={Ticket} />
+            ) : (
+              <div className="space-y-3">
+                {activeCoupons.map((coupon) => (
                   <CouponCard key={coupon.id} coupon={coupon} />
                 ))}
               </div>
-            </TabsContent>
+            )}
+          </TabsContent>
 
-            <TabsContent value="active">
-              <div className="space-y-4">
-                {activeCoupons.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Ticket className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">No active coupons</p>
-                  </div>
-                ) : (
-                  activeCoupons.map((coupon) => (
-                    <CouponCard key={coupon.id} coupon={coupon} />
-                  ))
-                )}
+          <TabsContent value="used" className="mt-0">
+            {redeemedCoupons.length === 0 ? (
+              <EmptyState message="No redeemed coupons" icon={CheckCircle} />
+            ) : (
+              <div className="space-y-3">
+                {redeemedCoupons.map((coupon) => (
+                  <CouponCard key={coupon.id} coupon={coupon} />
+                ))}
               </div>
-            </TabsContent>
-
-            <TabsContent value="redeemed">
-              <div className="space-y-4">
-                {redeemedCoupons.length === 0 ? (
-                  <div className="text-center py-8">
-                    <CheckCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">No redeemed coupons</p>
-                  </div>
-                ) : (
-                  redeemedCoupons.map((coupon) => (
-                    <CouponCard key={coupon.id} coupon={coupon} />
-                  ))
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
-        )}
-      </MobileOptimizedLayout>
-    </DashboardLayout>
+            )}
+          </TabsContent>
+        </Tabs>
+      )}
+    </NativeDashboardLayout>
   );
 };
 

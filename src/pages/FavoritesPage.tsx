@@ -1,13 +1,13 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Heart, Clock, MapPin, Star, Share2, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { Link, useNavigate } from "react-router-dom";
+import NativeDashboardLayout from "@/components/layout/NativeDashboardLayout";
+import { NativeCard } from "@/components/ui/native-card";
+import { cn } from "@/lib/utils";
 
 interface SavedDeal {
   id: string;
@@ -27,10 +27,10 @@ interface SavedDeal {
 
 const FavoritesPage = () => {
   const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
   const [savedDeals, setSavedDeals] = useState<SavedDeal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     checkUser();
@@ -46,77 +46,53 @@ const FavoritesPage = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
       setUser(session.user);
-      await fetchUserProfile(session.user.id);
     }
     setIsLoading(false);
   };
 
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) throw error;
-      setProfile(data);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
-  };
-
   const fetchSavedDeals = async () => {
-    try {
-      // Mock data - in real implementation, fetch from database
-      const mockSavedDeals: SavedDeal[] = [
-        {
-          id: "1",
-          title: "50% off at Rajasthani Thali House",
-          description: "Traditional Rajasthani cuisine with authentic flavors",
-          category: "Food & Dining",
-          discount_percentage: 50,
-          original_price: 800,
-          discounted_price: 400,
-          location: "C-Scheme, Jaipur",
-          end_date: "2024-07-15",
-          merchants: {
-            business_name: "Rajasthani Thali House",
-            average_rating: 4.5
-          }
-        },
-        {
-          id: "2",
-          title: "30% off Spa Package",
-          description: "Relaxing spa and wellness treatments",
-          category: "Beauty & Wellness",
-          discount_percentage: 30,
-          original_price: 2000,
-          discounted_price: 1400,
-          location: "Malviya Nagar, Jaipur",
-          end_date: "2024-07-20",
-          merchants: {
-            business_name: "Serenity Spa",
-            average_rating: 4.8
-          }
+    // Mock data - in real implementation, fetch from database
+    const mockSavedDeals: SavedDeal[] = [
+      {
+        id: "1",
+        title: "50% off at Rajasthani Thali House",
+        description: "Traditional Rajasthani cuisine with authentic flavors",
+        category: "Food & Dining",
+        discount_percentage: 50,
+        original_price: 800,
+        discounted_price: 400,
+        location: "C-Scheme, Jaipur",
+        end_date: "2024-07-15",
+        merchants: {
+          business_name: "Rajasthani Thali House",
+          average_rating: 4.5
         }
-      ];
-      setSavedDeals(mockSavedDeals);
-    } catch (error) {
-      console.error('Error fetching saved deals:', error);
-    }
+      },
+      {
+        id: "2",
+        title: "30% off Spa Package",
+        description: "Relaxing spa and wellness treatments",
+        category: "Beauty & Wellness",
+        discount_percentage: 30,
+        original_price: 2000,
+        discounted_price: 1400,
+        location: "Malviya Nagar, Jaipur",
+        end_date: "2024-07-20",
+        merchants: {
+          business_name: "Serenity Spa",
+          average_rating: 4.8
+        }
+      }
+    ];
+    setSavedDeals(mockSavedDeals);
   };
 
   const removeSavedDeal = async (dealId: string) => {
-    try {
-      setSavedDeals(prev => prev.filter(deal => deal.id !== dealId));
-      toast({
-        title: "Removed from favorites",
-        description: "Deal has been removed from your saved list"
-      });
-    } catch (error) {
-      console.error('Error removing saved deal:', error);
-    }
+    setSavedDeals(prev => prev.filter(deal => deal.id !== dealId));
+    toast({
+      title: "Removed from favorites",
+      description: "Deal has been removed from your saved list"
+    });
   };
 
   const shareDeal = (deal: SavedDeal) => {
@@ -137,139 +113,138 @@ const FavoritesPage = () => {
 
   if (isLoading) {
     return (
-      <DashboardLayout user={user} profile={profile} pageTitle="Favorites">
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
+      <NativeDashboardLayout title="Favorites">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
         </div>
-      </DashboardLayout>
+      </NativeDashboardLayout>
     );
   }
 
   if (!user) {
     return (
-      <DashboardLayout user={user} profile={profile} pageTitle="Favorites">
-        <Card className="m-4">
-          <CardHeader className="text-center">
-            <CardTitle>Sign In Required</CardTitle>
-            <CardDescription>Please sign in to view your favorites</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button className="w-full" onClick={() => window.location.href = '/'}>
-              Go to Home
-            </Button>
-          </CardContent>
-        </Card>
-      </DashboardLayout>
+      <NativeDashboardLayout title="Favorites">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+          <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+            <Heart className="w-10 h-10 text-muted-foreground" />
+          </div>
+          <h2 className="text-xl font-bold mb-2">Sign In Required</h2>
+          <p className="text-muted-foreground mb-6">Please sign in to view your favorites</p>
+          <Button onClick={() => navigate('/')} className="rounded-xl">
+            Go to Home
+          </Button>
+        </div>
+      </NativeDashboardLayout>
     );
   }
 
-  return (
-    <DashboardLayout user={user} profile={profile} pageTitle="Favorites" showBackButton>
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Quick Actions */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Heart className="w-6 h-6 text-pink-500" />
-            <Badge variant="outline">{savedDeals.length} saved</Badge>
+  const DealCard = ({ deal }: { deal: SavedDeal }) => (
+    <NativeCard variant="default" padding="none" className="overflow-hidden">
+      {/* Deal Image Placeholder */}
+      <div className="h-32 bg-gradient-to-br from-primary/20 to-primary/5 relative">
+        <Badge className="absolute top-3 left-3 bg-emerald-500 text-white rounded-full px-2.5 py-1">
+          {deal.discount_percentage}% OFF
+        </Badge>
+        <div className="absolute top-3 right-3 flex gap-1">
+          <Button
+            variant="secondary"
+            size="icon"
+            className="h-8 w-8 rounded-full bg-white/90 shadow-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              shareDeal(deal);
+            }}
+          >
+            <Share2 className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="secondary"
+            size="icon"
+            className="h-8 w-8 rounded-full bg-white/90 shadow-sm text-red-500"
+            onClick={(e) => {
+              e.stopPropagation();
+              removeSavedDeal(deal.id);
+            }}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Deal Content */}
+      <div className="p-4">
+        <Badge variant="outline" className="text-xs mb-2 rounded-full">
+          {deal.category}
+        </Badge>
+        
+        <h3 className="font-semibold text-foreground line-clamp-2 mb-2">{deal.title}</h3>
+        
+        <div className="space-y-1.5 mb-3">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <MapPin className="w-3.5 h-3.5" />
+            <span className="truncate">{deal.location}</span>
           </div>
-          <div className="flex space-x-2">
-            <Link to="/deals">
-              <Button variant="outline" size="sm">
-                Browse More
-              </Button>
-            </Link>
-            <Link to="/coupons">
-              <Button variant="outline" size="sm">
-                My Coupons
-              </Button>
-            </Link>
+          {deal.merchants && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">{deal.merchants.business_name}</span>
+              <div className="flex items-center gap-1">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                <span className="font-medium">{deal.merchants.average_rating?.toFixed(1)}</span>
+              </div>
+            </div>
+          )}
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Clock className="w-3.5 h-3.5" />
+            <span>Ends {new Date(deal.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
           </div>
         </div>
 
-        {/* Saved Deals Grid */}
-        {savedDeals.length === 0 ? (
-          <div className="text-center py-12">
-            <Heart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">No saved deals yet</h3>
-            <p className="text-gray-500 mb-6">Start saving deals you love for easy access later</p>
-            <Link to="/deals">
-              <Button>Browse Deals</Button>
-            </Link>
+        <div className="flex items-center justify-between pt-3 border-t border-border/50">
+          <div className="flex items-baseline gap-2">
+            <span className="text-lg font-bold text-primary">₹{deal.discounted_price}</span>
+            <span className="text-sm text-muted-foreground line-through">₹{deal.original_price}</span>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {savedDeals.map((deal) => (
-              <Card key={deal.id} className="group hover:shadow-lg transition-all duration-200">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <Badge variant="outline" className="text-xs">
-                      {deal.category}
-                    </Badge>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => shareDeal(deal)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Share2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeSavedDeal(deal.id)}
-                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <h3 className="font-semibold text-lg mb-2">{deal.title}</h3>
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">{deal.description}</p>
-                  
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <MapPin className="w-4 h-4" />
-                      <span>{deal.location}</span>
-                    </div>
-                    {deal.merchants && (
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <span>{deal.merchants.business_name}</span>
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span>{deal.merchants.average_rating?.toFixed(1)}</span>
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <Clock className="w-3 h-3" />
-                      <span>Ends {new Date(deal.end_date).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold text-pink-600">₹{deal.discounted_price}</span>
-                      <span className="text-sm text-gray-500 line-through">₹{deal.original_price}</span>
-                    </div>
-                    <Badge className="bg-green-100 text-green-700">
-                      {deal.discount_percentage}% OFF
-                    </Badge>
-                  </div>
-
-                  <Link to={`/deal/${deal.id}`}>
-                    <Button className="w-full bg-gradient-to-r from-pink-500 to-orange-400">
-                      View Deal
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+          <Link to={`/deal/${deal.id}`}>
+            <Button size="sm" className="rounded-xl h-9 px-4">
+              View Deal
+            </Button>
+          </Link>
+        </div>
       </div>
-    </DashboardLayout>
+    </NativeCard>
+  );
+
+  return (
+    <NativeDashboardLayout 
+      title="Favorites" 
+      subtitle={`${savedDeals.length} saved deals`}
+      rightAction={
+        <Link to="/deals">
+          <Button variant="ghost" size="sm" className="text-xs rounded-lg">
+            Browse
+          </Button>
+        </Link>
+      }
+    >
+      {savedDeals.length === 0 ? (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+          <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+            <Heart className="w-10 h-10 text-muted-foreground" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">No Saved Deals</h3>
+          <p className="text-muted-foreground mb-6">Start saving deals you love for easy access</p>
+          <Link to="/deals">
+            <Button className="rounded-xl">Browse Deals</Button>
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {savedDeals.map((deal) => (
+            <DealCard key={deal.id} deal={deal} />
+          ))}
+        </div>
+      )}
+    </NativeDashboardLayout>
   );
 };
 
