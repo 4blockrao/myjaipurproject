@@ -1,15 +1,14 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import AppLayout from "@/components/layout/AppLayout";
 import AuthModal from "@/components/auth/AuthModal";
-import ModernHeroSection from "@/components/home/ModernHeroSection";
-import CategoryShowcase from "@/components/home/CategoryShowcase";
-import ImprovedTodaysTopDeals from "@/components/home/ImprovedTodaysTopDeals";
-import TopMerchants from "@/components/home/TopMerchants";
-import ReferEarnSection from "@/components/home/ReferEarnSection";
-import TrustIndicators from "@/components/home/TrustIndicators";
-import { HealthCheck } from "@/components/HealthCheck";
+import NativeHomeHeader from "@/components/home/NativeHomeHeader";
+import NativeCategoryGrid from "@/components/home/NativeCategoryGrid";
+import NativeDealsSection from "@/components/home/NativeDealsSection";
+import NativeQuickActions from "@/components/home/NativeQuickActions";
+import NativeStatsBar from "@/components/home/NativeStatsBar";
+import NativeBottomNav from "@/components/home/NativeBottomNav";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
@@ -22,12 +21,25 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
-  // Fetch deals with React Query - Fixed query
-  const { data: deals = [], isLoading: dealsLoading, error } = useQuery({
+  // Fetch user balance
+  const { data: userBalance = 0 } = useQuery({
+    queryKey: ['userBalance', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      const { data, error } = await supabase.rpc('get_user_balance', { user_uuid: user.id });
+      if (error) {
+        console.error('Error fetching balance:', error);
+        return 0;
+      }
+      return data || 0;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch deals with React Query
+  const { data: deals = [], isLoading: dealsLoading } = useQuery({
     queryKey: ['deals', selectedCategory, searchQuery],
     queryFn: async () => {
-      console.log('Fetching deals with category:', selectedCategory, 'search:', searchQuery);
-      
       let query = supabase
         .from('deals')
         .select(`
@@ -61,14 +73,13 @@ const Index = () => {
         throw error;
       }
       
-      console.log('Fetched deals:', data?.length || 0);
       return data || [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes (replaced cacheTime)
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
-  // Get categories and deal counts - Fixed categories
+  // Get categories and deal counts
   const categories = [
     "all", "Food & Dining", "Beauty & Wellness", "Shopping", "Electronics", 
     "Health & Fitness", "Automotive", "Services", "Travel", "Education"
@@ -83,7 +94,14 @@ const Index = () => {
     return acc;
   }, {} as Record<string, number>);
 
-  console.log('Deal counts:', dealCounts);
+  // Featured deals (those with is_featured = true)
+  const featuredDeals = deals.filter(deal => deal.is_featured);
+  
+  // Hot deals (high discount)
+  const hotDeals = [...deals].sort((a, b) => (b.discount_percentage || 0) - (a.discount_percentage || 0)).slice(0, 8);
+  
+  // Recent deals
+  const recentDeals = deals.slice(0, 6);
 
   useEffect(() => {
     checkUser();
@@ -104,7 +122,6 @@ const Index = () => {
       setIsLoading(false);
     }
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         setUser(session.user);
@@ -138,43 +155,78 @@ const Index = () => {
   };
 
   const handleSearch = (query: string) => {
-    console.log('Search query:', query);
     setSearchQuery(query);
   };
 
   const handleCategorySelect = (category: string) => {
-    console.log('Selected category:', category);
     setSelectedCategory(category);
   };
 
   return (
-    <AppLayout 
-      user={user} 
-      profile={profile} 
-      onAuthModal={() => setShowAuthModal(true)}
-    >
-      <div className="min-h-screen">
-        <ModernHeroSection 
-          userLocality={profile?.locality}
-          onSearch={handleSearch}
-        />
-        <CategoryShowcase 
-          dealCounts={dealCounts}
-          onCategorySelect={handleCategorySelect}
-        />
-        <ImprovedTodaysTopDeals 
-          deals={deals}
+    <div className="min-h-screen bg-muted/30">
+      <Toaster />
+      <Sonner />
+      
+      {/* Native Home Header with Search */}
+      <NativeHomeHeader 
+        userLocality={profile?.locality}
+        userName={profile?.full_name}
+        jaiCoins={userBalance}
+        onSearch={handleSearch}
+      />
+
+      {/* Stats Bar */}
+      <NativeStatsBar />
+
+      {/* Categories Grid */}
+      <NativeCategoryGrid 
+        dealCounts={dealCounts}
+        onCategorySelect={handleCategorySelect}
+      />
+
+      {/* Featured Deals - Horizontal Scroll */}
+      {featuredDeals.length > 0 && (
+        <NativeDealsSection 
+          deals={featuredDeals}
           isLoading={dealsLoading}
+          title="Featured Deals"
+          icon="sparkles"
+          variant="horizontal-scroll"
+          maxDeals={8}
         />
-        <TopMerchants />
-        <ReferEarnSection user={user} profile={profile} />
-        <TrustIndicators />
-        
-        <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
-        
-        <HealthCheck />
-      </div>
-    </AppLayout>
+      )}
+
+      {/* Quick Actions */}
+      <NativeQuickActions />
+
+      {/* Hot Deals - Horizontal Scroll */}
+      <NativeDealsSection 
+        deals={hotDeals}
+        isLoading={dealsLoading}
+        title="🔥 Hot Deals"
+        icon="flame"
+        variant="horizontal-scroll"
+        maxDeals={8}
+      />
+
+      {/* All Recent Deals - Vertical List */}
+      <NativeDealsSection 
+        deals={recentDeals}
+        isLoading={dealsLoading}
+        title="Latest Deals"
+        icon="trending"
+        variant="vertical-list"
+        maxDeals={6}
+      />
+
+      {/* Bottom spacing for nav */}
+      <div className="h-24" />
+
+      {/* Native Bottom Navigation */}
+      <NativeBottomNav />
+      
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+    </div>
   );
 };
 
