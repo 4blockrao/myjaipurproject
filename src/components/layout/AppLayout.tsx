@@ -1,9 +1,8 @@
-
 import React, { ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import ModernNavigation from "@/components/home/ModernNavigation";
-import StickyBottomNav from "@/components/home/StickyBottomNav";
+import NativeBottomNav from "@/components/home/NativeBottomNav";
 import { PageLoading } from "@/components/ui/page-loading";
 import { usePageTransition } from "@/hooks/usePageTransition";
 
@@ -31,7 +30,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <Toaster />
       <Sonner />
       
@@ -47,8 +46,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         {children}
       </main>
       
-      {showBottomNav && user && (
-        <StickyBottomNav />
+      {showBottomNav && (
+        <NativeBottomNav />
       )}
     </div>
   );
