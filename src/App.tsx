@@ -36,6 +36,9 @@ import MerchantPage from "./pages/MerchantPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import NotFound from "./pages/NotFound";
 import InstallPage from "./pages/InstallPage";
+import NewsPage from "./pages/NewsPage";
+import NewsArticlePage from "./pages/NewsArticlePage";
+import CreateNewsPage from "./pages/CreateNewsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -97,6 +100,9 @@ function App() {
             <Route path="/merchant" element={<MerchantPage />} />
             <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="/install" element={<InstallPage />} />
+            <Route path="/news" element={<NewsPage />} />
+            <Route path="/news/create" element={<CreateNewsPage />} />
+            <Route path="/news/:slug" element={<NewsArticlePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
