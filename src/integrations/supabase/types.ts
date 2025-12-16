@@ -690,6 +690,122 @@ export type Database = {
         }
         Relationships: []
       }
+      news_articles: {
+        Row: {
+          ai_prompt: string | null
+          author_id: string | null
+          canonical_url: string | null
+          category: Database["public"]["Enums"]["news_category"]
+          content: string
+          cover_image: string | null
+          created_at: string | null
+          excerpt: string | null
+          id: string
+          is_ai_generated: boolean | null
+          is_featured: boolean | null
+          like_count: number | null
+          locality: string | null
+          meta_description: string | null
+          meta_keywords: string[] | null
+          meta_title: string | null
+          og_image: string | null
+          published_at: string | null
+          share_count: number | null
+          slug: string
+          status: Database["public"]["Enums"]["article_status"]
+          structured_data: Json | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          view_count: number | null
+        }
+        Insert: {
+          ai_prompt?: string | null
+          author_id?: string | null
+          canonical_url?: string | null
+          category?: Database["public"]["Enums"]["news_category"]
+          content: string
+          cover_image?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          is_featured?: boolean | null
+          like_count?: number | null
+          locality?: string | null
+          meta_description?: string | null
+          meta_keywords?: string[] | null
+          meta_title?: string | null
+          og_image?: string | null
+          published_at?: string | null
+          share_count?: number | null
+          slug: string
+          status?: Database["public"]["Enums"]["article_status"]
+          structured_data?: Json | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          ai_prompt?: string | null
+          author_id?: string | null
+          canonical_url?: string | null
+          category?: Database["public"]["Enums"]["news_category"]
+          content?: string
+          cover_image?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          is_featured?: boolean | null
+          like_count?: number | null
+          locality?: string | null
+          meta_description?: string | null
+          meta_keywords?: string[] | null
+          meta_title?: string | null
+          og_image?: string | null
+          published_at?: string | null
+          share_count?: number | null
+          slug?: string
+          status?: Database["public"]["Enums"]["article_status"]
+          structured_data?: Json | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Relationships: []
+      }
+      news_likes: {
+        Row: {
+          article_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_likes_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "news_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string | null
@@ -1412,6 +1528,7 @@ export type Database = {
         Returns: undefined
       }
       generate_coupon_code: { Args: never; Returns: string }
+      generate_news_slug: { Args: { title: string }; Returns: string }
       generate_redemption_code: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       get_order_details: {
@@ -1456,6 +1573,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_article_views: {
+        Args: { article_id: string }
+        Returns: undefined
+      }
       is_pro_member: { Args: { user_uuid: string }; Returns: boolean }
       upgrade_to_pro_user: { Args: { _user_id: string }; Returns: undefined }
     }
@@ -1467,6 +1588,14 @@ export type Database = {
         | "listing_agent"
         | "listing_supervisor"
         | "admin"
+      article_status: "draft" | "published" | "archived"
+      news_category:
+        | "city"
+        | "events"
+        | "food"
+        | "culture"
+        | "business"
+        | "sports"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1601,6 +1730,15 @@ export const Constants = {
         "listing_agent",
         "listing_supervisor",
         "admin",
+      ],
+      article_status: ["draft", "published", "archived"],
+      news_category: [
+        "city",
+        "events",
+        "food",
+        "culture",
+        "business",
+        "sports",
       ],
     },
   },
