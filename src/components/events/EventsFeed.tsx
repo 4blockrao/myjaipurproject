@@ -2,22 +2,9 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import EventCard from "./EventCard";
-import { Button } from "@/components/ui/button";
+import EventFilters, { EventFiltersState } from "./EventFilters";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Filter, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-
-const CATEGORIES = [
-  { value: "all", label: "All Events" },
-  { value: "music", label: "Music" },
-  { value: "arts", label: "Arts & Culture" },
-  { value: "food", label: "Food & Drinks" },
-  { value: "sports", label: "Sports" },
-  { value: "business", label: "Business" },
-  { value: "community", label: "Community" },
-  { value: "education", label: "Education" },
-  { value: "festivals", label: "Festivals" },
-];
+import { Calendar } from "lucide-react";
 
 interface EventsFeedProps {
   showFilters?: boolean;
@@ -26,11 +13,18 @@ interface EventsFeedProps {
 }
 
 const EventsFeed = ({ showFilters = true, limit, featured }: EventsFeedProps) => {
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState<EventFiltersState>({
+    search: "",
+    category: "all",
+    locality: "All Localities",
+    dateFrom: undefined,
+    dateTo: undefined,
+    priceRange: [0, 5000],
+    freeOnly: false,
+  });
 
   const { data: events, isLoading } = useQuery({
-    queryKey: ["events", selectedCategory, featured, limit],
+    queryKey: ["events", filters, featured, limit],
     queryFn: async () => {
       let query = supabase
         .from("events")
@@ -39,14 +33,24 @@ const EventsFeed = ({ showFilters = true, limit, featured }: EventsFeedProps) =>
         .gte("start_date", new Date().toISOString())
         .order("start_date", { ascending: true });
 
-      if (selectedCategory !== "all") {
-        query = query.eq("category", selectedCategory);
+      if (filters.category !== "all") {
+        query = query.eq("category", filters.category);
       }
-
+      if (filters.locality !== "All Localities") {
+        query = query.eq("locality", filters.locality);
+      }
+      if (filters.dateFrom) {
+        query = query.gte("start_date", filters.dateFrom.toISOString());
+      }
+      if (filters.dateTo) {
+        query = query.lte("start_date", filters.dateTo.toISOString());
+      }
+      if (filters.freeOnly) {
+        query = query.eq("is_free", true);
+      }
       if (featured) {
         query = query.eq("is_featured", true);
       }
-
       if (limit) {
         query = query.limit(limit);
       }
@@ -57,27 +61,22 @@ const EventsFeed = ({ showFilters = true, limit, featured }: EventsFeedProps) =>
     },
   });
 
-  const filteredEvents = events?.filter((event) =>
-    event.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Client-side filtering for search and price
+  const filteredEvents = events?.filter((event) => {
+    const matchesSearch = event.title.toLowerCase().includes(filters.search.toLowerCase());
+    const matchesPrice = filters.freeOnly
+      ? event.is_free
+      : event.is_free || (event.ticket_price >= filters.priceRange[0] && event.ticket_price <= filters.priceRange[1]);
+    return matchesSearch && matchesPrice;
+  });
 
   if (isLoading) {
     return (
       <div className="space-y-4">
-        {showFilters && (
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-8 w-24 rounded-full" />
-            ))}
-          </div>
-        )}
+        {showFilters && <Skeleton className="h-40 w-full" />}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="space-y-3">
-              <Skeleton className="aspect-[16/10] rounded-xl" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
-            </div>
+            <Skeleton key={i} className="aspect-[16/10] rounded-xl" />
           ))}
         </div>
       </div>
@@ -86,40 +85,13 @@ const EventsFeed = ({ showFilters = true, limit, featured }: EventsFeedProps) =>
 
   return (
     <div className="space-y-4">
-      {showFilters && (
-        <div className="space-y-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search events..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {CATEGORIES.map((cat) => (
-              <Button
-                key={cat.value}
-                variant={selectedCategory === cat.value ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(cat.value)}
-                className="whitespace-nowrap rounded-full"
-              >
-                {cat.label}
-              </Button>
-            ))}
-          </div>
-        </div>
-      )}
+      {showFilters && <EventFilters filters={filters} onFiltersChange={setFilters} />}
 
       {filteredEvents?.length === 0 ? (
         <div className="text-center py-12">
           <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
           <h3 className="font-semibold text-lg mb-1">No events found</h3>
-          <p className="text-muted-foreground text-sm">
-            Check back later for upcoming events in Jaipur
-          </p>
+          <p className="text-muted-foreground text-sm">Try adjusting your filters</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
