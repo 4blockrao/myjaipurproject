@@ -1,82 +1,37 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Users, FileText, CheckCircle, BarChart3 } from "lucide-react";
+import { Shield, Users, FileText, Store, Calendar, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import AppLayout from "@/components/layout/AppLayout";
 import RoleManager from "@/components/admin/RoleManager";
 import DealApprovalQueue from "@/components/admin/DealApprovalQueue";
-import { useToast } from "@/hooks/use-toast";
+import EventsManagement from "@/components/admin/EventsManagement";
+import MerchantsManagement from "@/components/admin/MerchantsManagement";
+import UsersManagement from "@/components/admin/UsersManagement";
+import AdminAnalytics from "@/components/admin/AdminAnalytics";
 
 const AdminDashboardPage = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    pendingDeals: 0,
-    activeMerchants: 0,
-    totalRevenue: 0
-  });
-  const { toast } = useToast();
-  
-  const { roles, isLoading: rolesLoading, isAdmin, canManageUsers } = useUserRoles(user?.id);
+  const { isLoading: rolesLoading, isAdmin, canManageUsers } = useUserRoles(user?.id);
 
   useEffect(() => {
-    checkAuth();
-    fetchStats();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        supabase.from('profiles').select('*').eq('id', session.user.id).single()
+          .then(({ data }) => setProfile(data));
+      }
+    });
   }, []);
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    setUser(session?.user ?? null);
-    
-    if (session?.user) {
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
-      setProfile(data);
-    }
-  };
-
-  const fetchStats = async () => {
-    try {
-      // Get total users
-      const { count: usersCount } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
-
-      // Get pending deals
-      const { count: pendingDealsCount } = await supabase
-        .from('deals')
-        .select('*', { count: 'exact', head: true })
-        .in('approval_status', ['draft', 'pending_approval']);
-
-      // Get active merchants
-      const { count: merchantsCount } = await supabase
-        .from('merchants')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true);
-
-      setStats({
-        totalUsers: usersCount || 0,
-        pendingDeals: pendingDealsCount || 0,
-        activeMerchants: merchantsCount || 0,
-        totalRevenue: 0 // This would come from order calculations
-      });
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
-  };
 
   if (rolesLoading) {
     return (
       <AppLayout user={user} profile={profile}>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </AppLayout>
     );
@@ -88,9 +43,9 @@ const AdminDashboardPage = () => {
         <div className="container mx-auto px-4 py-8">
           <Card>
             <CardContent className="text-center py-8">
-              <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-600 mb-2">Access Denied</h2>
-              <p className="text-gray-500">You don't have permission to access this area.</p>
+              <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+              <p className="text-muted-foreground">You don't have permission to access this area.</p>
             </CardContent>
           </Card>
         </div>
@@ -102,67 +57,44 @@ const AdminDashboardPage = () => {
     <AppLayout user={user} profile={profile}>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage your platform operations</p>
+          <h1 className="text-3xl font-bold mb-2">Admin Portal</h1>
+          <p className="text-muted-foreground">Complete platform management</p>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Deals</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.pendingDeals}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Merchants</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.activeMerchants}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">₹{stats.totalRevenue.toLocaleString()}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Management Tabs */}
-        <Tabs defaultValue="deals" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="deals">Deal Approval</TabsTrigger>
-            <TabsTrigger value="roles">Role Management</TabsTrigger>
+        <Tabs defaultValue="analytics" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+            <TabsTrigger value="analytics" className="gap-2">
+              <BarChart3 className="w-4 h-4 hidden sm:inline" />
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="users" className="gap-2">
+              <Users className="w-4 h-4 hidden sm:inline" />
+              Users
+            </TabsTrigger>
+            <TabsTrigger value="merchants" className="gap-2">
+              <Store className="w-4 h-4 hidden sm:inline" />
+              Merchants
+            </TabsTrigger>
+            <TabsTrigger value="deals" className="gap-2">
+              <FileText className="w-4 h-4 hidden sm:inline" />
+              Deals
+            </TabsTrigger>
+            <TabsTrigger value="events" className="gap-2">
+              <Calendar className="w-4 h-4 hidden sm:inline" />
+              Events
+            </TabsTrigger>
+            <TabsTrigger value="roles" className="gap-2">
+              <Shield className="w-4 h-4 hidden sm:inline" />
+              Roles
+            </TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="deals" className="space-y-6">
-            <DealApprovalQueue />
-          </TabsContent>
-          
-          <TabsContent value="roles" className="space-y-6">
-            <RoleManager />
-          </TabsContent>
+
+          <TabsContent value="analytics"><AdminAnalytics /></TabsContent>
+          <TabsContent value="users"><UsersManagement /></TabsContent>
+          <TabsContent value="merchants"><MerchantsManagement /></TabsContent>
+          <TabsContent value="deals"><DealApprovalQueue /></TabsContent>
+          <TabsContent value="events"><EventsManagement /></TabsContent>
+          <TabsContent value="roles"><RoleManager /></TabsContent>
         </Tabs>
       </div>
     </AppLayout>

@@ -42,6 +42,7 @@ import CreateNewsPage from "./pages/CreateNewsPage";
 import EventsPage from "./pages/EventsPage";
 import EventDetailPage from "./pages/EventDetailPage";
 import CreateEventPage from "./pages/CreateEventPage";
+import EventOrganizerDashboardPage from "./pages/EventOrganizerDashboardPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -108,6 +109,7 @@ function App() {
             <Route path="/news/:slug" element={<NewsArticlePage />} />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/events/create" element={<CreateEventPage />} />
+            <Route path="/events/organizer" element={<EventOrganizerDashboardPage />} />
             <Route path="/events/:slug" element={<EventDetailPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

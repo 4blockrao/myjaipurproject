@@ -21,12 +21,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import NativeBottomNav from "@/components/home/NativeBottomNav";
 import { EventSEO } from "@/components/events/EventSEO";
+import EventRegistrationModal from "@/components/events/EventRegistrationModal";
 
 const EventDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const queryClient = useQueryClient();
   const [user, setUser] = useState<any>(null);
   const [isInterested, setIsInterested] = useState(false);
+  const [showRegistration, setShowRegistration] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
@@ -305,12 +307,18 @@ const EventDetailPage = () => {
               <Heart className={`w-5 h-5 ${isInterested ? "fill-current" : ""}`} />
               {isInterested ? "Interested" : "Interest"}
             </Button>
-            <Button size="lg" className="flex-1 gap-2">
+            <Button size="lg" className="flex-1 gap-2" onClick={() => setShowRegistration(true)}>
               <Ticket className="w-5 h-5" />
               {event.is_free ? "Register Free" : `Get Tickets • ₹${event.ticket_price}`}
             </Button>
           </div>
         </div>
+
+        <EventRegistrationModal
+          event={event}
+          open={showRegistration}
+          onOpenChange={setShowRegistration}
+        />
 
         <NativeBottomNav />
       </div>
