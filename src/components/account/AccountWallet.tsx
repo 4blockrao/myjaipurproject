@@ -3,12 +3,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Coins, TrendingUp, TrendingDown, Gift, ArrowRight } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import ScratchCard from "@/components/gamification/ScratchCard";
+import { 
+  Coins, TrendingUp, TrendingDown, Gift, ArrowRight, 
+  RotateCcw, Dice6 
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface AccountWalletProps {
   user: any;
   balance: number;
+  onRefreshBalance?: () => void;
 }
 
 interface Transaction {
@@ -20,9 +26,20 @@ interface Transaction {
   created_at: string;
 }
 
-const AccountWallet = ({ user, balance }: AccountWalletProps) => {
+const AccountWallet = ({ user, balance, onRefreshBalance }: AccountWalletProps) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dailySpinUsed, setDailySpinUsed] = useState(() => {
+    const lastSpin = localStorage.getItem(`lastSpin_${user?.id}`);
+    return lastSpin === new Date().toDateString();
+  });
+  const [scratchCardUsed, setScratchCardUsed] = useState(() => {
+    const lastScratch = localStorage.getItem(`lastScratch_${user?.id}`);
+    return lastScratch === new Date().toDateString();
+  });
+  const [showScratchCard, setShowScratchCard] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
@@ -48,9 +65,60 @@ const AccountWallet = ({ user, balance }: AccountWalletProps) => {
     }
   };
 
+  const handleDailySpin = async () => {
+    if (dailySpinUsed || !user) return;
+    
+    setIsSpinning(true);
+    
+    setTimeout(async () => {
+      const rewards = [5, 10, 15, 20, 25, 50];
+      const randomReward = rewards[Math.floor(Math.random() * rewards.length)];
+      
+      try {
+        await supabase
+          .from('jaicoin_transactions')
+          .insert({
+            user_id: user.id,
+            amount: randomReward,
+            type: 'earned',
+            source: 'daily_spin',
+            description: `Daily spin wheel reward`
+          });
+
+        toast({
+          title: "🎉 You won!",
+          description: `+${randomReward} JAICoins added to your wallet!`,
+        });
+
+        setDailySpinUsed(true);
+        localStorage.setItem(`lastSpin_${user.id}`, new Date().toDateString());
+        onRefreshBalance?.();
+        fetchTransactions();
+        
+      } catch (error) {
+        console.error('Error awarding spin reward:', error);
+        toast({
+          title: "Error",
+          description: "Failed to award reward. Please try again.",
+          variant: "destructive"
+        });
+      }
+      
+      setIsSpinning(false);
+    }, 2000);
+  };
+
+  const handleScratchCard = () => {
+    if (scratchCardUsed || !user) return;
+    setShowScratchCard(true);
+    setScratchCardUsed(true);
+    localStorage.setItem(`lastScratch_${user.id}`, new Date().toDateString());
+  };
+
   const getSourceIcon = (source: string) => {
     switch (source) {
       case 'referral':
+      case 'referral_reward':
         return '👥';
       case 'daily_spin':
         return '🎰';
@@ -60,6 +128,8 @@ const AccountWallet = ({ user, balance }: AccountWalletProps) => {
         return '✅';
       case 'purchase':
         return '🛒';
+      case 'signup_bonus':
+        return '🎉';
       default:
         return '💰';
     }
@@ -121,6 +191,54 @@ const AccountWallet = ({ user, balance }: AccountWalletProps) => {
         </Card>
       </div>
 
+      {/* Daily Rewards Section */}
+      <div className="space-y-3">
+        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Daily Rewards</h3>
+        
+        <div className="grid grid-cols-2 gap-3">
+          {/* Spin Wheel */}
+          <Card className={`${dailySpinUsed ? 'opacity-60' : ''}`}>
+            <CardContent className="p-4 text-center">
+              <div className={`w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-400 flex items-center justify-center ${isSpinning ? 'animate-spin' : ''}`}>
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                  <RotateCcw className="w-5 h-5 text-purple-500" />
+                </div>
+              </div>
+              <h4 className="font-semibold text-sm mb-1">Daily Spin</h4>
+              <p className="text-xs text-muted-foreground mb-3">Win 5-50 JAICoins</p>
+              <Button
+                onClick={handleDailySpin}
+                disabled={dailySpinUsed || isSpinning}
+                size="sm"
+                className="w-full"
+              >
+                {isSpinning ? 'Spinning...' : dailySpinUsed ? 'Done ✓' : 'Spin Now!'}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Scratch Card */}
+          <Card className={`${scratchCardUsed ? 'opacity-60' : ''}`}>
+            <CardContent className="p-4 text-center">
+              <div className="w-14 h-10 mx-auto mb-3 rounded-lg bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center">
+                <Gift className="w-5 h-5 text-white" />
+              </div>
+              <h4 className="font-semibold text-sm mb-1">Scratch Card</h4>
+              <p className="text-xs text-muted-foreground mb-3">Mystery reward!</p>
+              <Button
+                onClick={handleScratchCard}
+                disabled={scratchCardUsed}
+                size="sm"
+                variant="outline"
+                className="w-full"
+              >
+                {scratchCardUsed ? 'Done ✓' : 'Scratch!'}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
       {/* Redeem CTA */}
       <Link to="/deals">
         <Card className="bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
@@ -179,6 +297,16 @@ const AccountWallet = ({ user, balance }: AccountWalletProps) => {
           )}
         </CardContent>
       </Card>
+
+      <ScratchCard 
+        isOpen={showScratchCard}
+        onClose={() => {
+          setShowScratchCard(false);
+          onRefreshBalance?.();
+          fetchTransactions();
+        }}
+        trigger="daily"
+      />
     </div>
   );
 };
