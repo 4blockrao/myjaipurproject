@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -10,11 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import AppLayout from "@/components/layout/AppLayout";
+import NativeMobileHeader from "@/components/layout/NativeMobileHeader";
+import NativeBottomNav from "@/components/home/NativeBottomNav";
 import { 
-  ArrowLeft, CreditCard, Smartphone, Wallet, 
-  Shield, Lock, Gift, Coins, Percent, Users,
-  CheckCircle, AlertCircle, Clock
+  CreditCard, Smartphone, Wallet, Shield, Gift, Coins,
+  CheckCircle, Loader2
 } from "lucide-react";
 
 interface OrderItem {
@@ -24,16 +24,7 @@ interface OrderItem {
   discounted_price: number;
   discount_percentage: number;
   quantity: number;
-  location: string;
   merchant_name: string;
-}
-
-interface PaymentMethod {
-  id: string;
-  name: string;
-  icon: any;
-  description: string;
-  processing_fee?: number;
 }
 
 const CheckoutPage = () => {
@@ -42,47 +33,19 @@ const CheckoutPage = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("card");
+  const [selectedPayment, setSelectedPayment] = useState("upi");
   const [isProcessing, setIsProcessing] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [useJaiCoins, setUseJaiCoins] = useState(false);
-  const [jaiCoinsBalance, setJaiCoinsBalance] = useState(250);
-  const [buyingForSomeoneElse, setBuyingForSomeoneElse] = useState(false);
-  const [contactInfo, setContactInfo] = useState({
-    email: "",
-    phone: "",
-    name: ""
-  });
-  const [recipientInfo, setRecipientInfo] = useState({
-    email: "",
-    phone: "",
-    name: ""
-  });
+  const [jaiCoinsBalance] = useState(250);
+  const [contactInfo, setContactInfo] = useState({ name: "", phone: "", email: "" });
   const { toast } = useToast();
 
-  const paymentMethods: PaymentMethod[] = [
-    {
-      id: "card",
-      name: "Credit/Debit Card",
-      icon: CreditCard,
-      description: "Visa, Mastercard, RuPay",
-      processing_fee: 0
-    },
-    {
-      id: "upi",
-      name: "UPI Payment",
-      icon: Smartphone,
-      description: "Google Pay, PhonePe, Paytm",
-      processing_fee: 0
-    },
-    {
-      id: "wallet",
-      name: "Digital Wallet",
-      icon: Wallet,
-      description: "Paytm, Amazon Pay, Mobikwik",
-      processing_fee: 5
-    }
+  const paymentMethods = [
+    { id: "upi", name: "UPI", icon: Smartphone, desc: "GPay, PhonePe, Paytm" },
+    { id: "card", name: "Card", icon: CreditCard, desc: "Credit/Debit Card" },
+    { id: "wallet", name: "Wallet", icon: Wallet, desc: "Paytm, Amazon Pay" },
   ];
 
   useEffect(() => {
@@ -94,166 +57,71 @@ const CheckoutPage = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
       setUser(session.user);
-      await fetchUserProfile(session.user.id);
+      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+      if (data) {
+        setProfile(data);
+        setContactInfo({
+          name: data.full_name || "",
+          phone: data.phone || "",
+          email: data.email || session.user.email || ""
+        });
+      }
     } else {
       navigate('/');
     }
   };
 
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error);
-        return;
-      }
-
-      if (data) {
-        setProfile(data);
-        // Pre-fill contact info from profile and user
-        setContactInfo({
-          email: data.email || user?.email || "",
-          phone: data.phone || "",
-          name: data.full_name || ""
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
-  };
-
   const fetchOrderDetails = async () => {
-    // Mock data - in real implementation, fetch from orders table
-    const mockOrderItems: OrderItem[] = [
-      {
-        id: orderId || "1",
-        title: "Royal Rajasthani Thali Experience",
-        original_price: 800,
-        discounted_price: 400,
-        discount_percentage: 50,
-        quantity: 2,
-        location: "C-Scheme, Jaipur",
-        merchant_name: "Royal Heritage Restaurant"
-      }
-    ];
-    setOrderItems(mockOrderItems);
+    setOrderItems([{
+      id: orderId || "1",
+      title: "Royal Rajasthani Thali Experience",
+      original_price: 800,
+      discounted_price: 400,
+      discount_percentage: 50,
+      quantity: 2,
+      merchant_name: "Royal Heritage Restaurant"
+    }]);
   };
 
-  const getSubtotal = () => {
-    return orderItems.reduce((sum, item) => sum + (item.discounted_price * item.quantity), 0);
-  };
-
-  const getCouponDiscount = () => {
-    return appliedCoupon ? appliedCoupon.discount : 0;
-  };
-
-  const getJaiCoinsDiscount = () => {
-    if (!useJaiCoins) return 0;
-    const maxDiscount = Math.min(jaiCoinsBalance, getSubtotal() * 0.1);
-    return Math.floor(maxDiscount);
-  };
-
-  const getProcessingFee = () => {
-    const method = paymentMethods.find(m => m.id === selectedPaymentMethod);
-    return method?.processing_fee || 0;
-  };
-
-  const getTotalAmount = () => {
-    const subtotal = getSubtotal();
-    const couponDiscount = getCouponDiscount();
-    const jaiCoinsDiscount = getJaiCoinsDiscount();
-    const processingFee = getProcessingFee();
-    return Math.max(0, subtotal - couponDiscount - jaiCoinsDiscount + processingFee);
-  };
-
-  const getTotalSavings = () => {
-    const originalTotal = orderItems.reduce((sum, item) => sum + (item.original_price * item.quantity), 0);
-    const finalTotal = getTotalAmount();
-    return originalTotal - finalTotal;
-  };
+  const getSubtotal = () => orderItems.reduce((sum, item) => sum + (item.discounted_price * item.quantity), 0);
+  const getCouponDiscount = () => appliedCoupon?.discount || 0;
+  const getJaiCoinsDiscount = () => useJaiCoins ? Math.min(jaiCoinsBalance, getSubtotal() * 0.1) : 0;
+  const getTotalAmount = () => Math.max(0, getSubtotal() - getCouponDiscount() - getJaiCoinsDiscount());
 
   const applyCoupon = () => {
     if (couponCode.toLowerCase() === "welcome10") {
-      setAppliedCoupon({
-        code: "WELCOME10",
-        discount: Math.floor(getSubtotal() * 0.1),
-        description: "10% off on first purchase"
-      });
-      toast({
-        title: "Coupon Applied",
-        description: "You saved ₹" + Math.floor(getSubtotal() * 0.1)
-      });
+      setAppliedCoupon({ code: "WELCOME10", discount: Math.floor(getSubtotal() * 0.1) });
+      toast({ title: "Coupon Applied!", description: "10% discount applied" });
     } else {
-      toast({
-        title: "Invalid Coupon",
-        description: "The coupon code you entered is not valid",
-        variant: "destructive"
-      });
+      toast({ title: "Invalid Coupon", variant: "destructive" });
     }
   };
 
-  const removeCoupon = () => {
-    setAppliedCoupon(null);
-    setCouponCode("");
-  };
-
   const handlePayment = async () => {
-    const currentContactInfo = buyingForSomeoneElse ? recipientInfo : contactInfo;
-    
-    if (!currentContactInfo.name || !currentContactInfo.phone) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required contact details",
-        variant: "destructive"
-      });
+    if (!contactInfo.name || !contactInfo.phone) {
+      toast({ title: "Missing Info", description: "Please fill contact details", variant: "destructive" });
       return;
     }
 
     setIsProcessing(true);
-    
     try {
-      // Create order in database
-      const orderData = {
+      const { data: order, error } = await supabase.from('orders').insert([{
         user_id: user.id,
         deal_id: orderItems[0]?.id,
         quantity: orderItems[0]?.quantity || 1,
         total_amount: getTotalAmount(),
         jaicoin_used: getJaiCoinsDiscount(),
-        payment_method: selectedPaymentMethod,
-        customer_name: currentContactInfo.name,
-        customer_phone: currentContactInfo.phone,
+        payment_method: selectedPayment,
+        customer_name: contactInfo.name,
+        customer_phone: contactInfo.phone,
         status: 'pending'
-      };
+      }]).select().single();
 
-      const { data: order, error } = await supabase
-        .from('orders')
-        .insert([orderData])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Order creation error:', error);
-        throw error;
-      }
-
-      // Mock payment processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Redirect to success page with actual order ID
+      if (error) throw error;
+      await new Promise(r => setTimeout(r, 1500));
       navigate(`/order-success/${order.id}`);
-      
     } catch (error) {
-      console.error('Payment error:', error);
-      toast({
-        title: "Payment Failed",
-        description: "There was an error processing your payment. Please try again.",
-        variant: "destructive"
-      });
+      toast({ title: "Payment Failed", description: "Please try again", variant: "destructive" });
     } finally {
       setIsProcessing(false);
     }
@@ -261,349 +129,194 @@ const CheckoutPage = () => {
 
   if (!user) {
     return (
-      <AppLayout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <Card className="p-8 text-center max-w-md">
-            <h2 className="text-2xl font-bold mb-4">Sign In Required</h2>
-            <p className="text-gray-600 mb-6">Please sign in to complete your purchase</p>
-            <Button onClick={() => navigate('/')}>
-              Go to Home
-            </Button>
-          </Card>
-        </div>
-      </AppLayout>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="text-center p-6 max-w-sm w-full">
+          <h2 className="font-bold text-lg mb-2">Sign In Required</h2>
+          <p className="text-muted-foreground text-sm mb-4">Please sign in to checkout</p>
+          <Button onClick={() => navigate('/')}>Go Home</Button>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <AppLayout user={user} profile={profile}>
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white border-b shadow-sm">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center gap-4">
-              <Link to="/deals">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Deals
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-2xl font-bold">Checkout</h1>
-                <p className="text-gray-600">Order #{orderId || 'NEW'}</p>
+    <div className="min-h-screen bg-muted/30 pb-24">
+      <NativeMobileHeader title="Checkout" subtitle={`Order #${orderId || 'NEW'}`} backPath="/deals" />
+
+      <div className="p-4 space-y-4">
+        {/* Order Summary */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Order Summary</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {orderItems.map(item => (
+              <div key={item.id} className="flex justify-between items-start">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm line-clamp-1">{item.title}</p>
+                  <p className="text-xs text-muted-foreground">{item.merchant_name} × {item.quantity}</p>
+                </div>
+                <div className="text-right shrink-0 ml-3">
+                  <p className="font-semibold">₹{item.discounted_price * item.quantity}</p>
+                  <p className="text-xs text-muted-foreground line-through">₹{item.original_price * item.quantity}</p>
+                </div>
               </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Contact Info */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Contact Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <Label className="text-xs">Full Name *</Label>
+              <Input 
+                value={contactInfo.name}
+                onChange={(e) => setContactInfo({...contactInfo, name: e.target.value})}
+                placeholder="Enter name"
+                className="mt-1"
+              />
             </div>
-          </div>
-        </div>
+            <div>
+              <Label className="text-xs">Phone *</Label>
+              <Input 
+                value={contactInfo.phone}
+                onChange={(e) => setContactInfo({...contactInfo, phone: e.target.value})}
+                placeholder="+91 XXXXX XXXXX"
+                className="mt-1"
+              />
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Buying For Someone Else Toggle */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Gift className="w-5 h-5" />
-                    Purchase Type
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="buying-for-someone-else"
-                      checked={buyingForSomeoneElse}
-                      onCheckedChange={(checked) => setBuyingForSomeoneElse(checked === true)}
-                    />
-                    <Label htmlFor="buying-for-someone-else" className="cursor-pointer">
-                      I'm buying this for someone else
-                    </Label>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Contact Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5" />
-                    {buyingForSomeoneElse ? "Recipient Information" : "Your Information"}
-                  </CardTitle>
-                  {buyingForSomeoneElse && (
-                    <CardDescription>
-                      Enter the details of the person who will receive this deal
-                    </CardDescription>
-                  )}
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {!buyingForSomeoneElse && profile && (
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-4">
-                      <p className="text-sm text-blue-800">
-                        ✓ Information pre-filled from your profile
-                      </p>
-                    </div>
-                  )}
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor={buyingForSomeoneElse ? "recipient-name" : "name"}>
-                        Full Name *
-                      </Label>
-                      <Input
-                        id={buyingForSomeoneElse ? "recipient-name" : "name"}
-                        value={buyingForSomeoneElse ? recipientInfo.name : contactInfo.name}
-                        onChange={(e) => {
-                          if (buyingForSomeoneElse) {
-                            setRecipientInfo({...recipientInfo, name: e.target.value});
-                          } else {
-                            setContactInfo({...contactInfo, name: e.target.value});
-                          }
-                        }}
-                        placeholder="Enter full name"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor={buyingForSomeoneElse ? "recipient-email" : "email"}>
-                        Email Address
-                      </Label>
-                      <Input
-                        id={buyingForSomeoneElse ? "recipient-email" : "email"}
-                        type="email"
-                        value={buyingForSomeoneElse ? recipientInfo.email : contactInfo.email}
-                        onChange={(e) => {
-                          if (buyingForSomeoneElse) {
-                            setRecipientInfo({...recipientInfo, email: e.target.value});
-                          } else {
-                            setContactInfo({...contactInfo, email: e.target.value});
-                          }
-                        }}
-                        placeholder="Enter email address"
-                        disabled={!buyingForSomeoneElse && !!contactInfo.email}
-                      />
+        {/* Payment Method */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Payment Method</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RadioGroup value={selectedPayment} onValueChange={setSelectedPayment}>
+              <div className="space-y-2">
+                {paymentMethods.map(method => (
+                  <div key={method.id} className="flex items-center p-3 border rounded-lg">
+                    <RadioGroupItem value={method.id} id={method.id} />
+                    <method.icon className="h-5 w-5 mx-3 text-muted-foreground" />
+                    <div className="flex-1">
+                      <Label htmlFor={method.id} className="text-sm font-medium">{method.name}</Label>
+                      <p className="text-xs text-muted-foreground">{method.desc}</p>
                     </div>
                   </div>
-                  <div>
-                    <Label htmlFor={buyingForSomeoneElse ? "recipient-phone" : "phone"}>
-                      Phone Number *
-                    </Label>
-                    <Input
-                      id={buyingForSomeoneElse ? "recipient-phone" : "phone"}
-                      value={buyingForSomeoneElse ? recipientInfo.phone : contactInfo.phone}
-                      onChange={(e) => {
-                        if (buyingForSomeoneElse) {
-                          setRecipientInfo({...recipientInfo, phone: e.target.value});
-                        } else {
-                          setContactInfo({...contactInfo, phone: e.target.value});
-                        }
-                      }}
-                      placeholder="+91 XXXXX XXXXX"
-                      required
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Payment Method */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="w-5 h-5" />
-                    Payment Method
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <RadioGroup value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
-                    <div className="space-y-3">
-                      {paymentMethods.map((method) => (
-                        <div key={method.id} className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50">
-                          <RadioGroupItem value={method.id} id={method.id} />
-                          <method.icon className="w-6 h-6 text-gray-600" />
-                          <div className="flex-1">
-                            <Label htmlFor={method.id} className="font-medium cursor-pointer">
-                              {method.name}
-                            </Label>
-                            <p className="text-sm text-gray-600">{method.description}</p>
-                          </div>
-                          {method.processing_fee > 0 && (
-                            <Badge variant="outline">+₹{method.processing_fee} fee</Badge>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </RadioGroup>
-                </CardContent>
-              </Card>
-
-              {/* Coupons & Offers */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Gift className="w-5 h-5" />
-                    Coupons & Offers
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {!appliedCoupon ? (
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Enter coupon code (try: WELCOME10)"
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value)}
-                      />
-                      <Button onClick={applyCoupon} variant="outline">
-                        Apply
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                        <div>
-                          <p className="font-medium text-green-800">{appliedCoupon.code}</p>
-                          <p className="text-sm text-green-700">{appliedCoupon.description}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-green-600">-₹{appliedCoupon.discount}</span>
-                        <Button variant="ghost" size="sm" onClick={removeCoupon}>
-                          Remove
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* JaiCoins */}
-                  <div className="border-t pt-4">
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Checkbox
-                          id="jaicoins"
-                          checked={useJaiCoins}
-                          onCheckedChange={(checked) => setUseJaiCoins(checked === true)}
-                        />
-                        <Coins className="w-5 h-5 text-yellow-500" />
-                        <div>
-                          <Label htmlFor="jaicoins" className="font-medium cursor-pointer">
-                            Use JaiCoins (Balance: {jaiCoinsBalance})
-                          </Label>
-                          <p className="text-sm text-gray-600">Save up to ₹{Math.min(jaiCoinsBalance, Math.floor(getSubtotal() * 0.1))}</p>
-                        </div>
-                      </div>
-                      {useJaiCoins && (
-                        <span className="font-bold text-yellow-600">-₹{getJaiCoinsDiscount()}</span>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Security Notice */}
-              <div className="flex items-center gap-2 text-sm text-gray-600 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <Shield className="w-5 h-5 text-blue-600" />
-                <span>Your payment information is encrypted and secure. We never store your card details.</span>
+                ))}
               </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
+        {/* Coupons */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Gift className="h-4 w-4" /> Apply Coupon
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!appliedCoupon ? (
+              <div className="flex gap-2">
+                <Input 
+                  placeholder="Enter code (try: WELCOME10)"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  className="flex-1"
+                />
+                <Button variant="outline" onClick={applyCoupon}>Apply</Button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="font-medium text-sm text-green-700 dark:text-green-400">{appliedCoupon.code}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-green-600">-₹{appliedCoupon.discount}</span>
+                  <Button variant="ghost" size="sm" onClick={() => setAppliedCoupon(null)}>Remove</Button>
+                </div>
+              </div>
+            )}
+
+            {/* JaiCoins */}
+            <div className="mt-4 p-3 border rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Checkbox id="jaicoins" checked={useJaiCoins} onCheckedChange={(c) => setUseJaiCoins(c === true)} />
+                  <Label htmlFor="jaicoins" className="text-sm flex items-center gap-1.5">
+                    <Coins className="h-4 w-4 text-amber-500" />
+                    Use {jaiCoinsBalance} JAICoins
+                  </Label>
+                </div>
+                {useJaiCoins && <Badge variant="secondary">-₹{Math.floor(getJaiCoinsDiscount())}</Badge>}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1 ml-6">Save up to 10% with JAICoins</p>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Order Summary Sidebar */}
-            <div className="space-y-6">
-              <Card className="sticky top-8">
-                <CardHeader>
-                  <CardTitle>Order Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Order Items */}
-                  <div className="space-y-3">
-                    {orderItems.map((item) => (
-                      <div key={item.id} className="space-y-2">
-                        <div className="flex justify-between">
-                          <div className="flex-1">
-                            <h4 className="font-medium text-sm">{item.title}</h4>
-                            <p className="text-xs text-gray-600">{item.merchant_name}</p>
-                            <p className="text-xs text-gray-500">{item.location}</p>
-                          </div>
-                          <span className="text-sm">×{item.quantity}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500 line-through">₹{item.original_price}</span>
-                          <span className="font-bold text-pink-600">₹{item.discounted_price}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <Separator />
-
-                  {/* Price Breakdown */}
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Subtotal</span>
-                      <span>₹{getSubtotal()}</span>
-                    </div>
-                    
-                    {appliedCoupon && (
-                      <div className="flex justify-between text-green-600">
-                        <span>Coupon Discount</span>
-                        <span>-₹{getCouponDiscount()}</span>
-                      </div>
-                    )}
-                    
-                    {useJaiCoins && getJaiCoinsDiscount() > 0 && (
-                      <div className="flex justify-between text-yellow-600">
-                        <span>JaiCoins Discount</span>
-                        <span>-₹{getJaiCoinsDiscount()}</span>
-                      </div>
-                    )}
-                    
-                    {getProcessingFee() > 0 && (
-                      <div className="flex justify-between text-gray-600">
-                        <span>Processing Fee</span>
-                        <span>+₹{getProcessingFee()}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <Separator />
-
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Total</span>
-                    <span>₹{getTotalAmount()}</span>
-                  </div>
-
-                  <div className="text-center p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-green-800 font-medium">
-                      🎉 You're saving ₹{getTotalSavings()}!
-                    </p>
-                  </div>
-
-                  <Button 
-                    onClick={handlePayment}
-                    disabled={isProcessing}
-                    className="w-full bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-lg py-6"
-                  >
-                    {isProcessing ? (
-                      <div className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        Processing...
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Lock className="w-5 h-5" />
-                        Pay ₹{getTotalAmount()}
-                      </div>
-                    )}
-                  </Button>
-
-                  <div className="text-xs text-gray-500 text-center">
-                    By completing your purchase, you agree to our Terms of Service and Privacy Policy
-                  </div>
-                </CardContent>
-              </Card>
+        {/* Price Breakdown */}
+        <Card>
+          <CardContent className="pt-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span>₹{getSubtotal()}</span>
             </div>
-          </div>
-        </div>
+            {appliedCoupon && (
+              <div className="flex justify-between text-sm text-green-600">
+                <span>Coupon Discount</span>
+                <span>-₹{getCouponDiscount()}</span>
+              </div>
+            )}
+            {useJaiCoins && (
+              <div className="flex justify-between text-sm text-amber-600">
+                <span>JAICoins</span>
+                <span>-₹{Math.floor(getJaiCoinsDiscount())}</span>
+              </div>
+            )}
+            <Separator />
+            <div className="flex justify-between font-bold">
+              <span>Total</span>
+              <span className="text-primary">₹{Math.floor(getTotalAmount())}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Pay Button */}
+        <Button 
+          className="w-full h-12 text-base font-semibold" 
+          onClick={handlePayment}
+          disabled={isProcessing}
+        >
+          {isProcessing ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            <>
+              <Shield className="h-4 w-4 mr-2" />
+              Pay ₹{Math.floor(getTotalAmount())}
+            </>
+          )}
+        </Button>
+
+        <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1">
+          <Shield className="h-3 w-3" />
+          Secure payment powered by Razorpay
+        </p>
       </div>
-    </AppLayout>
+
+      <NativeBottomNav />
+    </div>
   );
 };
 

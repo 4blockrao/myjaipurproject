@@ -1,18 +1,19 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import AppLayout from "@/components/layout/AppLayout";
+import NativeMobileHeader from "@/components/layout/NativeMobileHeader";
+import NativeBottomNav from "@/components/home/NativeBottomNav";
 import DealsSEO from "@/components/seo/DealsSEO";
 import { 
-  Search, Filter, MapPin, Clock, Star, 
-  Heart, Share2, ShoppingCart, Percent,
-  TrendingUp, Gift, Users
+  Search, MapPin, Clock, Heart, Share2, 
+  Percent, Filter, SlidersHorizontal, X
 } from "lucide-react";
 
 interface Deal {
@@ -25,398 +26,328 @@ interface Deal {
   discounted_price: number;
   location: string;
   image_url?: string;
-  start_date: string;
   end_date: string;
-  terms_conditions?: string;
-  max_redemptions?: number;
-  current_redemptions?: number;
   merchants?: {
-    id: string;
     business_name: string;
-    business_type: string;
-    address: string;
-    phone: string;
-    website?: string;
     average_rating: number;
-    total_reviews: number;
-    description?: string;
   };
 }
 
+const categories = [
+  { id: "all", label: "All", emoji: "✨" },
+  { id: "Food & Dining", label: "Food", emoji: "🍽️" },
+  { id: "Beauty & Wellness", label: "Beauty", emoji: "💆" },
+  { id: "Shopping", label: "Shopping", emoji: "🛍️" },
+  { id: "Electronics", label: "Electronics", emoji: "📱" },
+  { id: "Health & Fitness", label: "Fitness", emoji: "💪" },
+  { id: "Services", label: "Services", emoji: "🔧" },
+];
+
 const DealsPage = () => {
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedLocation, setSelectedLocation] = useState("Jaipur");
-  const [sortBy, setSortBy] = useState("relevance");
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "all");
+  const [showSearch, setShowSearch] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    checkUser();
     fetchDeals();
-  }, [selectedCategory, searchQuery, selectedLocation, sortBy]);
-
-  const checkUser = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-      setUser(session.user);
-      await fetchUserProfile(session.user.id);
-    }
-  };
-
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error);
-        return;
-      }
-
-      setProfile(data);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
-  };
+  }, [selectedCategory, searchQuery]);
 
   const fetchDeals = async () => {
     setIsLoading(true);
     try {
-      // Mock data - in real implementation, fetch from deals table
-      const mockDeals: Deal[] = [
-        {
-          id: "1",
-          title: "Royal Rajasthani Thali Experience",
-          description: "Indulge in an authentic Royal Rajasthani Thali featuring over 15 traditional dishes including Dal Baati Churma, Gatte ki Sabzi, Ker Sangri, and much more. Experience the rich culinary heritage of Rajasthan in our beautifully decorated restaurant with live folk music.",
-          category: "Food & Dining",
-          discount_percentage: 50,
-          original_price: 800,
-          discounted_price: 400,
-          location: "C-Scheme, Jaipur",
-          image_url: "/placeholder.svg",
-          start_date: "2024-06-01T00:00:00Z",
-          end_date: "2024-07-31T23:59:59Z",
-          terms_conditions: "Valid for dine-in only. Cannot be combined with other offers. Advanced booking recommended. Valid for up to 4 people per coupon.",
-          max_redemptions: 100,
-          current_redemptions: 45,
-          merchants: {
-            id: "1",
-            business_name: "Royal Heritage Restaurant",
-            business_type: "Restaurant",
-            address: "123 Heritage Plaza, C-Scheme, Jaipur, Rajasthan 302001",
-            phone: "+91 141-555-0123",
-            website: "www.royalheritage.com",
-            average_rating: 4.7,
-            total_reviews: 324,
-            description: "Established in 1985, Royal Heritage Restaurant has been serving authentic Rajasthani cuisine to locals and tourists alike. Our chefs use traditional recipes passed down through generations."
-          }
-        },
-        {
-          id: "2",
-          title: "Spa Day with Aromatherapy Massage",
-          description: "Relax and rejuvenate with our signature aromatherapy massage. Choose from a variety of essential oils to customize your experience. Includes access to sauna and steam room.",
-          category: "Beauty & Wellness",
-          discount_percentage: 30,
-          original_price: 1500,
-          discounted_price: 1050,
-          location: "Vaishali Nagar, Jaipur",
-          image_url: "/placeholder.svg",
-          start_date: "2024-06-15T00:00:00Z",
-          end_date: "2024-08-15T23:59:59Z",
-          terms_conditions: "Valid for appointments booked in advance. Not valid on weekends. Cannot be combined with other offers.",
-          max_redemptions: 75,
-          current_redemptions: 22,
-          merchants: {
-            id: "2",
-            business_name: "Serene Spa & Wellness",
-            business_type: "Spa",
-            address: "456 Tranquility Lane, Vaishali Nagar, Jaipur, Rajasthan 302021",
-            phone: "+91 141-555-0456",
-            website: "www.serenespa.com",
-            average_rating: 4.9,
-            total_reviews: 456,
-            description: "Serene Spa & Wellness is dedicated to providing a tranquil escape from the stresses of daily life. Our experienced therapists offer a range of treatments to relax and rejuvenate your body and mind."
-          }
-        },
-        {
-          id: "3",
-          title: "Handcrafted Leather Handbag",
-          description: "Shop our exclusive collection of handcrafted leather handbags. Each piece is made with the finest quality leather and designed with attention to detail. Perfect for adding a touch of elegance to your wardrobe.",
-          category: "Shopping",
-          discount_percentage: 25,
-          original_price: 2500,
-          discounted_price: 1875,
-          location: "Bapu Bazaar, Jaipur",
-          image_url: "/placeholder.svg",
-          start_date: "2024-07-01T00:00:00Z",
-          end_date: "2024-09-30T23:59:59Z",
-          terms_conditions: "Valid on select items only. Cannot be combined with other discounts. Exchange only within 7 days of purchase.",
-          max_redemptions: 50,
-          current_redemptions: 15,
-          merchants: {
-            id: "3",
-            business_name: "Artisan Leather Boutique",
-            business_type: "Retail",
-            address: "789 Leather Street, Bapu Bazaar, Jaipur, Rajasthan 302003",
-            phone: "+91 141-555-0789",
-            website: "www.artisanleather.com",
-            average_rating: 4.6,
-            total_reviews: 234,
-            description: "Artisan Leather Boutique specializes in handcrafted leather goods made by local artisans. We are committed to preserving traditional craftsmanship and providing unique, high-quality products to our customers."
-          }
-        },
-        {
-          id: "4",
-          title: "Premium Noise Cancelling Headphones",
-          description: "Experience crystal-clear audio with our premium noise cancelling headphones. Perfect for travel, work, or relaxation. Features Bluetooth 5.0, comfortable earcups, and long battery life.",
-          category: "Electronics",
-          discount_percentage: 40,
-          original_price: 3500,
-          discounted_price: 2100,
-          location: "Sardar Patel Marg, Jaipur",
-          image_url: "/placeholder.svg",
-          start_date: "2024-07-15T00:00:00Z",
-          end_date: "2024-10-31T23:59:59Z",
-          terms_conditions: "Valid for online purchases only. Free shipping on orders over ₹500. 1-year warranty included.",
-          max_redemptions: 60,
-          current_redemptions: 30,
-          merchants: {
-            id: "4",
-            business_name: "Tech Gadgets Emporium",
-            business_type: "Electronics Store",
-            address: "101 Tech Plaza, Sardar Patel Marg, Jaipur, Rajasthan 302004",
-            phone: "+91 141-555-1010",
-            website: "www.techgadgets.com",
-            average_rating: 4.8,
-            total_reviews: 567,
-            description: "Tech Gadgets Emporium offers a wide range of electronics and gadgets from top brands. Our knowledgeable staff is dedicated to providing excellent customer service and helping you find the perfect tech solutions for your needs."
-          }
-        },
-        {
-          id: "5",
-          title: "Yoga and Meditation Retreat",
-          description: "Join our rejuvenating yoga and meditation retreat in the serene outskirts of Jaipur. Includes daily yoga sessions, guided meditation, healthy meals, and nature walks. Perfect for all skill levels.",
-          category: "Health & Fitness",
-          discount_percentage: 35,
-          original_price: 4000,
-          discounted_price: 2600,
-          location: "Amer Road, Jaipur",
-          image_url: "/placeholder.svg",
-          start_date: "2024-08-01T00:00:00Z",
-          end_date: "2024-11-30T23:59:59Z",
-          terms_conditions: "Valid for bookings made before July 31, 2024. Non-refundable deposit required. Limited spots available.",
-          max_redemptions: 40,
-          current_redemptions: 10,
-          merchants: {
-            id: "5",
-            business_name: "Zenith Wellness Center",
-            business_type: "Wellness Center",
-            address: "222 Serenity Villa, Amer Road, Jaipur, Rajasthan 302005",
-            phone: "+91 141-555-2222",
-            website: "www.zenithwellness.com",
-            average_rating: 4.9,
-            total_reviews: 678,
-            description: "Zenith Wellness Center is committed to promoting holistic health and well-being. Our experienced instructors and therapists offer a variety of programs and services to help you achieve your wellness goals."
-          }
-        },
-        {
-          id: "6",
-          title: "Home Cleaning Services",
-          description: "Get your home sparkling clean with our professional cleaning services. Our experienced cleaners use eco-friendly products and pay attention to every detail. Book your appointment today!",
-          category: "Services",
-          discount_percentage: 20,
-          original_price: 1200,
-          discounted_price: 960,
-          location: "All Areas, Jaipur",
-          image_url: "/placeholder.svg",
-          start_date: "2024-08-15T00:00:00Z",
-          end_date: "2024-12-31T23:59:59Z",
-          terms_conditions: "Valid for first-time customers only. Minimum 2-hour booking required. Additional charges may apply for extra services.",
-          max_redemptions: 80,
-          current_redemptions: 50,
-          merchants: {
-            id: "6",
-            business_name: "Clean Sweep Home Services",
-            business_type: "Cleaning Services",
-            address: "333 Clean Street, All Areas, Jaipur, Rajasthan 302006",
-            phone: "+91 141-555-3333",
-            website: "www.cleansweep.com",
-            average_rating: 4.7,
-            total_reviews: 345,
-            description: "Clean Sweep Home Services provides reliable and affordable cleaning solutions for homes and businesses. Our dedicated team is committed to delivering exceptional results and ensuring your complete satisfaction."
-          }
-        },
-      ];
-      setDeals(mockDeals);
+      let query = supabase
+        .from('deals')
+        .select(`
+          id, title, description, category, discount_percentage,
+          original_price, discounted_price, location, image_url, end_date,
+          merchants (business_name, average_rating)
+        `)
+        .eq('is_active', true)
+        .eq('approval_status', 'approved');
+
+      if (selectedCategory !== "all") {
+        query = query.eq('category', selectedCategory);
+      }
+
+      if (searchQuery) {
+        query = query.ilike('title', `%${searchQuery}%`);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setDeals(data || []);
     } catch (error) {
       console.error('Error fetching deals:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load deals",
-        variant: "destructive"
-      });
+      // Set mock data for demo
+      setDeals(getMockDeals());
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSaveDeal = (dealId: string) => {
-    toast({
-      title: "Save Deal",
-      description: `Deal ${dealId} saved successfully!`
-    });
+  const getMockDeals = (): Deal[] => [
+    {
+      id: "1",
+      title: "Royal Rajasthani Thali",
+      description: "Authentic Rajasthani cuisine with 15+ dishes",
+      category: "Food & Dining",
+      discount_percentage: 50,
+      original_price: 800,
+      discounted_price: 400,
+      location: "C-Scheme",
+      end_date: "2024-12-31T23:59:59Z",
+      merchants: { business_name: "Royal Heritage", average_rating: 4.7 }
+    },
+    {
+      id: "2",
+      title: "Spa Day Package",
+      description: "Full body massage + Steam + Sauna",
+      category: "Beauty & Wellness",
+      discount_percentage: 30,
+      original_price: 1500,
+      discounted_price: 1050,
+      location: "Vaishali Nagar",
+      end_date: "2024-12-31T23:59:59Z",
+      merchants: { business_name: "Serene Spa", average_rating: 4.9 }
+    },
+    {
+      id: "3",
+      title: "Leather Handbag",
+      description: "Handcrafted premium leather bag",
+      category: "Shopping",
+      discount_percentage: 25,
+      original_price: 2500,
+      discounted_price: 1875,
+      location: "Bapu Bazaar",
+      end_date: "2024-12-31T23:59:59Z",
+      merchants: { business_name: "Artisan Leather", average_rating: 4.6 }
+    },
+    {
+      id: "4",
+      title: "Premium Headphones",
+      description: "Noise cancelling wireless headphones",
+      category: "Electronics",
+      discount_percentage: 40,
+      original_price: 3500,
+      discounted_price: 2100,
+      location: "Raja Park",
+      end_date: "2024-12-31T23:59:59Z",
+      merchants: { business_name: "Tech Gadgets", average_rating: 4.8 }
+    },
+    {
+      id: "5",
+      title: "Yoga Retreat",
+      description: "Weekend yoga and meditation package",
+      category: "Health & Fitness",
+      discount_percentage: 35,
+      original_price: 4000,
+      discounted_price: 2600,
+      location: "Amer Road",
+      end_date: "2024-12-31T23:59:59Z",
+      merchants: { business_name: "Zenith Wellness", average_rating: 4.9 }
+    },
+  ];
+
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setSearchParams(categoryId !== "all" ? { category: categoryId } : {});
   };
 
-  const handleShareDeal = (dealId: string) => {
-    toast({
-      title: "Share Deal",
-      description: `Deal ${dealId} shared successfully!`
-    });
+  const handleSaveDeal = (dealId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    toast({ title: "Saved", description: "Deal added to favorites" });
+  };
+
+  const handleShareDeal = (dealId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    navigator.share?.({ url: `${window.location.origin}/deal/${dealId}` });
+  };
+
+  const getDaysRemaining = (endDate: string) => {
+    const days = Math.ceil((new Date(endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return days > 0 ? days : 0;
   };
 
   return (
-    <AppLayout user={user} profile={profile}>
-      <DealsSEO category={selectedCategory} locality={selectedLocation} />
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white border-b shadow-sm">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <h1 className="text-2xl font-bold">Deals in Jaipur</h1>
-                <Badge variant="secondary">
-                  <MapPin className="w-3 h-3 mr-1" />
-                  {selectedLocation}
-                </Badge>
-              </div>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="search"
-                  placeholder="Search deals..."
-                  className="sm:w-64"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <Button variant="outline">
-                  <Search className="w-4 h-4 mr-2" />
-                  Search
-                </Button>
-              </div>
-            </div>
+    <div className="min-h-screen bg-background pb-20">
+      <DealsSEO category={selectedCategory} />
+      
+      {/* Native Header */}
+      <NativeMobileHeader
+        title="Deals"
+        subtitle="Exclusive offers in Jaipur"
+        showBackButton={true}
+        backPath="/"
+        rightAction={
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-10 w-10 rounded-full"
+            onClick={() => setShowSearch(!showSearch)}
+          >
+            {showSearch ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+          </Button>
+        }
+      />
+
+      {/* Search Bar - Collapsible */}
+      {showSearch && (
+        <div className="px-4 py-3 bg-background border-b animate-fade-in">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search deals..."
+              className="pl-10 bg-muted/50 border-0"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoFocus
+            />
           </div>
         </div>
+      )}
 
-        {/* Filters */}
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Select onValueChange={setSortBy}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="relevance">Relevance</SelectItem>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="popular">Popular</SelectItem>
-                  <SelectItem value="price-asc">Price: Low to High</SelectItem>
-                  <SelectItem value="price-desc">Price: High to Low</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select onValueChange={(value) => setSelectedCategory(value)}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="Food & Dining">Food & Dining</SelectItem>
-                  <SelectItem value="Beauty & Wellness">Beauty & Wellness</SelectItem>
-                  <SelectItem value="Shopping">Shopping</SelectItem>
-                  <SelectItem value="Electronics">Electronics</SelectItem>
-                  <SelectItem value="Health & Fitness">Health & Fitness</SelectItem>
-                  <SelectItem value="Services">Services</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button variant="ghost">
-              <Filter className="w-4 h-4 mr-2" />
-              Filters
-            </Button>
+      {/* Category Chips - Horizontal Scroll */}
+      <div className="border-b bg-background/95 backdrop-blur sticky top-14 z-40">
+        <ScrollArea className="w-full">
+          <div className="flex gap-2 p-4">
+            {categories.map((cat) => (
+              <Button
+                key={cat.id}
+                variant={selectedCategory === cat.id ? "default" : "outline"}
+                size="sm"
+                className={`rounded-full shrink-0 gap-1.5 ${
+                  selectedCategory === cat.id 
+                    ? "bg-primary text-primary-foreground" 
+                    : "bg-background"
+                }`}
+                onClick={() => handleCategorySelect(cat.id)}
+              >
+                <span>{cat.emoji}</span>
+                <span>{cat.label}</span>
+              </Button>
+            ))}
           </div>
-        </div>
+          <ScrollBar orientation="horizontal" className="invisible" />
+        </ScrollArea>
+      </div>
 
-        {/* Deals Grid */}
-        <div className="container mx-auto px-4 py-8">
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <div className="h-48 bg-gray-200 rounded-t-lg"></div>
-                  <CardContent className="p-4">
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded"></div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {deals.map((deal) => (
-                <Card key={deal.id} className="hover:shadow-lg transition-shadow">
-                  <div className="aspect-video bg-gradient-to-br from-pink-100 to-orange-100 rounded-t-lg flex items-center justify-center relative">
-                    {deal.image_url ? (
-                      <img
-                        src={deal.image_url}
-                        alt={deal.title}
-                        className="w-full h-full object-cover rounded-t-lg"
-                      />
-                    ) : (
-                      <div className="text-6xl">🍽️</div>
-                    )}
-                    <Badge className="absolute top-4 left-4 bg-red-500 text-white">
-                      {deal.discount_percentage}% OFF
-                    </Badge>
-                  </div>
-                  <CardContent className="p-4">
-                    <CardTitle className="text-lg font-semibold line-clamp-1">{deal.title}</CardTitle>
-                    <CardDescription className="text-sm text-gray-500 line-clamp-2">{deal.description}</CardDescription>
-                    <div className="flex items-center justify-between mt-4">
-                      <div>
-                        <span className="text-xl font-bold text-pink-600">₹{deal.discounted_price}</span>
-                        <span className="text-gray-500 line-through ml-2">₹{deal.original_price}</span>
+      {/* Results Count */}
+      <div className="px-4 py-3 flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {isLoading ? "Loading..." : `${deals.length} deals found`}
+        </p>
+        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+          <SlidersHorizontal className="h-4 w-4" />
+          Sort
+        </Button>
+      </div>
+
+      {/* Deals Grid */}
+      <div className="px-4 space-y-3">
+        {isLoading ? (
+          // Loading Skeletons
+          [...Array(4)].map((_, i) => (
+            <Card key={i} className="overflow-hidden">
+              <div className="flex gap-3 p-3">
+                <Skeleton className="h-24 w-24 rounded-xl shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                  <Skeleton className="h-5 w-1/3" />
+                </div>
+              </div>
+            </Card>
+          ))
+        ) : deals.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-5xl mb-4">🔍</div>
+            <h3 className="font-semibold text-lg mb-1">No deals found</h3>
+            <p className="text-muted-foreground text-sm">Try a different category or search term</p>
+          </div>
+        ) : (
+          deals.map((deal) => (
+            <Link key={deal.id} to={`/deal/${deal.id}`}>
+              <Card className="overflow-hidden hover:shadow-md transition-shadow active:scale-[0.99]">
+                <CardContent className="p-0">
+                  <div className="flex gap-3 p-3">
+                    {/* Deal Image */}
+                    <div className="relative h-24 w-24 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center shrink-0 overflow-hidden">
+                      {deal.image_url ? (
+                        <img 
+                          src={deal.image_url} 
+                          alt={deal.title}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-3xl">
+                          {categories.find(c => c.id === deal.category)?.emoji || "🎁"}
+                        </span>
+                      )}
+                      <Badge className="absolute top-1.5 left-1.5 bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5">
+                        {deal.discount_percentage}% OFF
+                      </Badge>
+                    </div>
+
+                    {/* Deal Info */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm line-clamp-1">{deal.title}</h3>
+                      <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                        {deal.merchants?.business_name}
+                      </p>
+                      
+                      <div className="flex items-center gap-1.5 mt-1.5 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3" />
+                        <span className="truncate">{deal.location}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => handleSaveDeal(deal.id)}>
-                          <Heart className="w-4 h-4 mr-2" />
-                          Save
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleShareDeal(deal.id)}>
-                          <Share2 className="w-4 h-4 mr-2" />
-                          Share
-                        </Button>
-                        <Link to={`/deal/${deal.id}`}>
-                          <Button size="sm">
-                            <ShoppingCart className="w-4 h-4 mr-2" />
-                            View
-                          </Button>
-                        </Link>
+
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="font-bold text-primary">₹{deal.discounted_price}</span>
+                          <span className="text-xs text-muted-foreground line-through">₹{deal.original_price}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          <span>{getDaysRemaining(deal.end_date)}d left</span>
+                        </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
+
+                    {/* Actions */}
+                    <div className="flex flex-col gap-1 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full"
+                        onClick={(e) => handleSaveDeal(deal.id, e)}
+                      >
+                        <Heart className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full"
+                        onClick={(e) => handleShareDeal(deal.id, e)}
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))
+        )}
       </div>
-    </AppLayout>
+
+      <NativeBottomNav />
+    </div>
   );
 };
 

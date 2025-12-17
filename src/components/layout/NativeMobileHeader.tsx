@@ -9,11 +9,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import logo from "@/assets/logo.png";
 
 interface NativeMobileHeaderProps {
   title: string;
   subtitle?: string;
   showBackButton?: boolean;
+  showLogo?: boolean;
   backPath?: string;
   rightAction?: ReactNode;
   menuItems?: { label: string; onClick: () => void; icon?: ReactNode }[];
@@ -25,6 +27,7 @@ const NativeMobileHeader = ({
   title,
   subtitle,
   showBackButton = true,
+  showLogo = false,
   backPath,
   rightAction,
   menuItems,
@@ -63,6 +66,11 @@ const NativeMobileHeader = ({
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
+          )}
+          {showLogo && (
+            <Link to="/" className="shrink-0">
+              <img src={logo} alt="JaipurCircle" className="h-8 w-auto" />
+            </Link>
           )}
           <div className="min-w-0 flex-1">
             <h1 className="text-lg font-semibold text-foreground truncate">
