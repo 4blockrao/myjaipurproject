@@ -153,14 +153,33 @@ const AuthModal = ({ isOpen, onClose, referralCode = '', redirectPath }: AuthMod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md w-[95%] mx-auto">
-        <DialogHeader>
-          <DialogTitle className="text-center text-xl font-bold">
+      <DialogContent className="sm:max-w-md w-[95%] mx-auto max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="text-center space-y-2">
+          <DialogTitle className="text-xl font-bold">
             Welcome to JaipurCircle
           </DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            Join 10,000+ Jaipur residents earning rewards daily
+          </p>
         </DialogHeader>
 
-        <Tabs defaultValue="signin" className="w-full" onValueChange={resetForm}>
+        {/* Benefits highlight */}
+        <div className="flex justify-center gap-4 py-3 border-y border-border bg-muted/30 -mx-6 px-6">
+          <div className="text-center">
+            <span className="text-lg font-bold text-primary">30</span>
+            <p className="text-xs text-muted-foreground">Welcome Coins</p>
+          </div>
+          <div className="text-center">
+            <span className="text-lg font-bold text-green-600">₹100</span>
+            <p className="text-xs text-muted-foreground">Per Referral</p>
+          </div>
+          <div className="text-center">
+            <span className="text-lg font-bold text-purple-600">Daily</span>
+            <p className="text-xs text-muted-foreground">Spin & Win</p>
+          </div>
+        </div>
+
+        <Tabs defaultValue="signup" className="w-full" onValueChange={resetForm}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
