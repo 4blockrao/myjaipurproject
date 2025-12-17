@@ -13,6 +13,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import HomeSEO from "@/components/seo/HomeSEO";
+import Footer from "@/components/layout/Footer";
 
 const Index = () => {
   const [user, setUser] = useState<any>(null);
@@ -165,7 +167,8 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-muted/30 flex flex-col">
+      <HomeSEO />
       <Toaster />
       <Sonner />
       
@@ -177,59 +180,64 @@ const Index = () => {
         onSearch={handleSearch}
       />
 
-      {/* Stats Bar */}
-      <NativeStatsBar />
+      <main className="flex-1">
+        {/* Stats Bar */}
+        <NativeStatsBar />
 
-      {/* Categories Grid */}
-      <NativeCategoryGrid 
-        dealCounts={dealCounts}
-        onCategorySelect={handleCategorySelect}
-      />
+        {/* Categories Grid */}
+        <NativeCategoryGrid 
+          dealCounts={dealCounts}
+          onCategorySelect={handleCategorySelect}
+        />
 
-      {/* Featured Deals - Horizontal Scroll */}
-      {featuredDeals.length > 0 && (
+        {/* Featured Deals - Horizontal Scroll */}
+        {featuredDeals.length > 0 && (
+          <NativeDealsSection 
+            deals={featuredDeals}
+            isLoading={dealsLoading}
+            title="Featured Deals"
+            icon="sparkles"
+            variant="horizontal-scroll"
+            maxDeals={8}
+          />
+        )}
+
+        {/* Quick Actions */}
+        <NativeQuickActions />
+
+        {/* News Section */}
+        <section className="px-4">
+          <NewsHomeSection />
+        </section>
+
+        {/* Events Section */}
+        <section className="px-4">
+          <EventHomeSection />
+        </section>
+
+        {/* Hot Deals - Horizontal Scroll */}
         <NativeDealsSection 
-          deals={featuredDeals}
+          deals={hotDeals}
           isLoading={dealsLoading}
-          title="Featured Deals"
-          icon="sparkles"
+          title="🔥 Hot Deals"
+          icon="flame"
           variant="horizontal-scroll"
           maxDeals={8}
         />
-      )}
 
-      {/* Quick Actions */}
-      <NativeQuickActions />
+        {/* All Recent Deals - Vertical List */}
+        <NativeDealsSection 
+          deals={recentDeals}
+          isLoading={dealsLoading}
+          title="Latest Deals"
+          icon="trending"
+          variant="vertical-list"
+          maxDeals={6}
+        />
+      </main>
 
-      {/* News Section */}
-      <div className="px-4">
-        <NewsHomeSection />
-      </div>
-
-      {/* Events Section */}
-      <div className="px-4">
-        <EventHomeSection />
-      </div>
-
-      {/* Hot Deals - Horizontal Scroll */}
-      <NativeDealsSection 
-        deals={hotDeals}
-        isLoading={dealsLoading}
-        title="🔥 Hot Deals"
-        icon="flame"
-        variant="horizontal-scroll"
-        maxDeals={8}
-      />
-
-      {/* All Recent Deals - Vertical List */}
-      <NativeDealsSection 
-        deals={recentDeals}
-        isLoading={dealsLoading}
-        title="Latest Deals"
-        icon="trending"
-        variant="vertical-list"
-        maxDeals={6}
-      />
+      {/* Footer with NAP for Local SEO */}
+      <Footer />
 
       {/* Bottom spacing for nav */}
       <div className="h-24" />

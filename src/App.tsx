@@ -1,8 +1,8 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import DealsPage from "./pages/DealsPage";
@@ -44,6 +44,7 @@ import EventsPage from "./pages/EventsPage";
 import EventDetailPage from "./pages/EventDetailPage";
 import CreateEventPage from "./pages/CreateEventPage";
 import EventOrganizerDashboardPage from "./pages/EventOrganizerDashboardPage";
+import AboutPage from "./pages/AboutPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,59 +65,62 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/deals" element={<DealsPage />} />
-            <Route path="/deal/:id" element={<DealDetailPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/checkout/:orderId" element={<CheckoutPage />} />
-            <Route path="/new-checkout" element={<NewCheckoutPage />} />
-            <Route path="/new-checkout/:orderId" element={<NewCheckoutPage />} />
-            <Route path="/order-success" element={<OrderSuccessPage />} />
-            <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
-            <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/my-deals" element={<UserDealsPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/wallet" element={<WalletPage />} />
-            <Route path="/coupons" element={<CouponsPage />} />
-            <Route path="/favorites" element={<FavoritesPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/help" element={<HelpPage />} />
-            <Route path="/referral" element={<ReferralProgramPage />} />
-            <Route path="/referral-program" element={<ReferralProgramPage />} />
-            <Route path="/pro" element={<ProMembershipPage />} />
-            <Route path="/pro-membership" element={<ProMembershipPage />} />
-            <Route path="/gamification" element={<GamificationPage />} />
-            <Route path="/jaicoin-zone" element={<JAICoinZonePage />} />
-            <Route path="/leaderboard" element={<LeaderboardPage />} />
-            <Route path="/challenges" element={<ChallengesPage />} />
-            <Route path="/analytics" element={<AnalyticsPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/explore" element={<ExplorePage />} />
-            <Route path="/categories" element={<CategoriesPage />} />
-            <Route path="/scan" element={<ScanPage />} />
-            <Route path="/merchant-onboarding" element={<MerchantOnboardingPage />} />
-            <Route path="/merchant-dashboard" element={<MerchantDashboardPage />} />
-            <Route path="/merchant-portal" element={<MerchantPortalPage />} />
-            <Route path="/merchant" element={<MerchantPage />} />
-            <Route path="/admin" element={<AdminDashboardPage />} />
-            <Route path="/install" element={<InstallPage />} />
-            <Route path="/news" element={<NewsPage />} />
-            <Route path="/news/create" element={<CreateNewsPage />} />
-            <Route path="/news/:category" element={<NewsCategoryPage />} />
-            <Route path="/news/:category/:slug" element={<NewsArticlePage />} />
-            <Route path="/events" element={<EventsPage />} />
-            <Route path="/events/create" element={<CreateEventPage />} />
-            <Route path="/events/organizer" element={<EventOrganizerDashboardPage />} />
-            <Route path="/events/:slug" element={<EventDetailPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </QueryClientProvider>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/deals" element={<DealsPage />} />
+              <Route path="/deal/:id" element={<DealDetailPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/checkout/:orderId" element={<CheckoutPage />} />
+              <Route path="/new-checkout" element={<NewCheckoutPage />} />
+              <Route path="/new-checkout/:orderId" element={<NewCheckoutPage />} />
+              <Route path="/order-success" element={<OrderSuccessPage />} />
+              <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
+              <Route path="/orders" element={<OrdersPage />} />
+              <Route path="/my-deals" element={<UserDealsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/wallet" element={<WalletPage />} />
+              <Route path="/coupons" element={<CouponsPage />} />
+              <Route path="/favorites" element={<FavoritesPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/help" element={<HelpPage />} />
+              <Route path="/referral" element={<ReferralProgramPage />} />
+              <Route path="/referral-program" element={<ReferralProgramPage />} />
+              <Route path="/pro" element={<ProMembershipPage />} />
+              <Route path="/pro-membership" element={<ProMembershipPage />} />
+              <Route path="/gamification" element={<GamificationPage />} />
+              <Route path="/jaicoin-zone" element={<JAICoinZonePage />} />
+              <Route path="/leaderboard" element={<LeaderboardPage />} />
+              <Route path="/challenges" element={<ChallengesPage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/explore" element={<ExplorePage />} />
+              <Route path="/categories" element={<CategoriesPage />} />
+              <Route path="/scan" element={<ScanPage />} />
+              <Route path="/merchant-onboarding" element={<MerchantOnboardingPage />} />
+              <Route path="/merchant-dashboard" element={<MerchantDashboardPage />} />
+              <Route path="/merchant-portal" element={<MerchantPortalPage />} />
+              <Route path="/merchant" element={<MerchantPage />} />
+              <Route path="/admin" element={<AdminDashboardPage />} />
+              <Route path="/install" element={<InstallPage />} />
+              <Route path="/news" element={<NewsPage />} />
+              <Route path="/news/create" element={<CreateNewsPage />} />
+              <Route path="/news/:category" element={<NewsCategoryPage />} />
+              <Route path="/news/:category/:slug" element={<NewsArticlePage />} />
+              <Route path="/events" element={<EventsPage />} />
+              <Route path="/events/create" element={<CreateEventPage />} />
+              <Route path="/events/organizer" element={<EventOrganizerDashboardPage />} />
+              <Route path="/events/:slug" element={<EventDetailPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </QueryClientProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 }
