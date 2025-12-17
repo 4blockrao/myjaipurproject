@@ -7,6 +7,8 @@ import NativeDealsSection from "@/components/home/NativeDealsSection";
 import NativeQuickActions from "@/components/home/NativeQuickActions";
 import NativeStatsBar from "@/components/home/NativeStatsBar";
 import NativeBottomNav from "@/components/home/NativeBottomNav";
+import GuestWelcomeBanner from "@/components/home/GuestWelcomeBanner";
+import FloatingReferralCTA from "@/components/home/FloatingReferralCTA";
 import { NewsHomeSection } from "@/components/news/NewsHomeSection";
 import EventHomeSection from "@/components/events/EventHomeSection";
 import { Toaster } from "@/components/ui/toaster";
@@ -24,6 +26,8 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
+
+  const isAuthenticated = !!user;
 
   // Fetch user balance
   const { data: userBalance = 0 } = useQuery({
@@ -166,21 +170,30 @@ const Index = () => {
     setSelectedCategory(category);
   };
 
+  const openAuthModal = () => setShowAuthModal(true);
+
   return (
     <div className="min-h-screen bg-muted/30 flex flex-col">
       <HomeSEO />
       <Toaster />
       <Sonner />
       
-      {/* Native Home Header with Search */}
+      {/* Native Home Header with Search and Auth */}
       <NativeHomeHeader 
         userLocality={profile?.locality}
         userName={profile?.full_name}
         jaiCoins={userBalance}
+        isAuthenticated={isAuthenticated}
         onSearch={handleSearch}
+        onSignIn={openAuthModal}
       />
 
       <main className="flex-1">
+        {/* Guest Welcome Banner - Shows only for non-authenticated users */}
+        {!isAuthenticated && !isLoading && (
+          <GuestWelcomeBanner onSignUp={openAuthModal} />
+        )}
+
         {/* Stats Bar */}
         <NativeStatsBar />
 
@@ -244,6 +257,12 @@ const Index = () => {
 
       {/* Native Bottom Navigation */}
       <NativeBottomNav />
+
+      {/* Floating Referral CTA */}
+      <FloatingReferralCTA 
+        isAuthenticated={isAuthenticated} 
+        onSignUp={openAuthModal}
+      />
       
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
