@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, Clock, Eye, Heart, Share2, MapPin, Sparkles } from 'lucide-react';
@@ -11,6 +10,10 @@ import { toast } from 'sonner';
 import { formatDistanceToNow, format } from 'date-fns';
 import NativeBottomNav from '@/components/home/NativeBottomNav';
 import { cn } from '@/lib/utils';
+import { NewsSEO } from '@/components/news/NewsSEO';
+import { NewsInShortSummary } from '@/components/news/NewsInShortSummary';
+import { NewsStructuredContent } from '@/components/news/NewsStructuredContent';
+import { NewsInternalLinks } from '@/components/news/NewsInternalLinks';
 
 const categoryColors: Record<string, string> = {
   city: 'bg-blue-500/10 text-blue-600 border-blue-200',
@@ -31,7 +34,7 @@ const categoryEmojis: Record<string, string> = {
 };
 
 export default function NewsArticlePage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug, category } = useParams<{ slug: string; category: string }>();
   const queryClient = useQueryClient();
   const [userId, setUserId] = useState<string | null>(null);
   const [hasLiked, setHasLiked] = useState(false);
@@ -157,62 +160,10 @@ export default function NewsArticlePage() {
     ? format(new Date(publishedDate), 'MMMM d, yyyy')
     : '';
 
-  // Structured data for SEO
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "NewsArticle",
-    "headline": article.title,
-    "description": article.excerpt || article.meta_description,
-    "image": article.cover_image || article.og_image,
-    "datePublished": article.published_at,
-    "dateModified": article.updated_at,
-    "author": {
-      "@type": "Organization",
-      "name": "JaipurCircle"
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "JaipurCircle",
-      "url": "https://jaipurcircle.com"
-    },
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": `https://jaipurcircle.com/news/${article.slug}`
-    }
-  };
-
   return (
     <>
-      <Helmet>
-        <title>{article.meta_title || article.title} | JaipurCircle News</title>
-        <meta name="description" content={article.meta_description || article.excerpt || ''} />
-        {article.meta_keywords && (
-          <meta name="keywords" content={article.meta_keywords.join(', ')} />
-        )}
-        <link rel="canonical" href={article.canonical_url || `https://jaipurcircle.com/news/${article.slug}`} />
-        
-        {/* Open Graph */}
-        <meta property="og:title" content={article.meta_title || article.title} />
-        <meta property="og:description" content={article.meta_description || article.excerpt || ''} />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content={`https://jaipurcircle.com/news/${article.slug}`} />
-        {(article.og_image || article.cover_image) && (
-          <meta property="og:image" content={article.og_image || article.cover_image || ''} />
-        )}
-        <meta property="article:published_time" content={article.published_at || ''} />
-        <meta property="article:modified_time" content={article.updated_at || ''} />
-        <meta property="article:section" content={article.category} />
-        
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={article.meta_title || article.title} />
-        <meta name="twitter:description" content={article.meta_description || article.excerpt || ''} />
-        
-        {/* Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify(structuredData)}
-        </script>
-      </Helmet>
+      {/* Comprehensive SEO Component */}
+      <NewsSEO article={article} />
 
       <div className="min-h-screen bg-background pb-24">
         {/* Header */}
@@ -295,37 +246,19 @@ export default function NewsArticlePage() {
             </span>
           </div>
 
-          {/* Excerpt */}
+          {/* Excerpt / Dek */}
           {article.excerpt && (
-            <p className="text-lg text-muted-foreground mb-6 font-medium leading-relaxed">
+            <p className="text-lg text-muted-foreground mb-6 font-medium leading-relaxed border-l-4 border-primary pl-4">
               {article.excerpt}
             </p>
           )}
 
-          {/* Content */}
-          <div className="prose prose-sm max-w-none dark:prose-invert">
-            {article.content.split('\n').map((paragraph, index) => {
-              if (paragraph.startsWith('## ')) {
-                return <h2 key={index} className="text-xl font-bold mt-6 mb-3">{paragraph.replace('## ', '')}</h2>;
-              }
-              if (paragraph.startsWith('### ')) {
-                return <h3 key={index} className="text-lg font-semibold mt-4 mb-2">{paragraph.replace('### ', '')}</h3>;
-              }
-              if (paragraph.startsWith('- ')) {
-                return <li key={index} className="ml-4">{paragraph.replace('- ', '')}</li>;
-              }
-              if (paragraph.startsWith('> ')) {
-                return (
-                  <blockquote key={index} className="border-l-4 border-primary pl-4 italic my-4 text-muted-foreground">
-                    {paragraph.replace('> ', '')}
-                  </blockquote>
-                );
-              }
-              if (paragraph.trim()) {
-                return <p key={index} className="mb-4 leading-relaxed">{paragraph}</p>;
-              }
-              return null;
-            })}
+          {/* In Short - AI-Friendly Summary */}
+          <NewsInShortSummary article={article} />
+
+          {/* Structured Content */}
+          <div className="mt-6">
+            <NewsStructuredContent content={article.content} />
           </div>
 
           {/* Tags */}
@@ -344,6 +277,9 @@ export default function NewsArticlePage() {
           <div className="mt-6 text-sm text-muted-foreground">
             Published on {formattedDate}
           </div>
+
+          {/* Internal Links for SEO */}
+          <NewsInternalLinks article={article} />
         </article>
 
         <NativeBottomNav />

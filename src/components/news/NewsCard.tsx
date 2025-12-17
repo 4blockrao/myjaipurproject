@@ -48,7 +48,7 @@ export function NewsCard({ article, variant = 'default' }: NewsCardProps) {
   if (variant === 'compact') {
     return (
       <Link 
-        to={`/news/${article.slug}`}
+        to={`/news/${article.category}/${article.slug}`}
         className="flex gap-3 p-3 rounded-xl bg-card hover:bg-accent/50 transition-colors"
       >
         {article.cover_image && (
@@ -78,7 +78,7 @@ export function NewsCard({ article, variant = 'default' }: NewsCardProps) {
   if (variant === 'featured') {
     return (
       <Link 
-        to={`/news/${article.slug}`}
+        to={`/news/${article.category}/${article.slug}`}
         className="relative block overflow-hidden rounded-2xl group"
       >
         <div className="aspect-[16/9] bg-muted">
@@ -124,7 +124,7 @@ export function NewsCard({ article, variant = 'default' }: NewsCardProps) {
 
   return (
     <Link 
-      to={`/news/${article.slug}`}
+      to={`/news/${article.category}/${article.slug}`}
       className="block bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border"
     >
       <div className="aspect-[16/10] bg-muted">

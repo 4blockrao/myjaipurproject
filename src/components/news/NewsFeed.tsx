@@ -20,10 +20,11 @@ interface NewsFeedProps {
   showHeader?: boolean;
   limit?: number;
   showCategories?: boolean;
+  filterCategory?: string;
 }
 
-export function NewsFeed({ showHeader = true, limit, showCategories = true }: NewsFeedProps) {
-  const [selectedCategory, setSelectedCategory] = useState('all');
+export function NewsFeed({ showHeader = true, limit, showCategories = true, filterCategory }: NewsFeedProps) {
+  const [selectedCategory, setSelectedCategory] = useState(filterCategory || 'all');
 
   const { data: articles, isLoading } = useQuery({
     queryKey: ['news-articles', selectedCategory, limit],

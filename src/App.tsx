@@ -38,6 +38,7 @@ import NotFound from "./pages/NotFound";
 import InstallPage from "./pages/InstallPage";
 import NewsPage from "./pages/NewsPage";
 import NewsArticlePage from "./pages/NewsArticlePage";
+import NewsCategoryPage from "./pages/NewsCategoryPage";
 import CreateNewsPage from "./pages/CreateNewsPage";
 import EventsPage from "./pages/EventsPage";
 import EventDetailPage from "./pages/EventDetailPage";
@@ -106,7 +107,8 @@ function App() {
             <Route path="/install" element={<InstallPage />} />
             <Route path="/news" element={<NewsPage />} />
             <Route path="/news/create" element={<CreateNewsPage />} />
-            <Route path="/news/:slug" element={<NewsArticlePage />} />
+            <Route path="/news/:category" element={<NewsCategoryPage />} />
+            <Route path="/news/:category/:slug" element={<NewsArticlePage />} />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/events/create" element={<CreateEventPage />} />
             <Route path="/events/organizer" element={<EventOrganizerDashboardPage />} />

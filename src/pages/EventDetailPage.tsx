@@ -13,7 +13,6 @@ import {
   Ticket,
   Users,
   ExternalLink,
-  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +21,9 @@ import { toast } from "sonner";
 import NativeBottomNav from "@/components/home/NativeBottomNav";
 import { EventSEO } from "@/components/events/EventSEO";
 import EventRegistrationModal from "@/components/events/EventRegistrationModal";
+import { EventAISummary } from "@/components/events/EventAISummary";
+import { EventFactsSection } from "@/components/events/EventFactsSection";
+import { EventInternalLinks } from "@/components/events/EventInternalLinks";
 
 const EventDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -256,29 +258,18 @@ const EventDetailPage = () => {
             </div>
           </div>
 
+          {/* AI-Friendly Summary Section */}
+          <EventAISummary event={event} />
+
+          {/* Event Facts Section */}
+          <EventFactsSection event={event} />
+
           {/* Description */}
           {event.description && (
             <div>
               <h2 className="font-semibold mb-2">About this event</h2>
               <div className="prose prose-sm text-muted-foreground whitespace-pre-wrap">
                 {event.description}
-              </div>
-            </div>
-          )}
-
-          {/* Tags for SEO */}
-          {event.tags && event.tags.length > 0 && (
-            <div>
-              <h3 className="font-semibold mb-2 flex items-center gap-2">
-                <Tag className="w-4 h-4" />
-                Tags
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {event.tags.map((tag: string, index: number) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
               </div>
             </div>
           )}
@@ -293,6 +284,9 @@ const EventDetailPage = () => {
               )}
             </div>
           )}
+
+          {/* Internal Links for SEO */}
+          <EventInternalLinks event={event} />
         </div>
 
         {/* Fixed bottom CTA */}
