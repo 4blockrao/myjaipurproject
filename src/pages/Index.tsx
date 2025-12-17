@@ -8,6 +8,7 @@ import NativeQuickActions from "@/components/home/NativeQuickActions";
 import NativeStatsBar from "@/components/home/NativeStatsBar";
 import NativeBottomNav from "@/components/home/NativeBottomNav";
 import { NewsHomeSection } from "@/components/news/NewsHomeSection";
+import EventHomeSection from "@/components/events/EventHomeSection";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -201,7 +202,14 @@ const Index = () => {
       <NativeQuickActions />
 
       {/* News Section */}
-      <NewsHomeSection />
+      <div className="px-4">
+        <NewsHomeSection />
+      </div>
+
+      {/* Events Section */}
+      <div className="px-4">
+        <EventHomeSection />
+      </div>
 
       {/* Hot Deals - Horizontal Scroll */}
       <NativeDealsSection 

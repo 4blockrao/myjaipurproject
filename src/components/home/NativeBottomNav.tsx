@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
-import { Home, Search, Heart, User, ShoppingBag, Shield, Compass } from "lucide-react";
+import { Home, Heart, User, Newspaper, CalendarDays } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useUserRoles } from "@/hooks/useUserRoles";
 
 const NativeBottomNav = () => {
   const location = useLocation();
   const [user, setUser] = useState<any>(null);
-  const { canManageDeals, isAdmin } = useUserRoles(user?.id);
 
   useEffect(() => {
     const getUser = async () => {
@@ -30,21 +28,16 @@ const NativeBottomNav = () => {
 
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
-    { icon: Compass, label: "Explore", path: "/deals" },
-    { icon: ShoppingBag, label: "Orders", path: "/orders" },
+    { icon: CalendarDays, label: "Events", path: "/events" },
+    { icon: Newspaper, label: "News", path: "/news" },
     { icon: Heart, label: "Saved", path: "/favorites" },
     { icon: User, label: "Profile", path: "/profile" }
   ];
 
-  // Add admin nav item for authorized users
-  if (canManageDeals || isAdmin) {
-    navItems.splice(4, 0, { icon: Shield, label: "Admin", path: "/admin" });
-  }
-
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border z-50 safe-area-pb">
       <div className="flex justify-around items-center max-w-lg mx-auto px-2 py-1">
-        {navItems.slice(0, 5).map((item) => {
+        {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           const IconComponent = item.icon;
           
