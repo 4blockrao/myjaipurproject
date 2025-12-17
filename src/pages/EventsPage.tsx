@@ -1,33 +1,32 @@
-import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NativeBottomNav from "@/components/home/NativeBottomNav";
 import EventsFeed from "@/components/events/EventsFeed";
 import FeaturedEvents from "@/components/events/FeaturedEvents";
+import { EventsListSEO } from "@/components/events/EventSEO";
+import { supabase } from "@/integrations/supabase/client";
 
 const EventsPage = () => {
+  // Fetch events for SEO structured data
+  const { data: events = [] } = useQuery({
+    queryKey: ["events-seo"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("events")
+        .select("id, title, slug, start_date, cover_image, is_free, ticket_price")
+        .eq("status", "published")
+        .gte("start_date", new Date().toISOString())
+        .order("start_date", { ascending: true })
+        .limit(20);
+      return data || [];
+    },
+  });
+
   return (
     <>
-      <Helmet>
-        <title>Events in Jaipur | Jaipur Circle - Discover Local Events</title>
-        <meta
-          name="description"
-          content="Discover the best events happening in Jaipur. Music, arts, food festivals, cultural events, and more. Find and attend events near you."
-        />
-        <meta
-          name="keywords"
-          content="Jaipur events, events in Jaipur, concerts Jaipur, festivals Jaipur, cultural events, things to do in Jaipur"
-        />
-        <link rel="canonical" href="https://jaipurcircle.com/events" />
-        <meta property="og:title" content="Events in Jaipur | Jaipur Circle" />
-        <meta
-          property="og:description"
-          content="Discover the best events happening in Jaipur. Music, arts, food festivals, and more."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://jaipurcircle.com/events" />
-      </Helmet>
+      <EventsListSEO events={events} />
 
       <div className="min-h-screen bg-background pb-24">
         {/* Header */}
@@ -40,8 +39,8 @@ const EventsPage = () => {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-xl font-bold">Events</h1>
-                <p className="text-xs text-muted-foreground">Discover events in Jaipur</p>
+                <h1 className="text-xl font-bold">Events in Jaipur</h1>
+                <p className="text-xs text-muted-foreground">Concerts, Festivals & Things to Do</p>
               </div>
             </div>
             <Link to="/events/create">
@@ -53,11 +52,14 @@ const EventsPage = () => {
           </div>
         </header>
 
-        <main className="px-4 py-6 space-y-8">
-          <FeaturedEvents />
+        <main className="px-4 py-6 space-y-8" role="main">
+          <section aria-labelledby="featured-events-heading">
+            <h2 id="featured-events-heading" className="sr-only">Featured Events</h2>
+            <FeaturedEvents />
+          </section>
           
-          <section>
-            <h2 className="text-lg font-bold mb-4">All Upcoming Events</h2>
+          <section aria-labelledby="upcoming-events-heading">
+            <h2 id="upcoming-events-heading" className="text-lg font-bold mb-4">All Upcoming Events</h2>
             <EventsFeed />
           </section>
         </main>

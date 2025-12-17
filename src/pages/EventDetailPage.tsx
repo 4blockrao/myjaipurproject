@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Helmet } from "react-helmet-async";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft,
   Calendar,
-  Clock,
   MapPin,
   Globe,
   Heart,
@@ -15,12 +13,14 @@ import {
   Ticket,
   Users,
   ExternalLink,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import NativeBottomNav from "@/components/home/NativeBottomNav";
+import { EventSEO } from "@/components/events/EventSEO";
 
 const EventDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -140,68 +140,9 @@ const EventDetailPage = () => {
   const startDate = new Date(event.start_date);
   const endDate = event.end_date ? new Date(event.end_date) : null;
 
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "Event",
-    name: event.title,
-    description: event.short_description || event.description,
-    startDate: event.start_date,
-    endDate: event.end_date,
-    eventStatus: "https://schema.org/EventScheduled",
-    eventAttendanceMode: event.is_online
-      ? "https://schema.org/OnlineEventAttendanceMode"
-      : "https://schema.org/OfflineEventAttendanceMode",
-    location: event.is_online
-      ? {
-          "@type": "VirtualLocation",
-          url: event.online_url,
-        }
-      : {
-          "@type": "Place",
-          name: event.venue_name,
-          address: {
-            "@type": "PostalAddress",
-            streetAddress: event.venue_address,
-            addressLocality: event.locality || "Jaipur",
-            addressRegion: "Rajasthan",
-            addressCountry: "IN",
-          },
-        },
-    image: event.cover_image,
-    offers: event.is_free
-      ? {
-          "@type": "Offer",
-          price: "0",
-          priceCurrency: "INR",
-          availability: "https://schema.org/InStock",
-        }
-      : {
-          "@type": "Offer",
-          price: event.ticket_price,
-          priceCurrency: "INR",
-          availability: "https://schema.org/InStock",
-        },
-    organizer: {
-      "@type": "Organization",
-      name: event.organizer_name || "Jaipur Circle",
-    },
-  };
-
   return (
     <>
-      <Helmet>
-        <title>{event.meta_title || `${event.title} | Events in Jaipur`}</title>
-        <meta
-          name="description"
-          content={event.meta_description || event.short_description || event.description?.slice(0, 160)}
-        />
-        <link rel="canonical" href={`https://jaipurcircle.com/events/${event.slug}`} />
-        <meta property="og:title" content={event.title} />
-        <meta property="og:description" content={event.short_description} />
-        <meta property="og:image" content={event.cover_image} />
-        <meta property="og:type" content="event" />
-        <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
-      </Helmet>
+      <EventSEO event={event} />
 
       <div className="min-h-screen bg-background pb-32">
         {/* Cover Image */}
@@ -319,6 +260,23 @@ const EventDetailPage = () => {
               <h2 className="font-semibold mb-2">About this event</h2>
               <div className="prose prose-sm text-muted-foreground whitespace-pre-wrap">
                 {event.description}
+              </div>
+            </div>
+          )}
+
+          {/* Tags for SEO */}
+          {event.tags && event.tags.length > 0 && (
+            <div>
+              <h3 className="font-semibold mb-2 flex items-center gap-2">
+                <Tag className="w-4 h-4" />
+                Tags
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {event.tags.map((tag: string, index: number) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
               </div>
             </div>
           )}
