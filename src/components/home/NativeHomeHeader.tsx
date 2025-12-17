@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Search, MapPin, Bell, Coins, LogIn, User } from "lucide-react";
+import { Search, MapPin, Coins, LogIn, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import logo from "@/assets/logo.png";
 
 interface NativeHomeHeaderProps {
   userLocality?: string;
@@ -34,21 +35,13 @@ const NativeHomeHeader = ({
   };
 
   return (
-    <header className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground safe-area-pt">
-      {/* Top bar with greeting and coins/login */}
-      <div className="px-4 pt-4 pb-3">
+    <header className="bg-background border-b border-border/50 safe-area-pt">
+      {/* Top bar with logo and actions */}
+      <div className="px-4 pt-3 pb-2">
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-primary-foreground/70 text-sm">
-              {isAuthenticated && userName 
-                ? `Hey, ${userName.split(' ')[0]}! 👋` 
-                : 'Welcome to JaipurCircle'}
-            </p>
-            <div className="flex items-center gap-1 mt-0.5">
-              <MapPin className="w-3.5 h-3.5 text-primary-foreground/80" />
-              <span className="text-sm font-medium">{userLocality || 'Jaipur'}</span>
-            </div>
-          </div>
+          <Link to="/" className="flex items-center gap-2">
+            <img src={logo} alt="JaipurCircle" className="h-10 w-auto" />
+          </Link>
           
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
@@ -56,19 +49,21 @@ const NativeHomeHeader = ({
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="text-primary-foreground hover:bg-primary-foreground/10"
-                  onClick={() => navigate('/jaicoin-zone')}
+                  className="text-foreground hover:bg-muted"
+                  onClick={() => navigate('/account?tab=wallet')}
                 >
-                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-primary-foreground/15">
-                    <Coins className="w-4 h-4 text-yellow-300" />
-                    <span className="text-xs font-bold">{jaiCoins.toLocaleString()}</span>
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30">
+                    <Coins className="w-4 h-4 text-amber-600" />
+                    <span className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                      {jaiCoins.toLocaleString()}
+                    </span>
                   </div>
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="text-primary-foreground hover:bg-primary-foreground/10"
-                  onClick={() => navigate('/profile')}
+                  className="text-foreground hover:bg-muted"
+                  onClick={() => navigate('/account')}
                 >
                   <User className="w-5 h-5" />
                 </Button>
@@ -77,7 +72,7 @@ const NativeHomeHeader = ({
               <Button 
                 onClick={onSignIn}
                 size="sm"
-                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-md"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
               >
                 <LogIn className="w-4 h-4 mr-1.5" />
                 Sign In
@@ -85,14 +80,26 @@ const NativeHomeHeader = ({
             )}
           </div>
         </div>
+
+        {/* Location indicator */}
+        {isAuthenticated && userName && (
+          <div className="flex items-center gap-1 mt-1">
+            <span className="text-sm text-muted-foreground">
+              Hey, {userName.split(' ')[0]}!
+            </span>
+            <span className="text-muted-foreground">•</span>
+            <MapPin className="w-3 h-3 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">{userLocality || 'Jaipur'}</span>
+          </div>
+        )}
       </div>
 
       {/* Search bar */}
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-3">
         <form onSubmit={handleSearch} className="relative">
           <div 
-            className={`flex items-center bg-primary-foreground rounded-xl transition-all duration-200 ${
-              searchFocused ? 'ring-2 ring-primary-foreground/50 shadow-lg' : 'shadow-md'
+            className={`flex items-center bg-muted/50 rounded-xl transition-all duration-200 ${
+              searchFocused ? 'ring-2 ring-primary/20 bg-background' : ''
             }`}
           >
             <Search className="w-5 h-5 text-muted-foreground ml-4" />
@@ -109,7 +116,7 @@ const NativeHomeHeader = ({
               <Button 
                 type="submit" 
                 size="sm" 
-                className="mr-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="mr-2"
               >
                 Search
               </Button>
