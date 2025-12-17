@@ -4,29 +4,67 @@ import { ArrowLeft, Plus, Newspaper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NewsFeed } from '@/components/news/NewsFeed';
 import NativeBottomNav from '@/components/home/NativeBottomNav';
+import GlobalSEO from '@/components/seo/GlobalSEO';
+
+const SITE_URL = 'https://jaipurcircle.com';
 
 export default function NewsPage() {
+  // News Collection Page Schema
+  const newsCollectionSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    '@id': `${SITE_URL}/news#webpage`,
+    url: `${SITE_URL}/news`,
+    name: 'Jaipur News - Latest Local Updates',
+    description: 'Stay updated with the latest news from Jaipur. Local events, city updates, food, culture, business and sports news from the Pink City.',
+    isPartOf: {
+      '@id': `${SITE_URL}/#website`
+    },
+    about: {
+      '@type': 'Thing',
+      name: 'Jaipur Local News',
+      description: 'News and updates from Jaipur, Rajasthan'
+    },
+    publisher: {
+      '@id': `${SITE_URL}/#organization`
+    }
+  };
+
+  // Breadcrumb Schema
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: SITE_URL
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'News',
+        item: `${SITE_URL}/news`
+      }
+    ]
+  };
+
   return (
     <>
+      <GlobalSEO
+        title="Jaipur News - Latest Local Updates"
+        description="Stay updated with the latest news from Jaipur. Local events, city updates, food, culture, business and sports news from the Pink City."
+        canonical="/news"
+        keywords={['Jaipur news', 'Jaipur local news', 'Pink City news', 'Rajasthan news', 'Jaipur events', 'Jaipur updates']}
+      />
       <Helmet>
-        <title>Jaipur News - Latest Local Updates | JaipurCircle</title>
-        <meta 
-          name="description" 
-          content="Stay updated with the latest news from Jaipur. Local events, city updates, food, culture, business and sports news from the Pink City." 
-        />
-        <meta name="keywords" content="Jaipur news, Jaipur local news, Pink City news, Rajasthan news, Jaipur events" />
-        <link rel="canonical" href="https://jaipurcircle.com/news" />
-        
-        {/* Open Graph */}
-        <meta property="og:title" content="Jaipur News - Latest Local Updates | JaipurCircle" />
-        <meta property="og:description" content="Stay updated with the latest news from Jaipur. Local events, city updates, food, culture, business and sports news." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://jaipurcircle.com/news" />
-        
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Jaipur News - JaipurCircle" />
-        <meta name="twitter:description" content="Latest local news from Jaipur, Rajasthan" />
+        <script type="application/ld+json">
+          {JSON.stringify(newsCollectionSchema)}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbSchema)}
+        </script>
       </Helmet>
 
       <div className="min-h-screen bg-background pb-24">

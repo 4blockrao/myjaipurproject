@@ -1,3 +1,6 @@
+# robots.txt for JaipurCircle
+# https://jaipurcircle.com
+
 User-agent: Googlebot
 Allow: /
 
@@ -12,3 +15,23 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Allow all content pages
+Allow: /news/
+Allow: /events/
+Allow: /deals/
+Allow: /categories/
+Allow: /about
+
+# Block admin and auth pages
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /api/
+Disallow: /merchant-dashboard
+Disallow: /merchant-portal
+Disallow: /settings
+Disallow: /profile
+
+# Sitemaps
+Sitemap: https://jaipurcircle.com/sitemap.xml
+Sitemap: https://jaipurcircle.com/sitemap-news.xml

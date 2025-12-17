@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
+import DealsSEO from "@/components/seo/DealsSEO";
 import { 
   Search, Filter, MapPin, Clock, Star, 
   Heart, Share2, ShoppingCart, Percent,
@@ -282,6 +283,7 @@ const DealsPage = () => {
 
   return (
     <AppLayout user={user} profile={profile}>
+      <DealsSEO category={selectedCategory} locality={selectedLocation} />
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <div className="bg-white border-b shadow-sm">
