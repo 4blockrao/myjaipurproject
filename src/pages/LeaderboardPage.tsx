@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import FloatingHeader from "@/components/layout/FloatingHeader";
+import NativeBottomNav from "@/components/home/NativeBottomNav";
 import {
   Trophy, Medal, Award, TrendingUp, Users, Star, Crown,
-  Flame, Zap, MapPin, Calendar, Gift, Target
+  Flame, Zap, MapPin, Gift
 } from "lucide-react";
 
 interface LeaderboardEntry {
@@ -46,6 +47,8 @@ const LeaderboardPage = () => {
           fetchUserProfile(session.user.id),
           fetchLeaderboards(session.user.id)
         ]);
+      } else {
+        await fetchLeaderboards(null);
       }
     } catch (error) {
       console.error('Error checking user:', error);
@@ -69,13 +72,12 @@ const LeaderboardPage = () => {
     }
   };
 
-  const fetchLeaderboards = async (userId: string) => {
+  const fetchLeaderboards = async (userId: string | null) => {
     try {
-      // Fetch profiles with their balances
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, full_name, rank, locality')
-        .limit(100);
+        .limit(50);
 
       if (profiles) {
         const leaderboardData = await Promise.all(
@@ -93,7 +95,6 @@ const LeaderboardPage = () => {
           })
         );
 
-        // Sort by balance
         leaderboardData.sort((a, b) => b.balance - a.balance);
         leaderboardData.forEach((item, index) => {
           item.position = index + 1;
@@ -101,16 +102,16 @@ const LeaderboardPage = () => {
 
         setGlobalLeaderboard(leaderboardData.slice(0, 50));
 
-        // Find user position
-        const userEntry = leaderboardData.find(entry => entry.id === userId);
-        setUserPosition(userEntry || null);
+        if (userId) {
+          const userEntry = leaderboardData.find(entry => entry.id === userId);
+          setUserPosition(userEntry || null);
 
-        // Create locality leaderboard
-        const userLocality = userEntry?.locality || 'Malviya Nagar';
-        const localityData = leaderboardData.filter(entry => 
-          entry.locality === userLocality
-        ).slice(0, 20);
-        setLocalityLeaderboard(localityData);
+          const userLocality = userEntry?.locality || 'Malviya Nagar';
+          const localityData = leaderboardData.filter(entry => 
+            entry.locality === userLocality
+          ).slice(0, 20);
+          setLocalityLeaderboard(localityData);
+        }
       }
     } catch (error) {
       console.error('Error fetching leaderboards:', error);
@@ -119,230 +120,168 @@ const LeaderboardPage = () => {
 
   const getRankIcon = (position: number) => {
     switch (position) {
-      case 1: return <Crown className="w-5 h-5 text-yellow-500" />;
-      case 2: return <Medal className="w-5 h-5 text-gray-400" />;
-      case 3: return <Award className="w-5 h-5 text-amber-600" />;
-      default: return <span className="w-6 h-6 flex items-center justify-center text-sm font-bold">#{position}</span>;
+      case 1: return <Crown className="w-6 h-6 text-yellow-500" />;
+      case 2: return <Medal className="w-6 h-6 text-gray-400" />;
+      case 3: return <Award className="w-6 h-6 text-amber-600" />;
+      default: return <span className="w-6 h-6 flex items-center justify-center text-sm font-bold text-muted-foreground">#{position}</span>;
     }
   };
 
-  const getRankColor = (rank: string) => {
-    switch (rank) {
-      case 'Jaipur Maharaja': return 'bg-purple-500';
-      case 'Jaipur Legend': return 'bg-yellow-500';
-      case 'Jaipur Star': return 'bg-blue-500';
-      case 'Jaipur Explorer': return 'bg-green-500';
-      default: return 'bg-gray-500';
+  const getPositionStyle = (position: number) => {
+    switch (position) {
+      case 1: return 'bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-300';
+      case 2: return 'bg-gradient-to-r from-gray-50 to-slate-50 border-gray-300';
+      case 3: return 'bg-gradient-to-r from-orange-50 to-amber-50 border-orange-300';
+      default: return 'bg-card border-border/50';
     }
   };
 
-  const cheerUser = async (userId: string, userName: string) => {
-    if (!user) {
-      toast({
-        title: "Please sign in",
-        description: "You need to be logged in to cheer others",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      // Add cheer transaction
-      await supabase
-        .from('jaicoin_transactions')
-        .insert({
-          user_id: userId,
-          amount: 5,
-          type: 'earned',
-          source: 'cheer_received',
-          description: `Received cheer from ${profile?.full_name || 'Someone'}`
-        });
-
-      toast({
-        title: "🎉 Cheer Sent!",
-        description: `You cheered for ${userName}!`,
-      });
-
-      fetchLeaderboards(user.id);
-    } catch (error) {
-      console.error('Error sending cheer:', error);
-    }
-  };
-
-  const LeaderboardCard = ({ entry, showCheer = true }: { entry: LeaderboardEntry; showCheer?: boolean }) => (
-    <Card className={`${entry.position <= 3 ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200' : 'hover:shadow-md transition-shadow'}`}>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            {getRankIcon(entry.position)}
-            <Avatar className={`w-10 h-10 ${getRankColor(entry.rank || 'Bronze')}`}>
-              <AvatarFallback className="text-white font-bold text-sm">
-                {entry.full_name?.[0] || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-semibold text-sm">{entry.full_name || 'Anonymous'}</span>
-                {entry.streak && entry.streak > 7 && (
-                  <Flame className="w-3 h-3 text-orange-500" />
-                )}
-              </div>
-              <div className="flex items-center space-x-3 text-xs text-gray-600">
-                <span className="font-medium">{entry.balance} JC</span>
-                {entry.locality && (
-                  <span className="flex items-center space-x-1">
-                    <MapPin className="w-3 h-3" />
-                    <span>{entry.locality}</span>
-                  </span>
-                )}
-                {entry.weeklyGains && (
-                  <span className="flex items-center space-x-1 text-green-600">
-                    <TrendingUp className="w-3 h-3" />
-                    <span>+{entry.weeklyGains}</span>
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Badge variant="outline" className="text-xs">
-              {entry.rank || 'Bronze'}
-            </Badge>
-            {showCheer && user && user.id !== entry.id && (
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => cheerUser(entry.id, entry.full_name)}
-                className="text-pink-600 border-pink-300 hover:bg-pink-50 h-7 px-2 text-xs"
-              >
-                <Star className="w-3 h-3 mr-1" />
-                Cheer
-              </Button>
-            )}
-          </div>
+  const LeaderboardItem = ({ entry }: { entry: LeaderboardEntry }) => (
+    <div className={`flex items-center gap-3 p-4 rounded-xl border ${getPositionStyle(entry.position)}`}>
+      <div className="w-8 flex justify-center">
+        {getRankIcon(entry.position)}
+      </div>
+      
+      <Avatar className="w-12 h-12 border-2 border-background shadow-sm">
+        <AvatarFallback className="bg-primary/10 text-primary font-bold">
+          {entry.full_name?.[0] || 'U'}
+        </AvatarFallback>
+      </Avatar>
+      
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold truncate">{entry.full_name || 'Anonymous'}</span>
+          {entry.streak && entry.streak > 7 && (
+            <Flame className="w-4 h-4 text-orange-500 shrink-0" />
+          )}
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+          {entry.locality && (
+            <span className="flex items-center gap-1">
+              <MapPin className="w-3 h-3" />
+              {entry.locality}
+            </span>
+          )}
+          {entry.weeklyGains && (
+            <span className="flex items-center gap-1 text-green-600">
+              <TrendingUp className="w-3 h-3" />
+              +{entry.weeklyGains}
+            </span>
+          )}
+        </div>
+      </div>
+      
+      <div className="text-right">
+        <div className="flex items-center gap-1 font-bold text-primary">
+          <Zap className="w-4 h-4" />
+          {entry.balance}
+        </div>
+        <p className="text-xs text-muted-foreground">JAICoins</p>
+      </div>
+    </div>
   );
 
   if (isLoading) {
     return (
-      <DashboardLayout user={user} profile={profile} pageTitle="Leaderboard" showBackButton>
-        <div className="flex items-center justify-center min-h-[50vh]">
+      <div className="min-h-screen bg-background pb-20">
+        <FloatingHeader title="Leaderboard" showBackButton backPath="/" />
+        <div className="pt-20 flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 text-sm">Loading leaderboard...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto mb-4"></div>
+            <p className="text-muted-foreground text-sm">Loading leaderboard...</p>
           </div>
         </div>
-      </DashboardLayout>
+        <NativeBottomNav />
+      </div>
     );
   }
 
   return (
-    <DashboardLayout user={user} profile={profile} pageTitle="Leaderboard" showBackButton>
-      <div className="space-y-4 p-4 max-w-6xl mx-auto">
-        {/* Header Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
-            <CardContent className="p-3 text-center">
-              <Trophy className="w-6 h-6 text-yellow-600 mx-auto mb-1" />
-              <div className="text-lg font-bold text-yellow-700">{userPosition?.position || '--'}</div>
-              <div className="text-xs text-gray-600">Your Rank</div>
+    <div className="min-h-screen bg-background pb-20">
+      <FloatingHeader title="Leaderboard" showBackButton backPath="/" />
+      
+      <main className="pt-16 px-4 max-w-lg mx-auto">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 gap-3 py-4">
+          <Card className="bg-gradient-to-br from-yellow-400 to-amber-500 text-white border-0">
+            <CardContent className="p-4 text-center">
+              <Trophy className="w-8 h-8 mx-auto mb-2 opacity-90" />
+              <p className="text-3xl font-bold">#{userPosition?.position || '--'}</p>
+              <p className="text-xs opacity-80">Your Rank</p>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-            <CardContent className="p-3 text-center">
-              <Zap className="w-6 h-6 text-blue-600 mx-auto mb-1" />
-              <div className="text-lg font-bold text-blue-700">{userPosition?.balance || 0}</div>
-              <div className="text-xs text-gray-600">JAICoins</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-            <CardContent className="p-3 text-center">
-              <TrendingUp className="w-6 h-6 text-green-600 mx-auto mb-1" />
-              <div className="text-lg font-bold text-green-700">+{userPosition?.weeklyGains || 0}</div>
-              <div className="text-xs text-gray-600">This Week</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
-            <CardContent className="p-3 text-center">
-              <Flame className="w-6 h-6 text-orange-600 mx-auto mb-1" />
-              <div className="text-lg font-bold text-orange-700">{userPosition?.streak || 0}</div>
-              <div className="text-xs text-gray-600">Day Streak</div>
+          <Card className="bg-gradient-to-br from-purple-500 to-pink-500 text-white border-0">
+            <CardContent className="p-4 text-center">
+              <Zap className="w-8 h-8 mx-auto mb-2 opacity-90" />
+              <p className="text-3xl font-bold">{userPosition?.balance || 0}</p>
+              <p className="text-xs opacity-80">JAICoins</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Your Position Highlight */}
-        {userPosition && (
-          <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center space-x-2 text-base">
-                <Target className="w-4 h-4 text-purple-600" />
-                <span>Your Current Position</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <LeaderboardCard entry={userPosition} showCheer={false} />
-            </CardContent>
-          </Card>
-        )}
+        {/* Prizes Banner */}
+        <Card className="mb-4 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-full">
+                <Gift className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <p className="font-semibold">Monthly Prizes</p>
+                <p className="text-sm text-muted-foreground">Top 10 win exclusive rewards!</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Leaderboard Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="global" className="text-sm">🌍 City Champions</TabsTrigger>
-            <TabsTrigger value="locality" className="text-sm">📍 My Area</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1 rounded-xl">
+            <TabsTrigger 
+              value="global" 
+              className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
+            >
+              🌍 City Champions
+            </TabsTrigger>
+            <TabsTrigger 
+              value="locality" 
+              className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
+            >
+              📍 My Area
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="global" className="space-y-3 mt-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <Trophy className="w-5 h-5 text-yellow-500" />
-                  <span>Jaipur City Champions</span>
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  Top performers across all of Jaipur - updated in real-time!
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2 pt-0">
-                {globalLeaderboard.map(entry => (
-                  <LeaderboardCard key={entry.id} entry={entry} />
-                ))}
-              </CardContent>
-            </Card>
+          <TabsContent value="global" className="space-y-3 mt-0">
+            {globalLeaderboard.length > 0 ? (
+              globalLeaderboard.map(entry => (
+                <LeaderboardItem key={entry.id} entry={entry} />
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <Users className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
+                <p className="text-muted-foreground">No rankings yet</p>
+              </div>
+            )}
           </TabsContent>
 
-          <TabsContent value="locality" className="space-y-3 mt-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <MapPin className="w-5 h-5 text-green-500" />
-                  <span>Local Champions</span>
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  Your neighborhood heroes and local leaders
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2 pt-0">
-                {localityLeaderboard.length > 0 ? (
-                  localityLeaderboard.map(entry => (
-                    <LeaderboardCard key={entry.id} entry={entry} />
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No local champions yet in your area!</p>
-                    <p className="text-xs mt-1">Be the first to climb the local leaderboard!</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          <TabsContent value="locality" className="space-y-3 mt-0">
+            {localityLeaderboard.length > 0 ? (
+              localityLeaderboard.map(entry => (
+                <LeaderboardItem key={entry.id} entry={entry} />
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <MapPin className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
+                <p className="text-muted-foreground">No local champions yet</p>
+                <p className="text-sm text-muted-foreground mt-1">Be the first in your area!</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
-      </div>
-    </DashboardLayout>
+      </main>
+
+      <NativeBottomNav />
+    </div>
   );
 };
 

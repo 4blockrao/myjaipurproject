@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, MapPin, Coins, LogIn, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
-import logo from "@/assets/logo.png";
+import JaipurCircleLogo from "@/components/ui/JaipurCircleLogo";
 
 interface NativeHomeHeaderProps {
   userLocality?: string;
@@ -36,11 +36,10 @@ const NativeHomeHeader = ({
 
   return (
     <header className="bg-background border-b border-border/50 safe-area-pt">
-      {/* Top bar with logo and actions */}
       <div className="px-4 pt-3 pb-2">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="JaipurCircle" className="h-10 w-auto" />
+          <Link to="/">
+            <JaipurCircleLogo size="md" />
           </Link>
           
           <div className="flex items-center gap-2">
@@ -81,7 +80,6 @@ const NativeHomeHeader = ({
           </div>
         </div>
 
-        {/* Location indicator */}
         {isAuthenticated && userName && (
           <div className="flex items-center gap-1 mt-1">
             <span className="text-sm text-muted-foreground">
@@ -94,7 +92,6 @@ const NativeHomeHeader = ({
         )}
       </div>
 
-      {/* Search bar */}
       <div className="px-4 pb-3">
         <form onSubmit={handleSearch} className="relative">
           <div 
@@ -113,11 +110,7 @@ const NativeHomeHeader = ({
               className="flex-1 border-0 focus-visible:ring-0 bg-transparent text-foreground placeholder:text-muted-foreground py-3"
             />
             {searchQuery && (
-              <Button 
-                type="submit" 
-                size="sm" 
-                className="mr-2"
-              >
+              <Button type="submit" size="sm" className="mr-2">
                 Search
               </Button>
             )}

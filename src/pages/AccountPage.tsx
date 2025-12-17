@@ -260,7 +260,7 @@ const AccountPage = () => {
       {/* Tabs Navigation */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <div className="sticky top-[120px] z-30 bg-background border-b">
-          <TabsList className="w-full h-auto p-0 bg-transparent rounded-none grid grid-cols-6">
+          <TabsList className="w-full h-auto p-0 bg-transparent rounded-none grid grid-cols-5">
             <TabsTrigger value="dashboard" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 text-xs">
               <div className="flex flex-col items-center gap-1">
                 <Target className="w-4 h-4" />
@@ -285,12 +285,6 @@ const AccountPage = () => {
                 <span>Orders</span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="saved" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 text-xs">
-              <div className="flex flex-col items-center gap-1">
-                <Heart className="w-4 h-4" />
-                <span>Saved</span>
-              </div>
-            </TabsTrigger>
             <TabsTrigger value="settings" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 text-xs">
               <div className="flex flex-col items-center gap-1">
                 <Settings className="w-4 h-4" />
@@ -308,13 +302,10 @@ const AccountPage = () => {
             <AccountReferral user={user} profile={profile} />
           </TabsContent>
           <TabsContent value="wallet" className="mt-0">
-            <AccountWallet user={user} balance={balance} />
+            <AccountWallet user={user} balance={balance} onRefreshBalance={() => fetchBalance(user.id)} />
           </TabsContent>
           <TabsContent value="orders" className="mt-0">
             <AccountOrders user={user} />
-          </TabsContent>
-          <TabsContent value="saved" className="mt-0">
-            <AccountSaved user={user} />
           </TabsContent>
           <TabsContent value="settings" className="mt-0">
             <AccountSettings user={user} profile={profile} />
