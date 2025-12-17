@@ -13,11 +13,11 @@ import NotFound from "./pages/NotFound";
 // Account & User Pages
 import AccountPage from "./pages/AccountPage";
 import ReferralSuccessPage from "./pages/ReferralSuccessPage";
+import ReferralProgramPage from "./pages/ReferralProgramPage";
 import SettingsPage from "./pages/SettingsPage";
 import HelpPage from "./pages/HelpPage";
 import ProMembershipPage from "./pages/ProMembershipPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
-import ChallengesPage from "./pages/ChallengesPage";
 
 // Deals & Shopping
 import DealsPage from "./pages/DealsPage";
@@ -80,27 +80,27 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<AboutPage />} />
               
-              {/* Account Hub - Main user section */}
+              {/* Account Hub */}
               <Route path="/account" element={<AccountPage />} />
               <Route path="/referral-success" element={<ReferralSuccessPage />} />
+              <Route path="/referral-program" element={<ReferralProgramPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/help" element={<HelpPage />} />
               <Route path="/pro" element={<ProMembershipPage />} />
               <Route path="/leaderboard" element={<LeaderboardPage />} />
-              <Route path="/challenges" element={<ChallengesPage />} />
               
-              {/* Legacy redirects to Account */}
+              {/* Legacy redirects */}
               <Route path="/profile" element={<Navigate to="/account" replace />} />
               <Route path="/dashboard" element={<Navigate to="/account" replace />} />
               <Route path="/wallet" element={<Navigate to="/account?tab=wallet" replace />} />
               <Route path="/orders" element={<Navigate to="/account?tab=orders" replace />} />
               <Route path="/coupons" element={<Navigate to="/account?tab=orders" replace />} />
-              <Route path="/favorites" element={<Navigate to="/account?tab=saved" replace />} />
-              <Route path="/referral" element={<Navigate to="/account?tab=referral" replace />} />
-              <Route path="/referral-program" element={<Navigate to="/account?tab=referral" replace />} />
+              <Route path="/favorites" element={<Navigate to="/account" replace />} />
+              <Route path="/referral" element={<Navigate to="/referral-program" replace />} />
               <Route path="/jaicoin-zone" element={<Navigate to="/account" replace />} />
               <Route path="/gamification" element={<Navigate to="/account" replace />} />
               <Route path="/my-deals" element={<Navigate to="/account?tab=orders" replace />} />
+              <Route path="/challenges" element={<Navigate to="/account" replace />} />
               
               {/* Deals & Shopping */}
               <Route path="/deals" element={<DealsPage />} />
