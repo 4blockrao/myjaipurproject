@@ -355,6 +355,220 @@ export type Database = {
           },
         ]
       }
+      event_interests: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_interests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_registrations: {
+        Row: {
+          attended_at: string | null
+          cancelled_at: string | null
+          email: string
+          event_id: string
+          id: string
+          name: string
+          phone: string | null
+          registered_at: string | null
+          registration_code: string
+          status: string | null
+          ticket_count: number | null
+          total_amount: number | null
+          user_id: string | null
+        }
+        Insert: {
+          attended_at?: string | null
+          cancelled_at?: string | null
+          email: string
+          event_id: string
+          id?: string
+          name: string
+          phone?: string | null
+          registered_at?: string | null
+          registration_code: string
+          status?: string | null
+          ticket_count?: number | null
+          total_amount?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          attended_at?: string | null
+          cancelled_at?: string | null
+          email?: string
+          event_id?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          registered_at?: string | null
+          registration_code?: string
+          status?: string | null
+          ticket_count?: number | null
+          total_amount?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          category: string
+          city: string | null
+          cover_image: string | null
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          gallery_images: string[] | null
+          id: string
+          interested_count: number | null
+          is_all_day: boolean | null
+          is_featured: boolean | null
+          is_free: boolean | null
+          is_online: boolean | null
+          latitude: number | null
+          locality: string | null
+          longitude: number | null
+          max_tickets: number | null
+          meta_description: string | null
+          meta_title: string | null
+          online_url: string | null
+          organizer_email: string | null
+          organizer_id: string | null
+          organizer_name: string | null
+          organizer_phone: string | null
+          published_at: string | null
+          registration_deadline: string | null
+          registration_url: string | null
+          short_description: string | null
+          slug: string
+          start_date: string
+          status: string | null
+          tags: string[] | null
+          ticket_price: number | null
+          tickets_sold: number | null
+          timezone: string | null
+          title: string
+          updated_at: string | null
+          venue_address: string | null
+          venue_name: string | null
+          view_count: number | null
+        }
+        Insert: {
+          category?: string
+          city?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          interested_count?: number | null
+          is_all_day?: boolean | null
+          is_featured?: boolean | null
+          is_free?: boolean | null
+          is_online?: boolean | null
+          latitude?: number | null
+          locality?: string | null
+          longitude?: number | null
+          max_tickets?: number | null
+          meta_description?: string | null
+          meta_title?: string | null
+          online_url?: string | null
+          organizer_email?: string | null
+          organizer_id?: string | null
+          organizer_name?: string | null
+          organizer_phone?: string | null
+          published_at?: string | null
+          registration_deadline?: string | null
+          registration_url?: string | null
+          short_description?: string | null
+          slug: string
+          start_date: string
+          status?: string | null
+          tags?: string[] | null
+          ticket_price?: number | null
+          tickets_sold?: number | null
+          timezone?: string | null
+          title: string
+          updated_at?: string | null
+          venue_address?: string | null
+          venue_name?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          category?: string
+          city?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          interested_count?: number | null
+          is_all_day?: boolean | null
+          is_featured?: boolean | null
+          is_free?: boolean | null
+          is_online?: boolean | null
+          latitude?: number | null
+          locality?: string | null
+          longitude?: number | null
+          max_tickets?: number | null
+          meta_description?: string | null
+          meta_title?: string | null
+          online_url?: string | null
+          organizer_email?: string | null
+          organizer_id?: string | null
+          organizer_name?: string | null
+          organizer_phone?: string | null
+          published_at?: string | null
+          registration_deadline?: string | null
+          registration_url?: string | null
+          short_description?: string | null
+          slug?: string
+          start_date?: string
+          status?: string | null
+          tags?: string[] | null
+          ticket_price?: number | null
+          tickets_sold?: number | null
+          timezone?: string | null
+          title?: string
+          updated_at?: string | null
+          venue_address?: string | null
+          venue_name?: string | null
+          view_count?: number | null
+        }
+        Relationships: []
+      }
       group_challenges: {
         Row: {
           challenge_type: string
@@ -1528,9 +1742,11 @@ export type Database = {
         Returns: undefined
       }
       generate_coupon_code: { Args: never; Returns: string }
+      generate_event_slug: { Args: { title: string }; Returns: string }
       generate_news_slug: { Args: { title: string }; Returns: string }
       generate_redemption_code: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      generate_registration_code: { Args: never; Returns: string }
       get_order_details: {
         Args: { order_uuid: string }
         Returns: {
@@ -1577,6 +1793,7 @@ export type Database = {
         Args: { article_id: string }
         Returns: undefined
       }
+      increment_event_views: { Args: { event_id: string }; Returns: undefined }
       is_pro_member: { Args: { user_uuid: string }; Returns: boolean }
       upgrade_to_pro_user: { Args: { _user_id: string }; Returns: undefined }
     }
