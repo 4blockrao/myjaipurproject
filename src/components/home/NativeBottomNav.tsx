@@ -1,69 +1,69 @@
 import { useState, useEffect } from "react";
-import { Home, Heart, User, Newspaper, CalendarDays } from "lucide-react";
+import { Home, Tag, CalendarDays, Newspaper, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
+
+interface NavItem {
+  icon: React.ElementType;
+  label: string;
+  path: string;
+}
 
 const NativeBottomNav = () => {
   const location = useLocation();
-  const [user, setUser] = useState<any>(null);
 
-  useEffect(() => {
-    const getUser = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setUser(session?.user ?? null);
-      } catch (error) {
-        console.error('Error getting user session:', error);
-        setUser(null);
-      }
-    };
-    getUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const navItems = [
+  const navItems: NavItem[] = [
     { icon: Home, label: "Home", path: "/" },
+    { icon: Tag, label: "Deals", path: "/deals" },
     { icon: CalendarDays, label: "Events", path: "/events" },
     { icon: Newspaper, label: "News", path: "/news" },
-    { icon: Heart, label: "Saved", path: "/favorites" },
-    { icon: User, label: "Profile", path: "/profile" }
+    { icon: User, label: "Account", path: "/account" }
   ];
 
+  const isActive = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border z-50 safe-area-pb">
-      <div className="flex justify-around items-center max-w-lg mx-auto px-2 py-1">
+    <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border z-50 safe-area-pb">
+      <div className="flex justify-around items-center max-w-lg mx-auto px-1">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
+          const active = isActive(item.path);
           const IconComponent = item.icon;
           
           return (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center py-2 px-4 rounded-xl transition-all duration-200 min-w-[64px] ${
-                isActive 
-                  ? "text-primary" 
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={cn(
+                "flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 min-w-[60px]",
+                active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
             >
-              <div className={`p-1.5 rounded-xl transition-all duration-200 ${
-                isActive ? 'bg-primary/10' : ''
-              }`}>
-                <IconComponent className={`w-5 h-5 transition-all ${isActive ? 'scale-110' : ''}`} strokeWidth={isActive ? 2.5 : 2} />
+              <div className={cn(
+                "p-1.5 rounded-xl transition-all duration-200",
+                active && "bg-primary/10"
+              )}>
+                <IconComponent 
+                  className={cn(
+                    "w-5 h-5 transition-all",
+                    active && "scale-110"
+                  )} 
+                  strokeWidth={active ? 2.5 : 2} 
+                />
               </div>
-              <span className={`text-[10px] mt-0.5 font-medium ${isActive ? 'font-semibold' : ''}`}>
+              <span className={cn(
+                "text-[10px] mt-0.5",
+                active ? "font-semibold" : "font-medium"
+              )}>
                 {item.label}
               </span>
             </Link>
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 };
 
