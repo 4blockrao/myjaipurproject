@@ -4,9 +4,11 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import LanguageSwitcher from "@/components/settings/LanguageSwitcher";
 import {
   User, Bell, Shield, CreditCard, HelpCircle,
-  LogOut, ChevronRight, Moon, Globe, Crown
+  LogOut, ChevronRight, Moon, Globe, Crown, FileText
 } from "lucide-react";
 
 interface AccountSettingsProps {
@@ -17,16 +19,17 @@ interface AccountSettingsProps {
 const AccountSettings = ({ user, profile }: AccountSettingsProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/');
-    toast({ title: "Signed out successfully" });
+    toast({ title: t('common.signOut') + " successfully" });
   };
 
   const settingsSections = [
     {
-      title: "Account",
+      title: t('account.profile'),
       items: [
         {
           icon: User,
@@ -51,19 +54,11 @@ const AccountSettings = ({ user, profile }: AccountSettingsProps) => {
       items: [
         {
           icon: Bell,
-          label: "Notifications",
+          label: t('settings.notifications'),
           subtitle: "Manage push & email notifications",
           onClick: () => {},
           iconBg: "bg-purple-100",
           iconColor: "text-purple-600"
-        },
-        {
-          icon: Globe,
-          label: "Language",
-          subtitle: "English",
-          onClick: () => {},
-          iconBg: "bg-green-100",
-          iconColor: "text-green-600"
         },
       ]
     },
@@ -72,7 +67,7 @@ const AccountSettings = ({ user, profile }: AccountSettingsProps) => {
       items: [
         {
           icon: Shield,
-          label: "Privacy & Security",
+          label: t('settings.privacy'),
           subtitle: "Password, 2FA & data privacy",
           onClick: () => {},
           iconBg: "bg-red-100",
@@ -93,11 +88,19 @@ const AccountSettings = ({ user, profile }: AccountSettingsProps) => {
       items: [
         {
           icon: HelpCircle,
-          label: "Help & Support",
+          label: t('settings.help'),
           subtitle: "FAQs, contact us, report issues",
           onClick: () => navigate('/help'),
           iconBg: "bg-cyan-100",
           iconColor: "text-cyan-600"
+        },
+        {
+          icon: FileText,
+          label: "Sitemap",
+          subtitle: "Generate XML sitemap for SEO",
+          onClick: () => navigate('/sitemap'),
+          iconBg: "bg-green-100",
+          iconColor: "text-green-600"
         },
       ]
     }
@@ -105,6 +108,9 @@ const AccountSettings = ({ user, profile }: AccountSettingsProps) => {
 
   return (
     <div className="space-y-6">
+      {/* Language Switcher */}
+      <LanguageSwitcher />
+
       {settingsSections.map((section, sectionIndex) => (
         <div key={sectionIndex} className="space-y-2">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-1">
@@ -146,7 +152,7 @@ const AccountSettings = ({ user, profile }: AccountSettingsProps) => {
               <LogOut className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <p className="font-medium text-red-600">Sign Out</p>
+              <p className="font-medium text-red-600">{t('common.signOut')}</p>
               <p className="text-sm text-muted-foreground">Sign out of your account</p>
             </div>
           </button>

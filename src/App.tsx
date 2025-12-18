@@ -50,6 +50,7 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 
 // Utility Pages
 import ScanPage from "./pages/ScanPage";
+import SitemapPage from "./pages/SitemapPage";
 import InstallPage from "./pages/InstallPage";
 
 const queryClient = new QueryClient({
@@ -137,6 +138,7 @@ function App() {
               {/* Utility */}
               <Route path="/scan" element={<ScanPage />} />
               <Route path="/install" element={<InstallPage />} />
+              <Route path="/sitemap" element={<SitemapPage />} />
               
               {/* Legacy redirects */}
               <Route path="/explore" element={<Navigate to="/deals" replace />} />

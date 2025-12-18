@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
+import { LanguageProvider } from './contexts/LanguageContext';
 import App from './App.tsx';
 import './index.css';
 
@@ -13,7 +14,9 @@ const root = createRoot(container);
 root.render(
   <React.StrictMode>
     <HelmetProvider>
-      <App />
+      <LanguageProvider>
+        <App />
+      </LanguageProvider>
     </HelmetProvider>
   </React.StrictMode>
 );
