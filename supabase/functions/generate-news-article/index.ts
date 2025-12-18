@@ -5,15 +5,79 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Retry configuration
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
+const REQUEST_TIMEOUT_MS = 30000;
+
+// Helper to create timeout promise
+const createTimeout = (ms: number): Promise<never> => {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error(`Request timeout after ${ms}ms`)), ms);
+  });
+};
+
+// Helper for delay
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Fetch with retry logic
+async function fetchWithRetry(
+  url: string, 
+  options: RequestInit, 
+  retries: number = MAX_RETRIES
+): Promise<Response> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      console.log(`Attempt ${attempt}/${retries} - Fetching AI gateway`);
+      
+      const response = await Promise.race([
+        fetch(url, options),
+        createTimeout(REQUEST_TIMEOUT_MS)
+      ]) as Response;
+      
+      // Don't retry on client errors (4xx) except rate limits
+      if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+        return response;
+      }
+      
+      // Retry on server errors (5xx) or rate limits
+      if (response.status >= 500 || response.status === 429) {
+        console.log(`Received ${response.status}, will retry...`);
+        if (attempt < retries) {
+          await delay(RETRY_DELAY_MS * attempt); // Exponential backoff
+          continue;
+        }
+      }
+      
+      return response;
+    } catch (error) {
+      lastError = error as Error;
+      console.error(`Attempt ${attempt} failed:`, error.message);
+      
+      if (attempt < retries) {
+        await delay(RETRY_DELAY_MS * attempt);
+      }
+    }
+  }
+  
+  throw lastError || new Error('All retry attempts failed');
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const startTime = Date.now();
+  console.log('=== Generate News Article Request Started ===');
+
   try {
     const { topic, category, locality } = await req.json();
     
     if (!topic) {
+      console.log('Error: Topic is required');
       return new Response(JSON.stringify({ error: 'Topic is required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -68,9 +132,9 @@ Please provide the response in the following JSON format:
   "suggested_tags": ["tag1", "tag2", "tag3"]
 }`;
 
-    console.log('Generating article for topic:', topic);
+    console.log('Generating article for topic:', topic, '| Category:', category);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetchWithRetry('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
@@ -83,6 +147,7 @@ Please provide the response in the following JSON format:
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.7,
+        max_tokens: 2000,
       }),
     });
 
@@ -91,9 +156,12 @@ Please provide the response in the following JSON format:
       console.error('AI Gateway error:', response.status, errorText);
       
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }), {
+        return new Response(JSON.stringify({ 
+          error: 'Rate limit exceeded. Please try again in a few seconds.',
+          retryAfter: 5
+        }), {
           status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '5' },
         });
       }
       if (response.status === 402) {
@@ -103,7 +171,7 @@ Please provide the response in the following JSON format:
         });
       }
       
-      return new Response(JSON.stringify({ error: 'Failed to generate article' }), {
+      return new Response(JSON.stringify({ error: 'Failed to generate article. Please try again.' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -120,7 +188,7 @@ Please provide the response in the following JSON format:
       });
     }
 
-    // Try to parse as JSON, handling markdown code blocks
+    // Parse JSON response with better error handling
     let articleData;
     try {
       let jsonContent = generatedContent;
@@ -133,27 +201,34 @@ Please provide the response in the following JSON format:
       articleData = JSON.parse(jsonContent.trim());
     } catch (parseError) {
       console.error('Failed to parse AI response as JSON:', parseError);
-      // Return raw content if parsing fails
+      // Return structured fallback if parsing fails
       articleData = {
-        title: topic,
+        title: topic.substring(0, 60),
         excerpt: generatedContent.substring(0, 200),
         content: generatedContent,
-        meta_title: topic,
+        meta_title: topic.substring(0, 60),
         meta_description: generatedContent.substring(0, 160),
-        meta_keywords: [],
-        suggested_tags: [],
+        meta_keywords: [category || 'jaipur', 'news', locality || 'local'],
+        suggested_tags: [category || 'general'],
       };
     }
 
-    console.log('Article generated successfully');
+    const duration = Date.now() - startTime;
+    console.log(`Article generated successfully in ${duration}ms`);
 
     return new Response(JSON.stringify(articleData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error in generate-news-article:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Unknown error' }), {
+    const duration = Date.now() - startTime;
+    console.error(`Error in generate-news-article (${duration}ms):`, error);
+    
+    const errorMessage = error.message?.includes('timeout') 
+      ? 'Request timed out. The AI service is slow. Please try again.'
+      : error.message || 'Unknown error occurred';
+    
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
