@@ -17,6 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import HomeSEO from "@/components/seo/HomeSEO";
 import Footer from "@/components/layout/Footer";
+import { HomepageSchema } from "@/components/seo/SchemaInjector";
 
 const Index = () => {
   const [user, setUser] = useState<any>(null);
@@ -175,6 +176,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-muted/30 flex flex-col">
       <HomeSEO />
+      <HomepageSchema />
       <Toaster />
       <Sonner />
       

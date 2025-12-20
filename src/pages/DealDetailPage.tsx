@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { DealSchema } from "@/components/seo/SchemaInjector";
 import { 
   MapPin, Star, Clock, Users, Share2, Heart, 
   ArrowLeft, Calendar, Phone, Globe, Percent,
@@ -248,6 +249,15 @@ const DealDetailPage = () => {
   const { available, total, percentage } = getAvailabilityStatus();
 
   return (
+    <>
+      <DealSchema
+        title={deal.title}
+        description={deal.description}
+        discount={deal.discounted_price}
+        expiry={deal.end_date}
+        businessName={deal.merchants?.business_name}
+        url={`https://www.jaipurcircle.com/deal/${deal.id}`}
+      />
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b shadow-sm sticky top-0 z-40">
@@ -585,6 +595,7 @@ const DealDetailPage = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

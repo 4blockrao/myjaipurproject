@@ -24,6 +24,7 @@ import EventRegistrationModal from "@/components/events/EventRegistrationModal";
 import { EventAISummary } from "@/components/events/EventAISummary";
 import { EventFactsSection } from "@/components/events/EventFactsSection";
 import { EventInternalLinks } from "@/components/events/EventInternalLinks";
+import { EventSchema } from "@/components/seo/SchemaInjector";
 
 const EventDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -147,6 +148,18 @@ const EventDetailPage = () => {
   return (
     <>
       <EventSEO event={event} />
+      <EventSchema
+        title={event.title}
+        description={event.description || event.short_description || undefined}
+        image={event.cover_image || undefined}
+        startDate={event.start_date}
+        endDate={event.end_date || undefined}
+        venue={event.venue_name || undefined}
+        address={event.venue_address || undefined}
+        ticketUrl={event.registration_url || undefined}
+        price={event.ticket_price || undefined}
+        url={`https://www.jaipurcircle.com/events/${event.slug}`}
+      />
 
       <div className="min-h-screen bg-background pb-32">
         {/* Cover Image */}

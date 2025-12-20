@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import NativeMobileHeader from "@/components/layout/NativeMobileHeader";
 import NativeBottomNav from "@/components/home/NativeBottomNav";
 import DealsSEO from "@/components/seo/DealsSEO";
+import { PillarSchema } from "@/components/seo/SchemaInjector";
 import { 
   Search, MapPin, Clock, Heart, Share2, 
   Percent, Filter, SlidersHorizontal, X
@@ -176,6 +177,11 @@ const DealsPage = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       <DealsSEO category={selectedCategory} />
+      <PillarSchema 
+        title="Best Deals in Jaipur"
+        description="Discover exclusive offers, discounts and deals from local businesses in Jaipur. Save on dining, shopping, wellness and more."
+        items={deals.map(d => ({ url: `https://www.jaipurcircle.com/deal/${d.id}`, name: d.title }))}
+      />
       
       {/* Native Header */}
       <NativeMobileHeader
