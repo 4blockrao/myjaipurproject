@@ -14,6 +14,7 @@ import { NewsSEO } from '@/components/news/NewsSEO';
 import { NewsInShortSummary } from '@/components/news/NewsInShortSummary';
 import { NewsStructuredContent } from '@/components/news/NewsStructuredContent';
 import { NewsInternalLinks } from '@/components/news/NewsInternalLinks';
+import { NewsSchema } from '@/components/seo/SchemaInjector';
 
 const categoryColors: Record<string, string> = {
   city: 'bg-blue-500/10 text-blue-600 border-blue-200',
@@ -164,6 +165,14 @@ export default function NewsArticlePage() {
     <>
       {/* Comprehensive SEO Component */}
       <NewsSEO article={article} />
+      <NewsSchema
+        title={article.title}
+        description={article.excerpt || article.meta_description}
+        image={article.cover_image || undefined}
+        publishedAt={article.published_at || article.created_at || undefined}
+        updatedAt={article.updated_at || undefined}
+        url={`https://www.jaipurcircle.com/news/${article.category}/${article.slug}`}
+      />
 
       <div className="min-h-screen bg-background pb-24">
         {/* Header */}

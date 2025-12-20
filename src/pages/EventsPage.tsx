@@ -7,6 +7,7 @@ import EventsFeed from "@/components/events/EventsFeed";
 import FeaturedEvents from "@/components/events/FeaturedEvents";
 import { EventsListSEO } from "@/components/events/EventSEO";
 import { supabase } from "@/integrations/supabase/client";
+import { PillarSchema } from "@/components/seo/SchemaInjector";
 
 const EventsPage = () => {
   // Fetch events for SEO structured data
@@ -27,6 +28,11 @@ const EventsPage = () => {
   return (
     <>
       <EventsListSEO events={events} />
+      <PillarSchema 
+        title="Events in Jaipur"
+        description="Discover concerts, festivals, exhibitions and things to do in Jaipur. Find upcoming events in the Pink City."
+        items={events.map(e => ({ url: `https://www.jaipurcircle.com/events/${e.slug}`, name: e.title }))}
+      />
 
       <div className="min-h-screen bg-background pb-24">
         {/* Header */}

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { NewsFeed } from '@/components/news/NewsFeed';
 import NativeBottomNav from '@/components/home/NativeBottomNav';
 import GlobalSEO from '@/components/seo/GlobalSEO';
+import { PillarSchema } from '@/components/seo/SchemaInjector';
 
 const SITE_URL = 'https://jaipurcircle.com';
 
@@ -57,6 +58,10 @@ export default function NewsPage() {
         description="Stay updated with the latest news from Jaipur. Local events, city updates, food, culture, business and sports news from the Pink City."
         canonical="/news"
         keywords={['Jaipur news', 'Jaipur local news', 'Pink City news', 'Rajasthan news', 'Jaipur events', 'Jaipur updates']}
+      />
+      <PillarSchema 
+        title="Jaipur News - Latest Local Updates"
+        description="Stay updated with the latest news from Jaipur. Local events, city updates, food, culture, business and sports news from the Pink City."
       />
       <Helmet>
         <script type="application/ld+json">

@@ -9,6 +9,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { FAQSchema } from "@/components/seo/SchemaInjector";
 import { 
   Search, MessageCircle, Phone, Mail, Clock, 
   HelpCircle, Book, Video, Users, Star,
@@ -203,8 +204,12 @@ const HelpPage = () => {
     setContactForm({ name: "", email: "", subject: "", message: "" });
   };
 
+  // Prepare FAQ data for schema
+  const allFaqs = faqCategories.flatMap(cat => cat.faqs);
+
   return (
     <DashboardLayout user={user} profile={profile} pageTitle="Help & Support" showBackButton>
+      <FAQSchema faqs={allFaqs} />
       <div className="space-y-6 p-4 max-w-6xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Help Center</h1>
