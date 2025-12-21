@@ -656,6 +656,78 @@ export type Database = {
         }
         Relationships: []
       }
+      localities: {
+        Row: {
+          adjacent_localities: string[] | null
+          assembly_constituency: string | null
+          connectivity: Json | null
+          created_at: string | null
+          geo_lat: number | null
+          geo_lng: number | null
+          id: number
+          major_landmarks: Json | null
+          micro_localities: string[] | null
+          municipality: string | null
+          name: string
+          nearby_localities: string[] | null
+          pin_codes: string[] | null
+          police_station: string | null
+          population_estimate: number | null
+          slug: string
+          tags: string[] | null
+          updated_at: string | null
+          ward_name: string | null
+          ward_number: string | null
+          zone: string | null
+        }
+        Insert: {
+          adjacent_localities?: string[] | null
+          assembly_constituency?: string | null
+          connectivity?: Json | null
+          created_at?: string | null
+          geo_lat?: number | null
+          geo_lng?: number | null
+          id?: number
+          major_landmarks?: Json | null
+          micro_localities?: string[] | null
+          municipality?: string | null
+          name: string
+          nearby_localities?: string[] | null
+          pin_codes?: string[] | null
+          police_station?: string | null
+          population_estimate?: number | null
+          slug: string
+          tags?: string[] | null
+          updated_at?: string | null
+          ward_name?: string | null
+          ward_number?: string | null
+          zone?: string | null
+        }
+        Update: {
+          adjacent_localities?: string[] | null
+          assembly_constituency?: string | null
+          connectivity?: Json | null
+          created_at?: string | null
+          geo_lat?: number | null
+          geo_lng?: number | null
+          id?: number
+          major_landmarks?: Json | null
+          micro_localities?: string[] | null
+          municipality?: string | null
+          name?: string
+          nearby_localities?: string[] | null
+          pin_codes?: string[] | null
+          police_station?: string | null
+          population_estimate?: number | null
+          slug?: string
+          tags?: string[] | null
+          updated_at?: string | null
+          ward_name?: string | null
+          ward_number?: string | null
+          zone?: string | null
+        }
+        Relationships: []
+      }
       merchant_analytics: {
         Row: {
           average_rating: number | null
