@@ -51,6 +51,9 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 // Utility Pages
 import ScanPage from "./pages/ScanPage";
 import SitemapPage from "./pages/SitemapPage";
+
+// Locality Pages
+import LocalityPage from "./pages/LocalityPage";
 import InstallPage from "./pages/InstallPage";
 
 const queryClient = new QueryClient({
@@ -139,6 +142,9 @@ function App() {
               <Route path="/scan" element={<ScanPage />} />
               <Route path="/install" element={<InstallPage />} />
               <Route path="/sitemap" element={<SitemapPage />} />
+              
+              {/* Locality Pages */}
+              <Route path="/jaipur/:slug" element={<LocalityPage />} />
               
               {/* Legacy redirects */}
               <Route path="/explore" element={<Navigate to="/deals" replace />} />
