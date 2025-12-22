@@ -14,39 +14,76 @@ import DealsSEO from "@/components/seo/DealsSEO";
 import { PillarSchema } from "@/components/seo/SchemaInjector";
 import { 
   Search, MapPin, Clock, Heart, Share2, 
-  Percent, Filter, SlidersHorizontal, X
+  SlidersHorizontal, X, Store, Star, ChevronRight,
+  Sparkles
 } from "lucide-react";
 
 interface Deal {
   id: string;
   title: string;
-  description: string;
-  category: string;
-  discount_percentage: number;
-  original_price: number;
-  discounted_price: number;
-  location: string;
-  image_url?: string;
-  end_date: string;
+  description: string | null;
+  category: string | null;
+  discount_percentage: number | null;
+  original_price: number | null;
+  discounted_price: number | null;
+  location: string | null;
+  image_url: string | null;
+  end_date: string | null;
   merchants?: {
     business_name: string;
-    average_rating: number;
-  };
+    average_rating: number | null;
+  } | null;
+}
+
+interface Merchant {
+  id: string;
+  business_name: string;
+  business_type: string | null;
+  address: string | null;
+  logo_url: string | null;
+  average_rating: number | null;
+  total_reviews: number | null;
+  is_verified: boolean | null;
 }
 
 const categories = [
   { id: "all", label: "All", emoji: "✨" },
   { id: "Food & Dining", label: "Food", emoji: "🍽️" },
   { id: "Beauty & Wellness", label: "Beauty", emoji: "💆" },
-  { id: "Shopping", label: "Shopping", emoji: "🛍️" },
+  { id: "Fashion", label: "Fashion", emoji: "👗" },
   { id: "Electronics", label: "Electronics", emoji: "📱" },
   { id: "Health & Fitness", label: "Fitness", emoji: "💪" },
-  { id: "Services", label: "Services", emoji: "🔧" },
+  { id: "Home & Garden", label: "Home", emoji: "🏠" },
 ];
+
+const categoryEmojis: Record<string, string> = {
+  "Food & Dining": "🍽️",
+  "Beauty & Wellness": "💆",
+  "Fashion": "👗",
+  "Electronics": "📱",
+  "Health & Fitness": "💪",
+  "Home & Garden": "🏠",
+  "Shopping": "🛍️",
+  "Services": "🔧",
+};
+
+const businessTypeEmojis: Record<string, string> = {
+  "Restaurant": "🍽️",
+  "Beauty & Wellness": "💆",
+  "Electronics": "📱",
+  "Health & Fitness": "💪",
+  "Retail": "🛍️",
+  "Technology": "💻",
+  "Education": "📚",
+  "Automotive": "🚗",
+  "Recreation": "🎮",
+  "Pet Services": "🐕",
+};
 
 const DealsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [deals, setDeals] = useState<Deal[]>([]);
+  const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "all");
@@ -54,105 +91,56 @@ const DealsPage = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchDeals();
+    fetchData();
   }, [selectedCategory, searchQuery]);
 
-  const fetchDeals = async () => {
+  const fetchData = async () => {
     setIsLoading(true);
     try {
-      let query = supabase
+      // Fetch deals
+      let dealsQuery = supabase
         .from('deals')
         .select(`
           id, title, description, category, discount_percentage,
           original_price, discounted_price, location, image_url, end_date,
           merchants (business_name, average_rating)
         `)
-        .eq('is_active', true)
-        .eq('approval_status', 'approved');
+        .eq('is_active', true);
 
       if (selectedCategory !== "all") {
-        query = query.eq('category', selectedCategory);
+        dealsQuery = dealsQuery.eq('category', selectedCategory);
       }
 
       if (searchQuery) {
-        query = query.ilike('title', `%${searchQuery}%`);
+        dealsQuery = dealsQuery.ilike('title', `%${searchQuery}%`);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      // Fetch merchants
+      const merchantsQuery = supabase
+        .from('merchants')
+        .select('id, business_name, business_type, address, logo_url, average_rating, total_reviews, is_verified')
+        .eq('is_active', true)
+        .order('average_rating', { ascending: false })
+        .limit(10);
 
-      if (error) throw error;
-      setDeals(data || []);
+      const [dealsResult, merchantsResult] = await Promise.all([
+        dealsQuery.order('created_at', { ascending: false }),
+        merchantsQuery
+      ]);
+
+      if (dealsResult.error) throw dealsResult.error;
+      if (merchantsResult.error) throw merchantsResult.error;
+
+      setDeals(dealsResult.data || []);
+      setMerchants(merchantsResult.data || []);
     } catch (error) {
-      console.error('Error fetching deals:', error);
-      // Set mock data for demo
-      setDeals(getMockDeals());
+      console.error('Error fetching data:', error);
+      setDeals([]);
+      setMerchants([]);
     } finally {
       setIsLoading(false);
     }
   };
-
-  const getMockDeals = (): Deal[] => [
-    {
-      id: "1",
-      title: "Royal Rajasthani Thali",
-      description: "Authentic Rajasthani cuisine with 15+ dishes",
-      category: "Food & Dining",
-      discount_percentage: 50,
-      original_price: 800,
-      discounted_price: 400,
-      location: "C-Scheme",
-      end_date: "2024-12-31T23:59:59Z",
-      merchants: { business_name: "Royal Heritage", average_rating: 4.7 }
-    },
-    {
-      id: "2",
-      title: "Spa Day Package",
-      description: "Full body massage + Steam + Sauna",
-      category: "Beauty & Wellness",
-      discount_percentage: 30,
-      original_price: 1500,
-      discounted_price: 1050,
-      location: "Vaishali Nagar",
-      end_date: "2024-12-31T23:59:59Z",
-      merchants: { business_name: "Serene Spa", average_rating: 4.9 }
-    },
-    {
-      id: "3",
-      title: "Leather Handbag",
-      description: "Handcrafted premium leather bag",
-      category: "Shopping",
-      discount_percentage: 25,
-      original_price: 2500,
-      discounted_price: 1875,
-      location: "Bapu Bazaar",
-      end_date: "2024-12-31T23:59:59Z",
-      merchants: { business_name: "Artisan Leather", average_rating: 4.6 }
-    },
-    {
-      id: "4",
-      title: "Premium Headphones",
-      description: "Noise cancelling wireless headphones",
-      category: "Electronics",
-      discount_percentage: 40,
-      original_price: 3500,
-      discounted_price: 2100,
-      location: "Raja Park",
-      end_date: "2024-12-31T23:59:59Z",
-      merchants: { business_name: "Tech Gadgets", average_rating: 4.8 }
-    },
-    {
-      id: "5",
-      title: "Yoga Retreat",
-      description: "Weekend yoga and meditation package",
-      category: "Health & Fitness",
-      discount_percentage: 35,
-      original_price: 4000,
-      discounted_price: 2600,
-      location: "Amer Road",
-      end_date: "2024-12-31T23:59:59Z",
-      merchants: { business_name: "Zenith Wellness", average_rating: 4.9 }
-    },
-  ];
 
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -169,7 +157,8 @@ const DealsPage = () => {
     navigator.share?.({ url: `${window.location.origin}/deal/${dealId}` });
   };
 
-  const getDaysRemaining = (endDate: string) => {
+  const getDaysRemaining = (endDate: string | null) => {
+    if (!endDate) return 30;
     const days = Math.ceil((new Date(endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
     return days > 0 ? days : 0;
   };
@@ -243,6 +232,70 @@ const DealsPage = () => {
         </ScrollArea>
       </div>
 
+      {/* Top Merchants Section */}
+      {!searchQuery && selectedCategory === "all" && merchants.length > 0 && (
+        <div className="px-4 py-4 border-b">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Store className="h-5 w-5 text-primary" />
+              <h2 className="font-semibold">Top Merchants</h2>
+            </div>
+            <Link to="/merchants" className="text-xs text-primary flex items-center gap-0.5">
+              View all <ChevronRight className="h-3 w-3" />
+            </Link>
+          </div>
+          
+          <ScrollArea className="w-full -mx-4 px-4">
+            <div className="flex gap-3">
+              {isLoading ? (
+                [...Array(4)].map((_, i) => (
+                  <div key={i} className="shrink-0 w-32">
+                    <Skeleton className="h-20 w-20 rounded-full mx-auto mb-2" />
+                    <Skeleton className="h-3 w-24 mx-auto" />
+                    <Skeleton className="h-2 w-16 mx-auto mt-1" />
+                  </div>
+                ))
+              ) : (
+                merchants.map((merchant) => (
+                  <Link 
+                    key={merchant.id} 
+                    to={`/merchant/${merchant.id}`}
+                    className="shrink-0 w-28 text-center group"
+                  >
+                    <div className="relative mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                      {merchant.logo_url ? (
+                        <img 
+                          src={merchant.logo_url} 
+                          alt={merchant.business_name}
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-2xl">
+                          {businessTypeEmojis[merchant.business_type || ""] || "🏪"}
+                        </span>
+                      )}
+                      {merchant.is_verified && (
+                        <div className="absolute -bottom-0.5 -right-0.5 bg-primary rounded-full p-0.5">
+                          <Sparkles className="h-2.5 w-2.5 text-primary-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs font-medium line-clamp-1">{merchant.business_name}</p>
+                    <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                      <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
+                      <span className="text-[10px] text-muted-foreground">
+                        {merchant.average_rating?.toFixed(1) || "New"}
+                      </span>
+                    </div>
+                  </Link>
+                ))
+              )}
+            </div>
+            <ScrollBar orientation="horizontal" className="invisible" />
+          </ScrollArea>
+        </div>
+      )}
+
       {/* Results Count */}
       <div className="px-4 py-3 flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
@@ -292,30 +345,34 @@ const DealsPage = () => {
                         />
                       ) : (
                         <span className="text-3xl">
-                          {categories.find(c => c.id === deal.category)?.emoji || "🎁"}
+                          {categoryEmojis[deal.category || ""] || "🎁"}
                         </span>
                       )}
-                      <Badge className="absolute top-1.5 left-1.5 bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5">
-                        {deal.discount_percentage}% OFF
-                      </Badge>
+                      {deal.discount_percentage && (
+                        <Badge className="absolute top-1.5 left-1.5 bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5">
+                          {deal.discount_percentage}% OFF
+                        </Badge>
+                      )}
                     </div>
 
                     {/* Deal Info */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-sm line-clamp-1">{deal.title}</h3>
                       <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
-                        {deal.merchants?.business_name}
+                        {deal.merchants?.business_name || "Local Merchant"}
                       </p>
                       
                       <div className="flex items-center gap-1.5 mt-1.5 text-xs text-muted-foreground">
                         <MapPin className="h-3 w-3" />
-                        <span className="truncate">{deal.location}</span>
+                        <span className="truncate">{deal.location || "Jaipur"}</span>
                       </div>
 
                       <div className="flex items-center justify-between mt-2">
                         <div className="flex items-baseline gap-1.5">
-                          <span className="font-bold text-primary">₹{deal.discounted_price}</span>
-                          <span className="text-xs text-muted-foreground line-through">₹{deal.original_price}</span>
+                          <span className="font-bold text-primary">₹{deal.discounted_price?.toLocaleString('en-IN')}</span>
+                          {deal.original_price && (
+                            <span className="text-xs text-muted-foreground line-through">₹{deal.original_price?.toLocaleString('en-IN')}</span>
+                          )}
                         </div>
                         
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
