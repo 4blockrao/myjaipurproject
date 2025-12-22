@@ -11,6 +11,8 @@ import GuestWelcomeBanner from "@/components/home/GuestWelcomeBanner";
 import FloatingReferralCTA from "@/components/home/FloatingReferralCTA";
 import { NewsHomeSection } from "@/components/news/NewsHomeSection";
 import EventHomeSection from "@/components/events/EventHomeSection";
+import TopMerchantsSection from "@/components/home/TopMerchantsSection";
+import TopLocalitiesSection from "@/components/home/TopLocalitiesSection";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -229,6 +231,12 @@ const Index = () => {
         <section className="px-4">
           <EventHomeSection />
         </section>
+
+        {/* Top Merchants Section */}
+        <TopMerchantsSection />
+
+        {/* Top Localities Section */}
+        <TopLocalitiesSection />
 
         {/* Hot Deals - Horizontal Scroll */}
         <NativeDealsSection 

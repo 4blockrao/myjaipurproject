@@ -2,3 +2,6 @@ project_id = "buwhgxyutfwadazjswio"
 
 [functions.generate-news-article]
 verify_jwt = true
+
+[functions.sitemap]
+verify_jwt = false

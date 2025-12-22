@@ -44,6 +44,8 @@ import MerchantOnboardingPage from "./pages/MerchantOnboardingPage";
 import MerchantDashboardPage from "./pages/MerchantDashboardPage";
 import MerchantPortalPage from "./pages/MerchantPortalPage";
 import MerchantPage from "./pages/MerchantPage";
+import MerchantDetailPage from "./pages/MerchantDetailPage";
+import MerchantsPage from "./pages/MerchantsPage";
 
 // Admin
 import AdminDashboardPage from "./pages/AdminDashboardPage";
@@ -54,6 +56,7 @@ import SitemapPage from "./pages/SitemapPage";
 
 // Locality Pages
 import LocalityPage from "./pages/LocalityPage";
+import LocalitiesIndexPage from "./pages/LocalitiesIndexPage";
 import InstallPage from "./pages/InstallPage";
 
 const queryClient = new QueryClient({
@@ -134,6 +137,8 @@ function App() {
               <Route path="/merchant-dashboard" element={<MerchantDashboardPage />} />
               <Route path="/merchant-portal" element={<MerchantPortalPage />} />
               <Route path="/merchant" element={<MerchantPage />} />
+              <Route path="/merchant/:id" element={<MerchantDetailPage />} />
+              <Route path="/merchants" element={<MerchantsPage />} />
               
               {/* Admin */}
               <Route path="/admin" element={<AdminDashboardPage />} />
@@ -144,6 +149,7 @@ function App() {
               <Route path="/sitemap" element={<SitemapPage />} />
               
               {/* Locality Pages */}
+              <Route path="/jaipur" element={<LocalitiesIndexPage />} />
               <Route path="/jaipur/:slug" element={<LocalityPage />} />
               
               {/* Legacy redirects */}
