@@ -5,135 +5,417 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const SITE_URL = 'https://jaipurcircle.com'
+const SITE_URL = 'https://www.jaipurcircle.com'
+const SITE_NAME = 'JaipurCircle'
 
-// @ts-ignore - Deno deploy config
-Deno.serve({ verify: false }, async (req) => {
+function escapeXml(str: string): string {
+  if (!str) return ''
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
+function getToday(): string {
+  return new Date().toISOString().split('T')[0]
+}
+
+function formatDate(date: string | null): string {
+  if (!date) return getToday()
+  return date.split('T')[0]
+}
+
+// Generate XML header with proper encoding and namespaces
+function getXmlHeader(includeNews = false, includeImage = false): string {
+  let namespaces = 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'
+  if (includeNews) {
+    namespaces += ' xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"'
+  }
+  if (includeImage) {
+    namespaces += ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"'
+  }
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset ${namespaces}>\n`
+}
+
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
+    const url = new URL(req.url)
+    const type = url.searchParams.get('type') || 'all'
+    
+    console.log(`Generating sitemap for type: ${type}`)
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    const today = new Date().toISOString().split('T')[0]
+    const today = getToday()
+    let xml = ''
 
-    // Static pages
-    const staticPages = [
-      { loc: '/', changefreq: 'daily', priority: 1.0 },
-      { loc: '/about', changefreq: 'monthly', priority: 0.8 },
-      { loc: '/news', changefreq: 'hourly', priority: 0.9 },
-      { loc: '/events', changefreq: 'daily', priority: 0.9 },
-      { loc: '/deals', changefreq: 'daily', priority: 0.9 },
-      { loc: '/categories', changefreq: 'weekly', priority: 0.7 },
-      { loc: '/help', changefreq: 'monthly', priority: 0.5 },
-      { loc: '/merchant-onboarding', changefreq: 'monthly', priority: 0.6 },
-      { loc: '/referral-program', changefreq: 'monthly', priority: 0.7 },
-      { loc: '/leaderboard', changefreq: 'daily', priority: 0.6 },
-      { loc: '/merchants', changefreq: 'daily', priority: 0.8 },
-      { loc: '/jaipur', changefreq: 'weekly', priority: 0.9 },
-    ]
-
-    const newsCategories = ['city', 'events', 'food', 'culture', 'business', 'sports']
-
-    // Fetch all data in parallel
-    const [newsRes, eventsRes, dealsRes, merchantsRes, localitiesRes] = await Promise.all([
-      supabase.from('news_articles').select('slug, category, published_at').eq('status', 'published'),
-      supabase.from('events').select('slug, updated_at').eq('status', 'published'),
-      supabase.from('deals').select('id, updated_at').eq('approval_status', 'approved').eq('is_active', true),
-      supabase.from('merchants').select('id, updated_at').eq('is_active', true),
-      supabase.from('localities').select('slug, updated_at'),
-    ])
-
-    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-
-    // Static pages
-    for (const page of staticPages) {
-      xml += `  <url>\n`
-      xml += `    <loc>${SITE_URL}${page.loc}</loc>\n`
-      xml += `    <lastmod>${today}</lastmod>\n`
-      xml += `    <changefreq>${page.changefreq}</changefreq>\n`
-      xml += `    <priority>${page.priority}</priority>\n`
-      xml += `  </url>\n`
+    switch (type) {
+      case 'deals':
+        xml = await generateDealsSitemap(supabase, today)
+        break
+      case 'merchants':
+        xml = await generateMerchantsSitemap(supabase, today)
+        break
+      case 'localities':
+        xml = await generateLocalitiesSitemap(supabase, today)
+        break
+      case 'events':
+        xml = await generateEventsSitemap(supabase, today)
+        break
+      case 'news':
+        xml = await generateNewsSitemap(supabase, today)
+        break
+      case 'news-sitemap':
+        xml = await generateGoogleNewsSitemap(supabase)
+        break
+      case 'all':
+      default:
+        xml = await generateFullSitemap(supabase, today)
+        break
     }
 
-    // News category pages
-    for (const category of newsCategories) {
-      xml += `  <url>\n`
-      xml += `    <loc>${SITE_URL}/news/${category}</loc>\n`
-      xml += `    <lastmod>${today}</lastmod>\n`
-      xml += `    <changefreq>daily</changefreq>\n`
-      xml += `    <priority>0.8</priority>\n`
-      xml += `  </url>\n`
-    }
-
-    // News articles
-    for (const article of newsRes.data || []) {
-      xml += `  <url>\n`
-      xml += `    <loc>${SITE_URL}/news/${article.category}/${article.slug}</loc>\n`
-      xml += `    <lastmod>${article.published_at?.split('T')[0] || today}</lastmod>\n`
-      xml += `    <changefreq>weekly</changefreq>\n`
-      xml += `    <priority>0.7</priority>\n`
-      xml += `  </url>\n`
-    }
-
-    // Events
-    for (const event of eventsRes.data || []) {
-      xml += `  <url>\n`
-      xml += `    <loc>${SITE_URL}/events/${event.slug}</loc>\n`
-      xml += `    <lastmod>${event.updated_at?.split('T')[0] || today}</lastmod>\n`
-      xml += `    <changefreq>weekly</changefreq>\n`
-      xml += `    <priority>0.7</priority>\n`
-      xml += `  </url>\n`
-    }
-
-    // Deals
-    for (const deal of dealsRes.data || []) {
-      xml += `  <url>\n`
-      xml += `    <loc>${SITE_URL}/deal/${deal.id}</loc>\n`
-      xml += `    <lastmod>${deal.updated_at?.split('T')[0] || today}</lastmod>\n`
-      xml += `    <changefreq>daily</changefreq>\n`
-      xml += `    <priority>0.7</priority>\n`
-      xml += `  </url>\n`
-    }
-
-    // Merchants
-    for (const merchant of merchantsRes.data || []) {
-      xml += `  <url>\n`
-      xml += `    <loc>${SITE_URL}/merchant/${merchant.id}</loc>\n`
-      xml += `    <lastmod>${merchant.updated_at?.split('T')[0] || today}</lastmod>\n`
-      xml += `    <changefreq>weekly</changefreq>\n`
-      xml += `    <priority>0.6</priority>\n`
-      xml += `  </url>\n`
-    }
-
-    // Localities
-    for (const locality of localitiesRes.data || []) {
-      xml += `  <url>\n`
-      xml += `    <loc>${SITE_URL}/jaipur/${locality.slug}</loc>\n`
-      xml += `    <lastmod>${locality.updated_at?.split('T')[0] || today}</lastmod>\n`
-      xml += `    <changefreq>weekly</changefreq>\n`
-      xml += `    <priority>0.8</priority>\n`
-      xml += `  </url>\n`
-    }
-
-    xml += '</urlset>'
+    console.log(`Sitemap generated successfully, size: ${xml.length} bytes`)
 
     return new Response(xml, {
       headers: {
         ...corsHeaders,
-        'Content-Type': 'application/xml',
-        'Cache-Control': 'public, max-age=3600',
+        'Content-Type': 'application/xml; charset=utf-8',
+        'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+        'X-Robots-Tag': 'noindex', // Sitemaps should not be indexed themselves
       },
     })
   } catch (error) {
     console.error('Error generating sitemap:', error)
-    return new Response(JSON.stringify({ error: 'Failed to generate sitemap' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    return new Response(
+      `<?xml version="1.0" encoding="UTF-8"?><error>Failed to generate sitemap: ${error.message}</error>`,
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/xml' },
+      }
+    )
   }
 })
+
+async function generateDealsSitemap(supabase: any, today: string): Promise<string> {
+  const { data: deals, error } = await supabase
+    .from('deals')
+    .select('id, title, updated_at, image_url, category, discount_percentage')
+    .eq('approval_status', 'approved')
+    .eq('is_active', true)
+    .order('updated_at', { ascending: false })
+    .limit(5000)
+
+  if (error) throw error
+
+  let xml = getXmlHeader(false, true)
+  
+  for (const deal of deals || []) {
+    xml += `  <url>\n`
+    xml += `    <loc>${SITE_URL}/deal/${deal.id}</loc>\n`
+    xml += `    <lastmod>${formatDate(deal.updated_at)}</lastmod>\n`
+    xml += `    <changefreq>daily</changefreq>\n`
+    xml += `    <priority>0.7</priority>\n`
+    if (deal.image_url) {
+      xml += `    <image:image>\n`
+      xml += `      <image:loc>${escapeXml(deal.image_url)}</image:loc>\n`
+      xml += `      <image:title>${escapeXml(deal.title)} - ${deal.discount_percentage || 0}% Off</image:title>\n`
+      xml += `    </image:image>\n`
+    }
+    xml += `  </url>\n`
+  }
+  
+  xml += '</urlset>'
+  return xml
+}
+
+async function generateMerchantsSitemap(supabase: any, today: string): Promise<string> {
+  const { data: merchants, error } = await supabase
+    .from('merchants')
+    .select('id, business_name, updated_at, logo_url, business_type')
+    .eq('is_active', true)
+    .order('updated_at', { ascending: false })
+    .limit(5000)
+
+  if (error) throw error
+
+  let xml = getXmlHeader(false, true)
+  
+  for (const merchant of merchants || []) {
+    xml += `  <url>\n`
+    xml += `    <loc>${SITE_URL}/merchant/${merchant.id}</loc>\n`
+    xml += `    <lastmod>${formatDate(merchant.updated_at)}</lastmod>\n`
+    xml += `    <changefreq>weekly</changefreq>\n`
+    xml += `    <priority>0.6</priority>\n`
+    if (merchant.logo_url) {
+      xml += `    <image:image>\n`
+      xml += `      <image:loc>${escapeXml(merchant.logo_url)}</image:loc>\n`
+      xml += `      <image:title>${escapeXml(merchant.business_name)} - ${escapeXml(merchant.business_type || 'Business')} in Jaipur</image:title>\n`
+      xml += `    </image:image>\n`
+    }
+    xml += `  </url>\n`
+  }
+  
+  xml += '</urlset>'
+  return xml
+}
+
+async function generateLocalitiesSitemap(supabase: any, today: string): Promise<string> {
+  const { data: localities, error } = await supabase
+    .from('localities')
+    .select('slug, name, updated_at, zone')
+    .order('name', { ascending: true })
+
+  if (error) throw error
+
+  let xml = getXmlHeader()
+  
+  for (const locality of localities || []) {
+    xml += `  <url>\n`
+    xml += `    <loc>${SITE_URL}/jaipur/${locality.slug}</loc>\n`
+    xml += `    <lastmod>${formatDate(locality.updated_at)}</lastmod>\n`
+    xml += `    <changefreq>weekly</changefreq>\n`
+    xml += `    <priority>0.8</priority>\n`
+    xml += `  </url>\n`
+  }
+  
+  xml += '</urlset>'
+  return xml
+}
+
+async function generateEventsSitemap(supabase: any, today: string): Promise<string> {
+  const { data: events, error } = await supabase
+    .from('events')
+    .select('slug, title, updated_at, cover_image, category, start_date')
+    .eq('status', 'published')
+    .order('start_date', { ascending: false })
+    .limit(5000)
+
+  if (error) throw error
+
+  let xml = getXmlHeader(false, true)
+  
+  for (const event of events || []) {
+    xml += `  <url>\n`
+    xml += `    <loc>${SITE_URL}/events/${event.slug}</loc>\n`
+    xml += `    <lastmod>${formatDate(event.updated_at)}</lastmod>\n`
+    xml += `    <changefreq>weekly</changefreq>\n`
+    xml += `    <priority>0.7</priority>\n`
+    if (event.cover_image) {
+      xml += `    <image:image>\n`
+      xml += `      <image:loc>${escapeXml(event.cover_image)}</image:loc>\n`
+      xml += `      <image:title>${escapeXml(event.title)} - ${escapeXml(event.category)} Event in Jaipur</image:title>\n`
+      xml += `    </image:image>\n`
+    }
+    xml += `  </url>\n`
+  }
+  
+  xml += '</urlset>'
+  return xml
+}
+
+async function generateNewsSitemap(supabase: any, today: string): Promise<string> {
+  const { data: articles, error } = await supabase
+    .from('news_articles')
+    .select('slug, title, category, published_at, cover_image')
+    .eq('status', 'published')
+    .order('published_at', { ascending: false })
+    .limit(5000)
+
+  if (error) throw error
+
+  let xml = getXmlHeader(false, true)
+  
+  for (const article of articles || []) {
+    xml += `  <url>\n`
+    xml += `    <loc>${SITE_URL}/news/${article.category}/${article.slug}</loc>\n`
+    xml += `    <lastmod>${formatDate(article.published_at)}</lastmod>\n`
+    xml += `    <changefreq>weekly</changefreq>\n`
+    xml += `    <priority>0.7</priority>\n`
+    if (article.cover_image) {
+      xml += `    <image:image>\n`
+      xml += `      <image:loc>${escapeXml(article.cover_image)}</image:loc>\n`
+      xml += `      <image:title>${escapeXml(article.title)}</image:title>\n`
+      xml += `    </image:image>\n`
+    }
+    xml += `  </url>\n`
+  }
+  
+  xml += '</urlset>'
+  return xml
+}
+
+// Google News Sitemap - only includes articles from last 2 days
+async function generateGoogleNewsSitemap(supabase: any): Promise<string> {
+  const twoDaysAgo = new Date()
+  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
+  
+  const { data: articles, error } = await supabase
+    .from('news_articles')
+    .select('slug, title, category, published_at, meta_keywords')
+    .eq('status', 'published')
+    .gte('published_at', twoDaysAgo.toISOString())
+    .order('published_at', { ascending: false })
+    .limit(1000)
+
+  if (error) throw error
+
+  let xml = getXmlHeader(true)
+  
+  for (const article of articles || []) {
+    const pubDate = new Date(article.published_at).toISOString()
+    const keywords = article.meta_keywords?.slice(0, 5).join(', ') || article.category
+    
+    xml += `  <url>\n`
+    xml += `    <loc>${SITE_URL}/news/${article.category}/${article.slug}</loc>\n`
+    xml += `    <news:news>\n`
+    xml += `      <news:publication>\n`
+    xml += `        <news:name>${SITE_NAME}</news:name>\n`
+    xml += `        <news:language>en</news:language>\n`
+    xml += `      </news:publication>\n`
+    xml += `      <news:publication_date>${pubDate}</news:publication_date>\n`
+    xml += `      <news:title>${escapeXml(article.title)}</news:title>\n`
+    if (keywords) {
+      xml += `      <news:keywords>${escapeXml(keywords)}</news:keywords>\n`
+    }
+    xml += `    </news:news>\n`
+    xml += `  </url>\n`
+  }
+  
+  xml += '</urlset>'
+  return xml
+}
+
+async function generateFullSitemap(supabase: any, today: string): Promise<string> {
+  // Fetch all data in parallel
+  const [newsRes, eventsRes, dealsRes, merchantsRes, localitiesRes] = await Promise.all([
+    supabase.from('news_articles').select('slug, category, published_at, cover_image, title').eq('status', 'published').limit(5000),
+    supabase.from('events').select('slug, updated_at, cover_image, title, category').eq('status', 'published').limit(5000),
+    supabase.from('deals').select('id, updated_at, image_url, title, discount_percentage').eq('approval_status', 'approved').eq('is_active', true).limit(5000),
+    supabase.from('merchants').select('id, updated_at, logo_url, business_name, business_type').eq('is_active', true).limit(5000),
+    supabase.from('localities').select('slug, updated_at, name').limit(5000),
+  ])
+
+  const staticPages = [
+    { loc: '/', changefreq: 'daily', priority: 1.0 },
+    { loc: '/deals', changefreq: 'hourly', priority: 0.95 },
+    { loc: '/merchants', changefreq: 'daily', priority: 0.90 },
+    { loc: '/events', changefreq: 'daily', priority: 0.90 },
+    { loc: '/news', changefreq: 'hourly', priority: 0.90 },
+    { loc: '/jaipur', changefreq: 'weekly', priority: 0.90 },
+    { loc: '/categories', changefreq: 'weekly', priority: 0.85 },
+    { loc: '/news/city', changefreq: 'daily', priority: 0.80 },
+    { loc: '/news/events', changefreq: 'daily', priority: 0.80 },
+    { loc: '/news/food', changefreq: 'daily', priority: 0.80 },
+    { loc: '/news/culture', changefreq: 'daily', priority: 0.80 },
+    { loc: '/news/business', changefreq: 'daily', priority: 0.80 },
+    { loc: '/news/sports', changefreq: 'daily', priority: 0.80 },
+    { loc: '/jaicoin', changefreq: 'weekly', priority: 0.75 },
+    { loc: '/leaderboard', changefreq: 'daily', priority: 0.70 },
+    { loc: '/challenges', changefreq: 'weekly', priority: 0.70 },
+    { loc: '/gamification', changefreq: 'weekly', priority: 0.65 },
+    { loc: '/pro-membership', changefreq: 'monthly', priority: 0.75 },
+    { loc: '/referral', changefreq: 'monthly', priority: 0.70 },
+    { loc: '/merchant-onboarding', changefreq: 'monthly', priority: 0.70 },
+    { loc: '/about', changefreq: 'monthly', priority: 0.60 },
+    { loc: '/help', changefreq: 'monthly', priority: 0.55 },
+    { loc: '/sitemap', changefreq: 'weekly', priority: 0.40 },
+    { loc: '/install', changefreq: 'monthly', priority: 0.50 },
+  ]
+
+  let xml = getXmlHeader(false, true)
+
+  // Static pages
+  for (const page of staticPages) {
+    xml += `  <url>\n`
+    xml += `    <loc>${SITE_URL}${page.loc}</loc>\n`
+    xml += `    <lastmod>${today}</lastmod>\n`
+    xml += `    <changefreq>${page.changefreq}</changefreq>\n`
+    xml += `    <priority>${page.priority}</priority>\n`
+    xml += `  </url>\n`
+  }
+
+  // Localities (high SEO value)
+  for (const locality of localitiesRes.data || []) {
+    xml += `  <url>\n`
+    xml += `    <loc>${SITE_URL}/jaipur/${locality.slug}</loc>\n`
+    xml += `    <lastmod>${formatDate(locality.updated_at)}</lastmod>\n`
+    xml += `    <changefreq>weekly</changefreq>\n`
+    xml += `    <priority>0.8</priority>\n`
+    xml += `  </url>\n`
+  }
+
+  // Deals
+  for (const deal of dealsRes.data || []) {
+    xml += `  <url>\n`
+    xml += `    <loc>${SITE_URL}/deal/${deal.id}</loc>\n`
+    xml += `    <lastmod>${formatDate(deal.updated_at)}</lastmod>\n`
+    xml += `    <changefreq>daily</changefreq>\n`
+    xml += `    <priority>0.7</priority>\n`
+    if (deal.image_url) {
+      xml += `    <image:image>\n`
+      xml += `      <image:loc>${escapeXml(deal.image_url)}</image:loc>\n`
+      xml += `      <image:title>${escapeXml(deal.title)}</image:title>\n`
+      xml += `    </image:image>\n`
+    }
+    xml += `  </url>\n`
+  }
+
+  // Merchants
+  for (const merchant of merchantsRes.data || []) {
+    xml += `  <url>\n`
+    xml += `    <loc>${SITE_URL}/merchant/${merchant.id}</loc>\n`
+    xml += `    <lastmod>${formatDate(merchant.updated_at)}</lastmod>\n`
+    xml += `    <changefreq>weekly</changefreq>\n`
+    xml += `    <priority>0.6</priority>\n`
+    if (merchant.logo_url) {
+      xml += `    <image:image>\n`
+      xml += `      <image:loc>${escapeXml(merchant.logo_url)}</image:loc>\n`
+      xml += `      <image:title>${escapeXml(merchant.business_name)}</image:title>\n`
+      xml += `    </image:image>\n`
+    }
+    xml += `  </url>\n`
+  }
+
+  // Events
+  for (const event of eventsRes.data || []) {
+    xml += `  <url>\n`
+    xml += `    <loc>${SITE_URL}/events/${event.slug}</loc>\n`
+    xml += `    <lastmod>${formatDate(event.updated_at)}</lastmod>\n`
+    xml += `    <changefreq>weekly</changefreq>\n`
+    xml += `    <priority>0.7</priority>\n`
+    if (event.cover_image) {
+      xml += `    <image:image>\n`
+      xml += `      <image:loc>${escapeXml(event.cover_image)}</image:loc>\n`
+      xml += `      <image:title>${escapeXml(event.title)}</image:title>\n`
+      xml += `    </image:image>\n`
+    }
+    xml += `  </url>\n`
+  }
+
+  // News articles
+  for (const article of newsRes.data || []) {
+    xml += `  <url>\n`
+    xml += `    <loc>${SITE_URL}/news/${article.category}/${article.slug}</loc>\n`
+    xml += `    <lastmod>${formatDate(article.published_at)}</lastmod>\n`
+    xml += `    <changefreq>weekly</changefreq>\n`
+    xml += `    <priority>0.7</priority>\n`
+    if (article.cover_image) {
+      xml += `    <image:image>\n`
+      xml += `      <image:loc>${escapeXml(article.cover_image)}</image:loc>\n`
+      xml += `      <image:title>${escapeXml(article.title)}</image:title>\n`
+      xml += `    </image:image>\n`
+    }
+    xml += `  </url>\n`
+  }
+
+  xml += '</urlset>'
+  return xml
+}

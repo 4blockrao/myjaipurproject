@@ -1,41 +1,115 @@
 # robots.txt for JaipurCircle
 # https://www.jaipurcircle.com
+# Last updated: 2024-12-23
 
+# Google
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
-User-agent: Bingbot
+User-agent: Googlebot-Image
 Allow: /
 
+User-agent: Googlebot-News
+Allow: /news/
+
+# Bing
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 2
+
+# Social Media Crawlers
 User-agent: Twitterbot
 Allow: /
 
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Pinterest
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+# Other Major Crawlers
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 2
+
+User-agent: Yandex
+Allow: /
+Crawl-delay: 2
+
+# Default rule for all other bots
 User-agent: *
 Allow: /
 
-# Allow all content pages
-Allow: /news/
-Allow: /events/
+# Public Content - Always Allow
+Allow: /
+Allow: /deals
 Allow: /deals/
-Allow: /categories/
-Allow: /about
+Allow: /merchant/
+Allow: /merchants
+Allow: /events
+Allow: /events/
+Allow: /news
+Allow: /news/
+Allow: /jaipur
 Allow: /jaipur/
+Allow: /categories
+Allow: /about
+Allow: /help
+Allow: /referral
+Allow: /pro-membership
+Allow: /merchant-onboarding
+Allow: /leaderboard
+Allow: /jaicoin
+Allow: /challenges
+Allow: /gamification
+Allow: /install
+Allow: /sitemap
 
-# Block admin and auth pages
+# Block Private/Admin Pages
+Disallow: /admin
 Disallow: /admin/
-Disallow: /auth/
-Disallow: /api/
+Disallow: /dashboard
 Disallow: /merchant-dashboard
 Disallow: /merchant-portal
+Disallow: /event-organizer-dashboard
 Disallow: /settings
 Disallow: /profile
 Disallow: /account
 Disallow: /orders
 Disallow: /favorites
 Disallow: /coupons
+Disallow: /wallet
+Disallow: /checkout
+Disallow: /scan
+Disallow: /user-deals
+Disallow: /my-events
+Disallow: /create-event
+Disallow: /create-news
 
-# Sitemaps
+# Block API and Auth endpoints
+Disallow: /api/
+Disallow: /auth/
+
+# Block query parameters that create duplicate content
+Disallow: /*?*ref=
+Disallow: /*?*utm_
+Disallow: /*?*fbclid=
+Disallow: /*?*gclid=
+
+# Sitemaps - Submit all to Google Search Console
 Sitemap: https://www.jaipurcircle.com/sitemap.xml
+Sitemap: https://www.jaipurcircle.com/sitemap-pages.xml
+Sitemap: https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=all
+
+# Host directive for search engines that support it
+Host: https://www.jaipurcircle.com
