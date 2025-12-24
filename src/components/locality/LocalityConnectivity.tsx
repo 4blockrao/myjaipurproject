@@ -1,57 +1,78 @@
-import { Locality } from '@/hooks/useLocality';
-import { 
-  Train, Bus, Plane, Navigation, 
-  ArrowRight, MapPin 
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MapPin, Train, Bus, Plane, Navigation } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface LocalityConnectivityProps {
-  locality: Locality;
+  locality: any;
 }
 
 export function LocalityConnectivity({ locality }: LocalityConnectivityProps) {
-  // Type assertion for the JSONB data
-  const connectivity = locality.connectivity as {
-    nearest_metro?: string;
-    nearest_bus_stops?: string[];
-    nearest_railway_station?: string;
-    distance_to_airport?: string;
-  } | null;
-
-  if (!connectivity) {
-    return null;
-  }
+  const connectivity = locality.connectivity || {};
 
   const items = [
     {
-      icon: Train,
-      label: 'Nearest Metro',
-      value: connectivity.nearest_metro,
-      color: 'text-blue-500',
+      icon: MapPin,
+      label: "Nearest Metro",
+      value: connectivity.nearest_metro || null,
+      colorClass: "text-primary",
+      bgClass: "bg-primary/10",
     },
     {
       icon: Bus,
-      label: 'Bus Stops',
-      value: connectivity.nearest_bus_stops?.join(', '),
-      color: 'text-green-500',
+      label: "Nearest Bus Stops",
+      value: connectivity.nearest_bus_stations?.length
+        ? connectivity.nearest_bus_stations.join(", ")
+        : connectivity.nearest_bus_stops?.length
+        ? connectivity.nearest_bus_stops.join(", ")
+        : null,
+      colorClass: "text-emerald-600 dark:text-emerald-400",
+      bgClass: "bg-emerald-500/10",
     },
     {
       icon: Train,
-      label: 'Railway Station',
-      value: connectivity.nearest_railway_station,
-      color: 'text-orange-500',
+      label: "Nearest Railway Station",
+      value: connectivity.nearest_railway_station || null,
+      colorClass: "text-blue-600 dark:text-blue-400",
+      bgClass: "bg-blue-500/10",
     },
     {
       icon: Plane,
-      label: 'Airport Distance',
-      value: connectivity.distance_to_airport,
-      color: 'text-purple-500',
+      label: "Distance to Airport",
+      value:
+        typeof connectivity.distance_to_airport_km === "number"
+          ? `${connectivity.distance_to_airport_km} km`
+          : connectivity.distance_to_airport || null,
+      colorClass: "text-rose-600 dark:text-rose-400",
+      bgClass: "bg-rose-500/10",
     },
-  ].filter(item => item.value);
+  ].filter((item) => item.value);
 
-  if (items.length === 0) {
-    return null;
+  if (items.length === 0) return null;
+
+  const travelNoteParts: string[] = [];
+  if (connectivity.nearest_metro) {
+    travelNoteParts.push(
+      `The nearest metro station is ${connectivity.nearest_metro}.`
+    );
   }
+  if (connectivity.nearest_railway_station) {
+    travelNoteParts.push(
+      `${connectivity.nearest_railway_station} provides railway connectivity.`
+    );
+  }
+  if (typeof connectivity.distance_to_airport_km === "number") {
+    travelNoteParts.push(
+      `Jaipur International Airport is ${connectivity.distance_to_airport_km} km away.`
+    );
+  } else if (connectivity.distance_to_airport) {
+    travelNoteParts.push(
+      `Jaipur International Airport is ${connectivity.distance_to_airport} away.`
+    );
+  }
+
+  const travelNote =
+    travelNoteParts.length > 0
+      ? travelNoteParts.join(" ")
+      : `${locality.name} is well-connected via road transport.`;
 
   return (
     <section className="mb-8">
@@ -59,14 +80,14 @@ export function LocalityConnectivity({ locality }: LocalityConnectivityProps) {
         <Navigation className="h-6 w-6 text-primary" />
         Connectivity Guide
       </h2>
-      
+
       <Card>
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {items.map(({ icon: Icon, label, value, color }) => (
+            {items.map(({ icon: Icon, label, value, colorClass, bgClass }) => (
               <div key={label} className="flex items-start gap-4">
-                <div className={`p-3 rounded-full bg-muted ${color}`}>
-                  <Icon className="h-5 w-5" />
+                <div className={`p-3 rounded-full ${bgClass}`}>
+                  <Icon className={`h-5 w-5 ${colorClass}`} />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">{label}</p>
@@ -75,13 +96,10 @@ export function LocalityConnectivity({ locality }: LocalityConnectivityProps) {
               </div>
             ))}
           </div>
-          
+
           <div className="mt-6 pt-6 border-t border-border">
             <p className="text-sm text-muted-foreground">
-              <strong>Travel Note:</strong> {locality.name} is well-connected via road transport. 
-              {connectivity.nearest_metro && ` The nearest metro station is ${connectivity.nearest_metro}.`}
-              {connectivity.nearest_railway_station && ` ${connectivity.nearest_railway_station} provides rail connectivity.`}
-              {connectivity.distance_to_airport && ` Jaipur International Airport is ${connectivity.distance_to_airport} away.`}
+              <strong>Travel Note:</strong> {travelNote}
             </p>
           </div>
         </CardContent>
