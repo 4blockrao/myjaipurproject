@@ -63,6 +63,10 @@ import ZonePage from "./pages/ZonePage";
 import ZonesIndexPage from "./pages/ZonesIndexPage";
 import InstallPage from "./pages/InstallPage";
 
+// Category Pages
+import CategoryPage from "./pages/CategoryPage";
+import LocalityCategoryPage from "./pages/LocalityCategoryPage";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -115,6 +119,10 @@ function App() {
               <Route path="/my-deals" element={<Navigate to="/account?tab=orders" replace />} />
               <Route path="/challenges" element={<Navigate to="/account" replace />} />
               
+              {/* Category Pages */}
+              <Route path="/categories/:slug" element={<CategoryPage />} />
+              <Route path="/categories/:slug/:childSlug" element={<CategoryPage />} />
+              
               {/* Deals & Shopping */}
               <Route path="/deals" element={<DealsPage />} />
               <Route path="/deal/:id" element={<DealDetailPage />} />
@@ -159,6 +167,7 @@ function App() {
               <Route path="/jaipur/all" element={<LocalitiesIndexPage />} />
               <Route path="/jaipur/zones" element={<ZonesIndexPage />} />
               <Route path="/jaipur/zones/:zoneSlug" element={<ZonePage />} />
+              <Route path="/jaipur/:slug/:category" element={<LocalityCategoryPage />} />
               <Route path="/jaipur/:slug" element={<LocalityPage />} />
               
               {/* Legacy redirects */}
