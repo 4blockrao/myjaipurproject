@@ -18,6 +18,7 @@ export const CategorySEO: React.FC<CategorySEOProps> = ({
   localitySlug,
 }) => {
   const baseUrl = 'https://www.jaipurcircle.com';
+  const isEventsCategory = category.slug === 'events' || category.pillar_slug === 'events';
   
   // Build title
   const title = localityName
@@ -70,12 +71,14 @@ export const CategorySEO: React.FC<CategorySEOProps> = ({
     ],
   };
   
-  // Generate ItemList schema for subcategories or listings
+  // PATCH 4: Enhanced ItemList schema for subcategories
   const itemListSchema = childCategories.length > 0
     ? {
         '@context': 'https://schema.org',
         '@type': 'ItemList',
-        name: `${category.name} Categories`,
+        name: isEventsCategory 
+          ? `Events & Things To Do Categories in Jaipur`
+          : `${category.name} Categories in Jaipur`,
         description: `Subcategories of ${category.name} in Jaipur`,
         numberOfItems: childCategories.length,
         itemListElement: childCategories.map((child, index) => ({
@@ -87,36 +90,90 @@ export const CategorySEO: React.FC<CategorySEOProps> = ({
       }
     : null;
   
+  // PATCH 5: CollectionPage schema for category pages
+  const collectionPageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: isEventsCategory 
+      ? `Events & Things To Do in Jaipur`
+      : `${category.name} in Jaipur`,
+    about: isEventsCategory
+      ? `Events, activities, workshops, and entertainment listings across Jaipur localities`
+      : `${category.name} listings, services, and businesses across Jaipur localities`,
+    url: canonicalUrl,
+    areaServed: {
+      '@type': 'City',
+      name: 'Jaipur',
+      containedInPlace: {
+        '@type': 'State',
+        name: 'Rajasthan',
+        containedInPlace: {
+          '@type': 'Country',
+          name: 'India',
+        },
+      },
+    },
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'JaipurCircle',
+      url: baseUrl,
+    },
+  };
+  
   // Generate FAQPage schema
+  const faqItems = [
+    {
+      '@type': 'Question',
+      name: `What are the best ${category.name.toLowerCase()} options in ${localityName || 'Jaipur'}?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `JaipurCircle offers a curated list of ${category.name.toLowerCase()} in ${localityName || 'Jaipur'}, including verified merchants, exclusive deals, and community reviews to help you make informed decisions.`,
+      },
+    },
+    {
+      '@type': 'Question',
+      name: `How do I find ${category.name.toLowerCase()} near me in Jaipur?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `Use JaipurCircle's locality filter to explore ${category.name.toLowerCase()} in your specific area. We cover all major localities across Jaipur with detailed listings and reviews.`,
+      },
+    },
+    {
+      '@type': 'Question',
+      name: `Are there any deals available for ${category.name.toLowerCase()} in Jaipur?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `Yes! JaipurCircle regularly features exclusive deals and discounts on ${category.name.toLowerCase()} from verified merchants across Jaipur. Check our deals section for current offers.`,
+      },
+    },
+  ];
+  
+  // Add event-specific FAQ items
+  if (isEventsCategory) {
+    faqItems.push(
+      {
+        '@type': 'Question',
+        name: 'Are there free events in Jaipur?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes! Jaipur hosts many free events including cultural festivals, art exhibitions, community gatherings, and public celebrations throughout the year.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What are the best event venues in Jaipur?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Popular event venues in Jaipur include Jawahar Kala Kendra, Birla Auditorium, Albert Hall Museum grounds, and various heritage hotels and convention centers.',
+        },
+      }
+    );
+  }
+  
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: `What are the best ${category.name.toLowerCase()} options in ${localityName || 'Jaipur'}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `JaipurCircle offers a curated list of ${category.name.toLowerCase()} in ${localityName || 'Jaipur'}, including verified merchants, exclusive deals, and community reviews to help you make informed decisions.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `How do I find ${category.name.toLowerCase()} near me in Jaipur?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Use JaipurCircle's locality filter to explore ${category.name.toLowerCase()} in your specific area. We cover all major localities across Jaipur with detailed listings and reviews.`,
-        },
-      },
-      {
-        '@type': 'Question',
-        name: `Are there any deals available for ${category.name.toLowerCase()} in Jaipur?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Yes! JaipurCircle regularly features exclusive deals and discounts on ${category.name.toLowerCase()} from verified merchants across Jaipur. Check our deals section for current offers.`,
-        },
-      },
-    ],
+    mainEntity: faqItems,
   };
   
   // Use custom schema type if provided
@@ -166,6 +223,12 @@ export const CategorySEO: React.FC<CategorySEOProps> = ({
         {JSON.stringify(breadcrumbSchema)}
       </script>
       
+      {/* PATCH 5: CollectionPage Schema */}
+      <script type="application/ld+json">
+        {JSON.stringify(collectionPageSchema)}
+      </script>
+      
+      {/* PATCH 4: Enhanced ItemList Schema */}
       {itemListSchema && (
         <script type="application/ld+json">
           {JSON.stringify(itemListSchema)}
