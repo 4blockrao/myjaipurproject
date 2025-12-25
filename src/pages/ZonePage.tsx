@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, ArrowLeft, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ZoneSEO } from '@/components/zone/ZoneSEO';
+import { ZoneBreadcrumb } from '@/components/zone/ZoneBreadcrumb';
 import { ZoneQuickInfo } from '@/components/zone/ZoneQuickInfo';
 import { ZoneTOC } from '@/components/zone/ZoneTOC';
 import { ZoneOverview } from '@/components/zone/ZoneOverview';
@@ -92,15 +93,7 @@ export default function ZonePage() {
       <ZoneSEO zone={zoneData} />
       
       <main className="container mx-auto px-4 py-6 max-w-5xl">
-        <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <Link to="/" className="hover:text-primary">Home</Link>
-          <span>/</span>
-          <Link to="/jaipur" className="hover:text-primary">Jaipur</Link>
-          <span>/</span>
-          <Link to="/jaipur/zones" className="hover:text-primary">Zones</Link>
-          <span>/</span>
-          <span className="text-foreground">{zoneName}</span>
-        </nav>
+        <ZoneBreadcrumb zoneName={zoneName} zoneSlug={zoneSlug} />
         
         <header className="mb-6">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3">

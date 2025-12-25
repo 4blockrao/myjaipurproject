@@ -58,30 +58,48 @@ export const GlobalSEO = ({
   
   const allKeywords = [...new Set([...keywords, ...defaultKeywords])];
 
-  // Organization Schema (Global)
+  // Organization Schema (Global) - Enhanced for rich snippets
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     '@id': `${SITE_URL}/#organization`,
     name: 'JaipurCircle',
+    alternateName: 'Jaipur Circle',
     url: SITE_URL,
     logo: {
       '@type': 'ImageObject',
+      '@id': `${SITE_URL}/#logo`,
       url: `${SITE_URL}/logo.png`,
+      contentUrl: `${SITE_URL}/logo.png`,
       width: 512,
-      height: 512
+      height: 512,
+      caption: 'JaipurCircle Logo'
     },
-    description: "Jaipur's leading local discovery platform for news, events, deals, jobs, and community updates.",
+    image: {
+      '@type': 'ImageObject',
+      url: `${SITE_URL}/og-image.png`,
+      width: 1200,
+      height: 630
+    },
+    description: "JaipurCircle is Jaipur's leading locality-first urban information platform for discovering neighbourhoods, news, events, deals, jobs, and local services across the Pink City.",
+    slogan: "Discover Jaipur, One Locality at a Time",
     foundingDate: '2024',
+    foundingLocation: {
+      '@type': 'Place',
+      name: 'Jaipur, Rajasthan, India'
+    },
     areaServed: {
       '@type': 'City',
       name: 'Jaipur',
+      '@id': 'https://www.wikidata.org/wiki/Q1950',
       containedInPlace: {
         '@type': 'State',
         name: 'Rajasthan',
+        '@id': 'https://www.wikidata.org/wiki/Q1437',
         containedInPlace: {
           '@type': 'Country',
-          name: 'India'
+          name: 'India',
+          '@id': 'https://www.wikidata.org/wiki/Q668'
         }
       }
     },
@@ -89,40 +107,93 @@ export const GlobalSEO = ({
       '@type': 'PostalAddress',
       addressLocality: 'Jaipur',
       addressRegion: 'Rajasthan',
+      postalCode: '302001',
       addressCountry: 'IN'
+    },
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: 26.9124,
+      longitude: 75.7873
     },
     sameAs: [
       'https://twitter.com/jaipurcircle',
       'https://facebook.com/jaipurcircle',
-      'https://instagram.com/jaipurcircle'
+      'https://instagram.com/jaipurcircle',
+      'https://linkedin.com/company/jaipurcircle'
     ],
-    contactPoint: {
-      '@type': 'ContactPoint',
-      contactType: 'customer service',
-      email: 'hello@jaipurcircle.com'
-    }
+    contactPoint: [
+      {
+        '@type': 'ContactPoint',
+        contactType: 'customer service',
+        email: 'hello@jaipurcircle.com',
+        availableLanguage: ['English', 'Hindi']
+      }
+    ],
+    knowsAbout: [
+      'Jaipur localities',
+      'Jaipur neighbourhoods',
+      'Jaipur news',
+      'Jaipur events',
+      'Jaipur deals',
+      'Jaipur local businesses',
+      'Rajasthan tourism'
+    ]
   };
 
-  // WebSite Schema with SearchAction
+  // WebSite Schema with SearchAction - Enhanced
   const webSiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     '@id': `${SITE_URL}/#website`,
     url: SITE_URL,
     name: 'JaipurCircle',
+    alternateName: 'Jaipur Circle',
     description: DEFAULT_DESCRIPTION,
     publisher: {
       '@id': `${SITE_URL}/#organization`
     },
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${SITE_URL}/search?q={search_term_string}`
+    potentialAction: [
+      {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${SITE_URL}/deals?search={search_term_string}`
+        },
+        'query-input': 'required name=search_term_string'
       },
-      'query-input': 'required name=search_term_string'
+      {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${SITE_URL}/jaipur/{locality_name}`
+        },
+        'query-input': 'required name=locality_name'
+      }
+    ],
+    inLanguage: 'en-IN',
+    copyrightYear: new Date().getFullYear(),
+    copyrightHolder: {
+      '@id': `${SITE_URL}/#organization`
+    }
+  };
+
+  // WebPage Schema for current page
+  const webPageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    '@id': `${canonicalUrl}#webpage`,
+    url: canonicalUrl,
+    name: fullTitle,
+    description: description,
+    isPartOf: {
+      '@id': `${SITE_URL}/#website`
     },
-    inLanguage: 'en-IN'
+    about: {
+      '@id': `${SITE_URL}/#organization`
+    },
+    inLanguage: 'en-IN',
+    ...(publishedTime && { datePublished: publishedTime }),
+    ...(modifiedTime && { dateModified: modifiedTime })
   };
 
   return (
@@ -174,12 +245,15 @@ export const GlobalSEO = ({
       <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       <meta name="apple-mobile-web-app-title" content={SITE_NAME} />
       
-      {/* Structured Data */}
+      {/* Structured Data - Organization, WebSite, WebPage */}
       <script type="application/ld+json">
         {JSON.stringify(organizationSchema)}
       </script>
       <script type="application/ld+json">
         {JSON.stringify(webSiteSchema)}
+      </script>
+      <script type="application/ld+json">
+        {JSON.stringify(webPageSchema)}
       </script>
       
       {children}
