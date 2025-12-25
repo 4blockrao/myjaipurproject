@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { GlobalSEO } from "@/components/seo/GlobalSEO";
 
 // Core Pages
 import Index from "./pages/Index";
@@ -83,6 +84,8 @@ function App() {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            {/* Sitewide Default SEO - provides fallback meta for all pages */}
+            <GlobalSEO />
             <Routes>
               {/* Core Routes */}
               <Route path="/" element={<Index />} />
