@@ -3,9 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import NativeMobileHeader from "@/components/layout/NativeMobileHeader";
-import NativeBottomNav from "@/components/home/NativeBottomNav";
+import AppLayout from "@/components/layout/AppLayout";
 import { Skeleton } from "@/components/ui/skeleton";
+import { GlobalSEO } from "@/components/seo/GlobalSEO";
+import { Helmet } from "react-helmet-async";
 import { 
   Utensils, Scissors, ShoppingBag, Smartphone, Dumbbell, Car, Camera, Plane, 
   GraduationCap, Briefcase, Home, Heart, Calendar, Newspaper, Building, BookOpen,
@@ -85,9 +86,49 @@ const CategoriesPage = () => {
     'other': 'Other Categories',
   };
 
+  // Schema for categories
+  const categoriesSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Browse All Categories in Jaipur",
+    "description": "Explore categories for news, events, deals, businesses, real estate, and services across Jaipur localities.",
+    "url": "https://www.jaipurcircle.com/categories",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "JaipurCircle",
+      "url": "https://www.jaipurcircle.com"
+    },
+    "mainEntity": {
+      "@type": "ItemList",
+      "itemListElement": pillars.map((cat, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "name": cat.name,
+        "url": `https://www.jaipurcircle.com/categories/${cat.slug}`
+      }))
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <NativeMobileHeader title="Categories" subtitle="Browse all categories" backPath="/" />
+    <AppLayout
+      title="Categories"
+      subtitle="Browse all categories"
+      showBackButton={true}
+      backPath="/"
+    >
+      {/* SEO */}
+      <Helmet>
+        <title>Browse All Categories | Jaipur News, Events, Deals & Services | JaipurCircle</title>
+        <meta name="description" content="Explore categories for news, events, deals, businesses, real estate, jobs, and services across Jaipur. Find what you're looking for in the Pink City." />
+        <link rel="canonical" href="https://www.jaipurcircle.com/categories" />
+        <meta property="og:title" content="Browse All Categories in Jaipur | JaipurCircle" />
+        <meta property="og:description" content="Explore categories for news, events, deals, businesses, real estate, and services across Jaipur localities." />
+        <meta property="og:url" content="https://www.jaipurcircle.com/categories" />
+        <meta property="og:type" content="website" />
+        <script type="application/ld+json">
+          {JSON.stringify(categoriesSchema)}
+        </script>
+      </Helmet>
 
       <div className="p-4 space-y-6">
         {isLoading ? (
@@ -151,9 +192,7 @@ const CategoriesPage = () => {
           </div>
         )}
       </div>
-
-      <NativeBottomNav />
-    </div>
+    </AppLayout>
   );
 };
 
