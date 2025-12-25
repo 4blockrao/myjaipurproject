@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
   HeartPulse, 
@@ -16,8 +17,45 @@ import {
   Heart, 
   PawPrint, 
   Building2, 
-  AlertTriangle 
+  AlertTriangle,
+  ChevronDown,
+  LucideIcon
 } from "lucide-react";
+
+interface FooterAccordionProps {
+  title: string;
+  icon: LucideIcon;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}
+
+function FooterAccordion({ title, icon: Icon, children, defaultOpen = false }: FooterAccordionProps) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div className="border-b border-border/50 last:border-0">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex justify-between items-center w-full py-4 text-left"
+        aria-expanded={open}
+      >
+        <span className="text-lg font-semibold text-foreground flex items-center gap-2">
+          <Icon className="h-5 w-5 text-primary" />
+          {title}
+        </span>
+        <ChevronDown 
+          className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`} 
+        />
+      </button>
+
+      {open && (
+        <div className="pb-6 animate-in slide-in-from-top-2 duration-200">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface LocalityIntentFooterProps {
   locality: {
@@ -497,35 +535,32 @@ export function LocalityIntentFooter({ locality }: LocalityIntentFooterProps) {
           These are informational search categories, not listings.
         </p>
 
-        <div className="space-y-10">
-          {categories.map((category, catIdx) => {
-            const IconComponent = category.icon;
-            return (
-              <div key={catIdx} className="border-b border-border/50 pb-8 last:border-0 last:pb-0">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
-                  <IconComponent className="h-5 w-5 text-primary" />
-                  {category.title}
-                </h3>
-                
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {category.sections.map((section, secIdx) => (
-                    <div key={secIdx}>
-                      <h4 className="text-sm font-medium text-foreground mb-2">
-                        {section.heading}
-                      </h4>
-                      <ul className="text-sm text-muted-foreground space-y-1">
-                        {section.items.map((item, itemIdx) => (
-                          <li key={itemIdx} className="leading-relaxed">
-                            • {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
+        <div className="divide-y divide-border/30">
+          {categories.map((category, catIdx) => (
+            <FooterAccordion 
+              key={catIdx} 
+              title={category.title} 
+              icon={category.icon}
+              defaultOpen={catIdx < 2}
+            >
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {category.sections.map((section, secIdx) => (
+                  <div key={secIdx}>
+                    <h4 className="text-sm font-medium text-foreground mb-2">
+                      {section.heading}
+                    </h4>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      {section.items.map((item, itemIdx) => (
+                        <li key={itemIdx} className="leading-relaxed">
+                          • {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
-            );
-          })}
+            </FooterAccordion>
+          ))}
         </div>
 
         <div className="mt-8 pt-6 border-t border-border/50">

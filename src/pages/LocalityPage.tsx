@@ -12,7 +12,9 @@ import { LocalitySEO } from "@/components/locality/LocalitySEO";
 // Core Locality Sections
 import { LocalityBreadcrumb } from "@/components/locality/LocalityBreadcrumb";
 import { LocalityAISummary } from "@/components/locality/LocalityAISummary";
+import { LocalityQuickInfo } from "@/components/locality/LocalityQuickInfo";
 import { LocalitySnapshot } from "@/components/locality/LocalitySnapshot";
+import { LocalityTOC } from "@/components/locality/LocalityTOC";
 import { LocalityAbout } from "@/components/locality/LocalityAbout";
 import LocalityLivingProfile from "@/components/locality/LocalityLivingProfile";
 import LocalityPropertyContext from "@/components/locality/LocalityPropertyContext";
@@ -24,6 +26,7 @@ import { LocalityLocalEconomy } from "@/components/locality/LocalityLocalEconomy
 import { LocalityMicroLocalities } from "@/components/locality/LocalityMicroLocalities";
 import { LocalityNearby } from "@/components/locality/LocalityNearby";
 import { LocalityLandmarks } from "@/components/locality/LocalityLandmarks";
+import { LocalityMiniMap } from "@/components/locality/LocalityMiniMap";
 import LocalityWhyPeopleChoose from "@/components/locality/LocalityWhyPeopleChoose";
 
 // Dynamic Content
@@ -108,40 +111,71 @@ export default function LocalityPage() {
         {/* 1. AI Overview */}
         <LocalityAISummary locality={locality} />
 
+        {/* 1.5 Quick Info Bar (PATCH-01) */}
+        <LocalityQuickInfo locality={locality} />
+
         {/* 2. Snapshot (Civic + Geo Identity) */}
         <LocalitySnapshot locality={locality} />
+
+        {/* Table of Contents (PATCH-02) */}
+        <LocalityTOC localityName={locality.name} />
 
         {/* 3. About the Locality */}
         <LocalityAbout locality={locality} />
 
         {/* 4. Living Profile */}
-        <LocalityLivingProfile locality={locality} />
+        <section id="living">
+          <LocalityLivingProfile locality={locality} />
+        </section>
 
         {/* 5. Housing Context */}
-        <LocalityPropertyContext locality={locality} />
+        <section id="property">
+          <LocalityPropertyContext locality={locality} />
+        </section>
 
         {/* 6. Rentals & PG */}
-        <LocalityRentalContext locality={locality} />
+        <section id="rental">
+          <LocalityRentalContext locality={locality} />
+        </section>
 
         {/* 7. Connectivity */}
-        <LocalityConnectivity locality={locality} />
+        <section id="connectivity">
+          <LocalityConnectivity locality={locality} />
+        </section>
 
         {/* 8–9: Access to Education & Healthcare */}
-        <LocalityEducationAccess locality={locality} />
-        <LocalityHealthcareAccess locality={locality} />
+        <section id="education">
+          <LocalityEducationAccess locality={locality} />
+        </section>
+        <section id="healthcare">
+          <LocalityHealthcareAccess locality={locality} />
+        </section>
 
         {/* 10–11: Economy + Markets */}
-        <LocalityCommercialMarkets locality={locality} />
-        <LocalityLocalEconomy locality={locality} />
+        <section id="markets">
+          <LocalityCommercialMarkets locality={locality} />
+        </section>
+        <section id="economy">
+          <LocalityLocalEconomy locality={locality} />
+        </section>
 
         {/* 12. Micro Localities */}
-        <LocalityMicroLocalities locality={locality} />
+        <section id="micro-areas">
+          <LocalityMicroLocalities locality={locality} />
+        </section>
 
         {/* 13. Nearby Localities */}
-        <LocalityNearby locality={locality} />
+        <section id="nearby">
+          <LocalityNearby locality={locality} />
+        </section>
 
         {/* 14. Major Landmarks */}
-        <LocalityLandmarks locality={locality} />
+        <section id="landmarks">
+          <LocalityLandmarks locality={locality} />
+        </section>
+
+        {/* 14.5 Mini Map (PATCH-06) */}
+        <LocalityMiniMap locality={locality} />
 
         {/* 15. Why People Choose */}
         <LocalityWhyPeopleChoose locality={locality} />
@@ -153,7 +187,9 @@ export default function LocalityPage() {
         <LocalityMerchants localityName={locality.name} />
 
         {/* 20. Extended FAQ (V3 — EEAT) */}
-        <LocalityExtendedFAQ locality={locality} />
+        <section id="faq">
+          <LocalityExtendedFAQ locality={locality} />
+        </section>
 
         {/* 21. Long-Tail SEO Footer */}
         <LocalityLongTailFooter locality={locality} />
@@ -161,7 +197,7 @@ export default function LocalityPage() {
         {/* 22. Internal Link Graph */}
         <LocalityInternalLinks locality={locality} />
 
-        {/* 23. NEW — Semantic Intent Footer (High-Coverage Category Index) */}
+        {/* 23. Semantic Intent Footer with Accordions (PATCH-04) */}
         <LocalityIntentFooter locality={locality} />
       </main>
     </AppLayout>
