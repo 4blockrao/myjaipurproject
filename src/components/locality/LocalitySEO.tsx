@@ -30,21 +30,21 @@ export function LocalitySEO({ locality }: LocalitySEOProps) {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
   
-  // V3 Title format: {Locality}, Jaipur – Locality Guide, Ward, Pin Code, Map, Nearby Areas (2025)
-  const title = `${locality.name}, Jaipur – Locality Guide, Ward, Pin Code, Map, Nearby Areas (${currentYear})`;
+  // Unique SEO-optimized title: {Locality}, Jaipur — Locality Guide, Ward, PIN, Nearby Areas
+  const title = `${locality.name}, Jaipur — Locality Guide, Ward, PIN, Nearby Areas`;
 
-  // V3 Meta description: 150-165 chars, factual, no adjectives
+  // Unique meta description: 150-160 chars, factual, no adjectives
   const nearbyList = (locality.nearby_localities || [])
     .slice(0, 3)
     .map((l: string) => l.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()))
     .join(", ") || "central Jaipur";
   
   const pinCode = locality.pin_codes?.[0] || "302xxx";
-  const wardInfo = locality.ward_number ? `Ward ${locality.ward_number}` : "Jaipur";
+  const wardInfo = locality.ward_number ? `Ward ${locality.ward_number}` : "";
   const zoneInfo = locality.zone ? `${locality.zone} Zone` : "Jaipur";
   
-  // Factual, neutral description without adjectives
-  const description = `${locality.name} is located in ${zoneInfo}, ${wardInfo}. PIN: ${pinCode}. Near ${nearbyList}. Find ward details, pin codes, map, connectivity & local information.`.slice(0, 165);
+  // Unique, factual description for this locality
+  const description = `${locality.name} in ${zoneInfo}, Jaipur${wardInfo ? `, ${wardInfo}` : ""}. PIN ${pinCode}. Near ${nearbyList}. Ward details, pin codes, map & connectivity.`.slice(0, 160);
 
   const canonicalUrl = `https://www.jaipurcircle.com/jaipur/${locality.slug}`;
   const ogImage = "https://www.jaipurcircle.com/og-images/locality-default.png";
