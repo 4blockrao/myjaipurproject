@@ -10,7 +10,13 @@ import {
   BookOpen, 
   ChevronRight,
   Grid3X3,
-  Search
+  Search,
+  Filter,
+  Sparkles,
+  Calendar,
+  Music,
+  Palette,
+  GraduationCap
 } from 'lucide-react';
 import { Category } from '@/hooks/useCategories';
 
@@ -21,12 +27,37 @@ interface CategoryHubProps {
   relatedCategories: Category[];
 }
 
+// Event-specific filters for SEO ranking
+const eventFilters = [
+  { label: "Free Events", slug: "free", icon: Sparkles },
+  { label: "Ticketed Events", slug: "paid", icon: Calendar },
+  { label: "Workshops & Learning", slug: "workshops", icon: GraduationCap },
+  { label: "Outdoor Events", slug: "outdoor", icon: MapPin },
+  { label: "Indoor Events", slug: "indoor", icon: Grid3X3 },
+  { label: "Trending Events", slug: "trending", icon: TrendingUp },
+  { label: "Premium Events", slug: "premium", icon: Sparkles },
+];
+
+// Micro-topics for locality enrichment
+const localityMicroTopics = ['Comedy', 'Music', 'Exhibitions', 'Workshops', 'Food Fests'];
+
+// Event guides for authority building
+const eventGuides = [
+  { title: "Best Weekend Events in Jaipur", slug: "weekend-events-jaipur" },
+  { title: "Top Event Venues in Jaipur", slug: "event-venues-jaipur" },
+  { title: "Guide to Cultural Festivals in Jaipur", slug: "cultural-festivals-jaipur" },
+  { title: "Live Music & Gig Spots in Jaipur", slug: "live-music-jaipur" },
+];
+
 export const CategoryHub: React.FC<CategoryHubProps> = ({
   category,
   childCategories,
   siblingCategories,
   relatedCategories,
 }) => {
+  // Check if this is an events category
+  const isEventsCategory = category.slug === 'events' || category.pillar_slug === 'events';
+  
   // Popular Jaipur localities for category exploration
   const popularLocalities = [
     { name: 'Malviya Nagar', slug: 'malviya-nagar' },
@@ -38,7 +69,6 @@ export const CategoryHub: React.FC<CategoryHubProps> = ({
   ];
   
   const getIconComponent = (iconName: string | null) => {
-    // Return a default icon if none specified
     return <Grid3X3 className="h-5 w-5" />;
   };
   
@@ -113,7 +143,33 @@ export const CategoryHub: React.FC<CategoryHubProps> = ({
         </section>
       )}
       
-      {/* Popular Localities Section */}
+      {/* PATCH 1: Event Smart Filters - Only for Events Category */}
+      {isEventsCategory && (
+        <section className="bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
+            <Filter className="h-5 w-5 text-primary" />
+            Filter Events by Type
+          </h2>
+          
+          <div className="flex flex-wrap gap-2">
+            {eventFilters.map((filter) => {
+              const IconComponent = filter.icon;
+              return (
+                <Link
+                  key={filter.slug}
+                  to={`/events?filter=${filter.slug}`}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border/50 bg-background hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                >
+                  <IconComponent className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">{filter.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
+      
+      {/* PATCH 2: Enhanced Locality Links with Micro-Topics */}
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
@@ -131,11 +187,17 @@ export const CategoryHub: React.FC<CategoryHubProps> = ({
             <Link
               key={locality.slug}
               to={`/jaipur/${locality.slug}/${category.slug}`}
-              className="p-3 rounded-lg border border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-colors text-center"
+              className="p-3 rounded-lg border border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-colors text-center group"
             >
-              <span className="text-sm font-medium text-foreground">
+              <span className="text-sm font-medium text-foreground block">
                 {locality.name}
               </span>
+              {/* Micro-topics for SEO enrichment */}
+              {isEventsCategory && (
+                <span className="text-[10px] text-muted-foreground mt-1 block opacity-70 group-hover:opacity-100 transition-opacity">
+                  {localityMicroTopics.slice(0, 3).join(' • ')}
+                </span>
+              )}
             </Link>
           ))}
         </div>
@@ -156,6 +218,11 @@ export const CategoryHub: React.FC<CategoryHubProps> = ({
             `Top rated ${category.name.toLowerCase()}`,
             `${category.name} in Malviya Nagar`,
             `Affordable ${category.name.toLowerCase()} Jaipur`,
+            ...(isEventsCategory ? [
+              'Free events in Jaipur',
+              'Events this weekend Jaipur',
+              'Outdoor events Jaipur',
+            ] : []),
           ].map((search, index) => (
             <Badge 
               key={index} 
@@ -168,6 +235,32 @@ export const CategoryHub: React.FC<CategoryHubProps> = ({
           ))}
         </div>
       </section>
+      
+      {/* PATCH 3: Event Guides Block - Authority Hub */}
+      {isEventsCategory && (
+        <section className="border border-primary/20 bg-primary/5 rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-4">
+            <BookOpen className="h-5 w-5 text-primary" />
+            Event Guides & Insights
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {eventGuides.map((guide) => (
+              <Link
+                key={guide.slug}
+                to={`/news/${guide.slug}`}
+                className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border/50 hover:border-primary/30 hover:shadow-sm transition-all"
+              >
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Palette className="h-4 w-4 text-primary" />
+                </div>
+                <span className="text-sm font-medium text-foreground">{guide.title}</span>
+                <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
       
       {/* Related Categories */}
       {(siblingCategories.length > 0 || relatedCategories.length > 0) && (
@@ -233,6 +326,31 @@ export const CategoryHub: React.FC<CategoryHubProps> = ({
               Check our deals section for current offers.
             </p>
           </div>
+          
+          {/* Event-specific FAQs */}
+          {isEventsCategory && (
+            <>
+              <div>
+                <h3 className="font-medium text-foreground mb-1">
+                  Are there free events in Jaipur?
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Yes! Jaipur hosts many free events including cultural festivals, art exhibitions, 
+                  community gatherings, and public celebrations throughout the year.
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="font-medium text-foreground mb-1">
+                  What are the best event venues in Jaipur?
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Popular event venues in Jaipur include Jawahar Kala Kendra, Birla Auditorium, 
+                  Albert Hall Museum grounds, and various heritage hotels and convention centers.
+                </p>
+              </div>
+            </>
+          )}
         </div>
       </section>
       
