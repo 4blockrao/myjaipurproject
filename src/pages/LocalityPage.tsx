@@ -25,6 +25,12 @@ import { Link } from 'react-router-dom';
 import { MapPin, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+// Locality Experience & Intent Components (Pilot: Jhotwara)
+import LocalityLivingProfile from '@/components/locality/LocalityLivingProfile';
+import LocalityPropertyContext from '@/components/locality/LocalityPropertyContext';
+import { LocalityEducationAccess, LocalityHealthcareAccess } from '@/components/locality/LocalityAccessibilityBlocks';
+import LocalityWhyPeopleChoose from '@/components/locality/LocalityWhyPeopleChoose';
+
 export default function LocalityPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: locality, isLoading, error } = useLocality(slug || '');
@@ -98,6 +104,17 @@ export default function LocalityPage() {
 
         {/* 3. About the Locality */}
         <LocalityAbout locality={locality} />
+
+        {/* Pilot: Locality Experience & Intent Sections (Jhotwara only) */}
+        {locality.slug === "jhotwara" && (
+          <>
+            <LocalityLivingProfile locality={locality} />
+            <LocalityPropertyContext locality={locality} />
+            <LocalityEducationAccess locality={locality} />
+            <LocalityHealthcareAccess locality={locality} />
+            <LocalityWhyPeopleChoose locality={locality} />
+          </>
+        )}
 
         {/* 4. Micro Localities */}
         <LocalityMicroLocalities locality={locality} />
