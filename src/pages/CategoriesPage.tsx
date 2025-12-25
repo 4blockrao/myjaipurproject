@@ -1,71 +1,155 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Utensils, Scissors, ShoppingBag, Smartphone, Dumbbell, Car, Camera, Plane, GraduationCap } from "lucide-react";
 import { Link } from "react-router-dom";
 import NativeMobileHeader from "@/components/layout/NativeMobileHeader";
 import NativeBottomNav from "@/components/home/NativeBottomNav";
+import { Skeleton } from "@/components/ui/skeleton";
+import { 
+  Utensils, Scissors, ShoppingBag, Smartphone, Dumbbell, Car, Camera, Plane, 
+  GraduationCap, Briefcase, Home, Heart, Calendar, Newspaper, Building, BookOpen,
+  MapPin, Users, Star, Sparkles
+} from "lucide-react";
 
-const categories = [
-  { id: "Food & Dining", name: "Food & Dining", icon: Utensils, emoji: "🍽️", description: "Restaurants, cafes & dining", color: "bg-orange-100 dark:bg-orange-900/20", iconColor: "text-orange-600" },
-  { id: "Beauty & Wellness", name: "Beauty & Wellness", icon: Scissors, emoji: "💆", description: "Salons, spas & wellness", color: "bg-pink-100 dark:bg-pink-900/20", iconColor: "text-pink-600" },
-  { id: "Shopping", name: "Shopping", icon: ShoppingBag, emoji: "🛍️", description: "Fashion & lifestyle", color: "bg-blue-100 dark:bg-blue-900/20", iconColor: "text-blue-600" },
-  { id: "Electronics", name: "Electronics", icon: Smartphone, emoji: "📱", description: "Gadgets & tech", color: "bg-purple-100 dark:bg-purple-900/20", iconColor: "text-purple-600" },
-  { id: "Health & Fitness", name: "Health & Fitness", icon: Dumbbell, emoji: "💪", description: "Gyms & fitness", color: "bg-green-100 dark:bg-green-900/20", iconColor: "text-green-600" },
-  { id: "Automotive", name: "Automotive", icon: Car, emoji: "🚗", description: "Car services", color: "bg-gray-100 dark:bg-gray-900/20", iconColor: "text-gray-600" },
-  { id: "Services", name: "Services", icon: Camera, emoji: "🔧", description: "Professional services", color: "bg-yellow-100 dark:bg-yellow-900/20", iconColor: "text-yellow-600" },
-  { id: "Travel", name: "Travel", icon: Plane, emoji: "✈️", description: "Tours & travel", color: "bg-cyan-100 dark:bg-cyan-900/20", iconColor: "text-cyan-600" },
-  { id: "Education", name: "Education", icon: GraduationCap, emoji: "📚", description: "Courses & learning", color: "bg-indigo-100 dark:bg-indigo-900/20", iconColor: "text-indigo-600" }
-];
+// Icon mapping for categories
+const iconMap: Record<string, React.ElementType> = {
+  'restaurants': Utensils,
+  'food': Utensils,
+  'dining': Utensils,
+  'beauty': Scissors,
+  'wellness': Heart,
+  'health': Heart,
+  'shopping': ShoppingBag,
+  'electronics': Smartphone,
+  'fitness': Dumbbell,
+  'gyms': Dumbbell,
+  'automotive': Car,
+  'services': Camera,
+  'travel': Plane,
+  'education': GraduationCap,
+  'jobs': Briefcase,
+  'real-estate': Home,
+  'events': Calendar,
+  'news': Newspaper,
+  'business': Building,
+  'guides': BookOpen,
+  'localities': MapPin,
+};
+
+// Color mapping for pillar groups
+const pillarColors: Record<string, { bg: string; icon: string }> = {
+  'core': { bg: 'bg-primary/10', icon: 'text-primary' },
+  'growth': { bg: 'bg-green-100 dark:bg-green-900/20', icon: 'text-green-600' },
+  'revenue': { bg: 'bg-amber-100 dark:bg-amber-900/20', icon: 'text-amber-600' },
+  'authority': { bg: 'bg-purple-100 dark:bg-purple-900/20', icon: 'text-purple-600' },
+};
+
+const getIcon = (slug: string): React.ElementType => {
+  for (const [key, icon] of Object.entries(iconMap)) {
+    if (slug.includes(key)) return icon;
+  }
+  return Sparkles;
+};
 
 const CategoriesPage = () => {
-  const [dealCounts, setDealCounts] = useState<Record<string, number>>({});
+  // Fetch all pillar categories
+  const { data: pillars = [], isLoading } = useQuery({
+    queryKey: ['all-pillars'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .is('parent_slug', null)
+        .eq('is_active', true)
+        .order('pillar_group')
+        .order('name');
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
-  useEffect(() => {
-    fetchDealCounts();
-  }, []);
+  // Group pillars by pillar_group
+  const groupedPillars = pillars.reduce((acc, pillar) => {
+    const group = pillar.pillar_group || 'other';
+    if (!acc[group]) acc[group] = [];
+    acc[group].push(pillar);
+    return acc;
+  }, {} as Record<string, typeof pillars>);
 
-  const fetchDealCounts = async () => {
-    const { data: deals } = await supabase
-      .from('deals')
-      .select('category')
-      .eq('is_active', true)
-      .eq('approval_status', 'approved');
-
-    const counts = deals?.reduce((acc, deal) => {
-      acc[deal.category] = (acc[deal.category] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>) || {};
-
-    setDealCounts(counts);
+  const groupLabels: Record<string, string> = {
+    'core': 'Core Pillars',
+    'growth': 'Growth Pillars',
+    'revenue': 'Revenue Pillars',
+    'authority': 'Authority Pillars',
+    'other': 'Other Categories',
   };
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <NativeMobileHeader title="Categories" subtitle="Browse by category" backPath="/" />
+      <NativeMobileHeader title="Categories" subtitle="Browse all categories" backPath="/" />
 
-      <div className="p-4">
-        <div className="grid grid-cols-2 gap-3">
-          {categories.map((category) => (
-            <Link key={category.id} to={`/deals?category=${encodeURIComponent(category.id)}`}>
-              <Card className={`h-full hover:shadow-md transition-all active:scale-[0.98] ${category.color}`}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <span className="text-3xl">{category.emoji}</span>
-                    {dealCounts[category.id] > 0 && (
-                      <Badge variant="secondary" className="text-[10px] px-1.5">
-                        {dealCounts[category.id]}
-                      </Badge>
-                    )}
-                  </div>
-                  <h3 className="font-semibold text-sm text-foreground line-clamp-1">{category.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{category.description}</p>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
+      <div className="p-4 space-y-6">
+        {isLoading ? (
+          <div className="grid grid-cols-2 gap-3">
+            {[...Array(8)].map((_, i) => (
+              <Skeleton key={i} className="h-28 rounded-xl" />
+            ))}
+          </div>
+        ) : (
+          Object.entries(groupLabels).map(([group, label]) => {
+            const categories = groupedPillars[group];
+            if (!categories?.length) return null;
+            
+            const colors = pillarColors[group] || pillarColors.core;
+            
+            return (
+              <section key={group}>
+                <h2 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <Badge variant="outline" className="text-xs">
+                    {label}
+                  </Badge>
+                </h2>
+                <div className="grid grid-cols-2 gap-3">
+                  {categories.map((category) => {
+                    const Icon = getIcon(category.slug);
+                    return (
+                      <Link key={category.slug} to={`/categories/${category.slug}`}>
+                        <Card className={`h-full hover:shadow-md transition-all active:scale-[0.98] ${colors.bg}`}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className={`p-2 rounded-lg bg-background/50 ${colors.icon}`}>
+                                <Icon className="h-5 w-5" />
+                              </div>
+                            </div>
+                            <h3 className="font-semibold text-sm text-foreground line-clamp-2">
+                              {category.name}
+                            </h3>
+                            {category.description && (
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                {category.description}
+                              </p>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })
+        )}
+
+        {!isLoading && pillars.length === 0 && (
+          <div className="text-center py-12">
+            <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">No Categories Found</h3>
+            <p className="text-sm text-muted-foreground">
+              Categories are being set up. Check back soon!
+            </p>
+          </div>
+        )}
       </div>
 
       <NativeBottomNav />

@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Mail, Phone, Facebook, Twitter, Instagram, Building, Home, Newspaper } from 'lucide-react';
+import { MapPin, Mail, Facebook, Twitter, Instagram, Building, Home, Grid3X3 } from 'lucide-react';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Global Footer Component
@@ -12,24 +14,34 @@ export const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [showFullAbout, setShowFullAbout] = useState(false);
 
+  // Fetch pillar categories from database
+  const { data: pillarCategories = [] } = useQuery({
+    queryKey: ['footer-pillars'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('name, slug, pillar_group')
+        .is('parent_slug', null)
+        .eq('is_active', true)
+        .order('pillar_group')
+        .order('name');
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 1000 * 60 * 30, // 30 minutes
+  });
+
   const quickLinks = [
     { label: 'News', href: '/news' },
     { label: 'Events', href: '/events' },
     { label: 'Deals', href: '/deals' },
-    { label: 'Categories', href: '/categories' },
+    { label: 'All Categories', href: '/categories' },
   ];
 
   const companyLinks = [
     { label: 'About Us', href: '/about' },
     { label: 'For Businesses', href: '/merchant-onboarding' },
     { label: 'Help & Support', href: '/help' },
-  ];
-
-  const categoryLinks = [
-    { label: 'Food & Dining', href: '/categories?cat=Food%20%26%20Dining' },
-    { label: 'Shopping', href: '/categories?cat=Shopping' },
-    { label: 'Beauty & Wellness', href: '/categories?cat=Beauty%20%26%20Wellness' },
-    { label: 'Services', href: '/categories?cat=Services' },
   ];
 
   const localityLinks = [
@@ -178,18 +190,31 @@ export const Footer = () => {
 
           {/* Categories */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Categories</h3>
+            <h3 className="font-semibold text-foreground mb-4 flex items-center gap-1">
+              <Grid3X3 className="h-4 w-4" />
+              Categories
+            </h3>
             <ul className="space-y-2">
-              {categoryLinks.map((link) => (
-                <li key={link.href}>
+              {pillarCategories.slice(0, 10).map((cat) => (
+                <li key={cat.slug}>
                   <Link 
-                    to={link.href}
+                    to={`/categories/${cat.slug}`}
                     className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
-                    {link.label}
+                    {cat.name}
                   </Link>
                 </li>
               ))}
+              {pillarCategories.length > 10 && (
+                <li>
+                  <Link 
+                    to="/categories"
+                    className="text-sm text-primary font-medium hover:underline"
+                  >
+                    View All Categories →
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
 
