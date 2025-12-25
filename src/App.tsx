@@ -153,9 +153,10 @@ function App() {
               <Route path="/install" element={<InstallPage />} />
               <Route path="/sitemap" element={<SitemapPage />} />
               
-              {/* Locality Pages */}
+              {/* Locality & Zone Pages */}
               <Route path="/jaipur" element={<JaipurPage />} />
               <Route path="/jaipur/all" element={<LocalitiesIndexPage />} />
+              <Route path="/jaipur/zones/:zoneSlug" element={<ZonePage />} />
               <Route path="/jaipur/:slug" element={<LocalityPage />} />
               
               {/* Legacy redirects */}
