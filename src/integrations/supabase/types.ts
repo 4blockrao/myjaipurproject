@@ -14,6 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: number
+          is_active: boolean | null
+          name: string
+          parent_slug: string | null
+          pillar_group: string | null
+          pillar_slug: string
+          schema_type: string | null
+          seo_description: string | null
+          seo_title: string | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: number
+          is_active?: boolean | null
+          name: string
+          parent_slug?: string | null
+          pillar_group?: string | null
+          pillar_slug: string
+          schema_type?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: number
+          is_active?: boolean | null
+          name?: string
+          parent_slug?: string | null
+          pillar_group?: string | null
+          pillar_slug?: string
+          schema_type?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      category_locality_pages: {
+        Row: {
+          category_slug: string
+          created_at: string | null
+          id: number
+          is_enabled: boolean | null
+          locality_slug: string
+          seo_description: string | null
+          seo_title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category_slug: string
+          created_at?: string | null
+          id?: number
+          is_enabled?: boolean | null
+          locality_slug: string
+          seo_description?: string | null
+          seo_title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category_slug?: string
+          created_at?: string | null
+          id?: number
+          is_enabled?: boolean | null
+          locality_slug?: string
+          seo_description?: string | null
+          seo_title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       challenge_participants: {
         Row: {
           challenge_id: string | null
@@ -1493,6 +1577,39 @@ export type Database = {
           total_referrals?: number | null
           updated_at?: string | null
           user_id_code?: string | null
+        }
+        Relationships: []
+      }
+      real_estate_categories: {
+        Row: {
+          created_at: string | null
+          id: number
+          is_active: boolean | null
+          name: string
+          pillar_slug: string | null
+          property_type: string | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          is_active?: boolean | null
+          name: string
+          pillar_slug?: string | null
+          property_type?: string | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          is_active?: boolean | null
+          name?: string
+          pillar_slug?: string | null
+          property_type?: string | null
+          slug?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
