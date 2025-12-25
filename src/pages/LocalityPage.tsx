@@ -20,6 +20,7 @@ import { LocalityEvents } from '@/components/locality/LocalityEvents';
 import { LocalityDeals } from '@/components/locality/LocalityDeals';
 import { LocalityMerchants } from '@/components/locality/LocalityMerchants';
 import { LocalityFAQ } from '@/components/locality/LocalityFAQ';
+import { LocalityInternalLinks } from '@/components/locality/LocalityInternalLinks';
 import { Link } from 'react-router-dom';
 import { MapPin, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,7 +33,9 @@ export default function LocalityPage() {
     return (
       <AppLayout>
         <div className="container mx-auto px-4 py-8 max-w-5xl">
-          <Skeleton className="h-8 w-64 mb-6" />
+          <Skeleton className="h-6 w-48 mb-6" />
+          <Skeleton className="h-10 w-72 mb-2" />
+          <Skeleton className="h-5 w-96 mb-8" />
           <Skeleton className="h-32 w-full mb-8 rounded-xl" />
           <Skeleton className="h-48 w-full mb-8" />
           <Skeleton className="h-24 w-full mb-8" />
@@ -54,9 +57,9 @@ export default function LocalityPage() {
             The locality "{slug}" could not be found. It may not be added yet.
           </p>
           <Button asChild>
-            <Link to="/">
+            <Link to="/jaipur">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
+              Browse All Localities
             </Link>
           </Button>
         </div>
@@ -66,13 +69,14 @@ export default function LocalityPage() {
 
   return (
     <AppLayout>
+      {/* SEO with all schemas */}
       <LocalitySEO locality={locality} />
       
       <main className="container mx-auto px-4 py-6 max-w-5xl">
-        {/* Breadcrumb */}
+        {/* Breadcrumb Navigation */}
         <LocalityBreadcrumb locality={locality} />
         
-        {/* Page Title */}
+        {/* Page Title (H1) */}
         <header className="mb-6">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">
             {locality.name}, Jaipur
@@ -81,82 +85,49 @@ export default function LocalityPage() {
             {locality.zone && `${locality.zone} Zone`}
             {locality.zone && locality.municipality && ' • '}
             {locality.municipality}
-            {(locality.zone || locality.municipality) && locality.pin_codes?.length && ' • '}
-            {locality.pin_codes?.length && `PIN: ${locality.pin_codes[0]}`}
+            {(locality.zone || locality.municipality) && locality.pin_codes?.length ? ' • ' : ''}
+            {locality.pin_codes?.length ? `PIN: ${locality.pin_codes[0]}` : ''}
           </p>
         </header>
 
-        {/* AI Summary */}
+        {/* 1. AI Summary Box */}
         <LocalityAISummary locality={locality} />
 
-        {/* Snapshot Table */}
+        {/* 2. Locality Snapshot */}
         <LocalitySnapshot locality={locality} />
 
-        {/* About */}
+        {/* 3. About the Locality */}
         <LocalityAbout locality={locality} />
 
-        {/* Micro Localities */}
+        {/* 4. Micro Localities */}
         <LocalityMicroLocalities locality={locality} />
 
-        {/* Nearby Localities */}
+        {/* 5. Nearby Localities */}
         <LocalityNearby locality={locality} />
 
-        {/* Major Landmarks */}
+        {/* 6. Major Landmarks */}
         <LocalityLandmarks locality={locality} />
 
-        {/* Connectivity */}
+        {/* 7. Connectivity Guide */}
         <LocalityConnectivity locality={locality} />
 
-        {/* Local News */}
+        {/* 8. Local News */}
         <LocalityNews localityName={locality.name} />
 
-        {/* Upcoming Events */}
+        {/* 9. Upcoming Events */}
         <LocalityEvents localityName={locality.name} />
 
-        {/* Deals & Offers */}
+        {/* 10. Deals & Offers */}
         <LocalityDeals localityName={locality.name} />
 
-        {/* Restaurants & Services */}
+        {/* 11. Restaurants & Services */}
         <LocalityMerchants localityName={locality.name} />
 
-        {/* FAQ */}
+        {/* 12. FAQ Section */}
         <LocalityFAQ locality={locality} />
 
-        {/* Internal Links Footer */}
-        <footer className="mt-12 pt-8 border-t border-border">
-          <h3 className="text-lg font-semibold text-foreground mb-4">
-            Explore More on JaipurCircle
-          </h3>
-          <div className="flex flex-wrap gap-3">
-            <Link 
-              to="/jaipur" 
-              className="text-sm text-primary hover:underline"
-            >
-              All Jaipur Localities
-            </Link>
-            <span className="text-muted-foreground">•</span>
-            <Link 
-              to="/deals" 
-              className="text-sm text-primary hover:underline"
-            >
-              Deals in Jaipur
-            </Link>
-            <span className="text-muted-foreground">•</span>
-            <Link 
-              to="/events" 
-              className="text-sm text-primary hover:underline"
-            >
-              Events in Jaipur
-            </Link>
-            <span className="text-muted-foreground">•</span>
-            <Link 
-              to="/news" 
-              className="text-sm text-primary hover:underline"
-            >
-              Jaipur News
-            </Link>
-          </div>
-        </footer>
+        {/* 13. Internal Links Footer */}
+        <LocalityInternalLinks locality={locality} />
       </main>
     </AppLayout>
   );
