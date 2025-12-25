@@ -28,18 +28,32 @@ export function LocalitySEO({ locality }: LocalitySEOProps) {
   if (!locality) return null;
 
   const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
   
-  // Title format: {Locality Name}, Jaipur – Map, Wards, News, Places, Pin Codes (2025)
-  const title = `${locality.name}, Jaipur – Map, Wards, News, Places, Pin Codes (${currentYear})`;
+  // V3 Title format: {Locality}, Jaipur – Locality Guide, Ward, Pin Code, Map, Nearby Areas (2025)
+  const title = `${locality.name}, Jaipur – Locality Guide, Ward, Pin Code, Map, Nearby Areas (${currentYear})`;
 
-  // Meta description: 150-160 chars with locality name, zone, ward, nearby, known for
-  const nearbyList = (locality.nearby_localities || []).slice(0, 3).join(", ") || "central Jaipur";
-  const characteristics = (locality.tags || []).slice(0, 2).join(" & ") || "residential area";
+  // V3 Meta description: 150-165 chars, factual, no adjectives
+  const nearbyList = (locality.nearby_localities || [])
+    .slice(0, 3)
+    .map((l: string) => l.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()))
+    .join(", ") || "central Jaipur";
   
-  const description = `${locality.name} in ${locality.zone || "Jaipur"} Zone, Ward ${locality.ward_number || "N/A"}. Known for ${characteristics}. Near ${nearbyList}. PIN: ${locality.pin_codes?.[0] || "302xxx"}. Explore map, news & more.`.slice(0, 160);
+  const pinCode = locality.pin_codes?.[0] || "302xxx";
+  const wardInfo = locality.ward_number ? `Ward ${locality.ward_number}` : "Jaipur";
+  const zoneInfo = locality.zone ? `${locality.zone} Zone` : "Jaipur";
+  
+  // Factual, neutral description without adjectives
+  const description = `${locality.name} is located in ${zoneInfo}, ${wardInfo}. PIN: ${pinCode}. Near ${nearbyList}. Find ward details, pin codes, map, connectivity & local information.`.slice(0, 165);
 
   const canonicalUrl = `https://www.jaipurcircle.com/jaipur/${locality.slug}`;
   const ogImage = "https://www.jaipurcircle.com/og-images/locality-default.png";
+  
+  // EEAT Signal: Last updated timestamp
+  const lastUpdated = `${currentMonth} ${currentYear}`;
+  
+  // Characteristics for schema
+  const characteristics = (locality.tags || []).slice(0, 2).join(" & ") || "residential area";
 
   // Place Schema
   const placeSchema = {

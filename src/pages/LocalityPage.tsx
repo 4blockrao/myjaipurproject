@@ -32,6 +32,7 @@ import { LocalityExtendedFAQ } from '@/components/locality/LocalityExtendedFAQ';
 import { LocalityLongTailFooter } from '@/components/locality/LocalityLongTailFooter';
 import { LocalityInternalLinks } from '@/components/locality/LocalityInternalLinks';
 import LocalityWhyPeopleChoose from '@/components/locality/LocalityWhyPeopleChoose';
+import { LocalityIntentFooter } from '@/components/locality/LocalityIntentFooter';
 
 export default function LocalityPage() {
   const { slug } = useParams<{ slug: string }>();
