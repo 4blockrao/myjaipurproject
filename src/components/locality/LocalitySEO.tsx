@@ -228,6 +228,12 @@ export function LocalitySEO({ locality }: LocalitySEOProps) {
       <meta name="keywords" content={keywords} />
       <link rel="canonical" href={canonicalUrl} />
 
+      {/* EEAT Trust Signals */}
+      <meta name="last-updated" content={`Information verified as of ${lastUpdated}`} />
+      <meta name="data-sources" content="Municipal ward data, urban zone references, locality boundaries, public infrastructure datasets" />
+      <meta name="author" content="JaipurCircle Editorial Team" />
+      <meta name="content-type" content="Locality Information Guide" />
+
       {/* Open Graph */}
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
@@ -236,6 +242,7 @@ export function LocalitySEO({ locality }: LocalitySEOProps) {
       <meta property="og:image" content={ogImage} />
       <meta property="og:site_name" content="JaipurCircle" />
       <meta property="og:locale" content="en_IN" />
+      <meta property="article:modified_time" content={new Date().toISOString()} />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
