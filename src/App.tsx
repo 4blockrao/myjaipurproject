@@ -57,6 +57,7 @@ import SitemapPage from "./pages/SitemapPage";
 // Locality Pages
 import LocalityPage from "./pages/LocalityPage";
 import LocalitiesIndexPage from "./pages/LocalitiesIndexPage";
+import JaipurPage from "./pages/JaipurPage";
 import InstallPage from "./pages/InstallPage";
 
 const queryClient = new QueryClient({
@@ -149,7 +150,8 @@ function App() {
               <Route path="/sitemap" element={<SitemapPage />} />
               
               {/* Locality Pages */}
-              <Route path="/jaipur" element={<LocalitiesIndexPage />} />
+              <Route path="/jaipur" element={<JaipurPage />} />
+              <Route path="/jaipur/all" element={<LocalitiesIndexPage />} />
               <Route path="/jaipur/:slug" element={<LocalityPage />} />
               
               {/* Legacy redirects */}

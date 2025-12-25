@@ -6,7 +6,8 @@ interface LocalityInternalLinksProps {
 
 export function LocalityInternalLinks({ locality }: LocalityInternalLinksProps) {
   const links = [
-    { href: "/jaipur", label: "All Jaipur Localities" },
+    { href: "/jaipur", label: "Jaipur City Guide" },
+    { href: "/jaipur/all", label: "All Localities" },
     { href: "/news", label: "Jaipur News" },
     { href: "/events", label: "Events in Jaipur" },
     { href: "/deals", label: "Deals in Jaipur" },
