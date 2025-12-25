@@ -97,10 +97,15 @@ const ExplorePage = () => {
   };
 
   return (
-    <AppLayout user={user} profile={profile}>
-      <div className="min-h-screen bg-gray-50">
+    <AppLayout 
+      title="Explore Jaipur" 
+      subtitle="Discover amazing deals" 
+      showBackButton={true} 
+      backPath="/"
+    >
+      <div className="bg-background">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-16">
+        <div className="bg-gradient-to-r from-primary to-primary/70 text-primary-foreground py-16">
           <div className="container mx-auto px-4 text-center">
             <div className="flex items-center justify-center mb-6">
               <Compass className="w-12 h-12 mr-3" />
@@ -111,7 +116,7 @@ const ExplorePage = () => {
             {/* Search Bar */}
             <div className="max-w-2xl mx-auto">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                 <Input
                   type="text"
                   placeholder="Search for deals, restaurants, services..."
@@ -129,30 +134,30 @@ const ExplorePage = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
             <Card className="text-center">
               <CardContent className="p-6">
-                <Gift className="w-8 h-8 text-pink-600 mx-auto mb-2" />
-                <h3 className="text-2xl font-bold text-gray-900">500+</h3>
-                <p className="text-gray-600">Active Deals</p>
+                <Gift className="w-8 h-8 text-primary mx-auto mb-2" />
+                <h3 className="text-2xl font-bold text-foreground">500+</h3>
+                <p className="text-muted-foreground">Active Deals</p>
               </CardContent>
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
-                <Users className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                <h3 className="text-2xl font-bold text-gray-900">200+</h3>
-                <p className="text-gray-600">Merchants</p>
+                <Users className="w-8 h-8 text-primary mx-auto mb-2" />
+                <h3 className="text-2xl font-bold text-foreground">200+</h3>
+                <p className="text-muted-foreground">Merchants</p>
               </CardContent>
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
-                <Star className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-                <h3 className="text-2xl font-bold text-gray-900">4.8</h3>
-                <p className="text-gray-600">Avg Rating</p>
+                <Star className="w-8 h-8 text-primary mx-auto mb-2" />
+                <h3 className="text-2xl font-bold text-foreground">4.8</h3>
+                <p className="text-muted-foreground">Avg Rating</p>
               </CardContent>
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
-                <Award className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                <h3 className="text-2xl font-bold text-gray-900">50K+</h3>
-                <p className="text-gray-600">Happy Users</p>
+                <Award className="w-8 h-8 text-primary mx-auto mb-2" />
+                <h3 className="text-2xl font-bold text-foreground">50K+</h3>
+                <p className="text-muted-foreground">Happy Users</p>
               </CardContent>
             </Card>
           </div>
@@ -160,7 +165,7 @@ const ExplorePage = () => {
           {/* Featured Deals */}
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-bold text-gray-900">Featured Deals</h2>
+              <h2 className="text-3xl font-bold text-foreground">Featured Deals</h2>
               <Link to="/deals">
                 <Button variant="outline">View All</Button>
               </Link>
@@ -183,21 +188,21 @@ const ExplorePage = () => {
                 {featuredDeals.map((deal) => (
                   <Link key={deal.id} to={`/deal/${deal.id}`}>
                     <Card className="hover:shadow-lg transition-shadow">
-                      <div className="aspect-video bg-gradient-to-br from-pink-100 to-orange-100 rounded-t-lg flex items-center justify-center relative">
+                      <div className="aspect-video bg-gradient-to-br from-primary/10 to-primary/5 rounded-t-lg flex items-center justify-center relative">
                         <div className="text-6xl">🍽️</div>
-                        <Badge className="absolute top-4 left-4 bg-red-500 text-white">
+                        <Badge className="absolute top-4 left-4 bg-destructive text-destructive-foreground">
                           {deal.discount_percentage}% OFF
                         </Badge>
                       </div>
                       <CardContent className="p-4">
                         <h3 className="font-semibold text-lg mb-2 line-clamp-2">{deal.title}</h3>
-                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{deal.description}</p>
+                        <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{deal.description}</p>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="text-lg font-bold text-pink-600">
+                            <span className="text-lg font-bold text-primary">
                               ₹{deal.discounted_price}
                             </span>
-                            <span className="text-sm text-gray-500 line-through">
+                            <span className="text-sm text-muted-foreground line-through">
                               ₹{deal.original_price}
                             </span>
                           </div>
@@ -214,7 +219,7 @@ const ExplorePage = () => {
           {/* Top Merchants */}
           <section>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-bold text-gray-900">Top Merchants</h2>
+              <h2 className="text-3xl font-bold text-foreground">Top Merchants</h2>
               <Link to="/merchants">
                 <Button variant="outline">View All</Button>
               </Link>
@@ -224,15 +229,15 @@ const ExplorePage = () => {
               {topMerchants.map((merchant) => (
                 <Card key={merchant.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6 text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-orange-400 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/70 rounded-full flex items-center justify-center text-primary-foreground font-bold text-xl mx-auto mb-4">
                       {merchant.business_name.charAt(0)}
                     </div>
                     <h3 className="font-semibold text-lg mb-2">{merchant.business_name}</h3>
-                    <p className="text-gray-600 text-sm mb-3">{merchant.business_type}</p>
+                    <p className="text-muted-foreground text-sm mb-3">{merchant.business_type}</p>
                     <div className="flex items-center justify-center gap-2">
                       <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                       <span className="font-medium">{merchant.average_rating}</span>
-                      <span className="text-gray-500 text-sm">({merchant.total_reviews})</span>
+                      <span className="text-muted-foreground text-sm">({merchant.total_reviews})</span>
                     </div>
                   </CardContent>
                 </Card>

@@ -32,7 +32,11 @@ const CategoryPage: React.FC = () => {
   // Loading state
   if (categoryLoading) {
     return (
-      <AppLayout>
+      <AppLayout 
+        title="Loading..." 
+        showBackButton={true}
+        backPath="/categories"
+      >
         <div className="container mx-auto px-4 py-8">
           <Skeleton className="h-8 w-64 mb-4" />
           <Skeleton className="h-32 w-full mb-8" />
@@ -55,7 +59,12 @@ const CategoryPage: React.FC = () => {
   const isHubPage = childCategories.length > 0;
   
   return (
-    <AppLayout>
+    <AppLayout
+      title={category.name}
+      subtitle={category.description || `Explore ${category.name} in Jaipur`}
+      showBackButton={true}
+      backPath={category.parent_slug ? `/categories/${category.parent_slug}` : "/categories"}
+    >
       {/* SEO */}
       <CategorySEO 
         category={category}

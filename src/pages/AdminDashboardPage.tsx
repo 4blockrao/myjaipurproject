@@ -29,7 +29,7 @@ const AdminDashboardPage = () => {
 
   if (rolesLoading) {
     return (
-      <AppLayout user={user} profile={profile}>
+      <AppLayout title="Admin Portal" subtitle="Loading..." showBackButton={true} backPath="/">
         <div className="flex items-center justify-center min-h-screen">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -39,7 +39,7 @@ const AdminDashboardPage = () => {
 
   if (!user || (!isAdmin && !canManageUsers)) {
     return (
-      <AppLayout user={user} profile={profile}>
+      <AppLayout title="Access Denied" showBackButton={true} backPath="/">
         <div className="container mx-auto px-4 py-8">
           <Card>
             <CardContent className="text-center py-8">
@@ -54,7 +54,7 @@ const AdminDashboardPage = () => {
   }
 
   return (
-    <AppLayout user={user} profile={profile}>
+    <AppLayout title="Admin Portal" subtitle="Complete platform management" showBackButton={true} backPath="/">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Admin Portal</h1>

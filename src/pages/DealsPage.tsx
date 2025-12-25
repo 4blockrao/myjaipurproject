@@ -8,8 +8,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import NativeMobileHeader from "@/components/layout/NativeMobileHeader";
-import NativeBottomNav from "@/components/home/NativeBottomNav";
+import AppLayout from "@/components/layout/AppLayout";
 import DealsSEO from "@/components/seo/DealsSEO";
 import { PillarSchema } from "@/components/seo/SchemaInjector";
 import { 
@@ -164,30 +163,28 @@ const DealsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <AppLayout
+      title="Deals"
+      subtitle="Exclusive offers in Jaipur"
+      showBackButton={true}
+      backPath="/"
+      showHeader={true}
+      headerRightAction={
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-10 w-10 rounded-full"
+          onClick={() => setShowSearch(!showSearch)}
+        >
+          {showSearch ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+        </Button>
+      }
+    >
       <DealsSEO category={selectedCategory} />
       <PillarSchema 
         title="Best Deals in Jaipur"
         description="Discover exclusive offers, discounts and deals from local businesses in Jaipur. Save on dining, shopping, wellness and more."
         items={deals.map(d => ({ url: `https://www.jaipurcircle.com/deal/${d.id}`, name: d.title }))}
-      />
-      
-      {/* Native Header */}
-      <NativeMobileHeader
-        title="Deals"
-        subtitle="Exclusive offers in Jaipur"
-        showBackButton={true}
-        backPath="/"
-        rightAction={
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-10 w-10 rounded-full"
-            onClick={() => setShowSearch(!showSearch)}
-          >
-            {showSearch ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
-          </Button>
-        }
       />
 
       {/* Search Bar - Collapsible */}
@@ -408,9 +405,7 @@ const DealsPage = () => {
           ))
         )}
       </div>
-
-      <NativeBottomNav />
-    </div>
+    </AppLayout>
   );
 };
 
