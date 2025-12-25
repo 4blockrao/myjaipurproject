@@ -303,6 +303,20 @@ async function generateFullSitemap(supabase: any, today: string): Promise<string
     supabase.from('localities').select('slug, updated_at, name').limit(5000),
   ])
 
+  // Zone pages
+  const zonePages = [
+    { loc: '/jaipur/zones', changefreq: 'weekly', priority: 0.85 },
+    { loc: '/jaipur/zones/north', changefreq: 'weekly', priority: 0.80 },
+    { loc: '/jaipur/zones/south', changefreq: 'weekly', priority: 0.80 },
+    { loc: '/jaipur/zones/east', changefreq: 'weekly', priority: 0.80 },
+    { loc: '/jaipur/zones/west', changefreq: 'weekly', priority: 0.80 },
+    { loc: '/jaipur/zones/central', changefreq: 'weekly', priority: 0.80 },
+    { loc: '/jaipur/zones/north-west', changefreq: 'weekly', priority: 0.80 },
+    { loc: '/jaipur/zones/north-east', changefreq: 'weekly', priority: 0.80 },
+    { loc: '/jaipur/zones/south-west', changefreq: 'weekly', priority: 0.80 },
+    { loc: '/jaipur/zones/south-east', changefreq: 'weekly', priority: 0.80 },
+  ]
+
   const staticPages = [
     { loc: '/', changefreq: 'daily', priority: 1.0 },
     { loc: '/deals', changefreq: 'hourly', priority: 0.95 },
@@ -328,6 +342,7 @@ async function generateFullSitemap(supabase: any, today: string): Promise<string
     { loc: '/help', changefreq: 'monthly', priority: 0.55 },
     { loc: '/sitemap', changefreq: 'weekly', priority: 0.40 },
     { loc: '/install', changefreq: 'monthly', priority: 0.50 },
+    ...zonePages,
   ]
 
   let xml = getXmlHeader(false, true)
