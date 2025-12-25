@@ -161,6 +161,9 @@ export default function LocalityPage() {
 
         {/* 22. Internal Links */}
         <LocalityInternalLinks locality={locality} />
+
+        {/* 23. Extended Locality Intent Footer (V3 Semantic Search Index) */}
+        <LocalityIntentFooter locality={locality} />
       </main>
     </AppLayout>
   );
