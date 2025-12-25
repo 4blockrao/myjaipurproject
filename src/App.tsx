@@ -59,6 +59,7 @@ import SitemapPage from "./pages/SitemapPage";
 import LocalityPage from "./pages/LocalityPage";
 import LocalitiesIndexPage from "./pages/LocalitiesIndexPage";
 import JaipurPage from "./pages/JaipurPage";
+import ZonePage from "./pages/ZonePage";
 import InstallPage from "./pages/InstallPage";
 
 const queryClient = new QueryClient({

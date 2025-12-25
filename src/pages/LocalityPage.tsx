@@ -2,6 +2,9 @@ import { useParams } from 'react-router-dom';
 import { useLocality } from '@/hooks/useLocality';
 import AppLayout from '@/components/layout/AppLayout';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Link } from 'react-router-dom';
+import { MapPin, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // SEO & Schema
 import { LocalitySEO } from '@/components/locality/LocalitySEO';
@@ -11,24 +14,23 @@ import { LocalityBreadcrumb } from '@/components/locality/LocalityBreadcrumb';
 import { LocalityAISummary } from '@/components/locality/LocalityAISummary';
 import { LocalitySnapshot } from '@/components/locality/LocalitySnapshot';
 import { LocalityAbout } from '@/components/locality/LocalityAbout';
+import LocalityLivingProfile from '@/components/locality/LocalityLivingProfile';
+import LocalityPropertyContext from '@/components/locality/LocalityPropertyContext';
+import { LocalityRentalContext } from '@/components/locality/LocalityRentalContext';
+import { LocalityConnectivity } from '@/components/locality/LocalityConnectivity';
+import { LocalityEducationAccess, LocalityHealthcareAccess } from '@/components/locality/LocalityAccessibilityBlocks';
+import { LocalityCommercialMarkets } from '@/components/locality/LocalityCommercialMarkets';
+import { LocalityLocalEconomy } from '@/components/locality/LocalityLocalEconomy';
 import { LocalityMicroLocalities } from '@/components/locality/LocalityMicroLocalities';
 import { LocalityNearby } from '@/components/locality/LocalityNearby';
 import { LocalityLandmarks } from '@/components/locality/LocalityLandmarks';
-import { LocalityConnectivity } from '@/components/locality/LocalityConnectivity';
 import { LocalityNews } from '@/components/locality/LocalityNews';
 import { LocalityEvents } from '@/components/locality/LocalityEvents';
 import { LocalityDeals } from '@/components/locality/LocalityDeals';
 import { LocalityMerchants } from '@/components/locality/LocalityMerchants';
-import { LocalityFAQ } from '@/components/locality/LocalityFAQ';
+import { LocalityExtendedFAQ } from '@/components/locality/LocalityExtendedFAQ';
+import { LocalityLongTailFooter } from '@/components/locality/LocalityLongTailFooter';
 import { LocalityInternalLinks } from '@/components/locality/LocalityInternalLinks';
-import { Link } from 'react-router-dom';
-import { MapPin, ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-
-// Locality Experience & Intent Components (Pilot: Jhotwara)
-import LocalityLivingProfile from '@/components/locality/LocalityLivingProfile';
-import LocalityPropertyContext from '@/components/locality/LocalityPropertyContext';
-import { LocalityEducationAccess, LocalityHealthcareAccess } from '@/components/locality/LocalityAccessibilityBlocks';
 import LocalityWhyPeopleChoose from '@/components/locality/LocalityWhyPeopleChoose';
 
 export default function LocalityPage() {
@@ -75,14 +77,11 @@ export default function LocalityPage() {
 
   return (
     <AppLayout>
-      {/* SEO with all schemas */}
       <LocalitySEO locality={locality} />
       
       <main className="container mx-auto px-4 py-6 max-w-5xl">
-        {/* Breadcrumb Navigation */}
         <LocalityBreadcrumb locality={locality} />
         
-        {/* Page Title (H1) */}
         <header className="mb-6">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">
             {locality.name}, Jaipur
@@ -96,54 +95,70 @@ export default function LocalityPage() {
           </p>
         </header>
 
-        {/* 1. AI Summary Box */}
+        {/* 1. AI Overview */}
         <LocalityAISummary locality={locality} />
 
-        {/* 2. Locality Snapshot */}
+        {/* 2. Snapshot Table */}
         <LocalitySnapshot locality={locality} />
 
-        {/* 3. About the Locality */}
+        {/* 3. About Section */}
         <LocalityAbout locality={locality} />
 
-        {/* Pilot: Locality Experience & Intent Sections (Jhotwara only) */}
-        {locality.slug === "jhotwara" && (
-          <>
-            <LocalityLivingProfile locality={locality} />
-            <LocalityPropertyContext locality={locality} />
-            <LocalityEducationAccess locality={locality} />
-            <LocalityHealthcareAccess locality={locality} />
-            <LocalityWhyPeopleChoose locality={locality} />
-          </>
-        )}
+        {/* 4. Living in Locality */}
+        <LocalityLivingProfile locality={locality} />
 
-        {/* 4. Micro Localities */}
-        <LocalityMicroLocalities locality={locality} />
+        {/* 5. Property & Housing Context */}
+        <LocalityPropertyContext locality={locality} />
 
-        {/* 5. Nearby Localities */}
-        <LocalityNearby locality={locality} />
+        {/* 6. Rental & PG Living Context */}
+        <LocalityRentalContext locality={locality} />
 
-        {/* 6. Major Landmarks */}
-        <LocalityLandmarks locality={locality} />
-
-        {/* 7. Connectivity Guide */}
+        {/* 7. Connectivity & Mobility Guide */}
         <LocalityConnectivity locality={locality} />
 
-        {/* 8. Local News */}
+        {/* 8. Education & Schools Access */}
+        <LocalityEducationAccess locality={locality} />
+
+        {/* 9. Healthcare & Emergency Access */}
+        <LocalityHealthcareAccess locality={locality} />
+
+        {/* 10. Commercial Markets & Shopping */}
+        <LocalityCommercialMarkets locality={locality} />
+
+        {/* 11. Local Economy & Employment */}
+        <LocalityLocalEconomy locality={locality} />
+
+        {/* 12. Micro Localities */}
+        <LocalityMicroLocalities locality={locality} />
+
+        {/* 13. Nearby Localities */}
+        <LocalityNearby locality={locality} />
+
+        {/* 14. Major Landmarks */}
+        <LocalityLandmarks locality={locality} />
+
+        {/* 15. Why People Choose */}
+        <LocalityWhyPeopleChoose locality={locality} />
+
+        {/* 16. Local News */}
         <LocalityNews localityName={locality.name} />
 
-        {/* 9. Upcoming Events */}
+        {/* 17. Events */}
         <LocalityEvents localityName={locality.name} />
 
-        {/* 10. Deals & Offers */}
+        {/* 18. Deals */}
         <LocalityDeals localityName={locality.name} />
 
-        {/* 11. Restaurants & Services */}
+        {/* 19. Restaurants & Services */}
         <LocalityMerchants localityName={locality.name} />
 
-        {/* 12. FAQ Section */}
-        <LocalityFAQ locality={locality} />
+        {/* 20. Extended FAQ (6-10 Q&A) */}
+        <LocalityExtendedFAQ locality={locality} />
 
-        {/* 13. Internal Links Footer */}
+        {/* 21. Long-Tail SEO Footer */}
+        <LocalityLongTailFooter locality={locality} />
+
+        {/* 22. Internal Links */}
         <LocalityInternalLinks locality={locality} />
       </main>
     </AppLayout>
