@@ -1,6 +1,6 @@
 # robots.txt for JaipurCircle
 # https://www.jaipurcircle.com
-# Last updated: 2024-12-23
+# Last updated: 2025-12-25
 
 # Google
 User-agent: Googlebot
@@ -50,38 +50,61 @@ Crawl-delay: 2
 User-agent: *
 Allow: /
 
-# Public Content - Always Allow
+# ========================================
+# PUBLIC CONTENT - ALWAYS ALLOW
+# ========================================
+
+# Core Pages
 Allow: /
-Allow: /deals
-Allow: /deals/
-Allow: /merchant/
-Allow: /merchants
-Allow: /events
-Allow: /events/
-Allow: /news
-Allow: /news/
-Allow: /jaipur
-Allow: /jaipur/
-Allow: /categories
 Allow: /about
 Allow: /help
-Allow: /referral
-Allow: /pro-membership
-Allow: /merchant-onboarding
-Allow: /leaderboard
-Allow: /jaicoin
-Allow: /challenges
-Allow: /gamification
 Allow: /install
 Allow: /sitemap
 
-# Block Private/Admin Pages
+# Deals & Shopping
+Allow: /deals
+Allow: /deals/
+Allow: /deal/
+Allow: /categories
+
+# Merchants
+Allow: /merchants
+Allow: /merchant/
+Allow: /merchant-onboarding
+
+# Events
+Allow: /events
+Allow: /events/
+
+# News
+Allow: /news
+Allow: /news/
+
+# Jaipur Locality Hub
+Allow: /jaipur
+Allow: /jaipur/
+Allow: /jaipur/all
+Allow: /jaipur/zones
+Allow: /jaipur/zones/
+
+# Engagement Pages
+Allow: /pro
+Allow: /leaderboard
+Allow: /referral-program
+
+# ========================================
+# PRIVATE/ADMIN PAGES - BLOCK
+# ========================================
+
 Disallow: /admin
 Disallow: /admin/
 Disallow: /dashboard
 Disallow: /merchant-dashboard
 Disallow: /merchant-portal
 Disallow: /event-organizer-dashboard
+Disallow: /events/organizer
+Disallow: /events/create
+Disallow: /news/create
 Disallow: /settings
 Disallow: /profile
 Disallow: /account
@@ -90,11 +113,13 @@ Disallow: /favorites
 Disallow: /coupons
 Disallow: /wallet
 Disallow: /checkout
+Disallow: /new-checkout
 Disallow: /scan
 Disallow: /user-deals
+Disallow: /my-deals
 Disallow: /my-events
-Disallow: /create-event
-Disallow: /create-news
+Disallow: /order-success
+Disallow: /referral-success
 
 # Block API and Auth endpoints
 Disallow: /api/
@@ -106,10 +131,26 @@ Disallow: /*?*utm_
 Disallow: /*?*fbclid=
 Disallow: /*?*gclid=
 
-# Sitemaps - Submit all to Google Search Console
-Sitemap: https://www.jaipurcircle.com/sitemap.xml
-Sitemap: https://www.jaipurcircle.com/sitemap-pages.xml
-Sitemap: https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=all
+# ========================================
+# SITEMAPS
+# ========================================
 
-# Host directive for search engines that support it
+# Main sitemap index
+Sitemap: https://www.jaipurcircle.com/sitemap.xml
+
+# Static pages sitemap
+Sitemap: https://www.jaipurcircle.com/sitemap-pages.xml
+
+# Dynamic sitemaps (edge function)
+Sitemap: https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=localities
+Sitemap: https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=zones
+Sitemap: https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=deals
+Sitemap: https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=merchants
+Sitemap: https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=events
+Sitemap: https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news
+
+# Google News sitemap
+Sitemap: https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap
+
+# Host directive
 Host: https://www.jaipurcircle.com

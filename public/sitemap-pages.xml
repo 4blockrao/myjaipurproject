@@ -45,6 +45,14 @@
   </url>
   
   <url>
+    <loc>https://www.jaipurcircle.com/categories</loc>
+    <lastmod>2025-12-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  
+  <!-- Jaipur Locality Hub Pages -->
+  <url>
     <loc>https://www.jaipurcircle.com/jaipur</loc>
     <lastmod>2025-12-25</lastmod>
     <changefreq>weekly</changefreq>
@@ -52,10 +60,82 @@
   </url>
   
   <url>
-    <loc>https://www.jaipurcircle.com/categories</loc>
+    <loc>https://www.jaipurcircle.com/jaipur/all</loc>
     <lastmod>2025-12-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
+  </url>
+  
+  <!-- Zone Index Page -->
+  <url>
+    <loc>https://www.jaipurcircle.com/jaipur/zones</loc>
+    <lastmod>2025-12-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  
+  <!-- Individual Zone Pages -->
+  <url>
+    <loc>https://www.jaipurcircle.com/jaipur/zones/north</loc>
+    <lastmod>2025-12-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.jaipurcircle.com/jaipur/zones/south</loc>
+    <lastmod>2025-12-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.jaipurcircle.com/jaipur/zones/east</loc>
+    <lastmod>2025-12-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.jaipurcircle.com/jaipur/zones/west</loc>
+    <lastmod>2025-12-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.jaipurcircle.com/jaipur/zones/central</loc>
+    <lastmod>2025-12-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.jaipurcircle.com/jaipur/zones/north-west</loc>
+    <lastmod>2025-12-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.jaipurcircle.com/jaipur/zones/north-east</loc>
+    <lastmod>2025-12-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.jaipurcircle.com/jaipur/zones/south-west</loc>
+    <lastmod>2025-12-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.jaipurcircle.com/jaipur/zones/south-east</loc>
+    <lastmod>2025-12-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
   </url>
   
   <!-- News Category Pages -->
@@ -101,11 +181,11 @@
     <priority>0.80</priority>
   </url>
   
-  <!-- Engagement & Gamification Pages -->
+  <!-- Engagement & Membership Pages -->
   <url>
-    <loc>https://www.jaipurcircle.com/jaicoin</loc>
+    <loc>https://www.jaipurcircle.com/pro</loc>
     <lastmod>2025-12-25</lastmod>
-    <changefreq>weekly</changefreq>
+    <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   
@@ -117,34 +197,13 @@
   </url>
   
   <url>
-    <loc>https://www.jaipurcircle.com/challenges</loc>
+    <loc>https://www.jaipurcircle.com/referral-program</loc>
     <lastmod>2025-12-25</lastmod>
-    <changefreq>weekly</changefreq>
+    <changefreq>monthly</changefreq>
     <priority>0.70</priority>
-  </url>
-  
-  <url>
-    <loc>https://www.jaipurcircle.com/gamification</loc>
-    <lastmod>2025-12-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.65</priority>
   </url>
   
   <!-- Business Pages -->
-  <url>
-    <loc>https://www.jaipurcircle.com/pro-membership</loc>
-    <lastmod>2025-12-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  
-  <url>
-    <loc>https://www.jaipurcircle.com/referral</loc>
-    <lastmod>2025-12-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  
   <url>
     <loc>https://www.jaipurcircle.com/merchant-onboarding</loc>
     <lastmod>2025-12-25</lastmod>
@@ -168,16 +227,16 @@
   </url>
   
   <url>
-    <loc>https://www.jaipurcircle.com/sitemap</loc>
-    <lastmod>2025-12-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.40</priority>
-  </url>
-  
-  <url>
     <loc>https://www.jaipurcircle.com/install</loc>
     <lastmod>2025-12-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.50</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.jaipurcircle.com/sitemap</loc>
+    <lastmod>2025-12-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.40</priority>
   </url>
 </urlset>
