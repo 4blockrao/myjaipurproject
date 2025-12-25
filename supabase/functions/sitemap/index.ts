@@ -67,6 +67,9 @@ Deno.serve(async (req) => {
       case 'localities':
         xml = await generateLocalitiesSitemap(supabase, today)
         break
+      case 'zones':
+        xml = generateZonesSitemap(today)
+        break
       case 'events':
         xml = await generateEventsSitemap(supabase, today)
         break
@@ -75,6 +78,9 @@ Deno.serve(async (req) => {
         break
       case 'news-sitemap':
         xml = await generateGoogleNewsSitemap(supabase)
+        break
+      case 'index':
+        xml = generateSitemapIndex(today)
         break
       case 'all':
       default:
@@ -187,6 +193,69 @@ async function generateLocalitiesSitemap(supabase: any, today: string): Promise<
   }
   
   xml += '</urlset>'
+  return xml
+}
+
+// Dedicated Zones Sitemap - /sitemap-zones.xml
+function generateZonesSitemap(today: string): string {
+  const zones = [
+    { slug: 'north', name: 'North' },
+    { slug: 'south', name: 'South' },
+    { slug: 'east', name: 'East' },
+    { slug: 'west', name: 'West' },
+    { slug: 'central', name: 'Central' },
+    { slug: 'north-west', name: 'North-West' },
+    { slug: 'north-east', name: 'North-East' },
+    { slug: 'south-west', name: 'South-West' },
+    { slug: 'south-east', name: 'South-East' },
+  ]
+
+  let xml = getXmlHeader()
+  
+  // Zones index page
+  xml += `  <url>\n`
+  xml += `    <loc>${SITE_URL}/jaipur/zones</loc>\n`
+  xml += `    <lastmod>${today}</lastmod>\n`
+  xml += `    <changefreq>weekly</changefreq>\n`
+  xml += `    <priority>0.85</priority>\n`
+  xml += `  </url>\n`
+  
+  // Individual zone pages
+  for (const zone of zones) {
+    xml += `  <url>\n`
+    xml += `    <loc>${SITE_URL}/jaipur/zones/${zone.slug}</loc>\n`
+    xml += `    <lastmod>${today}</lastmod>\n`
+    xml += `    <changefreq>weekly</changefreq>\n`
+    xml += `    <priority>0.80</priority>\n`
+    xml += `  </url>\n`
+  }
+  
+  xml += '</urlset>'
+  return xml
+}
+
+// Sitemap Index - references all individual sitemaps
+function generateSitemapIndex(today: string): string {
+  const sitemaps = [
+    { loc: '/sitemap?type=localities', name: 'Localities' },
+    { loc: '/sitemap?type=zones', name: 'Zones' },
+    { loc: '/sitemap?type=deals', name: 'Deals' },
+    { loc: '/sitemap?type=merchants', name: 'Merchants' },
+    { loc: '/sitemap?type=events', name: 'Events' },
+    { loc: '/sitemap?type=news', name: 'News' },
+  ]
+
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`
+  xml += `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`
+  
+  for (const sitemap of sitemaps) {
+    xml += `  <sitemap>\n`
+    xml += `    <loc>${SITE_URL}${sitemap.loc}</loc>\n`
+    xml += `    <lastmod>${today}</lastmod>\n`
+    xml += `  </sitemap>\n`
+  }
+  
+  xml += '</sitemapindex>'
   return xml
 }
 

@@ -1,13 +1,16 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Mail, Phone, Facebook, Twitter, Instagram } from 'lucide-react';
+import { MapPin, Mail, Phone, Facebook, Twitter, Instagram, Building, Home, Newspaper } from 'lucide-react';
+import { useState } from 'react';
 
 /**
  * Global Footer Component
  * Includes NAP (Name, Address, Phone) for Local SEO
  * Internal links for site navigation and SEO
+ * About JaipurCircle section for trust and EEAT signals
  */
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const [showFullAbout, setShowFullAbout] = useState(false);
 
   const quickLinks = [
     { label: 'News', href: '/news' },
@@ -29,17 +32,62 @@ export const Footer = () => {
     { label: 'Services', href: '/categories?cat=Services' },
   ];
 
+  const localityLinks = [
+    { label: 'All Localities', href: '/jaipur' },
+    { label: 'Jaipur Zones', href: '/jaipur/zones' },
+    { label: 'North Zone', href: '/jaipur/zones/north' },
+    { label: 'South Zone', href: '/jaipur/zones/south' },
+    { label: 'Central Zone', href: '/jaipur/zones/central' },
+  ];
+
   return (
     <footer className="bg-card border-t mt-auto">
       <div className="container max-w-6xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* About JaipurCircle Section */}
+        <div className="mb-10 p-6 bg-muted/30 rounded-xl border">
+          <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Building className="h-5 w-5 text-primary" />
+            About JaipurCircle
+          </h2>
+          
+          <div className="text-sm text-muted-foreground leading-relaxed space-y-3">
+            <p>
+              JaipurCircle is a locality-first urban information platform for Jaipur that helps users discover, understand, and explore neighbourhoods, zones, sectors, colonies, and micro-localities across the city. Each locality page on JaipurCircle is designed as a structured locality guide that provides neighbourhood-level civic information such as ward and zone references, nearby areas, locality boundaries, demographic context, housing characteristics, urban connectivity, micro-pockets, and surrounding residential and commercial belts.
+            </p>
+            
+            {showFullAbout && (
+              <>
+                <p>
+                  The platform focuses on locality-scale discovery themes that people commonly search for when learning about a neighbourhood — such as schools and education access, hospitals and healthcare access, rental & PG presence, housing environments, daily markets and shopping areas, transport connectivity corridors, and nearby employment & activity zones. These sections are presented as informational locality indicators only and are not ratings, rankings, reviews, or business recommendations.
+                </p>
+                
+                <p>
+                  Locality information on JaipurCircle is compiled through structured mapping, municipal references, ward-level identifiers, pin code associations, nearby-locality relationships, civic boundary datasets, and neighbourhood-scale research. Areas, sectors, streets, and micro-neighbourhood names may continue to expand as locality records are refined and verified over time.
+                </p>
+                
+                <p>
+                  JaipurCircle aims to build a city-wide locality knowledge base for Jaipur — improving accessibility to neighbourhood information for residents, families exploring areas to live in, tenants searching for rental-friendly belts, students and working professionals evaluating nearby localities, and people trying to understand how different parts of the city are connected.
+                </p>
+              </>
+            )}
+            
+            <button
+              onClick={() => setShowFullAbout(!showFullAbout)}
+              className="text-primary hover:underline text-sm font-medium"
+            >
+              {showFullAbout ? 'Show Less' : 'Read More About JaipurCircle'}
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Brand & NAP Block */}
           <div className="space-y-4">
             <Link to="/" className="inline-block">
               <h2 className="text-xl font-bold text-primary">JaipurCircle</h2>
             </Link>
             <p className="text-sm text-muted-foreground">
-              Jaipur's local discovery platform for news, events, deals, jobs, and everything happening in the Pink City.
+              Jaipur's locality-first discovery platform for neighbourhoods, news, events, deals, and everything happening in the Pink City.
             </p>
             
             {/* NAP Block for Local SEO */}
@@ -108,6 +156,26 @@ export const Footer = () => {
             </ul>
           </div>
 
+          {/* Localities */}
+          <div>
+            <h3 className="font-semibold text-foreground mb-4 flex items-center gap-1">
+              <Home className="h-4 w-4" />
+              Localities
+            </h3>
+            <ul className="space-y-2">
+              {localityLinks.map((link) => (
+                <li key={link.href}>
+                  <Link 
+                    to={link.href}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           {/* Categories */}
           <div>
             <h3 className="font-semibold text-foreground mb-4">Categories</h3>
@@ -154,6 +222,9 @@ export const Footer = () => {
             </Link>
             <Link to="/terms" className="hover:text-primary transition-colors">
               Terms of Service
+            </Link>
+            <Link to="/sitemap" className="hover:text-primary transition-colors">
+              Sitemap
             </Link>
           </div>
         </div>

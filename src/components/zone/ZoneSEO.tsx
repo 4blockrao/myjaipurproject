@@ -12,9 +12,12 @@ interface ZoneSEOProps {
 }
 
 export function ZoneSEO({ zone }: ZoneSEOProps) {
-  const title = `${zone.name} Zone, Jaipur – Localities, Wards, Map & Pin Codes (2025)`;
+  // Unique SEO-optimized title: {Zone} Zone, Jaipur — Localities, Wards, Connectivity Guide
+  const title = `${zone.name} Zone, Jaipur — Localities, Wards, Connectivity Guide`;
   
-  const description = `Explore ${zone.name} Zone in Jaipur with ${zone.totalLocalities} localities. Find ward details, pin codes, nearby areas, connectivity, news, and events in ${zone.name} Zone, Rajasthan.`;
+  // Unique meta description for each zone
+  const topLocalities = zone.localities.slice(0, 4).map(l => l.name).join(", ");
+  const description = `${zone.name} Zone in Jaipur has ${zone.totalLocalities} localities including ${topLocalities}. Find ward details, pin codes, connectivity & local area information.`.slice(0, 160);
 
   const canonicalUrl = `https://www.jaipurcircle.com/jaipur/zones/${zone.slug}`;
 
