@@ -3,9 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/layout/AppLayout';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, ArrowLeft, Building2, Users, Map } from 'lucide-react';
+import { MapPin, ArrowLeft, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ZoneSEO } from '@/components/zone/ZoneSEO';
+import { ZoneQuickInfo } from '@/components/zone/ZoneQuickInfo';
+import { ZoneTOC } from '@/components/zone/ZoneTOC';
 import { ZoneOverview } from '@/components/zone/ZoneOverview';
 import { ZoneGovernance } from '@/components/zone/ZoneGovernance';
 import { ZoneResidentialBelts } from '@/components/zone/ZoneResidentialBelts';
@@ -13,18 +15,18 @@ import { ZoneCommercialClusters } from '@/components/zone/ZoneCommercialClusters
 import { ZoneConnectivity } from '@/components/zone/ZoneConnectivity';
 import { ZoneLocalities } from '@/components/zone/ZoneLocalities';
 import { ZoneFAQ } from '@/components/zone/ZoneFAQ';
+import { ZoneMiniMap } from '@/components/zone/ZoneMiniMap';
 import { ZoneLongTailFooter } from '@/components/zone/ZoneLongTailFooter';
+import { ZoneIntentFooter } from '@/components/zone/ZoneIntentFooter';
 
 export default function ZonePage() {
   const { zoneSlug } = useParams<{ zoneSlug: string }>();
   
-  // Convert slug to zone name (e.g., "north-west" -> "North West")
   const zoneName = zoneSlug
     ?.split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ') || '';
 
-  // Fetch all localities in this zone
   const { data: localities, isLoading, error } = useQuery({
     queryKey: ['zone-localities', zoneName],
     queryFn: async () => {
@@ -46,9 +48,7 @@ export default function ZonePage() {
         <div className="container mx-auto px-4 py-8 max-w-5xl">
           <Skeleton className="h-6 w-48 mb-6" />
           <Skeleton className="h-10 w-72 mb-2" />
-          <Skeleton className="h-5 w-96 mb-8" />
           <Skeleton className="h-32 w-full mb-8 rounded-xl" />
-          <Skeleton className="h-48 w-full mb-8" />
         </div>
       </AppLayout>
     );
@@ -59,16 +59,14 @@ export default function ZonePage() {
       <AppLayout>
         <div className="container mx-auto px-4 py-16 max-w-5xl text-center">
           <MapPin className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-foreground mb-2">
-            Zone Not Found
-          </h1>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Zone Not Found</h1>
           <p className="text-muted-foreground mb-6">
             The zone "{zoneName}" could not be found or has no localities.
           </p>
           <Button asChild>
-            <Link to="/jaipur">
+            <Link to="/jaipur/zones">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Browse All Localities
+              Browse All Zones
             </Link>
           </Button>
         </div>
@@ -76,7 +74,6 @@ export default function ZonePage() {
     );
   }
 
-  // Aggregate zone data from localities
   const zoneData = {
     name: zoneName,
     slug: zoneSlug,
@@ -92,22 +89,19 @@ export default function ZonePage() {
 
   return (
     <AppLayout>
-      {/* SEO */}
       <ZoneSEO zone={zoneData} />
       
       <main className="container mx-auto px-4 py-6 max-w-5xl">
-        {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
           <Link to="/" className="hover:text-primary">Home</Link>
           <span>/</span>
           <Link to="/jaipur" className="hover:text-primary">Jaipur</Link>
           <span>/</span>
-          <Link to="/jaipur/all" className="hover:text-primary">Localities</Link>
+          <Link to="/jaipur/zones" className="hover:text-primary">Zones</Link>
           <span>/</span>
-          <span className="text-foreground">{zoneName} Zone</span>
+          <span className="text-foreground">{zoneName}</span>
         </nav>
         
-        {/* Page Header */}
         <header className="mb-6">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3">
             <Map className="h-8 w-8 text-primary" />
@@ -118,60 +112,20 @@ export default function ZonePage() {
           </p>
         </header>
 
-        {/* Zone Overview */}
-        <ZoneOverview zone={zoneData} />
+        <ZoneQuickInfo zone={zoneData} />
+        <ZoneTOC zoneName={zoneName} />
 
-        {/* Governance Summary */}
-        <ZoneGovernance zone={zoneData} />
-
-        {/* Residential Belts */}
-        <ZoneResidentialBelts zone={zoneData} />
-
-        {/* Commercial Clusters */}
-        <ZoneCommercialClusters zone={zoneData} />
-
-        {/* Connectivity */}
-        <ZoneConnectivity zone={zoneData} />
-
-        {/* All Localities in Zone */}
-        <ZoneLocalities zone={zoneData} />
-
-        {/* FAQ */}
-        <ZoneFAQ zone={zoneData} />
-
-        {/* Long Tail SEO Footer */}
+        <section id="overview"><ZoneOverview zone={zoneData} /></section>
+        <section id="governance"><ZoneGovernance zone={zoneData} /></section>
+        <section id="residential"><ZoneResidentialBelts zone={zoneData} /></section>
+        <section id="commercial"><ZoneCommercialClusters zone={zoneData} /></section>
+        <section id="connectivity"><ZoneConnectivity zone={zoneData} /></section>
+        <section id="localities"><ZoneLocalities zone={zoneData} /></section>
+        <section id="faq"><ZoneFAQ zone={zoneData} /></section>
+        
+        <ZoneMiniMap zone={zoneData} />
         <ZoneLongTailFooter zone={zoneData} />
-
-        {/* Internal Links */}
-        <section className="mb-8 p-6 bg-muted/30 rounded-lg">
-          <h3 className="font-semibold text-foreground mb-4">Explore More</h3>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              to="/jaipur"
-              className="px-4 py-2 bg-background border border-border rounded-lg text-sm hover:border-primary transition-colors"
-            >
-              Jaipur Overview
-            </Link>
-            <Link
-              to="/jaipur/all"
-              className="px-4 py-2 bg-background border border-border rounded-lg text-sm hover:border-primary transition-colors"
-            >
-              All Localities
-            </Link>
-            <Link
-              to="/news"
-              className="px-4 py-2 bg-background border border-border rounded-lg text-sm hover:border-primary transition-colors"
-            >
-              Jaipur News
-            </Link>
-            <Link
-              to="/events"
-              className="px-4 py-2 bg-background border border-border rounded-lg text-sm hover:border-primary transition-colors"
-            >
-              Events
-            </Link>
-          </div>
-        </section>
+        <ZoneIntentFooter zone={zoneData} />
       </main>
     </AppLayout>
   );

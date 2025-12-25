@@ -55,11 +55,12 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 import ScanPage from "./pages/ScanPage";
 import SitemapPage from "./pages/SitemapPage";
 
-// Locality Pages
+// Locality & Zone Pages
 import LocalityPage from "./pages/LocalityPage";
 import LocalitiesIndexPage from "./pages/LocalitiesIndexPage";
 import JaipurPage from "./pages/JaipurPage";
 import ZonePage from "./pages/ZonePage";
+import ZonesIndexPage from "./pages/ZonesIndexPage";
 import InstallPage from "./pages/InstallPage";
 
 const queryClient = new QueryClient({
@@ -156,6 +157,7 @@ function App() {
               {/* Locality & Zone Pages */}
               <Route path="/jaipur" element={<JaipurPage />} />
               <Route path="/jaipur/all" element={<LocalitiesIndexPage />} />
+              <Route path="/jaipur/zones" element={<ZonesIndexPage />} />
               <Route path="/jaipur/zones/:zoneSlug" element={<ZonePage />} />
               <Route path="/jaipur/:slug" element={<LocalityPage />} />
               

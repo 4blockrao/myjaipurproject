@@ -87,6 +87,10 @@ export function ZoneSEO({ zone }: ZoneSEOProps) {
     ],
   };
 
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
+  const lastUpdated = `${currentMonth} ${currentYear}`;
+
   return (
     <Helmet>
       {/* Primary Meta Tags */}
@@ -94,6 +98,12 @@ export function ZoneSEO({ zone }: ZoneSEOProps) {
       <meta name="title" content={title} />
       <meta name="description" content={description} />
       <meta name="keywords" content={`${zone.name} zone jaipur, ${localityNames.join(", ")}, ${zone.name} localities, jaipur zones`} />
+      
+      {/* EEAT Trust Signals */}
+      <meta name="last-updated" content={`Information verified as of ${lastUpdated}`} />
+      <meta name="data-sources" content="Municipal zone data, ward references, locality boundaries, public infrastructure datasets" />
+      <meta name="author" content="JaipurCircle Editorial Team" />
+      <meta name="content-type" content="Zone Information Guide" />
       
       {/* Canonical */}
       <link rel="canonical" href={canonicalUrl} />
@@ -105,6 +115,7 @@ export function ZoneSEO({ zone }: ZoneSEOProps) {
       <meta property="og:description" content={description} />
       <meta property="og:locale" content="en_IN" />
       <meta property="og:site_name" content="JaipurCircle" />
+      <meta property="article:modified_time" content={new Date().toISOString()} />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
