@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { ChevronRight, Home } from "lucide-react";
-import { Locality } from "@/hooks/useLocality";
+import { Home } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -11,21 +10,20 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-interface LocalityBreadcrumbProps {
-  locality: Locality;
+interface ZoneBreadcrumbProps {
+  zoneName: string;
+  zoneSlug?: string;
 }
 
 const SITE_URL = "https://jaipurcircle.com";
 
-export function LocalityBreadcrumb({ locality }: LocalityBreadcrumbProps) {
+export function ZoneBreadcrumb({ zoneName, zoneSlug }: ZoneBreadcrumbProps) {
   // Build breadcrumb segments
   const segments = [
     { label: "Home", href: "/" },
     { label: "Jaipur", href: "/jaipur" },
-    ...(locality.zone 
-      ? [{ label: `${locality.zone} Zone`, href: `/jaipur/zones/${locality.zone.toLowerCase()}` }] 
-      : []),
-    { label: locality.name }
+    { label: "Zones", href: "/jaipur/zones" },
+    { label: `${zoneName} Zone` }
   ];
 
   // Generate BreadcrumbList JSON-LD schema
@@ -76,28 +74,24 @@ export function LocalityBreadcrumb({ locality }: LocalityBreadcrumbProps) {
             </BreadcrumbLink>
           </BreadcrumbItem>
 
-          {/* Zone (if available) */}
-          {locality.zone && (
-            <>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link 
-                    to={`/jaipur/zones/${locality.zone.toLowerCase()}`}
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {locality.zone} Zone
-                  </Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-            </>
-          )}
+          {/* Zones Index */}
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link 
+                to="/jaipur/zones"
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
+                Zones
+              </Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
 
-          {/* Current Locality */}
+          {/* Current Zone */}
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbPage className="font-medium text-foreground">
-              {locality.name}
+              {zoneName} Zone
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
