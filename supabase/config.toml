@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.sitemap]
 verify_jwt = false
+
+[functions.import-bookmyshow-events]
+verify_jwt = false
