@@ -100,10 +100,16 @@ const EventLocalityInsights = ({ locality, venueName }: EventLocalityInsightsPro
                   <span>Nearest Metro: {connectivity.nearest_metro}</span>
                 </div>
               )}
-              {connectivity.major_roads && connectivity.major_roads.length > 0 && (
+              {connectivity.nearest_railway_station && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Train className="w-3 h-3" />
+                  <span>Railway: {connectivity.nearest_railway_station}</span>
+                </div>
+              )}
+              {connectivity.nearest_bus_stops && connectivity.nearest_bus_stops.length > 0 && (
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Car className="w-3 h-3" />
-                  <span>Via: {connectivity.major_roads.slice(0, 2).join(', ')}</span>
+                  <span>Bus Stops: {connectivity.nearest_bus_stops.slice(0, 2).join(', ')}</span>
                 </div>
               )}
             </div>
