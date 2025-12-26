@@ -3,13 +3,14 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Helmet } from "react-helmet-async";
-import FloatingHeader from "@/components/layout/FloatingHeader";
-import NativeBottomNav from "@/components/home/NativeBottomNav";
+import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Store, Star, BadgeCheck, Search, ChevronRight, MapPin } from "lucide-react";
+
+const SITE_URL = 'https://jaipurcircle.com';
 
 const MerchantsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,17 +58,91 @@ const MerchantsPage = () => {
     'Education': '📚',
   };
 
+  // LocalBusiness ItemList Schema
+  const merchantsListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Top Merchants in Jaipur',
+    description: 'Verified local businesses and shops in Jaipur with exclusive deals',
+    numberOfItems: merchants.length,
+    itemListElement: merchants.slice(0, 20).map((merchant, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'LocalBusiness',
+        name: merchant.business_name,
+        url: `${SITE_URL}/merchant/${merchant.id}`,
+        image: merchant.logo_url,
+        address: merchant.address,
+        aggregateRating: merchant.average_rating ? {
+          '@type': 'AggregateRating',
+          ratingValue: merchant.average_rating,
+          bestRating: 5
+        } : undefined
+      }
+    }))
+  };
+
+  // CollectionPage Schema
+  const collectionSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Top Merchants in Jaipur',
+    description: 'Discover the best local merchants, shops, and businesses in Jaipur. Find verified sellers with exclusive deals and offers.',
+    url: `${SITE_URL}/merchants`,
+    areaServed: {
+      '@type': 'City',
+      name: 'Jaipur',
+      containedInPlace: {
+        '@type': 'State',
+        name: 'Rajasthan'
+      }
+    },
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'JaipurCircle',
+      url: SITE_URL
+    }
+  };
+
+  // Breadcrumb Schema
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: SITE_URL
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Merchants',
+        item: `${SITE_URL}/merchants`
+      }
+    ]
+  };
+
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <AppLayout
+      title="Merchants"
+      subtitle="Local Businesses"
+      showBackButton={true}
+      backPath="/"
+      seoTitle="Top Merchants in Jaipur - Local Businesses & Shops"
+      seoDescription="Discover the best local merchants, shops, and businesses in Jaipur. Find verified sellers with exclusive deals and offers on JaipurCircle."
+      canonical="/merchants"
+    >
       <Helmet>
-        <title>Top Merchants in Jaipur - Local Businesses & Shops | JaipurCircle</title>
-        <meta name="description" content="Discover the best local merchants, shops, and businesses in Jaipur. Find verified sellers with exclusive deals and offers on JaipurCircle." />
-        <link rel="canonical" href="https://jaipurcircle.com/merchants" />
+        <meta name="keywords" content="Jaipur merchants, local businesses Jaipur, shops in Jaipur, verified sellers Jaipur, Jaipur stores" />
+        <script type="application/ld+json">{JSON.stringify(merchantsListSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(collectionSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
 
-      <FloatingHeader title="Merchants" showBackButton />
-
-      <main className="pt-16 px-4 space-y-4 max-w-2xl mx-auto">
+      <main className="px-4 py-4 space-y-4 max-w-2xl mx-auto">
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -166,9 +241,7 @@ const MerchantsPage = () => {
           </div>
         )}
       </main>
-
-      <NativeBottomNav />
-    </div>
+    </AppLayout>
   );
 };
 
