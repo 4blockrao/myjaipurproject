@@ -35,27 +35,45 @@ const BASE_URL = "https://jaipurcircle.com";
 const SITE_NAME = "Jaipur Circle";
 const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&h=630&fit=crop";
 
+// Helper to format date for titles
+const formatTitleDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
 export const EventSEO = ({ event }: EventSEOProps) => {
   const canonicalUrl = `${BASE_URL}/events/${event.slug}`;
-  const pageTitle = event.meta_title || `${event.title} | Events in Jaipur - ${SITE_NAME}`;
+  const city = event.city || 'Jaipur';
+  const venue = event.venue_name || '';
+  const eventDate = formatTitleDate(event.start_date);
+  
+  // Transactional Title Template:
+  // {Event Name} {City} Tickets — {Category} | {Venue} | {Date}
+  const pageTitle = event.meta_title || 
+    `${event.title} ${city} Tickets — ${event.category}${venue ? ` | ${venue}` : ''} | ${eventDate}`;
+  
+  // Transactional Meta Description Template:
+  // Book {Event Name} tickets in {City} — {Date} at {Venue}. See timings, price, entry rules & pass availability. Get tickets now.
+  const priceText = event.is_free ? 'Free entry' : `₹${event.ticket_price}`;
   const pageDescription = event.meta_description || 
-    event.short_description || 
-    event.description?.slice(0, 160) || 
-    `Join ${event.title} in Jaipur. ${event.is_free ? 'Free entry!' : `Tickets from ₹${event.ticket_price}`}`;
+    `Book ${event.title} tickets in ${city} — ${eventDate}${venue ? ` at ${venue}` : ''}. ${priceText}. See timings, entry rules & pass availability. Get tickets now on JaipurCircle.`;
   
   const eventImage = event.cover_image || DEFAULT_IMAGE;
-  const location = event.locality ? `${event.locality}, ${event.city || 'Jaipur'}` : (event.city || 'Jaipur');
+  const location = event.locality ? `${event.locality}, ${city}` : city;
   
-  // Generate keywords
+  // Enhanced SEO keywords targeting transactional intent
   const keywords = [
-    event.title,
-    `${event.category} events Jaipur`,
-    'events in Jaipur',
-    event.locality && `events ${event.locality}`,
-    event.is_free && 'free events Jaipur',
-    `${event.category} ${event.city || 'Jaipur'}`,
-    'things to do in Jaipur',
-    'Jaipur events today',
+    `${event.title} ${city} tickets`,
+    `${event.title} tickets`,
+    event.organizer_name && `${event.organizer_name} ${city}`,
+    event.organizer_name && `${event.organizer_name} live`,
+    `${event.category} events ${city}`,
+    venue && `${venue} events`,
+    event.locality && `events in ${event.locality}`,
+    `${city} ${event.category} ${new Date(event.start_date).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}`,
+    event.is_free && `free ${event.category} ${city}`,
+    `things to do in ${city}`,
+    `${city} events today`,
     ...(event.tags || [])
   ].filter(Boolean).join(', ');
 
