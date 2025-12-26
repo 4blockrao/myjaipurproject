@@ -47,6 +47,8 @@ import EventsThisWeekPage from "./pages/EventsThisWeekPage";
 import EventsThisWeekendPage from "./pages/EventsThisWeekendPage";
 import EventCategoryPage from "./pages/EventCategoryPage";
 import EventFusionPage from "./pages/EventFusionPage";
+import VenuePage from "./pages/VenuePage";
+import OrganizerPage from "./pages/OrganizerPage";
 
 // Merchant Pages
 import MerchantOnboardingPage from "./pages/MerchantOnboardingPage";
