@@ -10,12 +10,38 @@ export interface Landmark {
   lng?: number;
 }
 
-// Connectivity type
+// Connectivity type - extended to handle all variations
 export interface Connectivity {
   nearest_metro?: string;
   nearest_bus_stops?: string[];
+  nearest_bus_stations?: string[]; // Alternative field name
   nearest_railway_station?: string;
   distance_to_airport?: string;
+  distance_to_airport_km?: number; // Numeric variant
+}
+
+// Future profile types for meta field expansion
+export interface EconomyProfile {
+  commercial_zones?: string[];
+  business_density?: 'low' | 'medium' | 'high';
+  major_markets?: string[];
+  employment_hubs?: string[];
+}
+
+export interface SocialProfile {
+  healthcare_access?: 'low' | 'medium' | 'high';
+  education_facilities?: string[];
+  recreation_options?: string[];
+  community_centers?: string[];
+}
+
+export interface LocalityMeta {
+  economy_profile?: EconomyProfile;
+  social_profile?: SocialProfile;
+  seo_focus_keywords?: string[];
+  data_sources?: string[];
+  last_verified_at?: string;
+  verified_by?: string;
 }
 
 export interface Locality {
@@ -41,7 +67,7 @@ export interface Locality {
   tags: string[] | null;
   confidence_score?: number | null;
   verification_status?: string | null;
-  meta?: Record<string, unknown> | null;
+  meta?: LocalityMeta | Json | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -49,17 +75,48 @@ export interface Locality {
 // Helper to safely parse landmarks from JSON
 export const parseLandmarks = (landmarks: Landmark[] | Json | null): Landmark[] => {
   if (!landmarks) return [];
-  if (Array.isArray(landmarks)) return landmarks as Landmark[];
+  if (Array.isArray(landmarks)) {
+    // Validate each landmark has required fields
+    return landmarks.filter(
+      (l): l is Landmark => 
+        typeof l === 'object' && 
+        l !== null && 
+        'name' in l && 
+        'type' in l
+    );
+  }
   return [];
 };
 
 // Helper to safely parse connectivity from JSON
-export const parseConnectivity = (connectivity: Connectivity | Json | null): Connectivity | null => {
-  if (!connectivity) return null;
+export const parseConnectivity = (connectivity: Connectivity | Json | null): Connectivity => {
+  if (!connectivity) return {};
   if (typeof connectivity === 'object' && !Array.isArray(connectivity)) {
     return connectivity as Connectivity;
   }
-  return null;
+  return {};
+};
+
+// Helper to safely parse meta field from JSON
+export const parseMeta = (meta: LocalityMeta | Json | null): LocalityMeta => {
+  if (!meta) return {};
+  if (typeof meta === 'object' && !Array.isArray(meta)) {
+    return meta as LocalityMeta;
+  }
+  return {};
+};
+
+// Helper to get bus stops from connectivity (handles both field names)
+export const getBusStops = (connectivity: Connectivity): string[] => {
+  return connectivity.nearest_bus_stops || connectivity.nearest_bus_stations || [];
+};
+
+// Helper to get airport distance (handles both formats)
+export const getAirportDistance = (connectivity: Connectivity): string | null => {
+  if (typeof connectivity.distance_to_airport_km === 'number') {
+    return `${connectivity.distance_to_airport_km} km`;
+  }
+  return connectivity.distance_to_airport || null;
 };
 
 export function useLocality(slug: string) {

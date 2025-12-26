@@ -1,14 +1,15 @@
 import { ShoppingBag } from "lucide-react";
+import { Locality, parseLandmarks, Landmark } from "@/hooks/useLocality";
 
 interface LocalityCommercialMarketsProps {
-  locality: any;
+  locality: Locality;
 }
 
 export function LocalityCommercialMarkets({ locality }: LocalityCommercialMarketsProps) {
   if (!locality) return null;
 
-  const landmarks = locality.major_landmarks || [];
-  const marketLandmarks = landmarks.filter((l: any) => 
+  const landmarks = parseLandmarks(locality.major_landmarks);
+  const marketLandmarks = landmarks.filter((l: Landmark) => 
     l.type?.toLowerCase().includes('market') || 
     l.type?.toLowerCase().includes('shop') ||
     l.type?.toLowerCase().includes('mall') ||
@@ -38,7 +39,7 @@ export function LocalityCommercialMarkets({ locality }: LocalityCommercialMarket
           <div className="mt-4">
             <h3 className="font-semibold text-foreground mb-2">Notable Commercial Points</h3>
             <ul className="list-disc list-inside text-muted-foreground space-y-1">
-              {marketLandmarks.map((landmark: any, i: number) => (
+              {marketLandmarks.map((landmark: Landmark, i: number) => (
                 <li key={i}>
                   {landmark.name}
                   {landmark.type && <span className="text-sm"> ({landmark.type})</span>}

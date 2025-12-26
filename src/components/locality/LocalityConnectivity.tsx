@@ -1,12 +1,15 @@
 import { MapPin, Train, Bus, Plane, Navigation } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Locality, parseConnectivity, getBusStops, getAirportDistance } from "@/hooks/useLocality";
 
 interface LocalityConnectivityProps {
-  locality: any;
+  locality: Locality;
 }
 
 export function LocalityConnectivity({ locality }: LocalityConnectivityProps) {
-  const connectivity = locality.connectivity || {};
+  const connectivity = parseConnectivity(locality.connectivity);
+  const busStops = getBusStops(connectivity);
+  const airportDistance = getAirportDistance(connectivity);
 
   const items = [
     {
@@ -19,11 +22,7 @@ export function LocalityConnectivity({ locality }: LocalityConnectivityProps) {
     {
       icon: Bus,
       label: "Nearest Bus Stops",
-      value: connectivity.nearest_bus_stations?.length
-        ? connectivity.nearest_bus_stations.join(", ")
-        : connectivity.nearest_bus_stops?.length
-        ? connectivity.nearest_bus_stops.join(", ")
-        : null,
+      value: busStops.length ? busStops.join(", ") : null,
       colorClass: "text-emerald-600 dark:text-emerald-400",
       bgClass: "bg-emerald-500/10",
     },
@@ -37,10 +36,7 @@ export function LocalityConnectivity({ locality }: LocalityConnectivityProps) {
     {
       icon: Plane,
       label: "Distance to Airport",
-      value:
-        typeof connectivity.distance_to_airport_km === "number"
-          ? `${connectivity.distance_to_airport_km} km`
-          : connectivity.distance_to_airport || null,
+      value: airportDistance,
       colorClass: "text-rose-600 dark:text-rose-400",
       bgClass: "bg-rose-500/10",
     },
@@ -59,13 +55,9 @@ export function LocalityConnectivity({ locality }: LocalityConnectivityProps) {
       `${connectivity.nearest_railway_station} provides railway connectivity.`
     );
   }
-  if (typeof connectivity.distance_to_airport_km === "number") {
+  if (airportDistance) {
     travelNoteParts.push(
-      `Jaipur International Airport is ${connectivity.distance_to_airport_km} km away.`
-    );
-  } else if (connectivity.distance_to_airport) {
-    travelNoteParts.push(
-      `Jaipur International Airport is ${connectivity.distance_to_airport} away.`
+      `Jaipur International Airport is ${airportDistance} away.`
     );
   }
 

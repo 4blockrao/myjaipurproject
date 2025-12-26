@@ -5,15 +5,17 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Locality, parseConnectivity, getAirportDistance } from "@/hooks/useLocality";
 
 interface LocalityFAQProps {
-  locality: any;
+  locality: Locality;
 }
 
 export function LocalityFAQ({ locality }: LocalityFAQProps) {
   if (!locality) return null;
 
-  const connectivity = locality.connectivity || {};
+  const connectivity = parseConnectivity(locality.connectivity);
+  const airportDistance = getAirportDistance(connectivity);
 
   const faqs = [
     {
@@ -65,13 +67,9 @@ export function LocalityFAQ({ locality }: LocalityFAQProps) {
             `${connectivity.nearest_railway_station} provides railway connectivity.`
           );
         }
-        if (typeof connectivity.distance_to_airport_km === "number") {
+        if (airportDistance) {
           parts.push(
-            `Jaipur International Airport is approximately ${connectivity.distance_to_airport_km} km away.`
-          );
-        } else if (connectivity.distance_to_airport) {
-          parts.push(
-            `Jaipur International Airport is ${connectivity.distance_to_airport} away.`
+            `Jaipur International Airport is ${airportDistance} away.`
           );
         }
         return parts.length

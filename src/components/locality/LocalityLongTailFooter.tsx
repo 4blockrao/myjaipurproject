@@ -1,15 +1,15 @@
 import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Locality } from "@/hooks/useLocality";
 
 interface LocalityLongTailFooterProps {
-  locality: any;
+  locality: Locality;
 }
 
 export function LocalityLongTailFooter({ locality }: LocalityLongTailFooterProps) {
   if (!locality) return null;
 
   const name = locality.name;
-  const slug = locality.slug;
   const zone = locality.zone;
   const microLocalities = locality.micro_localities || [];
   const nearbyLocalities = locality.nearby_localities || [];
@@ -127,7 +127,7 @@ export function LocalityLongTailFooter({ locality }: LocalityLongTailFooterProps
           <p className="text-sm text-muted-foreground leading-relaxed">
             {name} is a locality in Jaipur, Rajasthan, India
             {zone && `, located in the ${zone} zone`}
-            {locality.pin_codes?.length > 0 && ` with pin code ${locality.pin_codes[0]}`}.
+            {locality.pin_codes?.length && locality.pin_codes.length > 0 && ` with pin code ${locality.pin_codes[0]}`}.
             This page provides comprehensive information about {name} including 
             ward details, nearby areas, connectivity, and local amenities. 
             Whether you're looking for housing, schools, hospitals, or markets 

@@ -1,7 +1,8 @@
 import { Home } from "lucide-react";
+import { Locality } from "@/hooks/useLocality";
 
 interface LocalityRentalContextProps {
-  locality: any;
+  locality: Locality;
 }
 
 export function LocalityRentalContext({ locality }: LocalityRentalContextProps) {

@@ -1,4 +1,4 @@
-import { Locality } from '@/hooks/useLocality';
+import { Locality, parseLandmarks } from '@/hooks/useLocality';
 import { Landmark, MapPin, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,15 +8,9 @@ interface LocalityLandmarksProps {
 }
 
 export function LocalityLandmarks({ locality }: LocalityLandmarksProps) {
-  // Type assertion for the JSONB data
-  const landmarks = locality.major_landmarks as {
-    name: string;
-    type: string;
-    lat?: number;
-    lng?: number;
-  }[] | null;
+  const landmarks = parseLandmarks(locality.major_landmarks);
 
-  if (!landmarks?.length) {
+  if (landmarks.length === 0) {
     return null;
   }
 
