@@ -5,10 +5,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { GlobalSEO } from "@/components/seo/GlobalSEO";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // Core Pages
 import Index from "./pages/Index";
 import AboutPage from "./pages/AboutPage";
+import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
 // Account & User Pages
@@ -99,16 +101,18 @@ function App() {
     <ErrorBoundary>
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            {/* Sitewide Default SEO - provides fallback meta for all pages */}
-            <GlobalSEO />
-            <Routes>
-              {/* Core Routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/about" element={<AboutPage />} />
-              
+          <AuthProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              {/* Sitewide Default SEO - provides fallback meta for all pages */}
+              <GlobalSEO />
+              <Routes>
+                {/* Core Routes */}
+                <Route path="/" element={<Index />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/auth" element={<AuthPage />} />
+                
               {/* Account Hub */}
               <Route path="/account" element={<AccountPage />} />
               <Route path="/referral-success" element={<ReferralSuccessPage />} />
@@ -205,6 +209,7 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
+          </AuthProvider>
         </QueryClientProvider>
       </HelmetProvider>
     </ErrorBoundary>
