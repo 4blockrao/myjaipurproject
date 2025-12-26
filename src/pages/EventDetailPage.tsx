@@ -25,6 +25,9 @@ import { EventAISummary } from "@/components/events/EventAISummary";
 import { EventFactsSection } from "@/components/events/EventFactsSection";
 import { EventInternalLinks } from "@/components/events/EventInternalLinks";
 import { EventSchema } from "@/components/seo/SchemaInjector";
+import { EventBreadcrumb } from "@/components/events/EventBreadcrumb";
+import { EventTrendingSignals } from "@/components/events/EventTrendingSignals";
+import EventDynamicFAQ from "@/components/events/EventDynamicFAQ";
 
 const EventDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -202,12 +205,20 @@ const EventDetailPage = () => {
 
         {/* Content */}
         <div className="px-4 py-6 space-y-6">
+          {/* Breadcrumb */}
+          <EventBreadcrumb event={event} />
+
           {/* Title & Category */}
           <div>
             <Badge variant="outline" className="mb-2 capitalize">
               {event.category}
             </Badge>
             <h1 className="text-2xl font-bold">{event.title}</h1>
+            
+            {/* Trending Signals */}
+            <div className="mt-3">
+              <EventTrendingSignals event={event} />
+            </div>
           </div>
 
           {/* Quick Info */}
@@ -297,6 +308,9 @@ const EventDetailPage = () => {
               )}
             </div>
           )}
+
+          {/* Dynamic FAQ Section */}
+          <EventDynamicFAQ locality={event.locality || undefined} />
 
           {/* Internal Links for SEO */}
           <EventInternalLinks event={event} />

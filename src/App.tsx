@@ -45,6 +45,8 @@ import EventsLocalityPage from "./pages/EventsLocalityPage";
 import EventsTodayPage from "./pages/EventsTodayPage";
 import EventsThisWeekPage from "./pages/EventsThisWeekPage";
 import EventsThisWeekendPage from "./pages/EventsThisWeekendPage";
+import EventCategoryPage from "./pages/EventCategoryPage";
+import EventFusionPage from "./pages/EventFusionPage";
 
 // Merchant Pages
 import MerchantOnboardingPage from "./pages/MerchantOnboardingPage";
@@ -156,6 +158,8 @@ function App() {
               <Route path="/events/this-week" element={<EventsThisWeekPage />} />
               <Route path="/events/this-weekend" element={<EventsThisWeekendPage />} />
               <Route path="/events/in/:locality" element={<EventsLocalityPage />} />
+              <Route path="/events/category/:category" element={<EventCategoryPage />} />
+              <Route path="/events/:category/:locality" element={<EventFusionPage />} />
               <Route path="/events/:slug" element={<EventDetailPage />} />
               
               {/* Merchant */}
