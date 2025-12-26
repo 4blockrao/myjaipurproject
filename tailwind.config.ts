@@ -13,7 +13,7 @@ export default {
 	theme: {
 		container: {
 			center: true,
-			padding: '2rem',
+			padding: '1rem',
 			screens: {
 				'2xl': '1400px'
 			}
@@ -29,6 +29,7 @@ export default {
 		extend: {
 			fontFamily: {
 				'inter': ['Inter', 'sans-serif'],
+				'display': ['Playfair Display', 'Georgia', 'serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -74,21 +75,39 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Jaipur theme colors
+				// Jaipur heritage colors
 				jaipur: {
-					pink: '#e91e63',
-					orange: '#ff9800',
-					gold: '#ffc107',
-					heritage: '#8e24aa',
+					pink: 'hsl(var(--jaipur-pink))',
+					terracotta: 'hsl(var(--jaipur-terracotta))',
+					gold: 'hsl(var(--jaipur-gold))',
+					sand: 'hsl(var(--jaipur-sand))',
+					deep: 'hsl(var(--jaipur-deep))',
+					heritage: 'hsl(var(--jaipur-heritage))',
 				}
 			},
 			borderRadius: {
+				'2xl': '1rem',
+				'3xl': '1.5rem',
+				'4xl': '2rem',
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			spacing: {
 				'safe-area-inset-bottom': 'env(safe-area-inset-bottom)',
+			},
+			boxShadow: {
+				'soft': 'var(--shadow-soft)',
+				'glow': 'var(--shadow-glow)',
+				'card': 'var(--shadow-card)',
+				'heritage': '0 8px 30px -8px hsl(var(--jaipur-pink) / 0.25)',
+			},
+			backgroundImage: {
+				'gradient-heritage': 'linear-gradient(135deg, hsl(var(--jaipur-pink)) 0%, hsl(var(--jaipur-terracotta)) 50%, hsl(var(--jaipur-gold)) 100%)',
+				'gradient-warm': 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--jaipur-terracotta)) 100%)',
+				'gradient-gold': 'linear-gradient(135deg, hsl(var(--jaipur-gold)) 0%, hsl(35, 85%, 50%) 100%)',
+				'gradient-sunset': 'linear-gradient(180deg, hsl(var(--jaipur-pink)) 0%, hsl(30, 80%, 60%) 100%)',
+				'gradient-radial': 'radial-gradient(circle at center, var(--tw-gradient-stops))',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -146,8 +165,28 @@ export default {
 						transform: 'translateY(0)' 
 					},
 					'50%': { 
-						transform: 'translateY(-2px)' 
+						transform: 'translateY(-4px)' 
 					}
+				},
+				'float': {
+					'0%, 100%': { 
+						transform: 'translateY(0)' 
+					},
+					'50%': { 
+						transform: 'translateY(-6px)' 
+					}
+				},
+				'pulse-soft': {
+					'0%, 100%': { 
+						opacity: '1' 
+					},
+					'50%': { 
+						opacity: '0.7' 
+					}
+				},
+				'shimmer': {
+					'0%': { backgroundPosition: '-200% 0' },
+					'100%': { backgroundPosition: '200% 0' }
 				}
 			},
 			animation: {
@@ -157,7 +196,10 @@ export default {
 				'scale-in': 'scale-in 0.2s ease-out',
 				'fade-in': 'fade-in 0.3s ease-out',
 				'slide-up': 'slide-up 0.4s ease-out',
-				'bounce-subtle': 'bounce-subtle 2s ease-in-out infinite'
+				'bounce-subtle': 'bounce-subtle 2s ease-in-out infinite',
+				'float': 'float 3s ease-in-out infinite',
+				'pulse-soft': 'pulse-soft 2s ease-in-out infinite',
+				'shimmer': 'shimmer 1.5s linear infinite',
 			},
 			backdropBlur: {
 				xs: '2px',
