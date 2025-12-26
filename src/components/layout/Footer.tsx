@@ -1,14 +1,16 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Mail, Facebook, Twitter, Instagram, Building, Home, Grid3X3 } from 'lucide-react';
+import { MapPin, Mail, Building, Home, Grid3X3 } from 'lucide-react';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { FooterSocialSection } from '@/components/ui/SocialLinks';
 
 /**
  * Global Footer Component
  * Includes NAP (Name, Address, Phone) for Local SEO
  * Internal links for site navigation and SEO
  * About JaipurCircle section for trust and EEAT signals
+ * Social media section as primary SEO authority zone
  */
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -92,9 +94,9 @@ export const Footer = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Brand & NAP Block */}
-          <div className="space-y-4">
+          <div className="lg:col-span-2 space-y-4">
             <Link to="/" className="inline-block">
               <h2 className="text-xl font-bold text-primary">JaipurCircle</h2>
             </Link>
@@ -118,37 +120,6 @@ export const Footer = () => {
                 </a>
               </div>
             </address>
-
-            {/* Social Links */}
-            <div className="flex gap-3 pt-2">
-              <a 
-                href="https://facebook.com/jaipurcircle" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="p-2 bg-muted rounded-full hover:bg-primary/10 transition-colors"
-                aria-label="Facebook"
-              >
-                <Facebook className="h-4 w-4 text-muted-foreground" />
-              </a>
-              <a 
-                href="https://twitter.com/jaipurcircle" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="p-2 bg-muted rounded-full hover:bg-primary/10 transition-colors"
-                aria-label="Twitter"
-              >
-                <Twitter className="h-4 w-4 text-muted-foreground" />
-              </a>
-              <a 
-                href="https://instagram.com/jaipurcircle" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="p-2 bg-muted rounded-full hover:bg-primary/10 transition-colors"
-                aria-label="Instagram"
-              >
-                <Instagram className="h-4 w-4 text-muted-foreground" />
-              </a>
-            </div>
           </div>
 
           {/* Quick Links */}
@@ -195,7 +166,7 @@ export const Footer = () => {
               Categories
             </h3>
             <ul className="space-y-2">
-              {pillarCategories.slice(0, 10).map((cat) => (
+              {pillarCategories.slice(0, 6).map((cat) => (
                 <li key={cat.slug}>
                   <Link 
                     to={`/categories/${cat.slug}`}
@@ -205,13 +176,13 @@ export const Footer = () => {
                   </Link>
                 </li>
               ))}
-              {pillarCategories.length > 10 && (
+              {pillarCategories.length > 6 && (
                 <li>
                   <Link 
                     to="/categories"
                     className="text-sm text-primary font-medium hover:underline"
                   >
-                    View All Categories →
+                    View All →
                   </Link>
                 </li>
               )}
@@ -234,6 +205,11 @@ export const Footer = () => {
               ))}
             </ul>
           </div>
+        </div>
+
+        {/* Social Media Section - Primary SEO Authority Zone */}
+        <div className="mt-10 pt-8 border-t">
+          <FooterSocialSection />
         </div>
 
         {/* Bottom Bar */}
