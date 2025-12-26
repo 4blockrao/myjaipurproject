@@ -286,9 +286,10 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { action, markdownContent, dryRun } = await req.json();
+    const body = await req.json();
+    const { action, markdownContent, dryRun, events: inputEvents } = body;
 
-    console.log('Import request received:', { action, dryRun, hasContent: !!markdownContent });
+    console.log('Import request received:', { action, dryRun, hasContent: !!markdownContent, hasEvents: !!inputEvents });
 
     if (action === 'parse') {
       // Parse events from provided markdown content
@@ -310,7 +311,7 @@ Deno.serve(async (req) => {
 
     if (action === 'import') {
       // Import parsed events into database
-      const { events } = await req.json();
+      const events = inputEvents;
       
       if (!events || !Array.isArray(events)) {
         return new Response(
