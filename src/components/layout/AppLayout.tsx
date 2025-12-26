@@ -1,10 +1,44 @@
 import React, { ReactNode } from "react";
+import { Helmet } from "react-helmet-async";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import NativeBottomNav from "@/components/home/NativeBottomNav";
 import NativeMobileHeader from "@/components/layout/NativeMobileHeader";
 import Footer from "@/components/layout/Footer";
 import { GlobalSEO } from "@/components/seo/GlobalSEO";
+
+const SITE_URL = 'https://jaipurcircle.com';
+
+// Global organization schema for all pages
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": `${SITE_URL}/#organization`,
+  name: "JaipurCircle",
+  url: SITE_URL,
+  logo: `${SITE_URL}/logo.png`,
+  sameAs: [],
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "customer service",
+    areaServed: "IN",
+    availableLanguage: ["English", "Hindi"]
+  }
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${SITE_URL}/#website`,
+  name: "JaipurCircle",
+  url: SITE_URL,
+  publisher: { "@id": `${SITE_URL}/#organization` },
+  potentialAction: {
+    "@type": "SearchAction",
+    target: `${SITE_URL}/search?q={search_term_string}`,
+    "query-input": "required name=search_term_string"
+  }
+};
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -47,8 +81,14 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   canonical,
   noIndex = false,
 }) => {
-  return (
+return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* Global Organization & Website Schema */}
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify(organizationSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>
+      </Helmet>
+      
       {/* Global SEO fallback - pages can override with their own Helmet */}
       {(seoTitle || seoDescription) && (
         <GlobalSEO

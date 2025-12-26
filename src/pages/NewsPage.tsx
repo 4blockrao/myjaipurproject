@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
-import { ArrowLeft, Plus, Newspaper } from 'lucide-react';
+import { Plus, Newspaper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NewsFeed } from '@/components/news/NewsFeed';
-import NativeBottomNav from '@/components/home/NativeBottomNav';
+import AppLayout from '@/components/layout/AppLayout';
 import GlobalSEO from '@/components/seo/GlobalSEO';
 import { PillarSchema } from '@/components/seo/SchemaInjector';
+import { Helmet } from 'react-helmet-async';
 
 const SITE_URL = 'https://jaipurcircle.com';
 
@@ -52,7 +52,23 @@ export default function NewsPage() {
   };
 
   return (
-    <>
+    <AppLayout
+      title="Jaipur News"
+      subtitle="Latest from the Pink City"
+      showBackButton={true}
+      backPath="/"
+      headerRightAction={
+        <Link to="/news/create">
+          <Button size="sm">
+            <Plus className="h-4 w-4 mr-1" />
+            Write
+          </Button>
+        </Link>
+      }
+      seoTitle="Jaipur News - Latest Local Updates"
+      seoDescription="Stay updated with the latest news from Jaipur. Local events, city updates, food, culture, business and sports news from the Pink City."
+      canonical="/news"
+    >
       <GlobalSEO
         title="Jaipur News - Latest Local Updates"
         description="Stay updated with the latest news from Jaipur. Local events, city updates, food, culture, business and sports news from the Pink City."
@@ -72,42 +88,9 @@ export default function NewsPage() {
         </script>
       </Helmet>
 
-      <div className="min-h-screen bg-background pb-24">
-        {/* Header */}
-        <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-3">
-              <Link to="/">
-                <Button variant="ghost" size="icon" className="h-9 w-9">
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-              </Link>
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-primary/10 rounded-lg">
-                  <Newspaper className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h1 className="font-bold text-lg">Jaipur News</h1>
-                  <p className="text-xs text-muted-foreground">Latest from the Pink City</p>
-                </div>
-              </div>
-            </div>
-            <Link to="/news/create">
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-1" />
-                Write
-              </Button>
-            </Link>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="p-4">
-          <NewsFeed showHeader={false} />
-        </main>
-
-        <NativeBottomNav />
-      </div>
-    </>
+      <main className="p-4">
+        <NewsFeed showHeader={false} />
+      </main>
+    </AppLayout>
   );
 }
