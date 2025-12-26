@@ -77,17 +77,49 @@ export const EventSEO = ({ event }: EventSEOProps) => {
     ...(event.tags || [])
   ].filter(Boolean).join(', ');
 
+  // Determine if event is past
+  const startDateObj = new Date(event.start_date);
+  const isPastEvent = startDateObj < new Date();
+  
+  // Determine event type based on category for proper schema
+  const getEventType = () => {
+    const category = event.category.toLowerCase();
+    if (category.includes('music') || category.includes('concert')) return 'MusicEvent';
+    if (category.includes('comedy') || category.includes('standup')) return 'ComedyEvent';
+    if (category.includes('dance')) return 'DanceEvent';
+    if (category.includes('theatre') || category.includes('theater') || category.includes('drama')) return 'TheaterEvent';
+    if (category.includes('festival')) return 'Festival';
+    if (category.includes('sports') || category.includes('sport')) return 'SportsEvent';
+    if (category.includes('business') || category.includes('conference')) return 'BusinessEvent';
+    if (category.includes('education') || category.includes('workshop')) return 'EducationEvent';
+    if (category.includes('food')) return 'FoodEvent';
+    return 'Event';
+  };
+  
+  // Calculate duration if end date exists
+  const getDurationISO = () => {
+    if (!event.end_date) return undefined;
+    const endDateObj = new Date(event.end_date);
+    const diffMs = endDateObj.getTime() - startDateObj.getTime();
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    return `PT${hours}H${minutes > 0 ? minutes + 'M' : ''}`;
+  };
+
   // Comprehensive Event Schema.org structured data
   const eventSchema = {
     "@context": "https://schema.org",
-    "@type": "Event",
+    "@type": getEventType(),
     "@id": canonicalUrl,
     name: event.title,
     description: event.description || event.short_description,
     url: canonicalUrl,
     startDate: event.start_date,
     endDate: event.end_date || event.start_date,
-    eventStatus: "https://schema.org/EventScheduled",
+    ...(getDurationISO() && { duration: getDurationISO() }),
+    eventStatus: isPastEvent 
+      ? "https://schema.org/EventCompleted"
+      : "https://schema.org/EventScheduled",
     eventAttendanceMode: event.is_online
       ? "https://schema.org/OnlineEventAttendanceMode"
       : "https://schema.org/OfflineEventAttendanceMode",
@@ -122,7 +154,7 @@ export const EventSEO = ({ event }: EventSEOProps) => {
       eventImage.replace('w=1200', 'w=800').replace('h=630', 'h=600'),
       eventImage.replace('w=1200', 'w=400').replace('h=630', 'h=400')
     ],
-    offers: {
+    offers: isPastEvent ? undefined : {
       "@type": "Offer",
       url: canonicalUrl,
       price: event.is_free ? "0" : String(event.ticket_price || 0),
@@ -140,7 +172,7 @@ export const EventSEO = ({ event }: EventSEOProps) => {
       email: event.organizer_email
     },
     performer: {
-      "@type": "PerformingGroup",
+      "@type": getEventType() === 'MusicEvent' ? "MusicGroup" : "PerformingGroup",
       name: event.organizer_name || "Various Artists"
     },
     ...(event.interested_count && event.interested_count > 0 ? {

@@ -160,6 +160,21 @@ const EventDetailPage = () => {
   const city = event.city || 'Jaipur';
   const eventYear = format(startDate, 'yyyy');
   const eventMonth = format(startDate, 'MMMM');
+  
+  // Check if event is in the past
+  const isPastEvent = startDate < new Date();
+  
+  // Calculate duration in hours and minutes
+  const getDuration = () => {
+    if (!endDate) return null;
+    const diffMs = endDate.getTime() - startDate.getTime();
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    if (hours === 0) return `${minutes} min`;
+    if (minutes === 0) return `${hours} hr`;
+    return `${hours} hr ${minutes} min`;
+  };
+  const duration = getDuration();
 
   // Transactional H1: {Event Name} — {City} Tickets ({Date / Year})
   const h1Title = `${event.title} — ${city} Tickets (${eventMonth} ${eventYear})`;
@@ -256,6 +271,18 @@ const EventDetailPage = () => {
           {/* SEO Intro Block */}
           <EventSEOIntro event={event} />
 
+          {/* Past Event Banner */}
+          {isPastEvent && (
+            <div className="p-4 bg-muted border border-border rounded-xl">
+              <div className="flex items-center gap-3">
+                <Badge variant="secondary" className="bg-muted-foreground/20">Past Event</Badge>
+                <p className="text-sm text-muted-foreground">
+                  This event took place on {format(startDate, "MMMM d, yyyy")}. Check out similar upcoming events below.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Quick Info Grid - Above Fold Essential Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Date & Time */}
@@ -266,7 +293,8 @@ const EventDetailPage = () => {
                 <p className="font-medium">{format(startDate, "MMMM d, yyyy")}</p>
                 <p className="text-sm text-muted-foreground">
                   {format(startDate, "h:mm a")}
-                  {endDate && ` - ${format(endDate, "h:mm a")}`}
+                  {endDate && ` – ${format(endDate, "h:mm a")}`}
+                  {duration && ` (${duration})`}
                 </p>
               </div>
             </div>
@@ -334,17 +362,19 @@ const EventDetailPage = () => {
             </div>
           </div>
 
-          {/* Sticky CTA for Desktop */}
-          <div className="hidden sm:block sticky top-4 z-10">
-            <Button 
-              size="lg" 
-              className="w-full gap-2 shadow-lg"
-              onClick={() => setShowRegistration(true)}
-            >
-              <Ticket className="w-5 h-5" />
-              {event.is_free ? 'Register Now — Free' : `Book Tickets — ₹${event.ticket_price}`}
-            </Button>
-          </div>
+          {/* Sticky CTA for Desktop - Only show for future events */}
+          {!isPastEvent && (
+            <div className="hidden sm:block sticky top-4 z-10">
+              <Button 
+                size="lg" 
+                className="w-full gap-2 shadow-lg"
+                onClick={() => setShowRegistration(true)}
+              >
+                <Ticket className="w-5 h-5" />
+                {event.is_free ? 'Register Now — Free' : `Book Tickets — ₹${event.ticket_price}`}
+              </Button>
+            </div>
+          )}
 
           {/* Ticket Pricing Block */}
           <EventTicketPricing 
@@ -438,34 +468,36 @@ const EventDetailPage = () => {
           <EventInternalLinks event={event} />
         </div>
 
-        {/* Fixed bottom CTA - Mobile */}
-        <div className="fixed bottom-16 left-0 right-0 p-4 bg-background/95 backdrop-blur-lg border-t border-border sm:hidden">
-          <div className="flex gap-2 max-w-lg mx-auto">
-            <Button
-              variant={isInterested ? "default" : "outline"}
-              size="lg"
-              className="gap-2 px-3"
-              onClick={() => toggleInterest.mutate()}
-            >
-              <Heart className={`w-5 h-5 ${isInterested ? "fill-current" : ""}`} />
-            </Button>
-            
-            {/* WhatsApp Help Button */}
-            <a
-              href={`https://wa.me/919999188103?text=${encodeURIComponent(`Hi JaipurCircle Team, I need help with "${event.title}" event.`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-3 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
-            >
-              <MessageCircle className="w-5 h-5" />
-            </a>
-            
-            <Button size="lg" className="flex-1 gap-2" onClick={() => setShowRegistration(true)}>
-              <Ticket className="w-5 h-5" />
-              {event.is_free ? "Register" : `₹${event.ticket_price}`}
-            </Button>
+        {/* Fixed bottom CTA - Mobile - Only show for future events */}
+        {!isPastEvent && (
+          <div className="fixed bottom-16 left-0 right-0 p-4 bg-background/95 backdrop-blur-lg border-t border-border sm:hidden">
+            <div className="flex gap-2 max-w-lg mx-auto">
+              <Button
+                variant={isInterested ? "default" : "outline"}
+                size="lg"
+                className="gap-2 px-3"
+                onClick={() => toggleInterest.mutate()}
+              >
+                <Heart className={`w-5 h-5 ${isInterested ? "fill-current" : ""}`} />
+              </Button>
+              
+              {/* WhatsApp Help Button */}
+              <a
+                href={`https://wa.me/919999188103?text=${encodeURIComponent(`Hi JaipurCircle Team, I need help with "${event.title}" event.`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-3 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
+              >
+                <MessageCircle className="w-5 h-5" />
+              </a>
+              
+              <Button size="lg" className="flex-1 gap-2" onClick={() => setShowRegistration(true)}>
+                <Ticket className="w-5 h-5" />
+                {event.is_free ? "Register" : `₹${event.ticket_price}`}
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
 
         <EventRegistrationModal
           event={event}
