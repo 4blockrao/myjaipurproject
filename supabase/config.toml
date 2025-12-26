@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.register-for-event]
 verify_jwt = false
+
+[functions.seed-nightlife-article]
+verify_jwt = false
