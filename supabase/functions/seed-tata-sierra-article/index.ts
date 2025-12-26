@@ -19,7 +19,9 @@ serve(async (req) => {
 
     const slug = 'tata-sierra-jaipur-price-booking-on-road-cost-showrooms-2025';
 
-    // Check if article already exists
+    const coverImage = '/images/tata-sierra-jaipur.png';
+
+    // Check if article already exists - update if so
     const { data: existing } = await supabase
       .from('news_articles')
       .select('id')
@@ -27,10 +29,25 @@ serve(async (req) => {
       .single();
 
     if (existing) {
+      // Update existing article with new cover image
+      const { error: updateError } = await supabase
+        .from('news_articles')
+        .update({ 
+          cover_image: coverImage,
+          og_image: coverImage,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id);
+
+      if (updateError) {
+        console.error('Update error:', updateError);
+        throw updateError;
+      }
+
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'Article already exists',
+          message: 'Article updated with new cover image',
           url: `/news/events/${slug}`
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -432,7 +449,7 @@ serve(async (req) => {
         status: 'published',
         is_featured: true,
         locality: 'jaipur',
-        cover_image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&h=630&fit=crop',
+        cover_image: coverImage,
         meta_title: 'Tata Sierra Price in Jaipur 2025 | Booking, On-Road Cost & Showrooms',
         meta_description: 'Tata Sierra Jaipur price ₹13.4-25 lakh on-road. Booking amount ₹10-25K, waiting period 3-6 months. Find dealerships, variants & comparisons. Updated 2025 guide.',
         meta_keywords: [
@@ -451,7 +468,7 @@ serve(async (req) => {
         tags: ['tata sierra', 'suv', 'cars', 'tata motors', 'jaipur', 'automotive', 'car booking', 'on-road price', '2025'],
         published_at: new Date().toISOString(),
         structured_data: structuredData,
-        og_image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&h=630&fit=crop',
+        og_image: coverImage,
         canonical_url: `https://jaipurcircle.com/news/events/${slug}`
       })
       .select()
