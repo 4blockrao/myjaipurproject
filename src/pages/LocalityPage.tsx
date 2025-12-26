@@ -43,9 +43,24 @@ import { LocalityInternalLinks } from "@/components/locality/LocalityInternalLin
 // NEW — V3 Semantic Intent Footer (High-Coverage Local Search Index)
 import { LocalityIntentFooter } from "@/components/locality/LocalityIntentFooter";
 
+// V4 — Category Browsing for Locality-First UX
+import { LocalityCategoryBrowse } from "@/components/locality/LocalityCategoryBrowse";
+
+// Track recent locality visits
+import { useLocalityMemory } from "@/hooks/useLocalityMemory";
+import { useEffect } from "react";
+
 export default function LocalityPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: locality, isLoading, error } = useLocality(slug || "");
+  const { addRecentLocality } = useLocalityMemory();
+
+  // Track locality visit for memory
+  useEffect(() => {
+    if (locality?.name && locality?.slug) {
+      addRecentLocality(locality.name, locality.slug);
+    }
+  }, [locality?.name, locality?.slug]);
 
   // ----------- Loading State -----------
   if (isLoading) {
@@ -117,6 +132,11 @@ export default function LocalityPage() {
 
         {/* Table of Contents (PATCH-02) */}
         <LocalityTOC localityName={locality.name} />
+
+        {/* V4 — Category Browsing (Locality-First UX) */}
+        <section id="categories">
+          <LocalityCategoryBrowse localityName={locality.name} localitySlug={locality.slug} />
+        </section>
 
         {/* 3. About the Locality */}
         <LocalityAbout locality={locality} />

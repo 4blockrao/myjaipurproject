@@ -4,10 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Search, Navigation, ChevronRight, Building2 } from "lucide-react";
+import { MapPin, Search, Navigation, ChevronRight, Building2, Clock, X } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useLocalityMemory } from "@/hooks/useLocalityMemory";
 
 interface Locality {
   id: number;
@@ -15,6 +15,7 @@ interface Locality {
   slug: string;
   pin_codes: string[] | null;
   nearby_localities: string[] | null;
+  micro_localities: string[] | null;
 }
 
 const LocalityHeroSearch = () => {
@@ -22,6 +23,7 @@ const LocalityHeroSearch = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const { recentLocalities, clearRecentLocalities } = useLocalityMemory();
 
   // Fetch all localities for search
   const { data: allLocalities = [], isLoading: searchLoading } = useQuery({
@@ -29,12 +31,12 @@ const LocalityHeroSearch = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('localities')
-        .select('id, name, slug, pin_codes, nearby_localities')
+        .select('id, name, slug, pin_codes, nearby_localities, micro_localities')
         .order('name', { ascending: true });
       if (error) throw error;
       return data || [];
     },
-    staleTime: 10 * 60 * 1000, // Cache for 10 minutes
+    staleTime: 10 * 60 * 1000,
   });
 
   // Fetch popular localities for grid
@@ -51,13 +53,27 @@ const LocalityHeroSearch = () => {
     },
   });
 
-  // Filter localities based on search
+  // Filter localities based on search - includes micro-locality matching
   const filteredLocalities = searchTerm.length >= 2
-    ? allLocalities.filter(loc => 
-        loc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        loc.pin_codes?.some(pin => pin.includes(searchTerm))
-      ).slice(0, 6)
+    ? allLocalities.filter(loc => {
+        const nameMatch = loc.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const pinMatch = loc.pin_codes?.some(pin => pin.includes(searchTerm));
+        // Micro-locality hint matching (e.g., "Queens Road" matches Vaishali Nagar)
+        const microMatch = loc.micro_localities?.some(
+          micro => micro.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        return nameMatch || pinMatch || microMatch;
+      }).slice(0, 6)
     : [];
+
+  // Get micro-locality match for display
+  const getMicroMatch = (loc: Locality): string | null => {
+    if (!searchTerm || searchTerm.length < 2) return null;
+    const match = loc.micro_localities?.find(
+      micro => micro.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    return match || null;
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -94,7 +110,7 @@ const LocalityHeroSearch = () => {
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
           <Input
             type="text"
-            placeholder="Search locality... e.g., Vaishali Nagar, Mansarovar"
+            placeholder="Search locality or area... e.g., Queens Road, Mansarovar"
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
@@ -112,39 +128,94 @@ const LocalityHeroSearch = () => {
         </div>
 
         {/* Search Dropdown */}
-        {isSearchOpen && searchTerm.length >= 2 && (
+        {isSearchOpen && (
           <Card className="absolute z-50 w-full mt-2 shadow-lg border-primary/10">
             <CardContent className="p-0">
-              {searchLoading ? (
-                <div className="p-4 space-y-2">
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              ) : filteredLocalities.length > 0 ? (
-                <div className="max-h-64 overflow-y-auto">
-                  {filteredLocalities.map((locality) => (
+              {/* Recent Localities Section */}
+              {searchTerm.length < 2 && recentLocalities.length > 0 && (
+                <div className="border-b border-border">
+                  <div className="flex items-center justify-between px-4 py-2 bg-muted/30">
+                    <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      Recent Localities
+                    </span>
                     <button
-                      key={locality.id}
+                      onClick={clearRecentLocalities}
+                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                    >
+                      Clear
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                  {recentLocalities.map((loc) => (
+                    <button
+                      key={loc.slug}
                       className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left border-b last:border-b-0"
-                      onClick={() => handleLocalitySelect(locality.slug)}
+                      onClick={() => handleLocalitySelect(loc.slug)}
                     >
                       <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <MapPin className="w-4 h-4 text-primary" />
+                        <Clock className="w-4 h-4 text-primary" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-foreground">{locality.name}</p>
-                        {locality.pin_codes?.[0] && (
-                          <p className="text-xs text-muted-foreground">PIN: {locality.pin_codes[0]}</p>
-                        )}
+                        <p className="font-medium text-foreground">{loc.name}</p>
+                        <p className="text-xs text-muted-foreground">Recently visited</p>
                       </div>
                       <ChevronRight className="w-4 h-4 text-muted-foreground" />
                     </button>
                   ))}
                 </div>
-              ) : (
-                <div className="p-6 text-center text-muted-foreground">
-                  <MapPin className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p>No localities found for "{searchTerm}"</p>
+              )}
+
+              {/* Search Results */}
+              {searchTerm.length >= 2 && (
+                <>
+                  {searchLoading ? (
+                    <div className="p-4 space-y-2">
+                      <Skeleton className="h-10 w-full" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                  ) : filteredLocalities.length > 0 ? (
+                    <div className="max-h-64 overflow-y-auto">
+                      {filteredLocalities.map((locality) => {
+                        const microMatch = getMicroMatch(locality);
+                        return (
+                          <button
+                            key={locality.id}
+                            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left border-b last:border-b-0"
+                            onClick={() => handleLocalitySelect(locality.slug)}
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                              <MapPin className="w-4 h-4 text-primary" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-foreground">{locality.name}</p>
+                              {microMatch ? (
+                                <p className="text-xs text-primary">
+                                  {microMatch} → {locality.name}
+                                </p>
+                              ) : locality.pin_codes?.[0] ? (
+                                <p className="text-xs text-muted-foreground">PIN: {locality.pin_codes[0]}</p>
+                              ) : null}
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="p-6 text-center text-muted-foreground">
+                      <MapPin className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p>No localities found for "{searchTerm}"</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Empty State - Show hint when no search */}
+              {searchTerm.length < 2 && recentLocalities.length === 0 && (
+                <div className="p-4 text-center text-muted-foreground">
+                  <Search className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Type to search localities or areas</p>
                 </div>
               )}
             </CardContent>
