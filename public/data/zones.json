@@ -1,0 +1,12 @@
+{
+  "zones": [
+    { "name": "Adarsh Nagar Zone", "slug": "adarsh-nagar-zone", "locality_count": 9 },
+    { "name": "Civil Lines Zone", "slug": "civil-lines-zone", "locality_count": 20 },
+    { "name": "Hawa Mahal Zone", "slug": "hawa-mahal-zone", "locality_count": 21 },
+    { "name": "Jhotwara Zone", "slug": "jhotwara-zone", "locality_count": 6 },
+    { "name": "Sanganer Zone", "slug": "sanganer-zone", "locality_count": 20 },
+    { "name": "Vidyadhar Nagar Zone", "slug": "vidyadhar-nagar-zone", "locality_count": 20 },
+    { "name": "Vishwakarma Zone", "slug": "vishwakarma-zone", "locality_count": 8 }
+  ],
+  "total_localities": 104
+}
