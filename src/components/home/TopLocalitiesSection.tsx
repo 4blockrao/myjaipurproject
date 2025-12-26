@@ -67,13 +67,6 @@ const TopLocalitiesSection = () => {
                   </div>
                   <div className="min-w-0">
                     <h3 className="font-medium text-sm line-clamp-1">{locality.name}</h3>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      {locality.zone && (
-                        <Badge variant="outline" className="text-[10px] py-0 px-1">
-                          {locality.zone}
-                        </Badge>
-                      )}
-                    </div>
                     {locality.pin_codes?.[0] && (
                       <p className="text-[10px] text-muted-foreground mt-0.5">
                         📍 {locality.pin_codes[0]}

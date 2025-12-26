@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AuthModal from "@/components/auth/AuthModal";
 import NativeHomeHeader from "@/components/home/NativeHomeHeader";
+import LocalityHeroSearch from "@/components/home/LocalityHeroSearch";
 import NativeCategoryGrid from "@/components/home/NativeCategoryGrid";
 import NativeDealsSection from "@/components/home/NativeDealsSection";
 import NativeQuickActions from "@/components/home/NativeQuickActions";
@@ -197,6 +198,9 @@ const Index = () => {
         {!isAuthenticated && !isLoading && (
           <GuestWelcomeBanner onSignUp={openAuthModal} />
         )}
+
+        {/* LOCALITY-FIRST HERO - Primary Entry Point */}
+        <LocalityHeroSearch />
 
         {/* Stats Bar */}
         <NativeStatsBar />
