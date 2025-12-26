@@ -95,15 +95,13 @@ export default function LocalityPage() {
         {/* Breadcrumb — also reinforces entity structure */}
         <LocalityBreadcrumb locality={locality} />
 
-        {/* Page Header — includes core civic identity */}
+        {/* Page Header — clean locality identity (no zone reference) */}
         <header className="mb-6">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">{locality.name}, Jaipur</h1>
 
           <p className="text-muted-foreground mt-2">
-            {locality.zone && `${locality.zone} Zone`}
-            {locality.zone && locality.municipality && " • "}
             {locality.municipality}
-            {(locality.zone || locality.municipality) && locality.pin_codes?.length ? " • " : ""}
+            {locality.municipality && locality.pin_codes?.length ? " • " : ""}
             {locality.pin_codes?.length ? `PIN: ${locality.pin_codes[0]}` : ""}
           </p>
         </header>
