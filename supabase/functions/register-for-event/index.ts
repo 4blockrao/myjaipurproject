@@ -127,6 +127,9 @@ serve(async (req) => {
     const totalAmount = event.is_free ? 0 : (event.ticket_price || 0) * ticketCount;
 
     // Create registration
+    // Status must be one of: pending, confirmed, cancelled, attended (per DB constraint)
+    const registrationStatus = event.is_free ? "confirmed" : "pending";
+    
     const { data: registration, error: insertError } = await supabase
       .from("event_registrations")
       .insert({
@@ -138,7 +141,7 @@ serve(async (req) => {
         ticket_count: ticketCount,
         total_amount: totalAmount,
         registration_code: registrationCode,
-        status: event.is_free ? "confirmed" : "pending_payment",
+        status: registrationStatus,
       })
       .select()
       .single();
