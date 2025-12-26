@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 
 interface EventTicketPricingProps {
   event: {
+    start_date: string;
     is_free?: boolean | null;
     ticket_price?: number | null;
     max_tickets?: number | null;
@@ -20,11 +21,25 @@ interface EventTicketPricingProps {
  * Shows price range, booking source, pass categories, refund policy
  */
 export const EventTicketPricing = ({ event, onGetTickets }: EventTicketPricingProps) => {
+  const isPastEvent = new Date(event.start_date) < new Date();
   const spotsLeft = event.max_tickets 
     ? event.max_tickets - (event.tickets_sold || 0) 
     : null;
   const isSoldOut = spotsLeft !== null && spotsLeft <= 0;
   const isLowAvailability = spotsLeft !== null && spotsLeft <= 20 && spotsLeft > 0;
+  
+  // Don't show for past events
+  if (isPastEvent) {
+    return (
+      <Card className="border-muted bg-muted/30">
+        <CardContent className="py-6 text-center">
+          <Ticket className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">This event has ended</p>
+          <p className="text-xs text-muted-foreground mt-1">Check out similar events below</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Generate ticket categories based on price
   const ticketCategories = event.is_free
