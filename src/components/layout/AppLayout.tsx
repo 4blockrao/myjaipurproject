@@ -6,10 +6,11 @@ import NativeBottomNav from "@/components/home/NativeBottomNav";
 import NativeMobileHeader from "@/components/layout/NativeMobileHeader";
 import Footer from "@/components/layout/Footer";
 import { GlobalSEO } from "@/components/seo/GlobalSEO";
+import { socialMediaLinks } from "@/components/ui/SocialLinks";
 
 const SITE_URL = 'https://jaipurcircle.com';
 
-// Global organization schema for all pages
+// Global organization schema for all pages with proper social links
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
@@ -17,10 +18,33 @@ const organizationSchema = {
   name: "JaipurCircle",
   url: SITE_URL,
   logo: `${SITE_URL}/logo.png`,
-  sameAs: [],
+  description: "Jaipur's locality-first discovery platform for neighbourhoods, news, events, deals, and everything happening in the Pink City.",
+  foundingDate: "2024",
+  areaServed: {
+    "@type": "City",
+    name: "Jaipur",
+    containedInPlace: {
+      "@type": "State",
+      name: "Rajasthan",
+      containedInPlace: {
+        "@type": "Country",
+        name: "India"
+      }
+    }
+  },
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Jaipur",
+    addressRegion: "Rajasthan",
+    addressCountry: "IN",
+    postalCode: "302001"
+  },
+  // Official social media profiles for entity strengthening
+  sameAs: socialMediaLinks.map(s => s.url),
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "customer service",
+    email: "hello@jaipurcircle.com",
     areaServed: "IN",
     availableLanguage: ["English", "Hindi"]
   }
@@ -32,6 +56,7 @@ const websiteSchema = {
   "@id": `${SITE_URL}/#website`,
   name: "JaipurCircle",
   url: SITE_URL,
+  description: "Discover Jaipur's neighbourhoods, local news, events, deals, and community updates on JaipurCircle.",
   publisher: { "@id": `${SITE_URL}/#organization` },
   potentialAction: {
     "@type": "SearchAction",

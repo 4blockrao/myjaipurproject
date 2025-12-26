@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Search, MapPin, Coins, LogIn, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
 import JaipurCircleLogo from "@/components/ui/JaipurCircleLogo";
+import { HeaderSocialIcons } from "@/components/ui/SocialLinks";
 
 interface NativeHomeHeaderProps {
   userLocality?: string;
@@ -42,7 +43,12 @@ const NativeHomeHeader = ({
             <JaipurCircleLogo size="md" />
           </Link>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            {/* Subtle Social Icons - Trust Signal */}
+            <div className="hidden sm:flex mr-2">
+              <HeaderSocialIcons />
+            </div>
+            
             {isAuthenticated ? (
               <>
                 <Button 

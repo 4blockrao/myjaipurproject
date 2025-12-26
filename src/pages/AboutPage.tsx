@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import NativeBottomNav from '@/components/home/NativeBottomNav';
 import GlobalSEO from '@/components/seo/GlobalSEO';
+import { AboutPageSocialSection, socialMediaLinks } from '@/components/ui/SocialLinks';
 
 const SITE_URL = 'https://jaipurcircle.com';
 
 const AboutPage = () => {
-  // Organization + AboutPage Schema
+  // Organization + AboutPage Schema with updated social links
   const aboutPageSchema = {
     '@context': 'https://schema.org',
     '@type': 'AboutPage',
@@ -56,11 +57,7 @@ const AboutPage = () => {
         email: 'hello@jaipurcircle.com',
         availableLanguage: ['English', 'Hindi']
       },
-      sameAs: [
-        'https://twitter.com/jaipurcircle',
-        'https://facebook.com/jaipurcircle',
-        'https://instagram.com/jaipurcircle'
-      ]
+      sameAs: socialMediaLinks.map(s => s.url)
     }
   };
 
@@ -268,6 +265,9 @@ const AboutPage = () => {
             </Card>
           </div>
         </section>
+
+        {/* Social Media Community Section */}
+        <AboutPageSocialSection className="border-t pt-8" />
 
         {/* Internal Links */}
         <section className="border-t pt-8">
