@@ -1,11 +1,29 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
+
+// Landmark type for major_landmarks field
+export interface Landmark {
+  name: string;
+  type: string;
+  lat?: number;
+  lng?: number;
+}
+
+// Connectivity type
+export interface Connectivity {
+  nearest_metro?: string;
+  nearest_bus_stops?: string[];
+  nearest_railway_station?: string;
+  distance_to_airport?: string;
+}
 
 export interface Locality {
   id: number;
   name: string;
   slug: string;
   zone: string | null;
+  zone_id?: string | null;
   municipality: string | null;
   ward_number: string | null;
   ward_name: string | null;
@@ -18,22 +36,31 @@ export interface Locality {
   micro_localities: string[] | null;
   nearby_localities: string[] | null;
   adjacent_localities: string[] | null;
-  major_landmarks: {
-    name: string;
-    type: string;
-    lat?: number;
-    lng?: number;
-  }[] | null;
-  connectivity: {
-    nearest_metro?: string;
-    nearest_bus_stops?: string[];
-    nearest_railway_station?: string;
-    distance_to_airport?: string;
-  } | null;
+  major_landmarks: Landmark[] | Json | null;
+  connectivity: Connectivity | Json | null;
   tags: string[] | null;
+  confidence_score?: number | null;
+  verification_status?: string | null;
+  meta?: Record<string, unknown> | null;
   created_at: string | null;
   updated_at: string | null;
 }
+
+// Helper to safely parse landmarks from JSON
+export const parseLandmarks = (landmarks: Landmark[] | Json | null): Landmark[] => {
+  if (!landmarks) return [];
+  if (Array.isArray(landmarks)) return landmarks as Landmark[];
+  return [];
+};
+
+// Helper to safely parse connectivity from JSON
+export const parseConnectivity = (connectivity: Connectivity | Json | null): Connectivity | null => {
+  if (!connectivity) return null;
+  if (typeof connectivity === 'object' && !Array.isArray(connectivity)) {
+    return connectivity as Connectivity;
+  }
+  return null;
+};
 
 export function useLocality(slug: string) {
   return useQuery({

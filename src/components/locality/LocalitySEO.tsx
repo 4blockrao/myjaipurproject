@@ -1,27 +1,8 @@
 import { Helmet } from "react-helmet-async";
+import { Locality, parseConnectivity } from "@/hooks/useLocality";
 
 interface LocalitySEOProps {
-  locality: {
-    id: number;
-    name: string;
-    slug: string;
-    zone: string | null;
-    municipality: string | null;
-    ward_number: string | null;
-    ward_name: string | null;
-    police_station: string | null;
-    pin_codes: string[] | null;
-    assembly_constituency: string | null;
-    population_estimate: number | null;
-    geo_lat: number | null;
-    geo_lng: number | null;
-    micro_localities: string[] | null;
-    nearby_localities: string[] | null;
-    adjacent_localities: string[] | null;
-    major_landmarks: unknown;
-    connectivity: Record<string, unknown> | null;
-    tags: string[] | null;
-  };
+  locality: Locality;
 }
 
 export function LocalitySEO({ locality }: LocalitySEOProps) {
@@ -134,7 +115,7 @@ export function LocalitySEO({ locality }: LocalitySEOProps) {
   } : null;
 
   // FAQ Schema - auto-generated from locality data
-  const connectivity = locality.connectivity || {};
+  const connectivity = parseConnectivity(locality.connectivity) || {};
   const faqEntries = [
     {
       question: `What is the pin code of ${locality.name}, Jaipur?`,
@@ -175,10 +156,9 @@ export function LocalitySEO({ locality }: LocalitySEOProps) {
       question: `How is the connectivity of ${locality.name}, Jaipur?`,
       answer: (() => {
         const parts: string[] = [];
-        const metro = connectivity.nearest_metro as string | undefined;
-        const railway = connectivity.nearest_railway_station as string | undefined;
-        const airportKm = connectivity.distance_to_airport_km as number | undefined;
-        const airport = connectivity.distance_to_airport as string | undefined;
+        const metro = connectivity.nearest_metro;
+        const railway = connectivity.nearest_railway_station;
+        const airport = connectivity.distance_to_airport;
         
         if (metro) {
           parts.push(`The nearest metro station is ${metro}.`);
@@ -186,9 +166,7 @@ export function LocalitySEO({ locality }: LocalitySEOProps) {
         if (railway) {
           parts.push(`${railway} provides railway connectivity.`);
         }
-        if (typeof airportKm === "number") {
-          parts.push(`Jaipur International Airport is approximately ${airportKm} km away.`);
-        } else if (airport) {
+        if (airport) {
           parts.push(`Jaipur International Airport is ${airport} away.`);
         }
         return parts.length ? parts.join(" ") : "Connectivity details are being verified.";
