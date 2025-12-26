@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.seed-nightlife-article]
 verify_jwt = false
+
+[functions.seed-tata-sierra-article]
+verify_jwt = false
