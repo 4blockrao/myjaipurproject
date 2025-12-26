@@ -16,12 +16,15 @@ export type Database = {
     Tables: {
       categories: {
         Row: {
+          confidence_score: number | null
           created_at: string | null
           description: string | null
           icon: string | null
           id: number
           is_active: boolean | null
+          level: number | null
           name: string
+          parent_id: number | null
           parent_slug: string | null
           pillar_group: string | null
           pillar_slug: string
@@ -30,14 +33,18 @@ export type Database = {
           seo_title: string | null
           slug: string
           updated_at: string | null
+          verification_status: string | null
         }
         Insert: {
+          confidence_score?: number | null
           created_at?: string | null
           description?: string | null
           icon?: string | null
           id?: number
           is_active?: boolean | null
+          level?: number | null
           name: string
+          parent_id?: number | null
           parent_slug?: string | null
           pillar_group?: string | null
           pillar_slug: string
@@ -46,14 +53,18 @@ export type Database = {
           seo_title?: string | null
           slug: string
           updated_at?: string | null
+          verification_status?: string | null
         }
         Update: {
+          confidence_score?: number | null
           created_at?: string | null
           description?: string | null
           icon?: string | null
           id?: number
           is_active?: boolean | null
+          level?: number | null
           name?: string
+          parent_id?: number | null
           parent_slug?: string | null
           pillar_group?: string | null
           pillar_slug?: string
@@ -62,8 +73,17 @@ export type Database = {
           seo_title?: string | null
           slug?: string
           updated_at?: string | null
+          verification_status?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       category_locality_pages: {
         Row: {
@@ -439,6 +459,135 @@ export type Database = {
           },
         ]
       }
+      entity_category_map: {
+        Row: {
+          category_id: number
+          confidence_score: number | null
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          relation_type: string | null
+        }
+        Insert: {
+          category_id: number
+          confidence_score?: number | null
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          relation_type?: string | null
+        }
+        Update: {
+          category_id?: number
+          confidence_score?: number | null
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          relation_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_category_map_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entity_locality_map: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          is_primary: boolean | null
+          locality_id: number
+          relation_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          is_primary?: boolean | null
+          locality_id: number
+          relation_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          is_primary?: boolean | null
+          locality_id?: number
+          relation_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_locality_map_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entity_relationships: {
+        Row: {
+          created_at: string | null
+          id: string
+          meta: Json | null
+          relationship_type: string
+          source_entity_id: string
+          source_entity_type: string
+          target_entity_id: string | null
+          target_entity_type: string | null
+          target_locality_id: number | null
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          meta?: Json | null
+          relationship_type: string
+          source_entity_id: string
+          source_entity_type: string
+          target_entity_id?: string | null
+          target_entity_type?: string | null
+          target_locality_id?: number | null
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          meta?: Json | null
+          relationship_type?: string
+          source_entity_id?: string
+          source_entity_type?: string
+          target_entity_id?: string | null
+          target_entity_type?: string | null
+          target_locality_id?: number | null
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_relationships_target_locality_id_fkey"
+            columns: ["target_locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_interests: {
         Row: {
           created_at: string | null
@@ -744,12 +893,14 @@ export type Database = {
         Row: {
           adjacent_localities: string[] | null
           assembly_constituency: string | null
+          confidence_score: number | null
           connectivity: Json | null
           created_at: string | null
           geo_lat: number | null
           geo_lng: number | null
           id: number
           major_landmarks: Json | null
+          meta: Json | null
           micro_localities: string[] | null
           municipality: string | null
           name: string
@@ -760,19 +911,23 @@ export type Database = {
           slug: string
           tags: string[] | null
           updated_at: string | null
+          verification_status: string | null
           ward_name: string | null
           ward_number: string | null
           zone: string | null
+          zone_id: string | null
         }
         Insert: {
           adjacent_localities?: string[] | null
           assembly_constituency?: string | null
+          confidence_score?: number | null
           connectivity?: Json | null
           created_at?: string | null
           geo_lat?: number | null
           geo_lng?: number | null
           id?: number
           major_landmarks?: Json | null
+          meta?: Json | null
           micro_localities?: string[] | null
           municipality?: string | null
           name: string
@@ -783,19 +938,23 @@ export type Database = {
           slug: string
           tags?: string[] | null
           updated_at?: string | null
+          verification_status?: string | null
           ward_name?: string | null
           ward_number?: string | null
           zone?: string | null
+          zone_id?: string | null
         }
         Update: {
           adjacent_localities?: string[] | null
           assembly_constituency?: string | null
+          confidence_score?: number | null
           connectivity?: Json | null
           created_at?: string | null
           geo_lat?: number | null
           geo_lng?: number | null
           id?: number
           major_landmarks?: Json | null
+          meta?: Json | null
           micro_localities?: string[] | null
           municipality?: string | null
           name?: string
@@ -806,11 +965,21 @@ export type Database = {
           slug?: string
           tags?: string[] | null
           updated_at?: string | null
+          verification_status?: string | null
           ward_name?: string | null
           ward_number?: string | null
           zone?: string | null
+          zone_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "localities_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       merchant_analytics: {
         Row: {
@@ -1902,6 +2071,51 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      zones: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          description: string | null
+          geo_center_lat: number | null
+          geo_center_lng: number | null
+          id: string
+          locality_count: number | null
+          meta: Json | null
+          name: string
+          slug: string
+          updated_at: string | null
+          verification_status: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          description?: string | null
+          geo_center_lat?: number | null
+          geo_center_lng?: number | null
+          id?: string
+          locality_count?: number | null
+          meta?: Json | null
+          name: string
+          slug: string
+          updated_at?: string | null
+          verification_status?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          description?: string | null
+          geo_center_lat?: number | null
+          geo_center_lng?: number | null
+          id?: string
+          locality_count?: number | null
+          meta?: Json | null
+          name?: string
+          slug?: string
+          updated_at?: string | null
+          verification_status?: string | null
         }
         Relationships: []
       }

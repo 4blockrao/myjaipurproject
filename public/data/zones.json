@@ -1,12 +1,12 @@
 {
   "zones": [
-    { "name": "Adarsh Nagar Zone", "slug": "adarsh-nagar-zone", "locality_count": 9 },
-    { "name": "Civil Lines Zone", "slug": "civil-lines-zone", "locality_count": 20 },
-    { "name": "Hawa Mahal Zone", "slug": "hawa-mahal-zone", "locality_count": 21 },
-    { "name": "Jhotwara Zone", "slug": "jhotwara-zone", "locality_count": 6 },
-    { "name": "Sanganer Zone", "slug": "sanganer-zone", "locality_count": 20 },
-    { "name": "Vidyadhar Nagar Zone", "slug": "vidyadhar-nagar-zone", "locality_count": 20 },
-    { "name": "Vishwakarma Zone", "slug": "vishwakarma-zone", "locality_count": 8 }
+    { "id": "5ded0c56-a6c9-48c5-9b74-3af03a77af3f", "name": "Adarsh Nagar Zone", "slug": "adarsh-nagar-zone", "locality_count": 9 },
+    { "id": "d653a501-def2-4b7c-8b1c-7dc233618e8d", "name": "Civil Lines Zone", "slug": "civil-lines-zone", "locality_count": 20 },
+    { "id": "6dce991c-9b24-45cf-a7dd-57cdf26c2fcc", "name": "Hawa Mahal Zone", "slug": "hawa-mahal-zone", "locality_count": 21 },
+    { "id": "ac3e2793-0c44-42cb-a0a8-654ee507f190", "name": "Jhotwara Zone", "slug": "jhotwara-zone", "locality_count": 6 },
+    { "id": "63dbdc78-600e-43fd-ae85-a609ed7c5db9", "name": "Sanganer Zone", "slug": "sanganer-zone", "locality_count": 20 },
+    { "id": "46021fd5-70fe-4ef7-920a-18c9800a2b98", "name": "Vidyadhar Nagar Zone", "slug": "vidyadhar-nagar-zone", "locality_count": 20 },
+    { "id": "1d665c7b-11b7-449c-87ec-e8f2a6da7509", "name": "Vishwakarma Zone", "slug": "vishwakarma-zone", "locality_count": 8 }
   ],
   "total_localities": 104
 }
