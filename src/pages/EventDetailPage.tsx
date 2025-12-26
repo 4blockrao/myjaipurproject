@@ -13,6 +13,7 @@ import {
   Ticket,
   Users,
   ExternalLink,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -349,16 +350,27 @@ const EventDetailPage = () => {
 
         {/* Fixed bottom CTA */}
         <div className="fixed bottom-16 left-0 right-0 p-4 bg-background/95 backdrop-blur-lg border-t border-border">
-          <div className="flex gap-3 max-w-lg mx-auto">
+          <div className="flex gap-2 max-w-lg mx-auto">
             <Button
               variant={isInterested ? "default" : "outline"}
               size="lg"
-              className="gap-2"
+              className="gap-2 px-3"
               onClick={() => toggleInterest.mutate()}
             >
               <Heart className={`w-5 h-5 ${isInterested ? "fill-current" : ""}`} />
-              {isInterested ? "Interested" : "Interest"}
             </Button>
+            
+            {/* WhatsApp Help Button */}
+            <a
+              href={`https://wa.me/919999188103?text=${encodeURIComponent(`Hi JaipurCircle Team, I need help with "${event.title}" event.`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-3 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span className="hidden sm:inline text-sm">Help</span>
+            </a>
+            
             <Button size="lg" className="flex-1 gap-2" onClick={() => setShowRegistration(true)}>
               <Ticket className="w-5 h-5" />
               {event.is_free ? "Register Free" : `Get Tickets • ₹${event.ticket_price}`}

@@ -88,38 +88,34 @@ const EventRegistrationModal = ({ event, open, onOpenChange }: EventRegistration
         throw new Error("Please enter a valid email");
       }
 
-      // Generate registration code
-      const { data: codeData, error: codeError } = await supabase.rpc(
-        "generate_registration_code"
+      // Call edge function for secure registration
+      const response = await fetch(
+        `https://buwhgxyutfwadazjswio.supabase.co/functions/v1/register-for-event`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            event_id: event.id,
+            name: formData.name.trim(),
+            email: formData.email.trim().toLowerCase(),
+            phone: formData.phone.trim() || null,
+            ticket_count: ticketCount,
+            user_id: user?.id || null,
+            ref_page: window.location.pathname,
+            device_type: /Mobi|Android/i.test(navigator.userAgent) ? "mobile" : "desktop",
+          }),
+        }
       );
-      if (codeError) throw codeError;
 
-      // Create registration
-      const { data, error } = await supabase
-        .from("event_registrations")
-        .insert({
-          event_id: event.id,
-          user_id: user?.id || null,
-          name: formData.name.trim(),
-          email: formData.email.trim().toLowerCase(),
-          phone: formData.phone.trim() || null,
-          ticket_count: ticketCount,
-          total_amount: totalAmount,
-          registration_code: codeData,
-          status: event.is_free ? "confirmed" : "pending_payment",
-        })
-        .select()
-        .single();
+      const result = await response.json();
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error(result.error || "Registration failed");
+      }
 
-      // Update tickets sold count
-      await supabase
-        .from("events")
-        .update({ tickets_sold: (event.tickets_sold || 0) + ticketCount })
-        .eq("id", event.id);
-
-      return data;
+      return result.registration;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["event", event?.id] });

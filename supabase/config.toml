@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.import-bookmyshow-events]
 verify_jwt = false
+
+[functions.register-for-event]
+verify_jwt = false
