@@ -175,91 +175,115 @@ function generateMetaDescription(title: string, venue: string, price: string): s
   return `Book tickets for ${title} at ${venue}, Jaipur. ${priceInfo} Get event details, directions & local tips on JaipurCircle.`.slice(0, 160);
 }
 
-// Parse events from scraped markdown content
+// Parse events from scraped markdown content - improved image parsing
 function parseEventsFromMarkdown(markdown: string): BookMyShowEvent[] {
   const events: BookMyShowEvent[] = [];
-  
-  // Split by event blocks - look for patterns with image, title, venue, category, price
-  const eventPattern = /\[!\[(.*?)\]\((https:\/\/assets-in\.bmscdn\.com\/[^)]+)\)[^\]]*\]\((https:\/\/in\.bookmyshow\.com\/events\/[^)]+)\)[\s\S]*?\\{2}\s*(.*?)\\{2}\s*(.*?)\\{2}\s*(.*?)\\{2}\s*₹?\s*([\d,]+ onwards|Free)?/gi;
-  
-  // Alternative simpler pattern for list items
-  const simplePattern = /\[(.*?)\]\((https:\/\/in\.bookmyshow\.com\/events\/[^/]+\/([^)]+))\)/g;
-  
-  let match;
   const processedIds = new Set<string>();
 
-  // First try to extract from image-based cards
-  const lines = markdown.split('\n');
-  let currentEvent: Partial<BookMyShowEvent> = {};
-  
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
+  // Pattern to match the full event blocks with images
+  // Example: [![Dhol Beats Fiesta](https://assets-in.bmscdn.com/...portrait.jpg)\\...](https://in.bookmyshow.com/events/dhol-beats-fiesta/ET00473176)
+  const fullEventPattern = /\[!\[(.*?)\]\((https:\/\/assets-in\.bmscdn\.com\/[^)]+)\)[^\]]*\]\((https:\/\/in\.bookmyshow\.com\/events\/[^)]+)\)/g;
+
+  let match;
+  while ((match = fullEventPattern.exec(markdown)) !== null) {
+    const [, title, imageUrl, eventUrl] = match;
+    const eventId = eventUrl.split('/').pop() || '';
     
-    // Check for image link with event URL
-    const imgMatch = line.match(/\[!\[([^\]]*)\]\(([^)]+)\)[^\]]*\]\((https:\/\/in\.bookmyshow\.com\/events\/[^)]+)\)/);
-    if (imgMatch) {
-      currentEvent = {
-        title: imgMatch[1],
-        imageUrl: imgMatch[2],
-        eventUrl: imgMatch[3],
-        eventId: imgMatch[3].split('/').pop() || '',
-      };
-      continue;
-    }
+    if (processedIds.has(eventId)) continue;
     
-    // Check for venue line (contains ": Jaipur")
-    if (line.includes(': Jaipur') && currentEvent.title) {
-      currentEvent.venue = line.replace(/\\+/g, '').trim();
-      continue;
-    }
+    // Find the surrounding content for venue, category, price
+    const startIdx = match.index;
+    const endIdx = Math.min(startIdx + 500, markdown.length);
+    const contextBlock = markdown.substring(startIdx, endIdx);
     
-    // Check for category line (common categories)
-    const categories = ['Stand up Comedy', 'Concerts', 'Club Gigs', 'Music Festivals', 'NYE Parties', 'Comedy Shows', 'Workshops', 'Art Exhibitions'];
+    // Extract venue - look for ": Jaipur" pattern
+    const venueMatch = contextBlock.match(/\\+\s*([^\\]+:\s*Jaipur)/i);
+    const venue = venueMatch ? venueMatch[1].trim() : 'Venue TBA';
+    
+    // Extract category
+    const categories = ['Stand up Comedy', 'Concerts', 'Club Gigs', 'Music Festivals', 'NYE Parties', 'Comedy Shows', 'Workshops', 'Art Exhibitions', 'Music Shows', 'Performances'];
+    let category = 'Events';
     for (const cat of categories) {
-      if (line.includes(cat)) {
-        currentEvent.category = cat;
+      if (contextBlock.includes(cat)) {
+        category = cat;
         break;
       }
     }
     
-    // Check for price line
-    if (line.includes('₹') || line.toLowerCase() === 'free') {
-      currentEvent.price = line.replace(/\\+/g, '').trim();
-      
-      // Save completed event
-      if (currentEvent.title && currentEvent.eventId && !processedIds.has(currentEvent.eventId)) {
-        events.push({
-          title: currentEvent.title,
-          venue: currentEvent.venue || 'Venue TBA',
-          category: currentEvent.category || 'Events',
-          price: currentEvent.price || '',
-          imageUrl: currentEvent.imageUrl || '',
-          eventUrl: currentEvent.eventUrl || '',
-          eventId: currentEvent.eventId,
-        });
-        processedIds.add(currentEvent.eventId);
+    // Extract price
+    const priceMatch = contextBlock.match(/₹\s*([\d,]+)\s*(onwards)?/);
+    const price = priceMatch ? `₹ ${priceMatch[1]}${priceMatch[2] ? ' onwards' : ''}` : '';
+    
+    // Extract date if present (encoded in image URL or text)
+    const dateMatch = contextBlock.match(/(Mon|Tue|Wed|Thu|Fri|Sat|Sun),\s*(\d+)\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/i);
+    let eventDate: string | undefined;
+    if (dateMatch) {
+      const day = dateMatch[2];
+      const month = dateMatch[3];
+      const year = new Date().getFullYear();
+      const monthNum = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(month) + 1;
+      if (monthNum > 0) {
+        eventDate = `${year}-${String(monthNum).padStart(2, '0')}-${String(day).padStart(2, '0')}T18:00:00+05:30`;
       }
-      currentEvent = {};
     }
+    
+    // Clean up image URL - get high quality version
+    let cleanImageUrl = imageUrl;
+    // Remove transformation params and get portrait version
+    if (cleanImageUrl.includes('/tr:')) {
+      cleanImageUrl = cleanImageUrl.replace(/\/tr:[^/]+\//, '/');
+    }
+    // Make sure we get a good size
+    if (!cleanImageUrl.includes('tr:')) {
+      cleanImageUrl = cleanImageUrl.replace('discovery-catalog/events/', 'discovery-catalog/events/tr:w-400,h-600,bg-CCCCCC/');
+    }
+    
+    events.push({
+      title: title.trim(),
+      venue,
+      category,
+      price,
+      imageUrl: cleanImageUrl,
+      eventUrl,
+      eventId,
+      date: eventDate,
+    });
+    
+    processedIds.add(eventId);
   }
 
-  // Also extract from simple links
+  // Also look for simpler event links without images (will use fallback image)
+  const simplePattern = /\[([^\]]+)\]\((https:\/\/in\.bookmyshow\.com\/events\/[^/]+\/([^)]+))\)/g;
   while ((match = simplePattern.exec(markdown)) !== null) {
     const [, title, url, eventId] = match;
-    if (!processedIds.has(eventId) && !title.includes('!')) {
-      events.push({
-        title: title.trim(),
-        venue: 'Venue TBA',
-        category: 'Events',
-        price: '',
-        imageUrl: '',
-        eventUrl: url,
-        eventId: eventId,
-      });
-      processedIds.add(eventId);
-    }
+    // Skip if already found or if it's an image link
+    if (processedIds.has(eventId) || title.startsWith('!')) continue;
+    
+    // Find context for venue/category/price
+    const startIdx = Math.max(0, match.index - 200);
+    const endIdx = Math.min(match.index + 300, markdown.length);
+    const contextBlock = markdown.substring(startIdx, endIdx);
+    
+    const venueMatch = contextBlock.match(/([^\\]+:\s*Jaipur)/i);
+    const venue = venueMatch ? venueMatch[1].trim() : 'Venue TBA';
+    
+    const priceMatch = contextBlock.match(/₹\s*([\d,]+)/);
+    const price = priceMatch ? `₹ ${priceMatch[1]}` : '';
+    
+    events.push({
+      title: title.trim(),
+      venue,
+      category: 'Events',
+      price,
+      imageUrl: '', // Will use fallback
+      eventUrl: url,
+      eventId,
+    });
+    
+    processedIds.add(eventId);
   }
 
+  console.log(`Parsed ${events.length} events, ${events.filter(e => e.imageUrl).length} with images`);
   return events;
 }
 
