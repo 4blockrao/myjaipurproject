@@ -1,0 +1,124 @@
+{
+  "pillars": [
+    {
+      "group": "authority",
+      "slug": "business",
+      "name": "Business & Merchant Directory",
+      "categories": [
+        {"name": "Business & Merchant Directory", "slug": "business", "parent_slug": null, "description": "Businesses, MSMEs and service providers", "icon": "briefcase"},
+        {"name": "Local Businesses", "slug": "local-businesses", "parent_slug": "business", "description": "Local businesses & service providers", "icon": "store"},
+        {"name": "Startups in Jaipur", "slug": "startups-jaipur", "parent_slug": "business", "description": "Startup ecosystem directory", "icon": "rocket"}
+      ]
+    },
+    {
+      "group": "authority",
+      "slug": "guides",
+      "name": "City Guides & Insights",
+      "categories": [
+        {"name": "City Guides & Insights", "slug": "guides", "parent_slug": null, "description": "City lifestyle, living and locality guides", "icon": "guide"},
+        {"name": "Best Areas for Families", "slug": "best-areas-for-families", "parent_slug": "guides", "description": "Family friendly neighbourhoods", "icon": "family"},
+        {"name": "Best Areas for Students", "slug": "best-areas-for-students", "parent_slug": "guides", "description": "Student-preferred areas", "icon": "book"},
+        {"name": "Cost of Living", "slug": "cost-of-living", "parent_slug": "guides", "description": "Cost of living & lifestyle breakdown", "icon": "wallet"},
+        {"name": "Locality Guides", "slug": "locality-guides", "parent_slug": "guides", "description": "Locality level insights and analysis", "icon": "location"},
+        {"name": "Moving to Jaipur Guide", "slug": "moving-to-jaipur", "parent_slug": "guides", "description": "Moving, relocation & city adaptation", "icon": "truck"}
+      ]
+    },
+    {
+      "group": "core",
+      "slug": "education",
+      "name": "Education & Learning",
+      "categories": [
+        {"name": "Education & Learning", "slug": "education", "parent_slug": null, "description": "Schools, colleges and learning institutes", "icon": "book"},
+        {"name": "Coaching Institutes", "slug": "coaching-institutes", "parent_slug": "education", "description": "Competitive exam and coaching centres", "icon": "lecture"},
+        {"name": "Colleges", "slug": "colleges", "parent_slug": "education", "description": "Colleges and higher education", "icon": "university"},
+        {"name": "Preschools & Daycare", "slug": "preschools", "parent_slug": "education", "description": "Preschools and daycare centres", "icon": "baby"},
+        {"name": "Schools", "slug": "schools", "parent_slug": "education", "description": "Schools and academic institutions", "icon": "school"},
+        {"name": "Tuition & Home Tutors", "slug": "tuition-classes", "parent_slug": "education", "description": "Tuition classes and private tutors", "icon": "pencil"},
+        {"name": "Vocational & Skill Training", "slug": "skill-training", "parent_slug": "education", "description": "Vocational & professional training", "icon": "wrench"}
+      ]
+    },
+    {
+      "group": "core",
+      "slug": "events",
+      "name": "Events & Things To Do",
+      "categories": [
+        {"name": "Events & Things To Do", "slug": "events", "parent_slug": null, "description": "Events, activities, live shows and happenings in Jaipur", "icon": "calendar"},
+        {"name": "Comedy & Standup", "slug": "comedy-shows", "parent_slug": "events", "description": "Comedy and standup shows", "icon": "smile"},
+        {"name": "Concerts & Live Music", "slug": "concerts", "parent_slug": "events", "description": "Concerts and live music shows", "icon": "music"},
+        {"name": "Cultural Events", "slug": "cultural-events", "parent_slug": "events", "description": "Cultural festivals and gatherings", "icon": "temple"},
+        {"name": "Exhibitions & Trade Fairs", "slug": "exhibitions-trade-fairs", "parent_slug": "events", "description": "Exhibitions, expos and trade fairs", "icon": "store"},
+        {"name": "Food Festivals", "slug": "food-festivals", "parent_slug": "events", "description": "Food and culinary festivals", "icon": "food"},
+        {"name": "Kids & Family Events", "slug": "kids-family-events", "parent_slug": "events", "description": "Family & children friendly events", "icon": "users"},
+        {"name": "This Week", "slug": "this-week", "parent_slug": "events", "description": "Events happening this week", "icon": "week"},
+        {"name": "Today", "slug": "today", "parent_slug": "events", "description": "Events happening today in Jaipur", "icon": "clock"},
+        {"name": "Workshops", "slug": "workshops", "parent_slug": "events", "description": "Workshops, classes and learning sessions", "icon": "tools"}
+      ]
+    },
+    {
+      "group": "core",
+      "slug": "health",
+      "name": "Healthcare & Wellness",
+      "categories": [
+        {"name": "Healthcare & Wellness", "slug": "health", "parent_slug": null, "description": "Hospitals, clinics and medical services", "icon": "heart"},
+        {"name": "Clinics", "slug": "clinics", "parent_slug": "health", "description": "Outpatient & specialty clinics", "icon": "stethoscope"},
+        {"name": "Dentists", "slug": "dentists", "parent_slug": "health", "description": "Dental clinics & orthodontists", "icon": "tooth"},
+        {"name": "Diagnostics & Labs", "slug": "diagnostics", "parent_slug": "health", "description": "Diagnostic centres & pathology labs", "icon": "microscope"},
+        {"name": "Gyms & Fitness", "slug": "gyms", "parent_slug": "health", "description": "Gyms, fitness centres and sports facilities", "icon": "dumbbell"},
+        {"name": "Hospitals", "slug": "hospitals", "parent_slug": "health", "description": "Multi-specialty hospitals", "icon": "hospital"},
+        {"name": "Pharmacies", "slug": "pharmacies", "parent_slug": "health", "description": "Pharmacies & medical stores", "icon": "pill"}
+      ]
+    },
+    {
+      "group": "core",
+      "slug": "food",
+      "name": "Food & Dining",
+      "categories": [
+        {"name": "Food & Dining", "slug": "food", "parent_slug": null, "description": "Restaurants, cafes and eateries", "icon": "utensils"},
+        {"name": "Bakeries", "slug": "bakeries", "parent_slug": "food", "description": "Bakeries and confectioneries", "icon": "cake"},
+        {"name": "Cafes", "slug": "cafes", "parent_slug": "food", "description": "Cafes and coffee shops", "icon": "coffee"},
+        {"name": "Restaurants", "slug": "restaurants", "parent_slug": "food", "description": "Restaurants and dining", "icon": "utensils"},
+        {"name": "Street Food", "slug": "street-food", "parent_slug": "food", "description": "Street food and local favourites", "icon": "food"},
+        {"name": "Sweet Shops", "slug": "sweet-shops", "parent_slug": "food", "description": "Sweet shops and mithai", "icon": "candy"}
+      ]
+    },
+    {
+      "group": "core",
+      "slug": "real-estate",
+      "name": "Real Estate & Property",
+      "categories": [
+        {"name": "Real Estate & Property", "slug": "real-estate", "parent_slug": null, "description": "Property listings and real estate services", "icon": "home"},
+        {"name": "Flats & Apartments", "slug": "flats", "parent_slug": "real-estate", "description": "Residential flats and apartments", "icon": "building"},
+        {"name": "Houses & Villas", "slug": "houses", "parent_slug": "real-estate", "description": "Independent houses and villas", "icon": "home"},
+        {"name": "Plots & Land", "slug": "plots", "parent_slug": "real-estate", "description": "Residential and commercial plots", "icon": "map"},
+        {"name": "PG & Hostels", "slug": "pg-hostels", "parent_slug": "real-estate", "description": "Paying guest and hostel accommodations", "icon": "bed"},
+        {"name": "Commercial Properties", "slug": "commercial", "parent_slug": "real-estate", "description": "Commercial and office spaces", "icon": "building-2"}
+      ]
+    },
+    {
+      "group": "core",
+      "slug": "shopping",
+      "name": "Shopping & Retail",
+      "categories": [
+        {"name": "Shopping & Retail", "slug": "shopping", "parent_slug": null, "description": "Shopping destinations and retail stores", "icon": "shopping-bag"},
+        {"name": "Clothing & Fashion", "slug": "clothing", "parent_slug": "shopping", "description": "Clothing stores and fashion boutiques", "icon": "shirt"},
+        {"name": "Electronics", "slug": "electronics", "parent_slug": "shopping", "description": "Electronics and gadget stores", "icon": "smartphone"},
+        {"name": "Jewellery", "slug": "jewellery", "parent_slug": "shopping", "description": "Jewellery shops and showrooms", "icon": "gem"},
+        {"name": "Markets & Bazaars", "slug": "markets", "parent_slug": "shopping", "description": "Traditional markets and bazaars", "icon": "store"},
+        {"name": "Malls", "slug": "malls", "parent_slug": "shopping", "description": "Shopping malls and complexes", "icon": "building"}
+      ]
+    },
+    {
+      "group": "core",
+      "slug": "services",
+      "name": "Local Services",
+      "categories": [
+        {"name": "Local Services", "slug": "services", "parent_slug": null, "description": "Essential local services", "icon": "wrench"},
+        {"name": "Car Services", "slug": "car-services", "parent_slug": "services", "description": "Car repair and maintenance", "icon": "car"},
+        {"name": "Home Services", "slug": "home-services", "parent_slug": "services", "description": "Home repair and maintenance services", "icon": "home"},
+        {"name": "Packers & Movers", "slug": "packers-movers", "parent_slug": "services", "description": "Relocation and moving services", "icon": "truck"},
+        {"name": "Salons & Spas", "slug": "salons", "parent_slug": "services", "description": "Beauty salons and spas", "icon": "scissors"}
+      ]
+    }
+  ],
+  "total_categories": 55
+}
