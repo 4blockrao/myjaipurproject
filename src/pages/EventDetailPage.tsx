@@ -28,6 +28,10 @@ import { EventSchema } from "@/components/seo/SchemaInjector";
 import { EventBreadcrumb } from "@/components/events/EventBreadcrumb";
 import { EventTrendingSignals } from "@/components/events/EventTrendingSignals";
 import EventDynamicFAQ from "@/components/events/EventDynamicFAQ";
+import EventSimilarEvents from "@/components/events/EventSimilarEvents";
+import EventAlternatives from "@/components/events/EventAlternatives";
+import EventLocalityInsights from "@/components/events/EventLocalityInsights";
+import EventFreshnessIndicator from "@/components/events/EventFreshnessIndicator";
 
 const EventDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -309,8 +313,35 @@ const EventDetailPage = () => {
             </div>
           )}
 
+          {/* Freshness Indicator */}
+          <EventFreshnessIndicator event={event} />
+
           {/* Dynamic FAQ Section */}
           <EventDynamicFAQ locality={event.locality || undefined} />
+
+          {/* Similar Events & Past Editions */}
+          <EventSimilarEvents 
+            currentEventId={event.id}
+            venueName={event.venue_name}
+            category={event.category}
+            locality={event.locality}
+          />
+
+          {/* Alternative Events (Intent Rescue) */}
+          <EventAlternatives
+            currentEventId={event.id}
+            eventDate={event.start_date}
+            category={event.category}
+            locality={event.locality}
+            ticketPrice={event.ticket_price}
+            isFree={event.is_free}
+          />
+
+          {/* Locality Insights for Attendees */}
+          <EventLocalityInsights 
+            locality={event.locality}
+            venueName={event.venue_name}
+          />
 
           {/* Internal Links for SEO */}
           <EventInternalLinks event={event} />
