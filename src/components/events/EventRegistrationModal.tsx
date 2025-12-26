@@ -84,6 +84,36 @@ const EventRegistrationModal = ({ event, open, onOpenChange }: EventRegistration
 
   const totalAmount = event?.is_free ? 0 : (event?.ticket_price || 0) * ticketCount;
 
+  const [existingRegistration, setExistingRegistration] = useState<{
+    registration_code: string;
+    ticket_count: number;
+    status: string;
+  } | null>(null);
+
+  // Check for existing registration when modal opens, reset when closes
+  useEffect(() => {
+    const checkExistingRegistration = async () => {
+      if (!user || !event) return;
+      
+      const { data } = await supabase
+        .from("event_registrations")
+        .select("registration_code, ticket_count, status")
+        .eq("event_id", event.id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      if (data) {
+        setExistingRegistration(data);
+      }
+    };
+    
+    if (open && user && event) {
+      checkExistingRegistration();
+    } else if (!open) {
+      setExistingRegistration(null);
+    }
+  }, [open, user, event]);
+
   const registerMutation = useMutation({
     mutationFn: async () => {
       if (!event) throw new Error("No event selected");
@@ -120,6 +150,21 @@ const EventRegistrationModal = ({ event, open, onOpenChange }: EventRegistration
       const result = await response.json();
 
       if (!response.ok) {
+        // Check if it's a duplicate registration error
+        if (result.error?.includes("already registered")) {
+          // Refresh existing registration data
+          const { data } = await supabase
+            .from("event_registrations")
+            .select("registration_code, ticket_count, status")
+            .eq("event_id", event.id)
+            .eq("user_id", user.id)
+            .maybeSingle();
+          
+          if (data) {
+            setExistingRegistration(data);
+          }
+          throw new Error("ALREADY_REGISTERED");
+        }
         throw new Error(result.error || "Registration failed");
       }
 
@@ -140,6 +185,10 @@ const EventRegistrationModal = ({ event, open, onOpenChange }: EventRegistration
       setTicketCount(1);
     },
     onError: (error: Error) => {
+      if (error.message === "ALREADY_REGISTERED") {
+        // Don't show error toast, the UI will show existing registration
+        return;
+      }
       toast.error(error.message || "Registration failed");
     },
   });
@@ -219,6 +268,50 @@ const EventRegistrationModal = ({ event, open, onOpenChange }: EventRegistration
         {isCheckingAuth ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        ) : existingRegistration ? (
+          <div className="space-y-6">
+            <div className="p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg space-y-3">
+              <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                <Ticket className="w-5 h-5" />
+                <span className="font-semibold">You're already registered!</span>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Registration Code:</span>
+                  <span className="font-mono font-bold">{existingRegistration.registration_code}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tickets:</span>
+                  <span>{existingRegistration.ticket_count}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status:</span>
+                  <Badge variant={existingRegistration.status === 'confirmed' ? 'default' : 'secondary'}>
+                    {existingRegistration.status}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+              <div className="flex items-center gap-2 text-sm">
+                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <span>{format(new Date(event.start_date), "EEEE, MMMM d, yyyy • h:mm a")}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <MapPin className="w-4 h-4 text-muted-foreground" />
+                <span>
+                  {event.is_online
+                    ? "Online Event"
+                    : event.venue_name || event.venue_address || "Venue TBA"}
+                </span>
+              </div>
+            </div>
+
+            <Button className="w-full" variant="outline" onClick={() => onOpenChange(false)}>
+              Got it, thanks!
+            </Button>
           </div>
         ) : (
           <div className="space-y-6">
