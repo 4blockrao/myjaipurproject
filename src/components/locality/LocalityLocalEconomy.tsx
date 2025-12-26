@@ -1,7 +1,8 @@
 import { Briefcase } from "lucide-react";
+import { Locality } from "@/hooks/useLocality";
 
 interface LocalityLocalEconomyProps {
-  locality: any;
+  locality: Locality;
 }
 
 export function LocalityLocalEconomy({ locality }: LocalityLocalEconomyProps) {

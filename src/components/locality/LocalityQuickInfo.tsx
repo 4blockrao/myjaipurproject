@@ -1,15 +1,8 @@
 import { MapPin, Users, Landmark, Navigation } from "lucide-react";
+import { Locality } from "@/hooks/useLocality";
 
 interface LocalityQuickInfoProps {
-  locality: {
-    name: string;
-    zone?: string | null;
-    municipality?: string | null;
-    ward_number?: string | null;
-    pin_codes?: string[] | null;
-    nearby_localities?: string[] | null;
-    tags?: string[] | null;
-  };
+  locality: Locality;
 }
 
 export function LocalityQuickInfo({ locality }: LocalityQuickInfoProps) {

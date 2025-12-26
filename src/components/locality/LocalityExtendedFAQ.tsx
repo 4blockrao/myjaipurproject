@@ -6,15 +6,18 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Helmet } from 'react-helmet-async';
+import { Locality, parseConnectivity, getBusStops, getAirportDistance } from "@/hooks/useLocality";
 
 interface LocalityExtendedFAQProps {
-  locality: any;
+  locality: Locality;
 }
 
 export function LocalityExtendedFAQ({ locality }: LocalityExtendedFAQProps) {
   if (!locality) return null;
 
-  const connectivity = locality.connectivity || {};
+  const connectivity = parseConnectivity(locality.connectivity);
+  const busStops = getBusStops(connectivity);
+  const airportDistance = getAirportDistance(connectivity);
   const name = locality.name;
   const zone = locality.zone;
 
@@ -74,13 +77,11 @@ export function LocalityExtendedFAQ({ locality }: LocalityExtendedFAQProps) {
         if (connectivity.nearest_railway_station) {
           parts.push(`${connectivity.nearest_railway_station} provides railway connectivity.`);
         }
-        if (connectivity.nearest_bus_stops?.length) {
-          parts.push(`Bus connectivity is available via ${connectivity.nearest_bus_stops.slice(0, 2).join(", ")}.`);
+        if (busStops.length) {
+          parts.push(`Bus connectivity is available via ${busStops.slice(0, 2).join(", ")}.`);
         }
-        if (typeof connectivity.distance_to_airport_km === "number") {
-          parts.push(`Jaipur International Airport is approximately ${connectivity.distance_to_airport_km} km away.`);
-        } else if (connectivity.distance_to_airport) {
-          parts.push(`Jaipur International Airport is ${connectivity.distance_to_airport} away.`);
+        if (airportDistance) {
+          parts.push(`Jaipur International Airport is ${airportDistance} away.`);
         }
         return parts.length ? parts.join(" ") : "Connectivity details are being verified.";
       })(),
@@ -113,7 +114,7 @@ export function LocalityExtendedFAQ({ locality }: LocalityExtendedFAQProps) {
           ? `Metro connectivity is available via ${connectivity.nearest_metro}.`
           : "The locality is connected by road networks."
       } ${
-        connectivity.nearest_bus_stops?.length
+        busStops.length
           ? `City buses operate from nearby stops.`
           : ""
       } Many residents use personal vehicles or ride-sharing services for commuting.`,

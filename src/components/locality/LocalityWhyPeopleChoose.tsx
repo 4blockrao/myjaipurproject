@@ -1,7 +1,8 @@
 import React from "react";
+import { Locality } from "@/hooks/useLocality";
 
 interface Props {
-  locality: any;
+  locality: Locality;
 }
 
 export default function LocalityWhyPeopleChoose({ locality }: Props) {
