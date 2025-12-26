@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Locality, useNearbyLocalities } from '@/hooks/useLocality';
-import { MapPin, ArrowRight } from 'lucide-react';
+import { Locality } from '@/hooks/useLocality';
+import { useNearbyLocalitiesEnhanced } from '@/hooks/useNearbyLocalities';
+import { MapPin, ArrowRight, Navigation } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -9,31 +10,37 @@ interface LocalityNearbyProps {
 }
 
 export function LocalityNearby({ locality }: LocalityNearbyProps) {
-  const { data: nearbyLocalities, isLoading } = useNearbyLocalities(locality.nearby_localities);
+  const { data: nearbyLocalities, isLoading } = useNearbyLocalitiesEnhanced(
+    locality.slug,
+    locality.adjacent_localities,
+    locality.nearby_localities,
+    locality.zone_id || null
+  );
 
-  if (!locality.nearby_localities?.length) {
+  // Don't render if no nearby data available
+  if (!locality.nearby_localities?.length && !locality.adjacent_localities?.length && !locality.zone_id) {
     return null;
   }
 
   return (
     <section className="mb-8">
-      <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
-        <MapPin className="h-6 w-6 text-primary" />
-        Nearby Localities
+      <h2 className="text-2xl font-bold text-foreground mb-2 flex items-center gap-2">
+        <Navigation className="h-6 w-6 text-primary" />
+        Nearby Localities & Areas
       </h2>
       <p className="text-muted-foreground mb-4">
-        Explore areas connected to {locality.name}:
+        Explore connected neighborhoods around {locality.name}
       </p>
       
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map(i => (
-            <Skeleton key={i} className="h-24 rounded-lg" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {[1, 2, 3, 4, 5].map(i => (
+            <Skeleton key={i} className="h-20 rounded-lg" />
           ))}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {nearbyLocalities?.map((nearby) => (
+      ) : nearbyLocalities && nearbyLocalities.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {nearbyLocalities.map((nearby) => (
             <Link 
               key={nearby.id} 
               to={`/jaipur/${nearby.slug}`}
@@ -41,54 +48,32 @@ export function LocalityNearby({ locality }: LocalityNearbyProps) {
             >
               <Card className="h-full transition-all hover:shadow-md hover:border-primary/50">
                 <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2 mb-1">
+                      <MapPin className="h-4 w-4 text-primary shrink-0" />
+                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors text-sm line-clamp-1">
                         {nearby.name}
                       </h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {nearby.zone || 'Jaipur'}
-                      </p>
-                      {nearby.tags?.length && (
-                        <p className="text-xs text-muted-foreground mt-2">
-                          {nearby.tags.slice(0, 2).join(' • ')}
-                        </p>
-                      )}
                     </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    {/* Show contextual hint without zone reference */}
+                    <p className="text-xs text-muted-foreground">
+                      {nearby.isAdjacent ? 'Adjacent area' : 'Nearby'}
+                    </p>
+                    {nearby.tags?.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+                        {nearby.tags.slice(0, 2).join(' • ')}
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
             </Link>
           ))}
-          
-          {/* Show remaining as simple links if DB doesn't have them */}
-          {locality.nearby_localities
-            ?.filter(slug => !nearbyLocalities?.find(n => n.slug === slug))
-            .map((slug) => (
-              <Link 
-                key={slug} 
-                to={`/jaipur/${slug}`}
-                className="group"
-              >
-                <Card className="h-full transition-all hover:shadow-md hover:border-primary/50">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors capitalize">
-                          {slug.replace(/-/g, ' ')}
-                        </h3>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Adjacent area
-                        </p>
-                      </div>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
         </div>
+      ) : (
+        <p className="text-muted-foreground text-sm">
+          Nearby area information is being updated.
+        </p>
       )}
     </section>
   );
