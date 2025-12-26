@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Users, FileText, Store, Calendar, BarChart3 } from "lucide-react";
+import { Shield, Users, FileText, Store, Calendar, BarChart3, Newspaper } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import AppLayout from "@/components/layout/AppLayout";
@@ -11,6 +11,7 @@ import EventsManagement from "@/components/admin/EventsManagement";
 import MerchantsManagement from "@/components/admin/MerchantsManagement";
 import UsersManagement from "@/components/admin/UsersManagement";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
+import { NightlifeArticleSeeder } from "@/components/admin/NightlifeArticleSeeder";
 
 const AdminDashboardPage = () => {
   const [user, setUser] = useState<any>(null);
@@ -62,7 +63,7 @@ const AdminDashboardPage = () => {
         </div>
 
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7">
             <TabsTrigger value="analytics" className="gap-2">
               <BarChart3 className="w-4 h-4 hidden sm:inline" />
               Analytics
@@ -83,6 +84,10 @@ const AdminDashboardPage = () => {
               <Calendar className="w-4 h-4 hidden sm:inline" />
               Events
             </TabsTrigger>
+            <TabsTrigger value="content" className="gap-2">
+              <Newspaper className="w-4 h-4 hidden sm:inline" />
+              Content
+            </TabsTrigger>
             <TabsTrigger value="roles" className="gap-2">
               <Shield className="w-4 h-4 hidden sm:inline" />
               Roles
@@ -94,6 +99,21 @@ const AdminDashboardPage = () => {
           <TabsContent value="merchants"><MerchantsManagement /></TabsContent>
           <TabsContent value="deals"><DealApprovalQueue /></TabsContent>
           <TabsContent value="events"><EventsManagement /></TabsContent>
+          <TabsContent value="content">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Content Management</CardTitle>
+                  <CardDescription>Publish evergreen SEO-optimized articles and guides</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <NightlifeArticleSeeder />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
           <TabsContent value="roles"><RoleManager /></TabsContent>
         </Tabs>
       </div>
