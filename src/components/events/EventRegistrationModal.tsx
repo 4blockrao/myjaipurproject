@@ -188,7 +188,7 @@ const EventRegistrationModal = ({ event, open, onOpenChange }: EventRegistration
               </p>
               
               <div className="flex flex-col gap-2">
-                <Link to="/auth" onClick={() => onOpenChange(false)}>
+                <Link to={`/auth?redirect=${encodeURIComponent(window.location.pathname)}`} onClick={() => onOpenChange(false)}>
                   <Button className="w-full" size="lg">
                     <LogIn className="w-4 h-4 mr-2" />
                     Sign In / Create Account
