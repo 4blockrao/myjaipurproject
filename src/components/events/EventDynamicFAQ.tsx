@@ -57,6 +57,62 @@ const generateFAQs = (locality?: string, eventType?: string): FAQItem[] => {
     });
   }
 
+  if (eventType === "today") {
+    faqs.push({
+      question: "What events are happening in Jaipur today?",
+      answer: "JaipurCircle lists all verified events happening today in Jaipur including concerts, workshops, exhibitions, cultural programs and community activities. This page is updated daily at midnight."
+    });
+    
+    faqs.push({
+      question: "How do I find last-minute events in Jaipur?",
+      answer: "Our 'Events Today' page shows all same-day events with time, venue and ticket availability. Filter by category or locality to find activities that suit your schedule."
+    });
+    
+    faqs.push({
+      question: "Are there free things to do in Jaipur today?",
+      answer: "Yes — check our free events filter to find no-cost activities, public programs, cultural events and community gatherings happening today across Jaipur localities."
+    });
+  }
+
+  if (eventType === "this-week") {
+    faqs.push({
+      question: "What events are happening in Jaipur this week?",
+      answer: "JaipurCircle features all upcoming events in Jaipur from Monday through Sunday. Browse concerts, workshops, exhibitions, meetups and cultural programs scheduled for this week."
+    });
+    
+    faqs.push({
+      question: "How do I plan my week in Jaipur?",
+      answer: "Use our weekly events calendar to see events organized by day. Filter by category, locality or price to plan the perfect week of activities in Jaipur."
+    });
+    
+    faqs.push({
+      question: "What are the best things to do in Jaipur this week?",
+      answer: "This week's highlights include live music, art exhibitions, skill workshops, food festivals, heritage walks and cultural performances. Check our featured events for top recommendations."
+    });
+  }
+
+  if (eventType === "this-weekend") {
+    faqs.push({
+      question: "What are the best events in Jaipur this weekend?",
+      answer: "JaipurCircle features verified weekend events including concerts, nightlife, festivals, comedy shows, family activities and outdoor events happening Saturday and Sunday in Jaipur."
+    });
+    
+    faqs.push({
+      question: "Are there family-friendly activities this weekend in Jaipur?",
+      answer: "Yes — Jaipur hosts many family-friendly weekend events including kids workshops, heritage walks, food festivals, cultural programs and outdoor activities perfect for all ages."
+    });
+    
+    faqs.push({
+      question: "What nightlife events are happening in Jaipur this weekend?",
+      answer: "Find the best weekend nightlife including DJ nights, live music, rooftop parties, club events and late-night performances at top venues across Jaipur."
+    });
+    
+    faqs.push({
+      question: "How do I find weekend events near me in Jaipur?",
+      answer: "Use JaipurCircle locality filters to discover weekend events in your area. Each locality page shows upcoming Saturday and Sunday activities with venue details."
+    });
+  }
+
   // Common FAQs
   faqs.push({
     question: `How do I find events near me in ${location}?`,

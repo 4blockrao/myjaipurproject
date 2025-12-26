@@ -42,6 +42,9 @@ import EventOrganizerDashboardPage from "./pages/EventOrganizerDashboardPage";
 import EventsFreeFilterPage from "./pages/EventsFreeFilterPage";
 import EventsWorkshopsPage from "./pages/EventsWorkshopsPage";
 import EventsLocalityPage from "./pages/EventsLocalityPage";
+import EventsTodayPage from "./pages/EventsTodayPage";
+import EventsThisWeekPage from "./pages/EventsThisWeekPage";
+import EventsThisWeekendPage from "./pages/EventsThisWeekendPage";
 
 // Merchant Pages
 import MerchantOnboardingPage from "./pages/MerchantOnboardingPage";
@@ -149,6 +152,9 @@ function App() {
               <Route path="/events/organizer" element={<EventOrganizerDashboardPage />} />
               <Route path="/events/free" element={<EventsFreeFilterPage />} />
               <Route path="/events/workshops" element={<EventsWorkshopsPage />} />
+              <Route path="/events/today" element={<EventsTodayPage />} />
+              <Route path="/events/this-week" element={<EventsThisWeekPage />} />
+              <Route path="/events/this-weekend" element={<EventsThisWeekendPage />} />
               <Route path="/events/in/:locality" element={<EventsLocalityPage />} />
               <Route path="/events/:slug" element={<EventDetailPage />} />
               
