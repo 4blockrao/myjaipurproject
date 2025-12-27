@@ -182,8 +182,8 @@ const EventDetailPage = () => {
   };
   const duration = getDuration();
 
-  // Transactional H1: {Event Name} — {City} Tickets ({Date / Year})
-  const h1Title = `${event.title} — ${city} Tickets (${eventMonth} ${eventYear})`;
+  // SEO-Optimized H1: {Event Name} Jaipur {Year} — Date, Venue, Ticket Price, Timing & Booking Info
+  const h1Title = `${event.title} Jaipur ${eventYear} — Date, Venue, Ticket Price, Timing & Booking Info`;
 
   return (
     <>
@@ -202,11 +202,11 @@ const EventDetailPage = () => {
       />
 
       <div className="min-h-screen bg-background pb-32">
-        {/* Cover Image with Above-the-Fold Elements */}
+        {/* HERO BLOCK - Cover Image with Essential Above-the-Fold Elements */}
         <div className="relative aspect-[16/9] sm:aspect-[21/9]">
           <img
             src={event.cover_image || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=450&fit=crop"}
-            alt={`${event.title} - ${event.category} event in ${city}`}
+            alt={`${event.title} - ${event.category} event in ${city} ${eventYear}`}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
@@ -241,6 +241,9 @@ const EventDetailPage = () => {
               {event.is_free && (
                 <Badge className="bg-green-600 text-white">Free Entry</Badge>
               )}
+              {isPastEvent && (
+                <Badge variant="secondary" className="bg-muted-foreground/50">Past Event</Badge>
+              )}
             </div>
             
             {/* Date Badge */}
@@ -257,12 +260,12 @@ const EventDetailPage = () => {
           </div>
         </div>
 
-        {/* Content */}
+        {/* Content - SEO-First Block Order */}
         <div className="px-4 py-6 space-y-6 max-w-4xl mx-auto">
           {/* Breadcrumb */}
           <EventBreadcrumb event={event} />
 
-          {/* H1 Title - Transactional Format */}
+          {/* H1 Title - SEO-Optimized Long Format */}
           <div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold leading-tight">
               {h1Title}
@@ -274,99 +277,20 @@ const EventDetailPage = () => {
             </div>
           </div>
 
-          {/* SEO Intro Block */}
+          {/* BLOCK 1: Event Quick Summary (Above Fold - Mandatory) */}
+          <EventQuickSummary event={event} />
+
+          {/* Past Event Banner - Show prominently for completed events */}
+          {isPastEvent && <EventPastBanner event={event} />}
+
+          {/* BLOCK 2: SEO Intro Block (Intent Optimized) */}
           <EventSEOIntro event={event} />
 
-          {/* Past Event Banner */}
-          {isPastEvent && (
-            <div className="p-4 bg-muted border border-border rounded-xl">
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="bg-muted-foreground/20">Past Event</Badge>
-                <p className="text-sm text-muted-foreground">
-                  This event took place on {format(startDate, "MMMM d, yyyy")}. Check out similar upcoming events below.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Quick Info Grid - Above Fold Essential Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Date & Time */}
-            <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-xl">
-              <Calendar className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Date & Time</p>
-                <p className="font-medium">{format(startDate, "MMMM d, yyyy")}</p>
-                <p className="text-sm text-muted-foreground">
-                  {format(startDate, "h:mm a")}
-                  {endDate && ` – ${format(endDate, "h:mm a")}`}
-                  {duration && ` (${duration})`}
-                </p>
-              </div>
-            </div>
-
-            {/* Location */}
-            <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-xl">
-              {event.is_online ? (
-                <>
-                  <Globe className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Venue</p>
-                    <p className="font-medium">Online Event</p>
-                    {event.online_url && (
-                      <a
-                        href={event.online_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-primary flex items-center gap-1"
-                      >
-                        Join Event <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <MapPin className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Venue</p>
-                    <p className="font-medium">{event.venue_name || 'TBA'}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {event.venue_address}
-                      {event.locality && `, ${event.locality}`}
-                    </p>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Price */}
-            <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-xl">
-              <Ticket className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Tickets</p>
-                <p className="font-bold text-lg">
-                  {event.is_free ? "Free Entry" : `₹${event.ticket_price} onwards`}
-                </p>
-              </div>
-            </div>
-
-            {/* Interest Count */}
-            <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-xl">
-              <Users className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Interest</p>
-                <p className="font-medium">
-                  {event.interested_count || 0} interested
-                </p>
-                {event.max_tickets && (
-                  <p className="text-sm text-muted-foreground">
-                    {event.max_tickets - (event.tickets_sold || 0)} spots left
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
+          {/* BLOCK 3: Ticket Price & Categories */}
+          <EventTicketPricing 
+            event={event} 
+            onGetTickets={() => setShowRegistration(true)} 
+          />
 
           {/* Sticky CTA for Desktop - Only show for future events */}
           {!isPastEvent && (
@@ -382,11 +306,30 @@ const EventDetailPage = () => {
             </div>
           )}
 
-          {/* Ticket Pricing Block */}
-          <EventTicketPricing 
-            event={event} 
-            onGetTickets={() => setShowRegistration(true)} 
-          />
+          {/* BLOCK 4: Venue & Location Intelligence */}
+          <EventVenueSection event={event} />
+
+          {/* BLOCK 5: Event Timing & Schedule */}
+          <EventScheduleSection event={event} />
+
+          {/* BLOCK 6: Entry Rules & Restrictions */}
+          <EventEntryRules event={event} />
+
+          {/* BLOCK 7: Performer / Organizer Section */}
+          <EventPerformerSection event={event} />
+
+          {/* BLOCK 8: Event Highlights & Experience */}
+          <EventHighlights event={event} />
+
+          {/* Description / About - Full Event Details */}
+          {event.description && (
+            <section className="space-y-3">
+              <h2 className="text-lg font-bold">About {event.title}</h2>
+              <div className="prose prose-sm text-muted-foreground whitespace-pre-wrap max-w-none">
+                {event.description}
+              </div>
+            </section>
+          )}
 
           {/* AI-Friendly Summary Section */}
           <EventAISummary event={event} />
@@ -394,54 +337,56 @@ const EventDetailPage = () => {
           {/* Event Facts Section */}
           <EventFactsSection event={event} />
 
-          {/* Description / About */}
-          {event.description && (
-            <section className="space-y-3">
-              <h2 className="text-lg font-bold">About This Event</h2>
-              <div className="prose prose-sm text-muted-foreground whitespace-pre-wrap max-w-none">
-                {event.description}
-              </div>
-            </section>
-          )}
-
-          {/* Event Highlights & Experience */}
-          <EventHighlights event={event} />
-
-          {/* Performer / Organizer Section */}
-          <EventPerformerSection event={event} />
-
           {/* Important Information */}
           <EventImportantInfo event={event} />
 
           {/* Freshness Indicator */}
           <EventFreshnessIndicator event={event} />
 
-          {/* Dynamic FAQ Section */}
+          {/* BLOCK 9: Dynamic FAQ Section (Mandatory 6-10 FAQs) */}
           <EventDynamicFAQ 
             locality={event.locality || undefined}
             eventType={event.category.toLowerCase()}
             customFAQs={[
               {
-                question: `How much are ${event.title} tickets?`,
-                answer: event.is_free 
-                  ? `${event.title} is a free event. Registration is required but no ticket purchase is necessary.`
-                  : `Tickets for ${event.title} start from ₹${event.ticket_price}. Premium/VIP passes may be available at higher prices.`
+                question: `Is ${event.title} confirmed in Jaipur ${eventYear}?`,
+                answer: isPastEvent 
+                  ? `Yes, ${event.title} took place in Jaipur on ${format(startDate, 'MMMM d, yyyy')}. The event has been completed.`
+                  : `Yes, ${event.title} is confirmed for Jaipur. The event is scheduled for ${format(startDate, 'MMMM d, yyyy')} at ${event.venue_name || 'the venue'}.`
               },
               {
-                question: `Where is ${event.title} happening?`,
+                question: `What are the ticket prices for ${event.title}?`,
+                answer: event.is_free 
+                  ? `${event.title} is a free event. Registration is required but no ticket purchase is necessary.`
+                  : `Tickets for ${event.title} start from ₹${event.ticket_price}. Multiple ticket categories may be available including general admission, VIP, and premium passes.`
+              },
+              {
+                question: `Where is ${event.title} happening in Jaipur?`,
                 answer: event.is_online 
-                  ? `${event.title} is an online event. You will receive the joining link after registration.`
-                  : `${event.title} is happening at ${event.venue_name || 'the venue'}${event.locality ? ` in ${event.locality}` : ''}, ${city}.${event.venue_address ? ` Address: ${event.venue_address}.` : ''}`
+                  ? `${event.title} is an online/virtual event. You will receive the joining link after registration.`
+                  : `${event.title} is happening at ${event.venue_name || 'the venue'}${event.locality ? ` in ${event.locality}` : ''}, Jaipur.${event.venue_address ? ` Full address: ${event.venue_address}.` : ''}`
               },
               {
                 question: `What time does ${event.title} start?`,
-                answer: `${event.title} starts on ${format(startDate, 'MMMM d, yyyy')} at ${format(startDate, 'h:mm a')}. Gates/Entry opens 30 minutes before the scheduled start time.`
+                answer: `${event.title} starts on ${format(startDate, 'MMMM d, yyyy')} at ${format(startDate, 'h:mm a')}. Gates/Entry typically opens 30-60 minutes before the scheduled start time.`
+              },
+              {
+                question: `Will VIP passes be available for ${event.title}?`,
+                answer: `VIP and premium ticket categories are typically available for major events like ${event.title}. Check the ticket booking section for available categories and pricing.`
+              },
+              {
+                question: `Is seating or standing at ${event.title}?`,
+                answer: `The seating arrangement for ${event.title} depends on the venue and ticket category. Check your ticket type for specific seating or standing zone allocation.`
+              },
+              {
+                question: `Is re-entry allowed at ${event.title}?`,
+                answer: `Re-entry policies vary by event. Generally, once you exit the venue, re-entry may not be allowed. Check with venue staff for ${event.title} specific policies.`
               },
               {
                 question: `Can I get a refund for ${event.title} tickets?`,
                 answer: event.is_free 
                   ? `Since ${event.title} is a free event, there is no refund process. Simply update your registration if your plans change.`
-                  : `Tickets for ${event.title} are generally non-refundable. If the event is cancelled or rescheduled, refunds will be processed automatically.`
+                  : `Tickets for ${event.title} are generally non-refundable. If the event is cancelled or rescheduled, refunds will be processed as per the organizer's policy.`
               },
             ]}
           />
@@ -470,7 +415,7 @@ const EventDetailPage = () => {
             venueName={event.venue_name}
           />
 
-          {/* Internal Links for SEO */}
+          {/* BLOCK 10: Internal Links for SEO (Entity Graph) */}
           <EventInternalLinks event={event} />
         </div>
 
