@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { format } from 'date-fns';
 import {
   Accordion,
   AccordionContent,
@@ -15,9 +16,91 @@ interface EventDynamicFAQProps {
   locality?: string;
   eventType?: string;
   customFAQs?: FAQItem[];
+  // New: event-specific data for better FAQs
+  event?: {
+    title: string;
+    start_date: string;
+    venue_name?: string | null;
+    locality?: string | null;
+    city?: string | null;
+    is_free?: boolean | null;
+    ticket_price?: number | null;
+    organizer_name?: string | null;
+    category?: string;
+  };
 }
 
-const generateFAQs = (locality?: string, eventType?: string): FAQItem[] => {
+const generateEventSpecificFAQs = (event: NonNullable<EventDynamicFAQProps['event']>): FAQItem[] => {
+  const city = event.city || 'Jaipur';
+  const venue = event.venue_name || 'the venue';
+  const locality = event.locality || city;
+  const category = event.category?.toLowerCase() || 'event';
+  const startDate = new Date(event.start_date);
+  const dateText = format(startDate, 'MMMM d, yyyy');
+  const timeText = format(startDate, 'h:mm a');
+  const year = format(startDate, 'yyyy');
+
+  const faqs: FAQItem[] = [
+    {
+      question: `Is ${event.title} confirmed in ${city}?`,
+      answer: `Yes, ${event.title} is confirmed to take place on ${dateText} at ${venue} in ${locality}, ${city}. The event status is "scheduled" and tickets ${event.is_free ? 'registration' : 'are available'} through JaipurCircle.`
+    },
+    {
+      question: `Where will ${event.title} happen?`,
+      answer: `${event.title} will be held at ${venue}${locality !== city ? ` in ${locality}` : ''}, ${city}, Rajasthan. The venue is accessible by metro, bus, cab, and private vehicle. Parking is available nearby.`
+    },
+    {
+      question: `What are the ticket price categories for ${event.title}?`,
+      answer: event.is_free 
+        ? `${event.title} is a FREE event. No ticket purchase is required, but registration is mandatory to secure your spot. Walk-ins may be allowed based on availability.`
+        : `Ticket prices for ${event.title} start from ₹${event.ticket_price}. Categories typically include General Admission and VIP/Premium passes (if available). Early booking is recommended as prices may increase.`
+    },
+    {
+      question: `Will VIP passes be available for ${event.title}?`,
+      answer: event.is_free
+        ? `Since ${event.title} is a free event, VIP passes are not applicable. All registered attendees will have equal access to the event.`
+        : `VIP/Premium passes may be available for ${event.title} depending on the organizer. These typically include priority entry, better seating/viewing, and sometimes meet & greet opportunities. Check the booking page for available categories.`
+    },
+    {
+      question: `Is ${event.title} seating or standing?`,
+      answer: category.includes('concert') || category.includes('music')
+        ? `${event.title} typically features both standing and seating areas. The pit/front area is usually standing, while rear sections may have seating. Check your ticket category for specific arrangements.`
+        : category.includes('comedy') || category.includes('theatre')
+        ? `${event.title} is a seated event. Seating is usually assigned based on ticket category. Arrive early for better seat selection in general admission areas.`
+        : `Seating arrangements for ${event.title} depend on the venue setup. Please check the venue map or contact the organizer for specific details.`
+    },
+    {
+      question: `Is re-entry allowed at ${event.title}?`,
+      answer: `Re-entry policies vary by venue, but typically NO re-entry is allowed once you exit the venue during ${event.title}. Please plan accordingly and enter only when you're ready to stay for the full event.`
+    },
+    {
+      question: `What time should I arrive for ${event.title}?`,
+      answer: `${event.title} starts at ${timeText} on ${dateText}. We recommend arriving 30-45 minutes early for check-in, security screening, and finding your spot. Gates typically open 30 minutes before the show.`
+    },
+    {
+      question: `Can I get a refund for ${event.title} tickets?`,
+      answer: event.is_free
+        ? `Since ${event.title} is a free event, there's no refund process. If you can't attend, simply update your registration or skip — your spot will be available to others.`
+        : `Tickets for ${event.title} are generally non-refundable once purchased. However, if the event is cancelled or rescheduled by the organizer, full refunds will be processed automatically within 7-10 business days.`
+    },
+    {
+      question: `What should I bring to ${event.title}?`,
+      answer: `For ${event.title}, bring: Valid ID proof (Aadhaar/DL/Passport), your e-ticket or registration confirmation (screenshot works), and your phone with sufficient charge. Avoid bringing large bags, outside food/drinks, or professional cameras.`
+    },
+    {
+      question: `Is ${event.title} suitable for children?`,
+      answer: category.includes('nightlife') || category.includes('club')
+        ? `No, ${event.title} is strictly for adults aged 21 and above. Valid ID proof is mandatory for entry.`
+        : category.includes('comedy')
+        ? `${event.title} is recommended for ages 16 and above as content may include adult humor. Parental discretion is advised.`
+        : `${event.title} is generally suitable for all ages unless specified otherwise. Children under 12 should be accompanied by an adult. Check with the organizer for specific age restrictions.`
+    },
+  ];
+
+  return faqs;
+};
+
+const generateGenericFAQs = (locality?: string, eventType?: string): FAQItem[] => {
   const location = locality ? `${locality}, Jaipur` : "Jaipur";
   const faqs: FAQItem[] = [];
 
@@ -38,78 +121,12 @@ const generateFAQs = (locality?: string, eventType?: string): FAQItem[] => {
       question: "What types of free events are available in Jaipur?",
       answer: "Free events in Jaipur include cultural festivals, art exhibitions, community gatherings, public concerts, heritage walks, book readings, open mic nights and government-sponsored programs."
     });
-    
-    faqs.push({
-      question: "How often are free events updated on JaipurCircle?",
-      answer: "Our free events listings are updated daily. Event organizers can submit their free events directly through JaipurCircle for immediate visibility."
-    });
-  }
-
-  if (eventType === "workshops") {
-    faqs.push({
-      question: "What types of workshops are available in Jaipur?",
-      answer: "Jaipur offers diverse workshops including photography, art & craft, cooking classes, music lessons, coding bootcamps, pottery, block printing, language classes and professional skill development programs."
-    });
-    
-    faqs.push({
-      question: "Are there weekend workshops in Jaipur?",
-      answer: "Yes — many workshops in Jaipur are scheduled on weekends to accommodate working professionals. Filter by date to find Saturday and Sunday sessions near you."
-    });
-  }
-
-  if (eventType === "today") {
-    faqs.push({
-      question: "What events are happening in Jaipur today?",
-      answer: "JaipurCircle lists all verified events happening today in Jaipur including concerts, workshops, exhibitions, cultural programs and community activities. This page is updated daily at midnight."
-    });
-    
-    faqs.push({
-      question: "How do I find last-minute events in Jaipur?",
-      answer: "Our 'Events Today' page shows all same-day events with time, venue and ticket availability. Filter by category or locality to find activities that suit your schedule."
-    });
-    
-    faqs.push({
-      question: "Are there free things to do in Jaipur today?",
-      answer: "Yes — check our free events filter to find no-cost activities, public programs, cultural events and community gatherings happening today across Jaipur localities."
-    });
-  }
-
-  if (eventType === "this-week") {
-    faqs.push({
-      question: "What events are happening in Jaipur this week?",
-      answer: "JaipurCircle features all upcoming events in Jaipur from Monday through Sunday. Browse concerts, workshops, exhibitions, meetups and cultural programs scheduled for this week."
-    });
-    
-    faqs.push({
-      question: "How do I plan my week in Jaipur?",
-      answer: "Use our weekly events calendar to see events organized by day. Filter by category, locality or price to plan the perfect week of activities in Jaipur."
-    });
-    
-    faqs.push({
-      question: "What are the best things to do in Jaipur this week?",
-      answer: "This week's highlights include live music, art exhibitions, skill workshops, food festivals, heritage walks and cultural performances. Check our featured events for top recommendations."
-    });
   }
 
   if (eventType === "this-weekend") {
     faqs.push({
       question: "What are the best events in Jaipur this weekend?",
       answer: "JaipurCircle features verified weekend events including concerts, nightlife, festivals, comedy shows, family activities and outdoor events happening Saturday and Sunday in Jaipur."
-    });
-    
-    faqs.push({
-      question: "Are there family-friendly activities this weekend in Jaipur?",
-      answer: "Yes — Jaipur hosts many family-friendly weekend events including kids workshops, heritage walks, food festivals, cultural programs and outdoor activities perfect for all ages."
-    });
-    
-    faqs.push({
-      question: "What nightlife events are happening in Jaipur this weekend?",
-      answer: "Find the best weekend nightlife including DJ nights, live music, rooftop parties, club events and late-night performances at top venues across Jaipur."
-    });
-    
-    faqs.push({
-      question: "How do I find weekend events near me in Jaipur?",
-      answer: "Use JaipurCircle locality filters to discover weekend events in your area. Each locality page shows upcoming Saturday and Sunday activities with venue details."
     });
   }
 
@@ -127,8 +144,20 @@ const generateFAQs = (locality?: string, eventType?: string): FAQItem[] => {
   return faqs;
 };
 
-const EventDynamicFAQ = ({ locality, eventType, customFAQs }: EventDynamicFAQProps) => {
-  const faqs = customFAQs || generateFAQs(locality, eventType);
+const EventDynamicFAQ = ({ locality, eventType, customFAQs, event }: EventDynamicFAQProps) => {
+  // Prioritize event-specific FAQs if event data is provided
+  let faqs: FAQItem[] = [];
+  
+  if (event) {
+    faqs = generateEventSpecificFAQs(event);
+  } else {
+    faqs = customFAQs || generateGenericFAQs(locality, eventType);
+  }
+
+  // Add custom FAQs if both event and custom are provided
+  if (event && customFAQs) {
+    faqs = [...faqs, ...customFAQs];
+  }
 
   const faqSchema = {
     "@context": "https://schema.org",
@@ -155,7 +184,7 @@ const EventDynamicFAQ = ({ locality, eventType, customFAQs }: EventDynamicFAQPro
         <h2 className="text-lg font-bold mb-4">Frequently Asked Questions</h2>
         
         <Accordion type="single" collapsible className="space-y-2">
-          {faqs.map((faq, index) => (
+          {faqs.slice(0, 10).map((faq, index) => (
             <AccordionItem 
               key={index} 
               value={`faq-${index}`}
