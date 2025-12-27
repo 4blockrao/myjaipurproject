@@ -56,26 +56,31 @@ const EventDetailPage = () => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
   }, []);
 
-  const { data: event, isLoading } = useQuery({
+  const { data: event, isLoading, error: eventError } = useQuery({
     queryKey: ["event", slug],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
         .select("*")
         .eq("slug", slug)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) return null;
 
-      // Increment view count
-      supabase.rpc("increment_event_views", { event_id: data.id });
+      // Increment view count (fire and forget - no await)
+      void supabase.rpc("increment_event_views", { event_id: data.id });
 
       return data;
     },
     enabled: !!slug,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
+    retry: 2, // Retry failed requests twice
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
   });
 
-  // Check if user is interested
+  // Check if user is interested - only run after event is loaded
   useQuery({
     queryKey: ["event-interest", event?.id, user?.id],
     queryFn: async () => {
@@ -85,11 +90,12 @@ const EventDetailPage = () => {
         .select("id")
         .eq("event_id", event.id)
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
       setIsInterested(!!data);
       return data;
     },
-    enabled: !!user && !!event,
+    enabled: !!user && !!event?.id,
+    staleTime: 1000 * 60 * 2,
   });
 
   const toggleInterest = useMutation({
@@ -144,6 +150,22 @@ const EventDetailPage = () => {
           <Skeleton className="h-4 w-1/2" />
           <Skeleton className="h-20 w-full" />
         </div>
+        <NativeBottomNav />
+      </div>
+    );
+  }
+
+  if (eventError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center p-4">
+          <h1 className="text-xl font-bold mb-2">Unable to load event</h1>
+          <p className="text-muted-foreground mb-4">Please check your connection and try again.</p>
+          <Link to="/events">
+            <Button>Back to Events</Button>
+          </Link>
+        </div>
+        <NativeBottomNav />
       </div>
     );
   }

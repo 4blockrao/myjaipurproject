@@ -102,12 +102,13 @@ const EventLocalityInsights = ({ locality, venueName, eventTime }: EventLocality
         .from('localities')
         .select('name, slug, zone, connectivity, major_landmarks, nearby_localities, tags, meta')
         .ilike('name', locality)
-        .single();
+        .maybeSingle();
       
       if (error) return null;
       return data;
     },
-    enabled: !!locality
+    enabled: !!locality,
+    staleTime: 1000 * 60 * 30, // Cache locality data for 30 minutes
   });
 
   if (!locality) return null;

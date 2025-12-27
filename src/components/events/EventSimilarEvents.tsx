@@ -39,10 +39,11 @@ const EventSimilarEvents = ({
         .order('start_date', { ascending: false })
         .limit(4);
       
-      if (error) throw error;
+      if (error) return [];
       return data || [];
     },
-    enabled: !!venueName
+    enabled: !!venueName,
+    staleTime: 1000 * 60 * 10, // Cache for 10 minutes
   });
 
   // Get similar category events
@@ -65,10 +66,11 @@ const EventSimilarEvents = ({
       }
       
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) return [];
       return data || [];
     },
-    enabled: !!category
+    enabled: !!category,
+    staleTime: 1000 * 60 * 10,
   });
 
   const isLoading = pastLoading || similarLoading;
