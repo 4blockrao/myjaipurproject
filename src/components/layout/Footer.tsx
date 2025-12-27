@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Mail, Building, Home, Grid3X3 } from 'lucide-react';
+import { MapPin, Mail, Building, Home, Grid3X3, Tag, Calendar, Car } from 'lucide-react';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,17 +33,19 @@ export const Footer = () => {
     staleTime: 1000 * 60 * 30, // 30 minutes
   });
 
-  const quickLinks = [
-    { label: 'News', href: '/news' },
-    { label: 'Events', href: '/events' },
-    { label: 'Deals', href: '/deals' },
-    { label: 'All Categories', href: '/categories' },
+  const exploreLinks = [
+    { label: 'Deals', href: '/deals', icon: Tag },
+    { label: 'Events', href: '/events', icon: Calendar },
+    { label: 'Property', href: '/categories/property', icon: Home },
+    { label: 'Cars', href: '/categories/automobile', icon: Car },
+    { label: 'All Categories', href: '/categories', icon: Grid3X3 },
   ];
 
   const companyLinks = [
     { label: 'About Us', href: '/about' },
     { label: 'For Businesses', href: '/merchant-onboarding' },
     { label: 'Help & Support', href: '/help' },
+    { label: 'News', href: '/news' },
   ];
 
   const localityLinks = [
@@ -66,7 +68,7 @@ export const Footer = () => {
           
           <div className="text-sm text-muted-foreground leading-relaxed space-y-3">
             <p>
-              JaipurCircle is a locality-first urban information platform for Jaipur that helps users discover, understand, and explore neighbourhoods, zones, sectors, colonies, and micro-localities across the city. Each locality page on JaipurCircle is designed as a structured locality guide that provides neighbourhood-level civic information such as ward and zone references, nearby areas, locality boundaries, demographic context, housing characteristics, urban connectivity, micro-pockets, and surrounding residential and commercial belts.
+              JaipurCircle is Jaipur's hyper-local discovery platform for deals, events, property, automobiles, and local businesses. We help residents find the best offers in their neighborhood, discover upcoming events, explore property listings, and browse cars for sale — all tailored to their locality.
             </p>
             
             {showFullAbout && (
@@ -101,7 +103,7 @@ export const Footer = () => {
               <h2 className="text-xl font-bold text-primary">JaipurCircle</h2>
             </Link>
             <p className="text-sm text-muted-foreground">
-              Jaipur's locality-first discovery platform for neighbourhoods, news, events, deals, and everything happening in the Pink City.
+              Jaipur's hyper-local platform for deals, events, property, automobiles, and everything happening in the Pink City.
             </p>
             
             {/* NAP Block for Local SEO */}
@@ -122,20 +124,24 @@ export const Footer = () => {
             </address>
           </div>
 
-          {/* Quick Links */}
+          {/* Explore Links */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Quick Links</h3>
+            <h3 className="font-semibold text-foreground mb-4">Explore</h3>
             <ul className="space-y-2">
-              {quickLinks.map((link) => (
-                <li key={link.href}>
-                  <Link 
-                    to={link.href}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
+              {exploreLinks.map((link) => {
+                const IconComponent = link.icon;
+                return (
+                  <li key={link.href}>
+                    <Link 
+                      to={link.href}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5"
+                    >
+                      <IconComponent className="w-3.5 h-3.5" />
+                      {link.label}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 

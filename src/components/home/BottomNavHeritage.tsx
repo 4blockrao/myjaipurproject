@@ -1,4 +1,4 @@
-import { Home, Tag, CalendarDays, MapPin, User } from "lucide-react";
+import { Home, Tag, CalendarDays, MapPin, User, Car, Building2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
