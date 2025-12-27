@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AuthModal from "@/components/auth/AuthModal";
-import CompactHeader from "@/components/home/CompactHeader";
-import HeroCarousel from "@/components/home/HeroCarousel";
-import QuickSearchBar from "@/components/home/QuickSearchBar";
-import CategoryGridCompact from "@/components/home/CategoryGridCompact";
-import DealsCarousel from "@/components/home/DealsCarousel";
+import HeaderMinimal from "@/components/home/HeaderMinimal";
+import HeroBanner from "@/components/home/HeroBanner";
+import SearchBarFloating from "@/components/home/SearchBarFloating";
+import CategoryIconGrid from "@/components/home/CategoryIconGrid";
+import HotDealsSection from "@/components/home/HotDealsSection";
 import BottomNavHeritage from "@/components/home/BottomNavHeritage";
 import { NewsHomeSection } from "@/components/news/NewsHomeSection";
 import EventHomeSection from "@/components/events/EventHomeSection";
@@ -63,13 +63,7 @@ const Index = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Deal categorizations
-  const dealCounts = ["all", "Food & Dining", "Beauty & Wellness", "Shopping", "Electronics", "Health & Fitness", "Automotive", "Services", "Travel"].reduce((acc, category) => {
-    acc[category] = category === "all" ? deals.length : deals.filter(deal => deal.category === category).length;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const featuredDeals = deals.filter(deal => deal.is_featured);
+  // Hot deals - sorted by discount
   const hotDeals = [...deals].sort((a, b) => (b.discount_percentage || 0) - (a.discount_percentage || 0)).slice(0, 8);
 
   useEffect(() => {
@@ -108,45 +102,29 @@ const Index = () => {
       <Toaster />
       <Sonner />
       
-      {/* Compact Header */}
-      <CompactHeader 
-        userName={profile?.full_name}
-        jaiCoins={userBalance}
+      {/* Minimal Header */}
+      <HeaderMinimal 
         isAuthenticated={isAuthenticated}
         onSignIn={() => setShowAuthModal(true)}
       />
 
       <main className="flex-1 pb-24">
-        {/* Hero Carousel */}
-        <HeroCarousel />
+        {/* Hero Banner with Hawa Mahal */}
+        <HeroBanner />
         
-        {/* Quick Search Bar - overlapping hero */}
-        <QuickSearchBar />
+        {/* Floating Search Bar */}
+        <SearchBarFloating />
 
-        {/* Categories */}
-        <CategoryGridCompact 
-          dealCounts={dealCounts}
+        {/* Category Icons */}
+        <CategoryIconGrid 
           onCategorySelect={setSelectedCategory}
         />
 
-        {/* Featured Deals */}
-        {featuredDeals.length > 0 && (
-          <DealsCarousel 
-            deals={featuredDeals}
-            isLoading={dealsLoading}
-            title="Featured Deals"
-            subtitle="Handpicked for you"
-            icon="sparkles"
-          />
-        )}
-
         {/* Hot Deals */}
-        <DealsCarousel 
+        <HotDealsSection 
           deals={hotDeals}
           isLoading={dealsLoading}
           title="Hot Deals"
-          subtitle="Best discounts today"
-          icon="flame"
         />
 
         {/* Events Section */}
