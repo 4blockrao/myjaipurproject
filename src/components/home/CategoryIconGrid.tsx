@@ -57,7 +57,7 @@ const CategoryIconGrid = ({ onCategorySelect }: CategoryIconGridProps) => {
       icon: Car, 
       bgColor: "bg-gradient-to-br from-blue-500 to-indigo-600",
       iconColor: "text-white",
-      path: "/categories/automobile",
+      path: "/cars",
       isPillar: true
     },
     // Secondary categories

@@ -81,6 +81,14 @@ import InstallPage from "./pages/InstallPage";
 import CategoryPage from "./pages/CategoryPage";
 import LocalityCategoryPage from "./pages/LocalityCategoryPage";
 
+// Cars Hub
+import CarsHubPage from "./pages/CarsHubPage";
+import CarBrandPage from "./pages/CarBrandPage";
+import CarModelPage from "./pages/CarModelPage";
+import CarDealerPage from "./pages/CarDealerPage";
+import CarDealersListPage from "./pages/CarDealersListPage";
+import EVCarsPage from "./pages/EVCarsPage";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -199,6 +207,14 @@ function App() {
               <Route path="/jaipur/zones/:zoneSlug" element={<ZonePage />} />
               <Route path="/jaipur/:slug/:category" element={<LocalityCategoryPage />} />
               <Route path="/jaipur/:slug" element={<LocalityPage />} />
+              
+              {/* Cars Hub */}
+              <Route path="/cars" element={<CarsHubPage />} />
+              <Route path="/cars/ev" element={<EVCarsPage />} />
+              <Route path="/cars/dealers" element={<CarDealersListPage />} />
+              <Route path="/cars/dealers/:slug" element={<CarDealerPage />} />
+              <Route path="/cars/:brandSlug" element={<CarBrandPage />} />
+              <Route path="/cars/:brandSlug/:modelSlug" element={<CarModelPage />} />
               
               {/* Legacy redirects */}
               <Route path="/explore" element={<Navigate to="/deals" replace />} />

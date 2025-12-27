@@ -37,7 +37,7 @@ export const Footer = () => {
     { label: 'Deals', href: '/deals', icon: Tag },
     { label: 'Events', href: '/events', icon: Calendar },
     { label: 'Property', href: '/categories/property', icon: Home },
-    { label: 'Cars', href: '/categories/automobile', icon: Car },
+    { label: 'Cars', href: '/cars', icon: Car },
     { label: 'All Categories', href: '/categories', icon: Grid3X3 },
   ];
 
