@@ -48,7 +48,7 @@ const CategoryIconGrid = ({ onCategorySelect }: CategoryIconGridProps) => {
       icon: Home, 
       bgColor: "bg-gradient-to-br from-emerald-500 to-teal-600",
       iconColor: "text-white",
-      path: "/categories/property",
+      path: "/properties",
       isPillar: true
     },
     { 

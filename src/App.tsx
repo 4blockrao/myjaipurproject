@@ -89,6 +89,11 @@ import CarDealerPage from "./pages/CarDealerPage";
 import CarDealersListPage from "./pages/CarDealersListPage";
 import EVCarsPage from "./pages/EVCarsPage";
 
+// Properties Hub
+import PropertiesHubPage from "./pages/PropertiesHubPage";
+import PropertyDetailPage from "./pages/PropertyDetailPage";
+import PropertiesLocalityPage from "./pages/PropertiesLocalityPage";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -219,6 +224,11 @@ function App() {
               <Route path="/cars/dealers/:slug" element={<CarDealerPage />} />
               <Route path="/cars/:brandSlug" element={<CarBrandPage />} />
               <Route path="/cars/:brandSlug/:modelSlug" element={<CarModelPage />} />
+              
+              {/* Properties Hub */}
+              <Route path="/properties" element={<PropertiesHubPage />} />
+              <Route path="/properties/in/:locality" element={<PropertiesLocalityPage />} />
+              <Route path="/properties/:slug" element={<PropertyDetailPage />} />
               
               {/* Legacy redirects */}
               <Route path="/explore" element={<Navigate to="/deals" replace />} />
