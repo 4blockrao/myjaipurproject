@@ -14,6 +14,390 @@ export type Database = {
   }
   public: {
     Tables: {
+      car_brands: {
+        Row: {
+          country: string | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          is_popular: boolean | null
+          logo_url: string | null
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_popular?: boolean | null
+          logo_url?: string | null
+          name: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_popular?: boolean | null
+          logo_url?: string | null
+          name?: string
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      car_dealers: {
+        Row: {
+          address: string | null
+          brand_id: string | null
+          city: string | null
+          cover_image: string | null
+          created_at: string | null
+          dealer_type: string | null
+          email: string | null
+          gallery_images: string[] | null
+          id: string
+          is_verified: boolean | null
+          latitude: number | null
+          locality: string | null
+          longitude: number | null
+          meta_description: string | null
+          meta_title: string | null
+          models_available: string[] | null
+          name: string
+          phone: string | null
+          pincode: string | null
+          rating: number | null
+          review_count: number | null
+          services_offered: string[] | null
+          slug: string
+          updated_at: string | null
+          website: string | null
+          working_hours: Json | null
+        }
+        Insert: {
+          address?: string | null
+          brand_id?: string | null
+          city?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          dealer_type?: string | null
+          email?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          is_verified?: boolean | null
+          latitude?: number | null
+          locality?: string | null
+          longitude?: number | null
+          meta_description?: string | null
+          meta_title?: string | null
+          models_available?: string[] | null
+          name: string
+          phone?: string | null
+          pincode?: string | null
+          rating?: number | null
+          review_count?: number | null
+          services_offered?: string[] | null
+          slug: string
+          updated_at?: string | null
+          website?: string | null
+          working_hours?: Json | null
+        }
+        Update: {
+          address?: string | null
+          brand_id?: string | null
+          city?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          dealer_type?: string | null
+          email?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          is_verified?: boolean | null
+          latitude?: number | null
+          locality?: string | null
+          longitude?: number | null
+          meta_description?: string | null
+          meta_title?: string | null
+          models_available?: string[] | null
+          name?: string
+          phone?: string | null
+          pincode?: string | null
+          rating?: number | null
+          review_count?: number | null
+          services_offered?: string[] | null
+          slug?: string
+          updated_at?: string | null
+          website?: string | null
+          working_hours?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "car_dealers_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "car_brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      car_inquiries: {
+        Row: {
+          created_at: string | null
+          dealer_id: string | null
+          email: string | null
+          id: string
+          inquiry_type: string | null
+          intent_stage: string | null
+          locality: string | null
+          message: string | null
+          model_id: string | null
+          name: string
+          phone: string
+          preferred_time: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          dealer_id?: string | null
+          email?: string | null
+          id?: string
+          inquiry_type?: string | null
+          intent_stage?: string | null
+          locality?: string | null
+          message?: string | null
+          model_id?: string | null
+          name: string
+          phone: string
+          preferred_time?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          dealer_id?: string | null
+          email?: string | null
+          id?: string
+          inquiry_type?: string | null
+          intent_stage?: string | null
+          locality?: string | null
+          message?: string | null
+          model_id?: string | null
+          name?: string
+          phone?: string
+          preferred_time?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "car_inquiries_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "car_dealers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "car_inquiries_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "car_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      car_models: {
+        Row: {
+          best_for: string[] | null
+          body_type: string | null
+          brand_id: string | null
+          cons: string[] | null
+          cover_image: string | null
+          created_at: string | null
+          engine_cc: number | null
+          ex_showroom_price_max: number | null
+          ex_showroom_price_min: number | null
+          features: Json | null
+          fuel_type: string | null
+          gallery_images: string[] | null
+          id: string
+          is_ev: boolean | null
+          is_new_launch: boolean | null
+          is_trending: boolean | null
+          meta_description: string | null
+          meta_title: string | null
+          mileage_city: number | null
+          mileage_highway: number | null
+          name: string
+          on_road_price_jaipur_max: number | null
+          on_road_price_jaipur_min: number | null
+          power_bhp: number | null
+          pros: string[] | null
+          seating_capacity: number | null
+          slug: string
+          torque_nm: number | null
+          transmission: string | null
+          updated_at: string | null
+          variant_name: string | null
+          waiting_period_weeks: number | null
+        }
+        Insert: {
+          best_for?: string[] | null
+          body_type?: string | null
+          brand_id?: string | null
+          cons?: string[] | null
+          cover_image?: string | null
+          created_at?: string | null
+          engine_cc?: number | null
+          ex_showroom_price_max?: number | null
+          ex_showroom_price_min?: number | null
+          features?: Json | null
+          fuel_type?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          is_ev?: boolean | null
+          is_new_launch?: boolean | null
+          is_trending?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
+          mileage_city?: number | null
+          mileage_highway?: number | null
+          name: string
+          on_road_price_jaipur_max?: number | null
+          on_road_price_jaipur_min?: number | null
+          power_bhp?: number | null
+          pros?: string[] | null
+          seating_capacity?: number | null
+          slug: string
+          torque_nm?: number | null
+          transmission?: string | null
+          updated_at?: string | null
+          variant_name?: string | null
+          waiting_period_weeks?: number | null
+        }
+        Update: {
+          best_for?: string[] | null
+          body_type?: string | null
+          brand_id?: string | null
+          cons?: string[] | null
+          cover_image?: string | null
+          created_at?: string | null
+          engine_cc?: number | null
+          ex_showroom_price_max?: number | null
+          ex_showroom_price_min?: number | null
+          features?: Json | null
+          fuel_type?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          is_ev?: boolean | null
+          is_new_launch?: boolean | null
+          is_trending?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
+          mileage_city?: number | null
+          mileage_highway?: number | null
+          name?: string
+          on_road_price_jaipur_max?: number | null
+          on_road_price_jaipur_min?: number | null
+          power_bhp?: number | null
+          pros?: string[] | null
+          seating_capacity?: number | null
+          slug?: string
+          torque_nm?: number | null
+          transmission?: string | null
+          updated_at?: string | null
+          variant_name?: string | null
+          waiting_period_weeks?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "car_models_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "car_brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      car_ownership_stories: {
+        Row: {
+          city: string | null
+          cons: string[] | null
+          content: string
+          created_at: string | null
+          id: string
+          images: string[] | null
+          is_featured: boolean | null
+          is_verified: boolean | null
+          kms_driven: number | null
+          model_id: string | null
+          ownership_duration_months: number | null
+          pros: string[] | null
+          rating: number | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          city?: string | null
+          cons?: string[] | null
+          content: string
+          created_at?: string | null
+          id?: string
+          images?: string[] | null
+          is_featured?: boolean | null
+          is_verified?: boolean | null
+          kms_driven?: number | null
+          model_id?: string | null
+          ownership_duration_months?: number | null
+          pros?: string[] | null
+          rating?: number | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          city?: string | null
+          cons?: string[] | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          images?: string[] | null
+          is_featured?: boolean | null
+          is_verified?: boolean | null
+          kms_driven?: number | null
+          model_id?: string | null
+          ownership_duration_months?: number | null
+          pros?: string[] | null
+          rating?: number | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "car_ownership_stories_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "car_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           confidence_score: number | null
@@ -587,6 +971,78 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ev_charging_stations: {
+        Row: {
+          address: string | null
+          amenities: string[] | null
+          charger_types: string[] | null
+          city: string | null
+          cover_image: string | null
+          created_at: string | null
+          id: string
+          is_24x7: boolean | null
+          is_verified: boolean | null
+          latitude: number | null
+          locality: string | null
+          longitude: number | null
+          name: string
+          number_of_chargers: number | null
+          operator: string | null
+          phone: string | null
+          power_output_kw: number[] | null
+          pricing_info: string | null
+          slug: string
+          updated_at: string | null
+          working_hours: string | null
+        }
+        Insert: {
+          address?: string | null
+          amenities?: string[] | null
+          charger_types?: string[] | null
+          city?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          id?: string
+          is_24x7?: boolean | null
+          is_verified?: boolean | null
+          latitude?: number | null
+          locality?: string | null
+          longitude?: number | null
+          name: string
+          number_of_chargers?: number | null
+          operator?: string | null
+          phone?: string | null
+          power_output_kw?: number[] | null
+          pricing_info?: string | null
+          slug: string
+          updated_at?: string | null
+          working_hours?: string | null
+        }
+        Update: {
+          address?: string | null
+          amenities?: string[] | null
+          charger_types?: string[] | null
+          city?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          id?: string
+          is_24x7?: boolean | null
+          is_verified?: boolean | null
+          latitude?: number | null
+          locality?: string | null
+          longitude?: number | null
+          name?: string
+          number_of_chargers?: number | null
+          operator?: string | null
+          phone?: string | null
+          power_output_kw?: number[] | null
+          pricing_info?: string | null
+          slug?: string
+          updated_at?: string | null
+          working_hours?: string | null
+        }
+        Relationships: []
       }
       event_interests: {
         Row: {
