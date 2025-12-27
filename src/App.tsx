@@ -92,14 +92,18 @@ import EVCarsPage from "./pages/EVCarsPage";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // Keep unused data in cache for 10 minutes
       refetchOnWindowFocus: false,
+      refetchOnMount: false, // Don't refetch when component mounts if data is fresh
       retry: (failureCount, error: any) => {
+        // Don't retry on 404 or 403 errors
         if (error?.status === 404 || error?.status === 403) {
           return false;
         }
-        return failureCount < 3;
+        return failureCount < 2;
       },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     },
   },
 });

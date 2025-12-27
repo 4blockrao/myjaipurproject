@@ -48,9 +48,10 @@ const EventAlternatives = ({
         .order('start_date', { ascending: true })
         .limit(4);
       
-      if (error) throw error;
+      if (error) return [];
       return data || [];
-    }
+    },
+    staleTime: 1000 * 60 * 10,
   });
 
   // Get free events nearby if current is paid
@@ -74,10 +75,11 @@ const EventAlternatives = ({
       }
       
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) return [];
       return data || [];
     },
-    enabled: !isFree
+    enabled: !isFree,
+    staleTime: 1000 * 60 * 10,
   });
 
   // Get cheaper alternatives if current is expensive
@@ -97,10 +99,11 @@ const EventAlternatives = ({
         .order('ticket_price', { ascending: true })
         .limit(4);
       
-      if (error) throw error;
+      if (error) return [];
       return data || [];
     },
-    enabled: !isFree && !!ticketPrice && ticketPrice >= 500
+    enabled: !isFree && !!ticketPrice && ticketPrice >= 500,
+    staleTime: 1000 * 60 * 10,
   });
 
   const isLoading = sameDayLoading || freeLoading || cheaperLoading;

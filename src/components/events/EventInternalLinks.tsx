@@ -46,7 +46,8 @@ export const EventInternalLinks = ({ event }: EventInternalLinksProps) => {
         .eq('status', 'published');
       return count || 0;
     },
-    enabled: !!locality
+    enabled: !!locality,
+    staleTime: 1000 * 60 * 15, // Cache for 15 minutes
   });
 
   // Fetch category event count
@@ -61,7 +62,8 @@ export const EventInternalLinks = ({ event }: EventInternalLinksProps) => {
         .eq('status', 'published');
       return count || 0;
     },
-    enabled: !!category
+    enabled: !!category,
+    staleTime: 1000 * 60 * 15,
   });
 
   // Fetch series events if applicable
@@ -78,7 +80,8 @@ export const EventInternalLinks = ({ event }: EventInternalLinksProps) => {
         .limit(5);
       return data || [];
     },
-    enabled: seriesInfo.isSeriesEvent && !!seriesInfo.seriesName && !!id
+    enabled: seriesInfo.isSeriesEvent && !!seriesInfo.seriesName && !!id,
+    staleTime: 1000 * 60 * 15,
   });
 
   const links = [];
