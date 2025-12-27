@@ -15,14 +15,14 @@
 
 @layer base {
   :root {
-    /* Jaipur Heritage Color System */
-    --background: 30 50% 98%;
+    /* Jaipur Heritage Color System - Soft Pink Theme */
+    --background: 350 50% 97%;
     --foreground: 20 25% 15%;
     
-    --card: 30 30% 99%;
+    --card: 0 0% 100%;
     --card-foreground: 20 25% 15%;
     
-    --popover: 30 30% 99%;
+    --popover: 0 0% 100%;
     --popover-foreground: 20 25% 15%;
     
     /* Primary: Jaipur Pink */
