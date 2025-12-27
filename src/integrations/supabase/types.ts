@@ -2205,6 +2205,206 @@ export type Database = {
         }
         Relationships: []
       }
+      properties: {
+        Row: {
+          address: string | null
+          amenities: string[] | null
+          balconies: number | null
+          bathrooms: number | null
+          bedrooms: number | null
+          built_up_area: number | null
+          carpet_area: number | null
+          city: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          cover_image: string | null
+          created_at: string | null
+          description: string | null
+          facing: string | null
+          floor_number: number | null
+          furnishing: string | null
+          gallery_images: string[] | null
+          id: string
+          is_featured: boolean | null
+          is_negotiable: boolean | null
+          is_premium: boolean | null
+          is_verified: boolean | null
+          latitude: number | null
+          listing_type: string
+          locality: string
+          locality_slug: string | null
+          longitude: number | null
+          maintenance_monthly: number | null
+          meta_description: string | null
+          meta_title: string | null
+          owner_type: string | null
+          pincode: string | null
+          plot_area: number | null
+          price: number
+          price_per_sqft: number | null
+          property_age: string | null
+          property_type: string
+          published_at: string | null
+          security_deposit: number | null
+          slug: string
+          status: string | null
+          title: string
+          total_floors: number | null
+          updated_at: string | null
+          user_id: string | null
+          view_count: number | null
+        }
+        Insert: {
+          address?: string | null
+          amenities?: string[] | null
+          balconies?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          built_up_area?: number | null
+          carpet_area?: number | null
+          city?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          facing?: string | null
+          floor_number?: number | null
+          furnishing?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          is_featured?: boolean | null
+          is_negotiable?: boolean | null
+          is_premium?: boolean | null
+          is_verified?: boolean | null
+          latitude?: number | null
+          listing_type?: string
+          locality: string
+          locality_slug?: string | null
+          longitude?: number | null
+          maintenance_monthly?: number | null
+          meta_description?: string | null
+          meta_title?: string | null
+          owner_type?: string | null
+          pincode?: string | null
+          plot_area?: number | null
+          price: number
+          price_per_sqft?: number | null
+          property_age?: string | null
+          property_type?: string
+          published_at?: string | null
+          security_deposit?: number | null
+          slug: string
+          status?: string | null
+          title: string
+          total_floors?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          address?: string | null
+          amenities?: string[] | null
+          balconies?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          built_up_area?: number | null
+          carpet_area?: number | null
+          city?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          facing?: string | null
+          floor_number?: number | null
+          furnishing?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          is_featured?: boolean | null
+          is_negotiable?: boolean | null
+          is_premium?: boolean | null
+          is_verified?: boolean | null
+          latitude?: number | null
+          listing_type?: string
+          locality?: string
+          locality_slug?: string | null
+          longitude?: number | null
+          maintenance_monthly?: number | null
+          meta_description?: string | null
+          meta_title?: string | null
+          owner_type?: string | null
+          pincode?: string | null
+          plot_area?: number | null
+          price?: number
+          price_per_sqft?: number | null
+          property_age?: string | null
+          property_type?: string
+          published_at?: string | null
+          security_deposit?: number | null
+          slug?: string
+          status?: string | null
+          title?: string
+          total_floors?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          view_count?: number | null
+        }
+        Relationships: []
+      }
+      property_inquiries: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          inquiry_type: string | null
+          message: string | null
+          name: string
+          phone: string
+          property_id: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          inquiry_type?: string | null
+          message?: string | null
+          name: string
+          phone: string
+          property_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          inquiry_type?: string | null
+          message?: string | null
+          name?: string
+          phone?: string
+          property_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_inquiries_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       real_estate_categories: {
         Row: {
           created_at: string | null

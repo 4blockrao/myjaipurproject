@@ -36,16 +36,16 @@ export const Footer = () => {
   const exploreLinks = [
     { label: 'Deals', href: '/deals', icon: Tag },
     { label: 'Events', href: '/events', icon: Calendar },
-    { label: 'Property', href: '/categories/property', icon: Home },
+    { label: 'Properties', href: '/properties', icon: Home },
     { label: 'Cars', href: '/cars', icon: Car },
-    { label: 'All Categories', href: '/categories', icon: Grid3X3 },
+    { label: 'News', href: '/news', icon: Grid3X3 },
   ];
 
   const companyLinks = [
     { label: 'About Us', href: '/about' },
     { label: 'For Businesses', href: '/merchant-onboarding' },
     { label: 'Help & Support', href: '/help' },
-    { label: 'News', href: '/news' },
+    { label: 'All Categories', href: '/categories' },
   ];
 
   const localityLinks = [
