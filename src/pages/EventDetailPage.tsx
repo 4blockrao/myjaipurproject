@@ -38,6 +38,12 @@ import EventPerformerSection from "@/components/events/EventPerformerSection";
 import EventHighlights from "@/components/events/EventHighlights";
 import EventImportantInfo from "@/components/events/EventImportantInfo";
 import EventSEOIntro from "@/components/events/EventSEOIntro";
+// New SEO-first components
+import EventQuickSummary from "@/components/events/EventQuickSummary";
+import EventVenueSection from "@/components/events/EventVenueSection";
+import EventScheduleSection from "@/components/events/EventScheduleSection";
+import EventEntryRules from "@/components/events/EventEntryRules";
+import EventPastBanner from "@/components/events/EventPastBanner";
 
 const EventDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
