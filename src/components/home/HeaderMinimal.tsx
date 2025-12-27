@@ -6,21 +6,26 @@ import JaipurCircleLogo from "@/components/ui/JaipurCircleLogo";
 interface HeaderMinimalProps {
   isAuthenticated?: boolean;
   onSignIn?: () => void;
+  localityBadge?: React.ReactNode;
 }
 
 const HeaderMinimal = ({ 
   isAuthenticated = false,
-  onSignIn
+  onSignIn,
+  localityBadge
 }: HeaderMinimalProps) => {
   const navigate = useNavigate();
 
   return (
     <header className="bg-background sticky top-0 z-40 safe-area-pt border-b border-border/30">
       <div className="px-4 py-3 flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <JaipurCircleLogo size="md" />
-        </Link>
+        {/* Logo and Locality */}
+        <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-2">
+            <JaipurCircleLogo size="md" />
+          </Link>
+          {localityBadge}
+        </div>
         
         {/* Profile / Sign In */}
         <Button 

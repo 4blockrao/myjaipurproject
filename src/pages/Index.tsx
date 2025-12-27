@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AuthModal from "@/components/auth/AuthModal";
 import HeaderMinimal from "@/components/home/HeaderMinimal";
-import HeroBanner from "@/components/home/HeroBanner";
+import HeroCarousel from "@/components/home/HeroCarousel";
 import SearchBarFloating from "@/components/home/SearchBarFloating";
 import CategoryIconGrid from "@/components/home/CategoryIconGrid";
 import HotDealsSection from "@/components/home/HotDealsSection";
@@ -18,6 +18,10 @@ import { useToast } from "@/hooks/use-toast";
 import HomeSEO from "@/components/seo/HomeSEO";
 import Footer from "@/components/layout/Footer";
 import { HomepageSchema } from "@/components/seo/SchemaInjector";
+import { useUserLocality } from "@/hooks/useUserLocality";
+import { LocalityPromptModal } from "@/components/home/LocalityPromptModal";
+import { LocalityBadge } from "@/components/home/LocalityBadge";
+import { LocalitySelectorModal } from "@/components/locality/LocalitySelectorModal";
 
 const Index = () => {
   const [user, setUser] = useState<any>(null);
@@ -26,6 +30,28 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const { toast } = useToast();
+
+  // Locality management
+  const { userLocality, setUserLocality, shouldPromptLocality, isLoaded } = useUserLocality();
+  const [showLocalityPrompt, setShowLocalityPrompt] = useState(false);
+  const [showLocalitySelector, setShowLocalitySelector] = useState(false);
+
+  // Show locality prompt when needed
+  useEffect(() => {
+    if (shouldPromptLocality) {
+      // Small delay to let the page load first
+      const timer = setTimeout(() => setShowLocalityPrompt(true), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldPromptLocality]);
+
+  const handleLocalitySelect = (locality: { name: string; slug: string }) => {
+    setUserLocality(locality.name, locality.slug);
+    toast({
+      title: `Location set to ${locality.name}`,
+      description: "We'll show you deals and events near you.",
+    });
+  };
 
   const isAuthenticated = !!user;
 
@@ -41,19 +67,24 @@ const Index = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch deals
+  // Fetch deals - filter by locality if set
   const { data: deals = [], isLoading: dealsLoading } = useQuery({
-    queryKey: ['deals', selectedCategory],
+    queryKey: ['deals', selectedCategory, userLocality?.slug],
     queryFn: async () => {
       let query = supabase
         .from('deals')
-        .select(`*, merchants (business_name, is_verified, average_rating)`)
+        .select(`*, merchants (business_name, is_verified, average_rating, address)`)
         .eq('approval_status', 'approved')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (selectedCategory !== "all") {
         query = query.eq('category', selectedCategory);
+      }
+
+      // Filter by locality if user has one set
+      if (userLocality?.name) {
+        query = query.ilike('location', `%${userLocality.name}%`);
       }
 
       const { data, error } = await query;
@@ -102,29 +133,38 @@ const Index = () => {
       <Toaster />
       <Sonner />
       
-      {/* Minimal Header */}
+      {/* Minimal Header with Locality Badge */}
       <HeaderMinimal 
         isAuthenticated={isAuthenticated}
         onSignIn={() => setShowAuthModal(true)}
+        localityBadge={
+          userLocality ? (
+            <LocalityBadge
+              localityName={userLocality.name}
+              onClick={() => setShowLocalitySelector(true)}
+              variant="header"
+            />
+          ) : null
+        }
       />
 
       <main className="flex-1 pb-24">
-        {/* Hero Banner with Hawa Mahal */}
-        <HeroBanner />
+        {/* Hero Carousel with multiple slides */}
+        <HeroCarousel />
         
         {/* Floating Search Bar */}
         <SearchBarFloating />
 
-        {/* Category Icons */}
+        {/* Category Icons - includes Property & Cars */}
         <CategoryIconGrid 
           onCategorySelect={setSelectedCategory}
         />
 
-        {/* Hot Deals */}
+        {/* Hot Deals Section */}
         <HotDealsSection 
           deals={hotDeals}
           isLoading={dealsLoading}
-          title="Hot Deals"
+          title={userLocality ? `Hot Deals in ${userLocality.name}` : "Hot Deals in Jaipur"}
         />
 
         {/* Events Section */}
@@ -146,7 +186,23 @@ const Index = () => {
 
       <Footer />
       <BottomNavHeritage />
+      
+      {/* Auth Modal */}
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      
+      {/* Locality Prompt Modal - shown on first visit */}
+      <LocalityPromptModal
+        open={showLocalityPrompt}
+        onOpenChange={setShowLocalityPrompt}
+        onSelect={handleLocalitySelect}
+      />
+      
+      {/* Locality Selector Modal - for changing locality */}
+      <LocalitySelectorModal
+        open={showLocalitySelector}
+        onOpenChange={setShowLocalitySelector}
+        onSelect={handleLocalitySelect}
+      />
     </div>
   );
 };
