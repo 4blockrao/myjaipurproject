@@ -112,12 +112,12 @@ export const EventQuickSummary = ({ event }: EventQuickSummaryProps) => {
     {
       icon: <Building2 className="w-4 h-4 text-primary" />,
       label: 'Venue',
-      value: event.is_online ? 'Online Event' : (event.venue_name || 'TBA'),
+      value: event.is_online ? 'Online Event' : (event.venue_name || 'TBA — To Be Announced'),
     },
     {
       icon: <MapPin className="w-4 h-4 text-primary" />,
       label: 'Locality',
-      value: event.locality || city,
+      value: event.locality || 'TBA — To Be Announced',
     },
     {
       icon: <Calendar className="w-4 h-4 text-primary" />,

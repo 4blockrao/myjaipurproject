@@ -150,12 +150,12 @@ export const EventVenueSection = ({ event }: EventVenueSectionProps) => {
           <div className="flex items-start gap-3">
             <Building2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
             <div>
-              <h3 className="font-bold text-lg">{event.venue_name || 'Venue TBA'}</h3>
+              <h3 className="font-bold text-lg">{event.venue_name || 'Venue TBA — To Be Announced'}</h3>
               {event.venue_address && (
                 <p className="text-sm text-muted-foreground">{event.venue_address}</p>
               )}
               <p className="text-sm text-muted-foreground">
-                {locality}, {city}, Rajasthan
+                {event.locality ? locality : 'Location TBA'}, {city}, Rajasthan
               </p>
             </div>
           </div>

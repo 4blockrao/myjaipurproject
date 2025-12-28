@@ -11,8 +11,8 @@ export function LocalitySEO({ locality }: LocalitySEOProps) {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
   
-  // Unique SEO-optimized title: {Locality}, Jaipur — Locality Guide, Ward, PIN, Nearby Areas
-  const title = `${locality.name}, Jaipur — Locality Guide, Ward, PIN, Nearby Areas`;
+  // Enhanced SEO-optimized title: {Locality} Jaipur — Locality Guide, Markets, Schools, Restaurants, Property & Map
+  const title = `${locality.name} Jaipur — Locality Guide, Markets, Schools, Restaurants, Property & Map`;
 
   // Unique meta description: 150-160 chars, factual, no adjectives
   const nearbyList = (locality.nearby_localities || [])
@@ -24,8 +24,8 @@ export function LocalitySEO({ locality }: LocalitySEOProps) {
   const wardInfo = locality.ward_number ? `Ward ${locality.ward_number}` : "";
   const zoneInfo = locality.zone ? `${locality.zone} Zone` : "Jaipur";
   
-  // Unique, factual description for this locality
-  const description = `${locality.name} in ${zoneInfo}, Jaipur${wardInfo ? `, ${wardInfo}` : ""}. PIN ${pinCode}. Near ${nearbyList}. Ward details, pin codes, map & connectivity.`.slice(0, 160);
+  // Enhanced utility-focused description for better CTR
+  const description = `Complete guide to ${locality.name} in ${zoneInfo}, Jaipur. PIN ${pinCode}. Find nearby markets, schools, restaurants, hospitals, property rates & living info. Near ${nearbyList}.`.slice(0, 160);
 
   const canonicalUrl = `https://www.jaipurcircle.com/jaipur/${locality.slug}`;
   const ogImage = "https://www.jaipurcircle.com/og-images/locality-default.png";
@@ -187,14 +187,23 @@ export function LocalitySEO({ locality }: LocalitySEOProps) {
     })),
   };
 
-  // Keywords for SEO
+  // Enhanced keywords for locality utility searches
   const keywords = [
     `${locality.name} jaipur`,
+    `${locality.name} locality guide`,
     `${locality.name} pin code`,
-    `${locality.name} ward number`,
     `${locality.name} map`,
-    `${locality.name} news`,
+    `${locality.name} schools`,
+    `${locality.name} restaurants`,
+    `${locality.name} markets`,
+    `${locality.name} hospitals`,
+    `${locality.name} property`,
+    `${locality.name} property rates`,
+    `${locality.name} rent`,
+    `${locality.name} living`,
+    `${locality.name} nearby areas`,
     `nearby ${locality.name}`,
+    `${locality.name} ward number`,
     ...(locality.tags || []),
   ].join(", ");
 

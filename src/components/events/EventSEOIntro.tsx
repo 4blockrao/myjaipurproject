@@ -27,8 +27,8 @@ export const EventSEOIntro = ({ event }: EventSEOIntroProps) => {
   const startDate = new Date(event.start_date);
   const endDate = event.end_date ? new Date(event.end_date) : null;
   const city = event.city || 'Jaipur';
-  const venue = event.venue_name || 'the venue';
-  const locality = event.locality || city;
+  const venue = event.venue_name || 'TBA (Venue to be announced)';
+  const locality = event.locality || 'TBA';
   const organizer = event.organizer_name || 'the organizer';
   const category = event.category.toLowerCase();
   const isPastEvent = startDate < new Date();
