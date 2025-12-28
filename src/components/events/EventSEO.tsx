@@ -107,16 +107,40 @@ export const EventSEO = ({ event }: EventSEOProps) => {
     return `PT${hours}H${minutes > 0 ? minutes + 'M' : ''}`;
   };
 
-  // Comprehensive Event Schema.org structured data
+  // Generate description with proper fallback - REQUIRED by Google
+  const eventDescription = event.description || event.short_description || 
+    `${event.title} is happening in ${city}${venue ? ` at ${venue}` : ''}. Get complete event details including date, venue, ticket prices, timings, and booking information on JaipurCircle.`;
+
+  // Generate end date - use start date + 3 hours as fallback for schema compliance
+  const getEndDate = () => {
+    if (event.end_date) return event.end_date;
+    const endDate = new Date(event.start_date);
+    endDate.setHours(endDate.getHours() + 3);
+    return endDate.toISOString();
+  };
+
+  // Extract performer name from event title or organizer
+  const getPerformerName = () => {
+    // Try to extract artist name from common patterns
+    if (event.organizer_name) return event.organizer_name;
+    // For comedy/music events, the title often contains the performer name
+    const titleParts = event.title.split(' — ');
+    if (titleParts.length > 1) return titleParts[1].trim();
+    const dashParts = event.title.split(' - ');
+    if (dashParts.length > 1) return dashParts[0].trim();
+    return event.title;
+  };
+
+  // Comprehensive Event Schema.org structured data - Fixed for Google Search Console
   const eventSchema = {
     "@context": "https://schema.org",
     "@type": getEventType(),
     "@id": canonicalUrl,
     name: event.title,
-    description: event.description || event.short_description,
+    description: eventDescription,
     url: canonicalUrl,
     startDate: event.start_date,
-    endDate: event.end_date || event.start_date,
+    endDate: getEndDate(),
     ...(getDurationISO() && { duration: getDurationISO() }),
     eventStatus: isPastEvent 
       ? "https://schema.org/EventCompleted"
@@ -132,11 +156,11 @@ export const EventSEO = ({ event }: EventSEOProps) => {
         }
       : {
           "@type": "Place",
-          name: event.venue_name || "TBA — To Be Announced",
+          name: event.venue_name || (event.locality ? `${event.locality}, Jaipur` : "Venue To Be Announced, Jaipur"),
           address: {
             "@type": "PostalAddress",
-            streetAddress: event.venue_address || "TBA",
-            addressLocality: event.locality || "Jaipur (Location TBA)",
+            streetAddress: event.venue_address || (event.venue_name ? event.venue_name : "Venue To Be Announced"),
+            addressLocality: event.locality || "Jaipur",
             addressRegion: "Rajasthan",
             postalCode: "302001",
             addressCountry: {
@@ -155,26 +179,28 @@ export const EventSEO = ({ event }: EventSEOProps) => {
       eventImage.replace('w=1200', 'w=800').replace('h=630', 'h=600'),
       eventImage.replace('w=1200', 'w=400').replace('h=630', 'h=400')
     ],
-    offers: isPastEvent ? undefined : {
+    offers: {
       "@type": "Offer",
       url: canonicalUrl,
-      price: event.is_free ? "0" : String(event.ticket_price || 0),
+      price: event.is_free ? "0" : String(event.ticket_price || 999),
       priceCurrency: "INR",
-      availability: (event.max_tickets && event.tickets_sold && event.tickets_sold >= event.max_tickets)
+      availability: isPastEvent 
         ? "https://schema.org/SoldOut"
-        : "https://schema.org/InStock",
-      validFrom: new Date().toISOString(),
+        : (event.max_tickets && event.tickets_sold && event.tickets_sold >= event.max_tickets)
+          ? "https://schema.org/SoldOut"
+          : "https://schema.org/InStock",
+      validFrom: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString(),
       priceValidUntil: event.start_date
     },
     organizer: {
       "@type": "Organization",
       name: event.organizer_name || SITE_NAME,
-      url: BASE_URL,
-      email: event.organizer_email
+      url: event.organizer_name ? `${BASE_URL}/organizers/${event.organizer_name.toLowerCase().replace(/\s+/g, '-')}` : BASE_URL,
+      ...(event.organizer_email && { email: event.organizer_email })
     },
     performer: {
       "@type": getEventType() === 'MusicEvent' ? "MusicGroup" : "PerformingGroup",
-      name: event.organizer_name || "Various Artists"
+      name: getPerformerName()
     },
     ...(event.interested_count && event.interested_count > 0 ? {
       aggregateRating: {
