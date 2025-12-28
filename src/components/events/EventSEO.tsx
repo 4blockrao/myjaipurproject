@@ -83,7 +83,13 @@ export const EventSEO = ({ event }: EventSEOProps) => {
   const isPastEvent = startDateObj < new Date();
   
   // Determine event type based on category for proper schema
-  const getEventType = () => {
+  // Valid Schema.org event types whitelist - fallback to Event if not in list
+  const VALID_EVENT_TYPES = [
+    'Event', 'MusicEvent', 'ComedyEvent', 'TheaterEvent', 'DanceEvent',
+    'Festival', 'SportsEvent', 'BusinessEvent', 'EducationEvent', 'FoodEvent'
+  ] as const;
+
+  const getEventType = (): typeof VALID_EVENT_TYPES[number] => {
     const category = event.category.toLowerCase();
     if (category.includes('music') || category.includes('concert')) return 'MusicEvent';
     if (category.includes('comedy') || category.includes('standup')) return 'ComedyEvent';
@@ -94,7 +100,7 @@ export const EventSEO = ({ event }: EventSEOProps) => {
     if (category.includes('business') || category.includes('conference')) return 'BusinessEvent';
     if (category.includes('education') || category.includes('workshop')) return 'EducationEvent';
     if (category.includes('food')) return 'FoodEvent';
-    return 'Event';
+    return 'Event'; // Safe fallback - always valid
   };
   
   // Calculate duration if end date exists
@@ -182,9 +188,13 @@ export const EventSEO = ({ event }: EventSEOProps) => {
         : (event.max_tickets && event.tickets_sold && event.tickets_sold >= event.max_tickets)
           ? "https://schema.org/SoldOut"
           : "https://schema.org/InStock",
-      validFrom: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString(),
-      priceValidUntil: new Date(event.start_date).toISOString()
+      validFrom: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString()
     };
+
+    // Only include priceValidUntil for upcoming events - Google flags it for past events
+    if (!isPastEvent) {
+      offers.priceValidUntil = new Date(event.start_date).toISOString();
+    }
 
     // Only include price if we actually know it - don't invent prices
     if (event.is_free) {
