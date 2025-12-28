@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Mail, Building, Home, Grid3X3, Tag, Calendar, Car } from 'lucide-react';
+import { MapPin, Mail, Building, Home, Grid3X3, Tag, Calendar, Car, ChevronRight, Newspaper, Phone } from 'lucide-react';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,10 +7,13 @@ import { FooterSocialSection } from '@/components/ui/SocialLinks';
 
 /**
  * Global Footer Component
- * Includes NAP (Name, Address, Phone) for Local SEO
- * Internal links for site navigation and SEO
- * About JaipurCircle section for trust and EEAT signals
- * Social media section as primary SEO authority zone
+ * Enhanced for SEO with:
+ * - NAP (Name, Address, Phone) for Local SEO
+ * - Comprehensive internal linking structure
+ * - Category & locality quick links
+ * - About JaipurCircle section for trust and EEAT signals
+ * - Social media section for authority
+ * - Proper semantic HTML structure
  */
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -33,12 +36,51 @@ export const Footer = () => {
     staleTime: 1000 * 60 * 30, // 30 minutes
   });
 
+  // Fetch popular localities for footer links
+  const { data: popularLocalities = [] } = useQuery({
+    queryKey: ['footer-localities'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('localities')
+        .select('name, slug')
+        .order('name')
+        .limit(8);
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 1000 * 60 * 30,
+  });
+
   const exploreLinks = [
-    { label: 'Deals', href: '/deals', icon: Tag },
-    { label: 'Events', href: '/events', icon: Calendar },
+    { label: 'Deals & Offers', href: '/deals', icon: Tag },
+    { label: 'Events & Tickets', href: '/events', icon: Calendar },
     { label: 'Properties', href: '/properties', icon: Home },
-    { label: 'Cars', href: '/cars', icon: Car },
-    { label: 'News', href: '/news', icon: Grid3X3 },
+    { label: 'Cars & Vehicles', href: '/cars', icon: Car },
+    { label: 'Local News', href: '/news', icon: Newspaper },
+  ];
+
+  const eventQuickLinks = [
+    { label: 'Events Today', href: '/events/today' },
+    { label: 'This Weekend', href: '/events/this-weekend' },
+    { label: 'Free Events', href: '/events/free' },
+    { label: 'Concerts', href: '/events?category=concerts' },
+    { label: 'Comedy Shows', href: '/events?category=comedy' },
+  ];
+
+  const propertyQuickLinks = [
+    { label: 'Apartments for Sale', href: '/properties?type=sale&property_type=apartment' },
+    { label: 'Houses for Rent', href: '/properties?type=rent&property_type=house' },
+    { label: 'Flats in Malviya Nagar', href: '/properties/in/malviya-nagar' },
+    { label: 'Properties in Vaishali', href: '/properties/in/vaishali-nagar' },
+    { label: 'Properties in Mansarovar', href: '/properties/in/mansarovar' },
+  ];
+
+  const carsQuickLinks = [
+    { label: 'New Cars', href: '/cars' },
+    { label: 'Electric Vehicles', href: '/ev-cars' },
+    { label: 'Car Dealers', href: '/cars/dealers' },
+    { label: 'Maruti Cars', href: '/cars/maruti' },
+    { label: 'Tata Cars', href: '/cars/tata' },
   ];
 
   const companyLinks = [
@@ -48,18 +90,18 @@ export const Footer = () => {
     { label: 'All Categories', href: '/categories' },
   ];
 
-  const localityLinks = [
-    { label: 'All Localities', href: '/jaipur' },
-    { label: 'Jaipur Zones', href: '/jaipur/zones' },
-    { label: 'North Zone', href: '/jaipur/zones/north' },
-    { label: 'South Zone', href: '/jaipur/zones/south' },
-    { label: 'Central Zone', href: '/jaipur/zones/central' },
+  const zoneLinks = [
+    { label: 'North Jaipur', href: '/jaipur/zones/north' },
+    { label: 'South Jaipur', href: '/jaipur/zones/south' },
+    { label: 'Central Jaipur', href: '/jaipur/zones/central' },
+    { label: 'East Jaipur', href: '/jaipur/zones/east' },
+    { label: 'West Jaipur', href: '/jaipur/zones/west' },
   ];
 
   return (
-    <footer className="bg-card border-t mt-auto">
+    <footer className="bg-card border-t mt-auto" role="contentinfo">
       <div className="container max-w-6xl mx-auto px-4 py-12">
-        {/* About JaipurCircle Section */}
+        {/* About JaipurCircle Section - Important for EEAT */}
         <div className="mb-10 p-6 bg-muted/30 rounded-xl border">
           <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
             <Building className="h-5 w-5 text-primary" />
@@ -89,16 +131,18 @@ export const Footer = () => {
             
             <button
               onClick={() => setShowFullAbout(!showFullAbout)}
-              className="text-primary hover:underline text-sm font-medium"
+              className="text-primary hover:underline text-sm font-medium inline-flex items-center gap-1"
             >
               {showFullAbout ? 'Show Less' : 'Read More About JaipurCircle'}
+              <ChevronRight className={`h-4 w-4 transition-transform ${showFullAbout ? 'rotate-90' : ''}`} />
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
-          {/* Brand & NAP Block */}
-          <div className="lg:col-span-2 space-y-4">
+        {/* Main Footer Grid - SEO-optimized internal linking */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+          {/* Brand & NAP Block - Critical for Local SEO */}
+          <div className="col-span-2 space-y-4">
             <Link to="/" className="inline-block">
               <h2 className="text-xl font-bold text-primary">JaipurCircle</h2>
             </Link>
@@ -106,7 +150,7 @@ export const Footer = () => {
               Jaipur's hyper-local platform for deals, events, property, automobiles, and everything happening in the Pink City.
             </p>
             
-            {/* NAP Block for Local SEO */}
+            {/* NAP Block for Local SEO - Critical for Google Business */}
             <address className="not-italic text-sm text-muted-foreground space-y-2">
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
@@ -125,7 +169,7 @@ export const Footer = () => {
           </div>
 
           {/* Explore Links */}
-          <div>
+          <nav aria-label="Explore">
             <h3 className="font-semibold text-foreground mb-4">Explore</h3>
             <ul className="space-y-2">
               {exploreLinks.map((link) => {
@@ -143,16 +187,16 @@ export const Footer = () => {
                 );
               })}
             </ul>
-          </div>
+          </nav>
 
-          {/* Localities */}
-          <div>
+          {/* Events Quick Links - High SEO Value */}
+          <nav aria-label="Events">
             <h3 className="font-semibold text-foreground mb-4 flex items-center gap-1">
-              <Home className="h-4 w-4" />
-              Localities
+              <Calendar className="h-4 w-4" />
+              Events
             </h3>
             <ul className="space-y-2">
-              {localityLinks.map((link) => (
+              {eventQuickLinks.map((link) => (
                 <li key={link.href}>
                   <Link 
                     to={link.href}
@@ -163,16 +207,101 @@ export const Footer = () => {
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
+
+          {/* Property Quick Links */}
+          <nav aria-label="Properties">
+            <h3 className="font-semibold text-foreground mb-4 flex items-center gap-1">
+              <Home className="h-4 w-4" />
+              Property
+            </h3>
+            <ul className="space-y-2">
+              {propertyQuickLinks.map((link) => (
+                <li key={link.href}>
+                  <Link 
+                    to={link.href}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* Cars Quick Links */}
+          <nav aria-label="Cars">
+            <h3 className="font-semibold text-foreground mb-4 flex items-center gap-1">
+              <Car className="h-4 w-4" />
+              Cars
+            </h3>
+            <ul className="space-y-2">
+              {carsQuickLinks.map((link) => (
+                <li key={link.href}>
+                  <Link 
+                    to={link.href}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+
+        {/* Secondary Links Row - Localities & Zones */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-8 pt-8 border-t">
+          {/* Localities */}
+          <nav aria-label="Popular Localities">
+            <h3 className="font-semibold text-foreground mb-4 flex items-center gap-1">
+              <MapPin className="h-4 w-4" />
+              Popular Areas
+            </h3>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/jaipur" className="text-sm text-primary font-medium hover:underline">
+                  All Localities
+                </Link>
+              </li>
+              {popularLocalities.slice(0, 5).map((loc) => (
+                <li key={loc.slug}>
+                  <Link 
+                    to={`/jaipur/${loc.slug}`}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {loc.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* Jaipur Zones */}
+          <nav aria-label="Jaipur Zones">
+            <h3 className="font-semibold text-foreground mb-4">Jaipur Zones</h3>
+            <ul className="space-y-2">
+              {zoneLinks.map((link) => (
+                <li key={link.href}>
+                  <Link 
+                    to={link.href}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
           {/* Categories */}
-          <div>
+          <nav aria-label="Categories">
             <h3 className="font-semibold text-foreground mb-4 flex items-center gap-1">
               <Grid3X3 className="h-4 w-4" />
               Categories
             </h3>
             <ul className="space-y-2">
-              {pillarCategories.slice(0, 6).map((cat) => (
+              {pillarCategories.slice(0, 5).map((cat) => (
                 <li key={cat.slug}>
                   <Link 
                     to={`/categories/${cat.slug}`}
@@ -182,21 +311,21 @@ export const Footer = () => {
                   </Link>
                 </li>
               ))}
-              {pillarCategories.length > 6 && (
+              {pillarCategories.length > 5 && (
                 <li>
                   <Link 
                     to="/categories"
-                    className="text-sm text-primary font-medium hover:underline"
+                    className="text-sm text-primary font-medium hover:underline inline-flex items-center gap-1"
                   >
-                    View All →
+                    View All <ChevronRight className="h-3 w-3" />
                   </Link>
                 </li>
               )}
             </ul>
-          </div>
+          </nav>
 
           {/* Company */}
-          <div>
+          <nav aria-label="Company">
             <h3 className="font-semibold text-foreground mb-4">Company</h3>
             <ul className="space-y-2">
               {companyLinks.map((link) => (
@@ -210,7 +339,7 @@ export const Footer = () => {
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
         </div>
 
         {/* Social Media Section - Primary SEO Authority Zone */}
@@ -218,12 +347,12 @@ export const Footer = () => {
           <FooterSocialSection />
         </div>
 
-        {/* Bottom Bar */}
+        {/* Bottom Bar - Legal & Technical Links */}
         <div className="border-t mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © {currentYear} JaipurCircle. All rights reserved.
+            © {currentYear} JaipurCircle. All rights reserved. Made with ❤️ in Jaipur
           </p>
-          <div className="flex gap-4 text-sm text-muted-foreground">
+          <nav aria-label="Legal" className="flex gap-4 text-sm text-muted-foreground">
             <Link to="/privacy" className="hover:text-primary transition-colors">
               Privacy Policy
             </Link>
@@ -233,7 +362,7 @@ export const Footer = () => {
             <Link to="/sitemap" className="hover:text-primary transition-colors">
               Sitemap
             </Link>
-          </div>
+          </nav>
         </div>
       </div>
     </footer>
