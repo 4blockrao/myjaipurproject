@@ -1,4 +1,3 @@
-import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,74 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import NativeBottomNav from '@/components/home/NativeBottomNav';
-import { Footer } from '@/components/layout/Footer';
-
-const CarsHubPage = () => {
-  const { data: brands } = useQuery({
-    queryKey: ['car-brands'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('car_brands')
-        .select('*')
-        .eq('is_popular', true)
-        .order('display_order');
-      return data || [];
-    }
-  });
-
-  const { data: trendingModels, isLoading } = useQuery({
-    queryKey: ['trending-cars'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('car_models')
-        .select(`
-          *,
-          brand:car_brands(name, slug)
-        `)
-        .eq('is_trending', true)
-        .limit(6);
-      return data || [];
-    }
-  });
-
-  const localities = [
-    { name: 'Mansarovar', slug: 'mansarovar' },
-    { name: 'Tonk Road', slug: 'tonk-road' },
-    { name: 'Vaishali Nagar', slug: 'vaishali-nagar' },
-    { name: 'Ajmer Road', slug: 'ajmer-road' },
-    { name: 'C-Scheme', slug: 'c-scheme' },
-    { name: 'Malviya Nagar', slug: 'malviya-nagar' },
-  ];
-
-  const formatPrice = (price: number) => {
-    if (price >= 10000000) return `₹${(price / 10000000).toFixed(2)} Cr`;
-    if (price >= 100000) return `₹${(price / 100000).toFixed(2)} L`;
-    return `₹${price.toLocaleString('en-IN')}`;
-  };
-
-  return (
-    <>
-      <Helmet>
-        <title>Cars in Jaipur — Prices, Dealers, EVs & Buying Guide 2025</title>
-        <meta name="description" content="Complete guide to buying cars in Jaipur. Compare on-road prices, find authorized dealers, explore EVs, and read ownership stories. Your hyperlocal car research hub." />
-        <meta name="keywords" content="cars in jaipur, car dealers jaipur, on road price jaipur, ev cars jaipur, used cars jaipur, car showroom jaipur" />
-        <link rel="canonical" href="https://jaipurcircle.com/cars" />
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "CollectionPage",
-            "name": "Cars in Jaipur",
-            "description": "Hyperlocal car buying guide for Jaipur",
-            "url": "https://jaipurcircle.com/cars",
-            "isPartOf": {
-              "@type": "WebSite",
-              "name": "JaipurCircle",
-              "url": "https://jaipurcircle.com"
-            }
-          })}
-        </script>
-      </Helmet>
+import AppLayout from '@/components/layout/AppLayout';
+import { CarsListSEO } from '@/components/seo/CarSEO';
+import { useUserLocality } from '@/hooks/useUserLocality';
 
       <div className="min-h-screen bg-background">
         {/* Hero Section */}
@@ -359,10 +293,17 @@ const CarsHubPage = () => {
           </div>
         </section>
 
-        <Footer />
-        <NativeBottomNav />
-      </div>
-    </>
+        {/* SEO Content Block */}
+        <section className="py-8 px-4" aria-labelledby="seo-content">
+          <div className="container max-w-4xl mx-auto prose prose-sm text-muted-foreground">
+            <h2 id="seo-content" className="text-lg font-bold text-foreground mb-3">Your Complete Car Buying Guide for Jaipur</h2>
+            <p>
+              Planning to buy a car in Jaipur? JaipurCircle is your hyperlocal car research hub. Compare on-road prices, find authorized dealers in Mansarovar, Tonk Road, Vaishali Nagar and other localities. Explore electric vehicles, read ownership stories from fellow Jaipurites, and make an informed decision. Whether you're looking for a compact hatchback for city commutes or a spacious SUV for weekend highway drives, we have all the information you need.
+            </p>
+          </div>
+        </section>
+      </main>
+    </AppLayout>
   );
 };
 
