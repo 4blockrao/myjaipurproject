@@ -47,10 +47,11 @@ export const EventSEO = ({ event }: EventSEOProps) => {
   const venue = event.venue_name || '';
   const eventDate = formatTitleDate(event.start_date);
   
-  // Transactional Title Template:
-  // {Event Name} {City} Tickets — {Category} | {Venue} | {Date}
+  // Enhanced SEO Title Template:
+  // {Event Name} {City} {Year} — Date, {Venue}, Ticket Price & Booking
+  const eventYear = new Date(event.start_date).getFullYear();
   const pageTitle = event.meta_title || 
-    `${event.title} ${city} Tickets — ${event.category}${venue ? ` | ${venue}` : ''} | ${eventDate}`;
+    `${event.title} ${city} ${eventYear} — Date${venue ? `, ${venue}` : ''}, Ticket Price & Booking`;
   
   // Transactional Meta Description Template:
   // Book {Event Name} tickets in {City} — {Date} at {Venue}. See timings, price, entry rules & pass availability. Get tickets now.
@@ -131,11 +132,11 @@ export const EventSEO = ({ event }: EventSEOProps) => {
         }
       : {
           "@type": "Place",
-          name: event.venue_name || "Jaipur",
+          name: event.venue_name || "TBA — To Be Announced",
           address: {
             "@type": "PostalAddress",
-            streetAddress: event.venue_address,
-            addressLocality: event.locality || "Jaipur",
+            streetAddress: event.venue_address || "TBA",
+            addressLocality: event.locality || "Jaipur (Location TBA)",
             addressRegion: "Rajasthan",
             postalCode: "302001",
             addressCountry: {
