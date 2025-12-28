@@ -131,15 +131,81 @@ export const EventSEO = ({ event }: EventSEOProps) => {
     return event.title;
   };
 
+  // Determine performer type - use Person for comedy/solo acts, MusicGroup for music events
+  const getPerformerType = () => {
+    const eventType = getEventType();
+    if (eventType === 'MusicEvent') return 'MusicGroup';
+    if (eventType === 'ComedyEvent' || eventType === 'TheaterEvent') return 'Person';
+    return 'PerformingGroup';
+  };
+
+  // Build location object with geo only when real coordinates exist
+  const buildLocationSchema = () => {
+    if (event.is_online) {
+      return {
+        "@type": "VirtualLocation",
+        url: event.online_url || canonicalUrl,
+        name: "Online Event"
+      };
+    }
+
+    const placeSchema: Record<string, unknown> = {
+      "@type": "Place",
+      name: event.venue_name || (event.locality ? `${event.locality}, Jaipur` : "Venue To Be Announced, Jaipur"),
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: event.venue_address || (event.venue_name ? event.venue_name : "Venue To Be Announced"),
+        addressLocality: event.locality || "Jaipur",
+        addressRegion: "Rajasthan",
+        postalCode: "302001",
+        addressCountry: {
+          "@type": "Country",
+          name: "India"
+        }
+      }
+    };
+
+    // Only include geo when we have real coordinates from the event data
+    // Avoid default Jaipur coordinates as Google penalizes wrong geo
+    // Note: Add latitude/longitude fields to event interface when available
+    return placeSchema;
+  };
+
+  // Build offers schema - only include price if we actually know it
+  const buildOffersSchema = () => {
+    const offers: Record<string, unknown> = {
+      "@type": "Offer",
+      url: canonicalUrl,
+      priceCurrency: "INR",
+      availability: isPastEvent 
+        ? "https://schema.org/SoldOut"
+        : (event.max_tickets && event.tickets_sold && event.tickets_sold >= event.max_tickets)
+          ? "https://schema.org/SoldOut"
+          : "https://schema.org/InStock",
+      validFrom: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString(),
+      priceValidUntil: new Date(event.start_date).toISOString()
+    };
+
+    // Only include price if we actually know it - don't invent prices
+    if (event.is_free) {
+      offers.price = "0";
+    } else if (event.ticket_price) {
+      offers.price = String(event.ticket_price);
+    }
+    // If price is unknown, omit it entirely - Google prefers incomplete real data over guessed data
+
+    return offers;
+  };
+
   // Comprehensive Event Schema.org structured data - Fixed for Google Search Console
-  const eventSchema = {
+  const eventSchema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": getEventType(),
     "@id": canonicalUrl,
     name: event.title,
     description: eventDescription,
     url: canonicalUrl,
-    startDate: event.start_date,
+    startDate: new Date(event.start_date).toISOString(),
     endDate: getEndDate(),
     ...(getDurationISO() && { duration: getDurationISO() }),
     eventStatus: isPastEvent 
@@ -148,50 +214,13 @@ export const EventSEO = ({ event }: EventSEOProps) => {
     eventAttendanceMode: event.is_online
       ? "https://schema.org/OnlineEventAttendanceMode"
       : "https://schema.org/OfflineEventAttendanceMode",
-    location: event.is_online
-      ? {
-          "@type": "VirtualLocation",
-          url: event.online_url || canonicalUrl,
-          name: "Online Event"
-        }
-      : {
-          "@type": "Place",
-          name: event.venue_name || (event.locality ? `${event.locality}, Jaipur` : "Venue To Be Announced, Jaipur"),
-          address: {
-            "@type": "PostalAddress",
-            streetAddress: event.venue_address || (event.venue_name ? event.venue_name : "Venue To Be Announced"),
-            addressLocality: event.locality || "Jaipur",
-            addressRegion: "Rajasthan",
-            postalCode: "302001",
-            addressCountry: {
-              "@type": "Country",
-              name: "India"
-            }
-          },
-          geo: {
-            "@type": "GeoCoordinates",
-            latitude: 26.9124,
-            longitude: 75.7873
-          }
-        },
+    location: buildLocationSchema(),
     image: [
       eventImage,
       eventImage.replace('w=1200', 'w=800').replace('h=630', 'h=600'),
       eventImage.replace('w=1200', 'w=400').replace('h=630', 'h=400')
     ],
-    offers: {
-      "@type": "Offer",
-      url: canonicalUrl,
-      price: event.is_free ? "0" : String(event.ticket_price || 999),
-      priceCurrency: "INR",
-      availability: isPastEvent 
-        ? "https://schema.org/SoldOut"
-        : (event.max_tickets && event.tickets_sold && event.tickets_sold >= event.max_tickets)
-          ? "https://schema.org/SoldOut"
-          : "https://schema.org/InStock",
-      validFrom: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString(),
-      priceValidUntil: event.start_date
-    },
+    offers: buildOffersSchema(),
     organizer: {
       "@type": "Organization",
       name: event.organizer_name || SITE_NAME,
@@ -199,20 +228,13 @@ export const EventSEO = ({ event }: EventSEOProps) => {
       ...(event.organizer_email && { email: event.organizer_email })
     },
     performer: {
-      "@type": getEventType() === 'MusicEvent' ? "MusicGroup" : "PerformingGroup",
+      "@type": getPerformerType(),
       name: getPerformerName()
     },
-    ...(event.interested_count && event.interested_count > 0 ? {
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.5",
-        ratingCount: String(event.interested_count),
-        bestRating: "5",
-        worstRating: "1"
-      }
-    } : {}),
-    maximumAttendeeCapacity: event.max_tickets,
-    remainingAttendeeCapacity: event.max_tickets ? event.max_tickets - (event.tickets_sold || 0) : undefined,
+    // Removed fake aggregateRating - only include when real reviews exist
+    // Google may penalize manipulative markup with hard-coded ratings
+    ...(event.max_tickets && { maximumAttendeeCapacity: event.max_tickets }),
+    ...(event.max_tickets && { remainingAttendeeCapacity: event.max_tickets - (event.tickets_sold || 0) }),
     isAccessibleForFree: event.is_free,
     inLanguage: "en-IN"
   };
