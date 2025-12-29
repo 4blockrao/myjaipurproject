@@ -135,22 +135,11 @@ Disallow: /*?*gclid=
 # SITEMAPS
 # ========================================
 
-# Main sitemap index
+# Main sitemap index (dynamically generated, always up-to-date)
 Sitemap: https://www.jaipurcircle.com/sitemap.xml
 
 # Static pages sitemap
 Sitemap: https://www.jaipurcircle.com/sitemap-pages.xml
-
-# Dynamic sitemaps (edge function)
-Sitemap: https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=localities
-Sitemap: https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=zones
-Sitemap: https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=deals
-Sitemap: https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=merchants
-Sitemap: https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=events
-Sitemap: https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news
-
-# Google News sitemap
-Sitemap: https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap
 
 # Host directive
 Host: https://www.jaipurcircle.com

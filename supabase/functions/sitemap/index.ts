@@ -234,15 +234,17 @@ function generateZonesSitemap(today: string): string {
   return xml
 }
 
-// Sitemap Index - references all individual sitemaps
+// Sitemap Index - references all individual sitemaps with dynamic dates
 function generateSitemapIndex(today: string): string {
   const sitemaps = [
-    { loc: '/sitemap?type=localities', name: 'Localities' },
-    { loc: '/sitemap?type=zones', name: 'Zones' },
-    { loc: '/sitemap?type=deals', name: 'Deals' },
-    { loc: '/sitemap?type=merchants', name: 'Merchants' },
-    { loc: '/sitemap?type=events', name: 'Events' },
-    { loc: '/sitemap?type=news', name: 'News' },
+    { loc: `${SITE_URL}/sitemap-pages.xml`, name: 'Static Pages' },
+    { loc: `https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=localities`, name: 'Localities' },
+    { loc: `https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=zones`, name: 'Zones' },
+    { loc: `https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=deals`, name: 'Deals' },
+    { loc: `https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=merchants`, name: 'Merchants' },
+    { loc: `https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=events`, name: 'Events' },
+    { loc: `https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news`, name: 'News' },
+    { loc: `https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap`, name: 'Google News' },
   ]
 
   let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`
@@ -250,7 +252,7 @@ function generateSitemapIndex(today: string): string {
   
   for (const sitemap of sitemaps) {
     xml += `  <sitemap>\n`
-    xml += `    <loc>${SITE_URL}${sitemap.loc}</loc>\n`
+    xml += `    <loc>${sitemap.loc}</loc>\n`
     xml += `    <lastmod>${today}</lastmod>\n`
     xml += `  </sitemap>\n`
   }
@@ -269,14 +271,30 @@ async function generateEventsSitemap(supabase: any, today: string): Promise<stri
 
   if (error) throw error
 
+  const now = new Date()
   let xml = getXmlHeader(false, true)
   
   for (const event of events || []) {
+    const eventDate = new Date(event.start_date)
+    const isUpcoming = eventDate > now
+    const daysUntilEvent = Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    
+    // Dynamic priority: upcoming events get higher priority, especially near-term ones
+    let priority = 0.6 // Past events base
+    if (isUpcoming) {
+      if (daysUntilEvent <= 7) priority = 0.95 // This week = highest
+      else if (daysUntilEvent <= 30) priority = 0.85 // This month
+      else priority = 0.75 // Future events
+    }
+    
+    // Dynamic changefreq: near-term events change more frequently
+    const changefreq = isUpcoming && daysUntilEvent <= 14 ? 'daily' : 'weekly'
+    
     xml += `  <url>\n`
     xml += `    <loc>${SITE_URL}/events/${event.slug}</loc>\n`
     xml += `    <lastmod>${formatDate(event.updated_at)}</lastmod>\n`
-    xml += `    <changefreq>weekly</changefreq>\n`
-    xml += `    <priority>0.7</priority>\n`
+    xml += `    <changefreq>${changefreq}</changefreq>\n`
+    xml += `    <priority>${priority}</priority>\n`
     if (event.cover_image) {
       xml += `    <image:image>\n`
       xml += `      <image:loc>${escapeXml(event.cover_image)}</image:loc>\n`
@@ -363,10 +381,10 @@ async function generateGoogleNewsSitemap(supabase: any): Promise<string> {
 }
 
 async function generateFullSitemap(supabase: any, today: string): Promise<string> {
-  // Fetch all data in parallel
+  // Fetch all data in parallel - include start_date for events to calculate priority
   const [newsRes, eventsRes, dealsRes, merchantsRes, localitiesRes] = await Promise.all([
     supabase.from('news_articles').select('slug, category, published_at, cover_image, title').eq('status', 'published').limit(5000),
-    supabase.from('events').select('slug, updated_at, cover_image, title, category').eq('status', 'published').limit(5000),
+    supabase.from('events').select('slug, updated_at, cover_image, title, category, start_date').eq('status', 'published').limit(5000),
     supabase.from('deals').select('id, updated_at, image_url, title, discount_percentage').eq('approval_status', 'approved').eq('is_active', true).limit(5000),
     supabase.from('merchants').select('id, updated_at, logo_url, business_name, business_type').eq('is_active', true).limit(5000),
     supabase.from('localities').select('slug, updated_at, name').limit(5000),
@@ -412,6 +430,7 @@ async function generateFullSitemap(supabase: any, today: string): Promise<string
     ...zonePages,
   ]
 
+  const now = new Date()
   let xml = getXmlHeader(false, true)
 
   // Static pages
@@ -466,13 +485,27 @@ async function generateFullSitemap(supabase: any, today: string): Promise<string
     xml += `  </url>\n`
   }
 
-  // Events
+  // Events - with dynamic priority based on date
   for (const event of eventsRes.data || []) {
+    const eventDate = event.start_date ? new Date(event.start_date) : new Date()
+    const isUpcoming = eventDate > now
+    const daysUntilEvent = Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    
+    // Dynamic priority: upcoming events get higher priority
+    let priority = 0.6 // Past events base
+    if (isUpcoming) {
+      if (daysUntilEvent <= 7) priority = 0.95 // This week = highest
+      else if (daysUntilEvent <= 30) priority = 0.85 // This month
+      else priority = 0.75 // Future events
+    }
+    
+    const changefreq = isUpcoming && daysUntilEvent <= 14 ? 'daily' : 'weekly'
+    
     xml += `  <url>\n`
     xml += `    <loc>${SITE_URL}/events/${event.slug}</loc>\n`
     xml += `    <lastmod>${formatDate(event.updated_at)}</lastmod>\n`
-    xml += `    <changefreq>weekly</changefreq>\n`
-    xml += `    <priority>0.7</priority>\n`
+    xml += `    <changefreq>${changefreq}</changefreq>\n`
+    xml += `    <priority>${priority}</priority>\n`
     if (event.cover_image) {
       xml += `    <image:image>\n`
       xml += `      <image:loc>${escapeXml(event.cover_image)}</image:loc>\n`
