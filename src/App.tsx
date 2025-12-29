@@ -53,6 +53,7 @@ import VenuePage from "./pages/VenuePage";
 import OrganizerPage from "./pages/OrganizerPage";
 import PastEventPage from "./pages/PastEventPage";
 import EventSeriesPage from "./pages/EventSeriesPage";
+import ArtistPage from "./pages/ArtistPage";
 
 // Merchant Pages
 import MerchantOnboardingPage from "./pages/MerchantOnboardingPage";
@@ -189,9 +190,10 @@ function App() {
               <Route path="/events/:category/:locality" element={<EventFusionPage />} />
               <Route path="/events/:slug" element={<EventDetailPage />} />
               
-              {/* Venue & Organizer Pages */}
+              {/* Venue, Organizer & Artist Pages */}
               <Route path="/venues/:slug" element={<VenuePage />} />
-              <Route path="/organizer/:slug" element={<OrganizerPage />} />
+              <Route path="/organizers/:slug" element={<OrganizerPage />} />
+              <Route path="/artists/:slug" element={<ArtistPage />} />
               
               {/* Merchant */}
               <Route path="/merchant-onboarding" element={<MerchantOnboardingPage />} />
