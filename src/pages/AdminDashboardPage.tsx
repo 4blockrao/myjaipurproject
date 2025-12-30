@@ -11,7 +11,7 @@ import EventsManagement from "@/components/admin/EventsManagement";
 import MerchantsManagement from "@/components/admin/MerchantsManagement";
 import UsersManagement from "@/components/admin/UsersManagement";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
-import { NightlifeArticleSeeder } from "@/components/admin/NightlifeArticleSeeder";
+import ArticleCMS from "@/components/admin/cms/ArticleCMS";
 
 const AdminDashboardPage = () => {
   const [user, setUser] = useState<any>(null);
@@ -100,19 +100,7 @@ const AdminDashboardPage = () => {
           <TabsContent value="deals"><DealApprovalQueue /></TabsContent>
           <TabsContent value="events"><EventsManagement /></TabsContent>
           <TabsContent value="content">
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Content Management</CardTitle>
-                  <CardDescription>Publish evergreen SEO-optimized articles and guides</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <NightlifeArticleSeeder />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <ArticleCMS />
           </TabsContent>
           <TabsContent value="roles"><RoleManager /></TabsContent>
         </Tabs>
