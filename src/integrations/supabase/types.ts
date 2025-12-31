@@ -1689,6 +1689,7 @@ export type Database = {
         Row: {
           ai_prompt: string | null
           author_id: string | null
+          body_html: string | null
           canonical_url: string | null
           category: Database["public"]["Enums"]["news_category"]
           content: string
@@ -1705,6 +1706,7 @@ export type Database = {
           meta_title: string | null
           og_image: string | null
           published_at: string | null
+          reading_time_minutes: number | null
           share_count: number | null
           slug: string
           status: Database["public"]["Enums"]["article_status"]
@@ -1713,10 +1715,12 @@ export type Database = {
           title: string
           updated_at: string | null
           view_count: number | null
+          word_count: number | null
         }
         Insert: {
           ai_prompt?: string | null
           author_id?: string | null
+          body_html?: string | null
           canonical_url?: string | null
           category?: Database["public"]["Enums"]["news_category"]
           content: string
@@ -1733,6 +1737,7 @@ export type Database = {
           meta_title?: string | null
           og_image?: string | null
           published_at?: string | null
+          reading_time_minutes?: number | null
           share_count?: number | null
           slug: string
           status?: Database["public"]["Enums"]["article_status"]
@@ -1741,10 +1746,12 @@ export type Database = {
           title: string
           updated_at?: string | null
           view_count?: number | null
+          word_count?: number | null
         }
         Update: {
           ai_prompt?: string | null
           author_id?: string | null
+          body_html?: string | null
           canonical_url?: string | null
           category?: Database["public"]["Enums"]["news_category"]
           content?: string
@@ -1761,6 +1768,7 @@ export type Database = {
           meta_title?: string | null
           og_image?: string | null
           published_at?: string | null
+          reading_time_minutes?: number | null
           share_count?: number | null
           slug?: string
           status?: Database["public"]["Enums"]["article_status"]
@@ -1769,6 +1777,7 @@ export type Database = {
           title?: string
           updated_at?: string | null
           view_count?: number | null
+          word_count?: number | null
         }
         Relationships: []
       }

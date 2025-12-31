@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import SEOAnalyzer from './SEOAnalyzer';
 import AutoLinkSuggester from './AutoLinkSuggester';
+import { markdownToHtml, calculateWordCount, calculateReadingTime, generateExcerpt } from '@/utils/markdownToHtml';
 
 interface ArticleEditorProps {
   articleId?: string;
@@ -161,18 +162,27 @@ export function ArticleEditor({ articleId, onBack }: ArticleEditorProps) {
         slug = `${baseSlug}-${Date.now()}`;
       }
 
+      // Pre-render HTML from markdown for SEO
+      const bodyHtml = markdownToHtml(content);
+      const wordCount = calculateWordCount(content);
+      const readingTime = calculateReadingTime(wordCount);
+      const autoExcerpt = excerpt || generateExcerpt(content, 160);
+
       const articleData = {
         author_id: session.session.user.id,
         title,
         slug,
-        excerpt: excerpt || null,
+        excerpt: autoExcerpt,
         content,
+        body_html: bodyHtml, // Pre-rendered HTML for SEO
+        word_count: wordCount,
+        reading_time_minutes: readingTime,
         cover_image: coverImage || null,
         category: category as any,
         locality: locality || null,
         tags,
         meta_title: metaTitle || title,
-        meta_description: metaDescription || excerpt || content.slice(0, 160),
+        meta_description: metaDescription || autoExcerpt,
         meta_keywords: tags,
         status,
         is_featured: isFeatured,
@@ -184,10 +194,18 @@ export function ArticleEditor({ articleId, onBack }: ArticleEditorProps) {
           "@context": "https://schema.org",
           "@type": "NewsArticle",
           "headline": title,
-          "description": excerpt || metaDescription,
-          "author": { "@type": "Organization", "name": "JaipurCircle" },
-          "publisher": { "@type": "Organization", "name": "JaipurCircle", "url": "https://jaipurcircle.com" },
+          "description": autoExcerpt,
+          "wordCount": wordCount,
+          "author": { "@type": "Organization", "name": "JaipurCircle Newsroom" },
+          "publisher": { 
+            "@type": "NewsMediaOrganization", 
+            "name": "JaipurCircle", 
+            "url": "https://jaipurcircle.com",
+            "logo": { "@type": "ImageObject", "url": "https://jaipurcircle.com/logo.png" }
+          },
           "datePublished": new Date().toISOString(),
+          "isAccessibleForFree": true,
+          "inLanguage": "en-IN"
         }
       };
 
