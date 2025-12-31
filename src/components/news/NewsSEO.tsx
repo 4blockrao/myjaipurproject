@@ -22,6 +22,8 @@ interface NewsSEOProps {
     author_id?: string | null;
     view_count?: number | null;
     like_count?: number | null;
+    word_count?: number | null;
+    reading_time_minutes?: number | null;
   };
 }
 
@@ -32,6 +34,7 @@ const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1495020689067-958852a77
 /**
  * Comprehensive News Article SEO Component
  * Implements NewsArticle schema, optimized for Google News, Discover, and Top Stories
+ * Enhanced with Speakable schema and word count for AI crawlers
  */
 export const NewsSEO = ({ article }: NewsSEOProps) => {
   const canonicalUrl = article.canonical_url || `${BASE_URL}/news/${article.category}/${article.slug}`;
@@ -40,6 +43,8 @@ export const NewsSEO = ({ article }: NewsSEOProps) => {
   const articleImage = article.cover_image || article.og_image || DEFAULT_IMAGE;
   const publishedDate = article.published_at || article.created_at;
   const modifiedDate = article.updated_at || publishedDate;
+  const wordCount = article.word_count || article.content.split(/\s+/).filter(Boolean).length;
+  const readingTime = article.reading_time_minutes || Math.max(1, Math.ceil(wordCount / 200));
 
   // Generate keywords
   const keywords = [
@@ -54,7 +59,7 @@ export const NewsSEO = ({ article }: NewsSEOProps) => {
     ...(article.meta_keywords || [])
   ].filter(Boolean).join(', ');
 
-  // NewsArticle Schema.org structured data
+  // NewsArticle Schema.org structured data - Enhanced for Google News
   const newsArticleSchema = {
     '@context': 'https://schema.org',
     '@type': 'NewsArticle',
@@ -64,6 +69,7 @@ export const NewsSEO = ({ article }: NewsSEOProps) => {
       '@id': canonicalUrl
     },
     headline: article.title,
+    alternativeHeadline: article.excerpt?.slice(0, 110) || undefined,
     description: pageDescription,
     image: {
       '@type': 'ImageObject',
@@ -73,13 +79,15 @@ export const NewsSEO = ({ article }: NewsSEOProps) => {
     },
     datePublished: publishedDate,
     dateModified: modifiedDate,
+    wordCount: wordCount,
+    timeRequired: `PT${readingTime}M`,
     author: {
       '@type': 'Organization',
       name: 'JaipurCircle Newsroom',
       url: BASE_URL
     },
     publisher: {
-      '@type': 'Organization',
+      '@type': 'NewsMediaOrganization',
       name: SITE_NAME,
       url: BASE_URL,
       logo: {
@@ -93,6 +101,11 @@ export const NewsSEO = ({ article }: NewsSEOProps) => {
     keywords: article.tags?.join(', ') || article.category,
     inLanguage: 'en-IN',
     isAccessibleForFree: true,
+    copyrightYear: new Date().getFullYear(),
+    copyrightHolder: {
+      '@type': 'Organization',
+      name: SITE_NAME
+    },
     ...(article.locality && {
       locationCreated: {
         '@type': 'Place',
@@ -105,6 +118,18 @@ export const NewsSEO = ({ article }: NewsSEOProps) => {
         }
       }
     })
+  };
+
+  // Speakable Schema - For voice search and Google Assistant
+  const speakableSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    '@id': `${canonicalUrl}#webpage`,
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: ['article h1', 'article [itemprop="description"]', 'article [itemprop="articleBody"] p:first-of-type']
+    },
+    url: canonicalUrl
   };
 
   // Breadcrumb Schema
@@ -255,6 +280,9 @@ export const NewsSEO = ({ article }: NewsSEOProps) => {
       </script>
       <script type="application/ld+json">
         {JSON.stringify(organizationSchema)}
+      </script>
+      <script type="application/ld+json">
+        {JSON.stringify(speakableSchema)}
       </script>
     </Helmet>
   );

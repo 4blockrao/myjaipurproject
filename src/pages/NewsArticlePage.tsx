@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Clock, Eye, Heart, Share2, MapPin, Sparkles } from 'lucide-react';
+import { ArrowLeft, Clock, Eye, Heart, Share2, MapPin, Sparkles, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -160,6 +160,12 @@ export default function NewsArticlePage() {
   const formattedDate = publishedDate
     ? format(new Date(publishedDate), 'MMMM d, yyyy')
     : '';
+  const isoDate = publishedDate ? new Date(publishedDate).toISOString() : '';
+
+  // Use pre-rendered HTML if available, fallback to markdown renderer
+  const hasPreRenderedHtml = !!article.body_html;
+  const wordCount = (article as any).word_count || article.content.split(/\s+/).filter(Boolean).length;
+  const readingTime = (article as any).reading_time_minutes || Math.max(1, Math.ceil(wordCount / 200));
 
   return (
     <>
@@ -199,31 +205,42 @@ export default function NewsArticlePage() {
           </div>
         </header>
 
-        {/* Cover Image */}
+        {/* Cover Image with proper semantic figure */}
         {article.cover_image && (
-          <div className="aspect-video bg-muted">
+          <figure className="aspect-video bg-muted">
             <img 
               src={article.cover_image} 
               alt={article.title}
               className="w-full h-full object-cover"
+              loading="eager"
             />
-          </div>
+          </figure>
         )}
 
-        {/* Article Content */}
-        <article className="p-4">
-          {/* Meta */}
+        {/* Article Content - Semantic HTML Structure */}
+        <article 
+          className="p-4"
+          itemScope 
+          itemType="https://schema.org/NewsArticle"
+        >
+          {/* Hidden meta for crawlers */}
+          <meta itemProp="datePublished" content={isoDate} />
+          <meta itemProp="dateModified" content={article.updated_at || isoDate} />
+          <meta itemProp="wordCount" content={String(wordCount)} />
+          
+          {/* Meta badges */}
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <Badge 
               variant="outline" 
               className={cn('text-xs', categoryColors[article.category])}
+              itemProp="articleSection"
             >
               {categoryEmojis[article.category]} {article.category}
             </Badge>
             {article.locality && (
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <MapPin className="h-3 w-3" />
-                {article.locality}
+                <span itemProp="contentLocation">{article.locality}</span>
               </span>
             )}
             {article.is_ai_generated && (
@@ -234,16 +251,23 @@ export default function NewsArticlePage() {
             )}
           </div>
 
-          {/* Title */}
-          <h1 className="text-2xl font-bold text-foreground mb-3 leading-tight">
+          {/* H1 Title - Critical for SEO */}
+          <h1 
+            className="text-2xl font-bold text-foreground mb-3 leading-tight"
+            itemProp="headline"
+          >
             {article.title}
           </h1>
 
-          {/* Stats */}
+          {/* Stats and reading time */}
           <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6 pb-4 border-b">
             <span className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
-              {timeAgo}
+              <time dateTime={isoDate}>{timeAgo}</time>
+            </span>
+            <span className="flex items-center gap-1">
+              <BookOpen className="h-4 w-4" />
+              {readingTime} min read
             </span>
             <span className="flex items-center gap-1">
               <Eye className="h-4 w-4" />
@@ -255,9 +279,12 @@ export default function NewsArticlePage() {
             </span>
           </div>
 
-          {/* Excerpt / Dek */}
+          {/* Excerpt / Dek - Important for snippets */}
           {article.excerpt && (
-            <p className="text-lg text-muted-foreground mb-6 font-medium leading-relaxed border-l-4 border-primary pl-4">
+            <p 
+              className="text-lg text-muted-foreground mb-6 font-medium leading-relaxed border-l-4 border-primary pl-4"
+              itemProp="description"
+            >
               {article.excerpt}
             </p>
           )}
@@ -265,26 +292,47 @@ export default function NewsArticlePage() {
           {/* In Short - AI-Friendly Summary */}
           <NewsInShortSummary article={article} />
 
-          {/* Structured Content */}
-          <div className="mt-6">
-            <NewsStructuredContent content={article.content} />
+          {/* Main Article Body */}
+          <div className="mt-6" itemProp="articleBody">
+            {hasPreRenderedHtml ? (
+              // Use pre-rendered HTML for better SEO (no JS execution needed)
+              <div 
+                className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
+                dangerouslySetInnerHTML={{ __html: article.body_html }}
+              />
+            ) : (
+              // Fallback to runtime markdown rendering
+              <NewsStructuredContent content={article.content} />
+            )}
           </div>
 
           {/* Tags */}
           {article.tags && article.tags.length > 0 && (
-            <div className="mt-8 pt-4 border-t">
+            <footer className="mt-8 pt-4 border-t">
               <h4 className="text-sm font-medium mb-2">Tags</h4>
               <div className="flex flex-wrap gap-2">
                 {article.tags.map((tag: string) => (
-                  <Badge key={tag} variant="secondary">{tag}</Badge>
+                  <Badge 
+                    key={tag} 
+                    variant="secondary"
+                    itemProp="keywords"
+                  >
+                    {tag}
+                  </Badge>
                 ))}
               </div>
-            </div>
+            </footer>
           )}
 
-          {/* Published Date */}
+          {/* Published Date - Visible for users */}
           <div className="mt-6 text-sm text-muted-foreground">
-            Published on {formattedDate}
+            Published on <time dateTime={isoDate}>{formattedDate}</time>
+          </div>
+
+          {/* Publisher info for schema */}
+          <div itemProp="publisher" itemScope itemType="https://schema.org/Organization" className="hidden">
+            <meta itemProp="name" content="JaipurCircle" />
+            <meta itemProp="url" content="https://jaipurcircle.com" />
           </div>
 
           {/* Internal Links for SEO */}
