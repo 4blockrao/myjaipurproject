@@ -373,12 +373,15 @@ export function ArticleEditor({ articleId, onBack }: ArticleEditorProps) {
                     </div>
                     <div>
                       <Label>Locality</Label>
-                      <Select value={locality} onValueChange={setLocality}>
+                      <Select 
+                        value={locality || "_none"} 
+                        onValueChange={(val) => setLocality(val === "_none" ? "" : val)}
+                      >
                         <SelectTrigger className="mt-1.5">
                           <SelectValue placeholder="Select area" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="_none">None</SelectItem>
                           {localities?.map((loc) => (
                             <SelectItem key={loc.slug} value={loc.name}>
                               {loc.name}
