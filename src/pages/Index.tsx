@@ -107,7 +107,6 @@ const Index = () => {
       <HeaderMinimal
         isAuthenticated={isAuthenticated}
         onSignIn={() => setShowAuthModal(true)}
-        userBalance={userBalance}
         localityBadge={
           userLocality ? (
             <LocalityBadge
