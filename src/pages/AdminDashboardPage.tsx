@@ -63,34 +63,34 @@ const AdminDashboardPage = () => {
         </div>
 
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7">
-            <TabsTrigger value="analytics" className="gap-2">
-              <BarChart3 className="w-4 h-4 hidden sm:inline" />
-              Analytics
+          <TabsList className="flex flex-wrap justify-start gap-1 h-auto p-1 bg-muted/50">
+            <TabsTrigger value="analytics" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 data-[state=active]:bg-background">
+              <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Analytics</span>
             </TabsTrigger>
-            <TabsTrigger value="users" className="gap-2">
-              <Users className="w-4 h-4 hidden sm:inline" />
-              Users
+            <TabsTrigger value="users" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 data-[state=active]:bg-background">
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Users</span>
             </TabsTrigger>
-            <TabsTrigger value="merchants" className="gap-2">
-              <Store className="w-4 h-4 hidden sm:inline" />
-              Merchants
+            <TabsTrigger value="merchants" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 data-[state=active]:bg-background">
+              <Store className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Merchants</span>
             </TabsTrigger>
-            <TabsTrigger value="deals" className="gap-2">
-              <FileText className="w-4 h-4 hidden sm:inline" />
-              Deals
+            <TabsTrigger value="deals" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 data-[state=active]:bg-background">
+              <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Deals</span>
             </TabsTrigger>
-            <TabsTrigger value="events" className="gap-2">
-              <Calendar className="w-4 h-4 hidden sm:inline" />
-              Events
+            <TabsTrigger value="events" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 data-[state=active]:bg-background">
+              <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Events</span>
             </TabsTrigger>
-            <TabsTrigger value="content" className="gap-2">
-              <Newspaper className="w-4 h-4 hidden sm:inline" />
-              Content
+            <TabsTrigger value="content" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 data-[state=active]:bg-background">
+              <Newspaper className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Content</span>
             </TabsTrigger>
-            <TabsTrigger value="roles" className="gap-2">
-              <Shield className="w-4 h-4 hidden sm:inline" />
-              Roles
+            <TabsTrigger value="roles" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 data-[state=active]:bg-background">
+              <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Roles</span>
             </TabsTrigger>
           </TabsList>
 

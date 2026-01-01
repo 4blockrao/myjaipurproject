@@ -92,11 +92,14 @@ const EventCard = ({ event, variant = "default" }: EventCardProps) => {
         >
           <div className="aspect-[16/9] relative">
             <img
-              src={event.cover_image || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=450&fit=crop"}
+              src={event.cover_image && event.cover_image.trim() !== '' ? event.cover_image : "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=450&fit=crop"}
               alt={`${event.title} - ${event.category} event in ${event.locality || 'Jaipur'}`}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               itemProp="image"
               loading="lazy"
+              onError={(e) => {
+                e.currentTarget.src = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=450&fit=crop";
+              }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
             {event.is_featured && (
@@ -152,11 +155,14 @@ const EventCard = ({ event, variant = "default" }: EventCardProps) => {
       >
         <div className="aspect-[16/10] relative">
           <img
-            src={event.cover_image || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=250&fit=crop"}
+            src={event.cover_image && event.cover_image.trim() !== '' ? event.cover_image : "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=250&fit=crop"}
             alt={`${event.title} - ${event.category} event in ${event.locality || 'Jaipur'}`}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             itemProp="image"
             loading="lazy"
+            onError={(e) => {
+              e.currentTarget.src = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=250&fit=crop";
+            }}
           />
           <time 
             dateTime={isoDate}

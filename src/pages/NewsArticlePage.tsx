@@ -206,13 +206,17 @@ export default function NewsArticlePage() {
         </header>
 
         {/* Cover Image with proper semantic figure */}
-        {article.cover_image && (
+        {article.cover_image && article.cover_image.trim() !== '' && (
           <figure className="aspect-video bg-muted">
             <img 
               src={article.cover_image} 
               alt={article.title}
               className="w-full h-full object-cover"
               loading="eager"
+              onError={(e) => {
+                // Hide broken images gracefully
+                e.currentTarget.parentElement?.classList.add('hidden');
+              }}
             />
           </figure>
         )}
