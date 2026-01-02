@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { Calendar, MapPin, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { normalizeImageUrl } from "@/utils/imageUrl";
 
 interface EventCardProps {
   event: {
@@ -92,7 +93,7 @@ const EventCard = ({ event, variant = "default" }: EventCardProps) => {
         >
           <div className="aspect-[16/9] relative">
             <img
-              src={event.cover_image && event.cover_image.trim() !== '' ? event.cover_image : "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=450&fit=crop"}
+              src={normalizeImageUrl(event.cover_image) || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=450&fit=crop"}
               alt={`${event.title} - ${event.category} event in ${event.locality || 'Jaipur'}`}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               itemProp="image"
@@ -155,7 +156,7 @@ const EventCard = ({ event, variant = "default" }: EventCardProps) => {
       >
         <div className="aspect-[16/10] relative">
           <img
-            src={event.cover_image && event.cover_image.trim() !== '' ? event.cover_image : "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=250&fit=crop"}
+            src={normalizeImageUrl(event.cover_image) || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=250&fit=crop"}
             alt={`${event.title} - ${event.category} event in ${event.locality || 'Jaipur'}`}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             itemProp="image"

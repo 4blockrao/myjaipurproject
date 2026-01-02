@@ -10,13 +10,28 @@ import { marked, Renderer, Tokens } from 'marked';
 // Custom renderer for SEO-optimized output
 const renderer = new Renderer();
 
+const normalizeUrl = (input: string) => {
+  const raw = (input || '').trim();
+  if (!raw) return raw;
+  let url = raw;
+  if (url.startsWith('//')) url = `https:${url}`;
+  if (url.startsWith('http://')) url = `https://${url.slice('http://'.length)}`;
+  try {
+    url = encodeURI(url);
+  } catch {
+    // ignore
+  }
+  return url;
+};
+
 // Add rel="noopener" to external links, keep internal links clean
 renderer.link = ({ href, title, tokens }: Tokens.Link) => {
+  const safeHref = normalizeUrl(href);
   const text = tokens.map((t: any) => t.raw || t.text || '').join('');
-  const isExternal = href.startsWith('http') && !href.includes('jaipurcircle.com');
+  const isExternal = safeHref.startsWith('http') && !safeHref.includes('jaipurcircle.com');
   const rel = isExternal ? ' rel="noopener noreferrer" target="_blank"' : '';
   const titleAttr = title ? ` title="${title}"` : '';
-  return `<a href="${href}"${titleAttr}${rel}>${text}</a>`;
+  return `<a href="${safeHref}"${titleAttr}${rel}>${text}</a>`;
 };
 
 // Add proper heading structure with IDs for anchor links
@@ -28,9 +43,10 @@ renderer.heading = ({ tokens, depth }: Tokens.Heading) => {
 
 // Add figure wrapper for images with alt text
 renderer.image = ({ href, title, text }: Tokens.Image) => {
+  const src = normalizeUrl(href);
   const altText = text || title || 'Article image';
   const titleAttr = title ? ` title="${title}"` : '';
-  return `<figure><img src="${href}" alt="${altText}"${titleAttr} loading="lazy" />${title ? `<figcaption>${title}</figcaption>` : ''}</figure>`;
+  return `<figure><img src="${src}" alt="${altText}"${titleAttr} loading="lazy" />${title ? `<figcaption>${title}</figcaption>` : ''}</figure>`;
 };
 
 marked.use({ renderer, gfm: true, breaks: true });

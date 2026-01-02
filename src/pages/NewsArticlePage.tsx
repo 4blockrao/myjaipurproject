@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { normalizeImageUrl } from '@/utils/imageUrl';
 import { ArrowLeft, Clock, Eye, Heart, Share2, MapPin, Sparkles, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -206,10 +207,10 @@ export default function NewsArticlePage() {
         </header>
 
         {/* Cover Image with proper semantic figure */}
-        {article.cover_image && article.cover_image.trim() !== '' && (
+        {normalizeImageUrl(article.cover_image) && (
           <figure className="aspect-video bg-muted">
             <img 
-              src={article.cover_image} 
+              src={normalizeImageUrl(article.cover_image) as string}
               alt={article.title}
               className="w-full h-full object-cover"
               loading="eager"
