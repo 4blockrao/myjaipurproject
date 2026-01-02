@@ -19,11 +19,13 @@ import {
 import SEOAnalyzer from './SEOAnalyzer';
 import AutoLinkSuggester from './AutoLinkSuggester';
 import { markdownToHtml, calculateWordCount, calculateReadingTime, generateExcerpt } from '@/utils/markdownToHtml';
+import { normalizeImageUrl } from '@/utils/imageUrl';
 
 interface ArticleEditorProps {
   articleId?: string;
   onBack: () => void;
 }
+
 
 const categories = [
   { id: 'city', label: 'City News', emoji: '🏛️' },
@@ -168,18 +170,18 @@ export function ArticleEditor({ articleId, onBack }: ArticleEditorProps) {
       const readingTime = calculateReadingTime(wordCount);
       const autoExcerpt = excerpt || generateExcerpt(content, 160);
 
-      const articleData = {
-        author_id: session.session.user.id,
-        title,
-        slug,
-        excerpt: autoExcerpt,
-        content,
-        body_html: bodyHtml, // Pre-rendered HTML for SEO
-        word_count: wordCount,
-        reading_time_minutes: readingTime,
-        cover_image: coverImage || null,
-        category: category as any,
-        locality: locality || null,
+        const articleData = {
+          author_id: session.session.user.id,
+          title,
+          slug,
+          excerpt: autoExcerpt,
+          content,
+          body_html: bodyHtml, // Pre-rendered HTML for SEO
+          word_count: wordCount,
+          reading_time_minutes: readingTime,
+          cover_image: normalizeImageUrl(coverImage),
+          category: category as any,
+          locality: locality || null,
         tags,
         meta_title: metaTitle || title,
         meta_description: metaDescription || autoExcerpt,

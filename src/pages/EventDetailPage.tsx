@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeImageUrl } from "@/utils/imageUrl";
 import {
   ArrowLeft,
   Calendar,
@@ -227,9 +228,13 @@ const EventDetailPage = () => {
         {/* HERO BLOCK - Cover Image with Essential Above-the-Fold Elements */}
         <div className="relative aspect-[16/9] sm:aspect-[21/9]">
           <img
-            src={event.cover_image || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=450&fit=crop"}
+            src={normalizeImageUrl(event.cover_image) || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=450&fit=crop"}
             alt={`${event.title} - ${event.category} event in ${city} ${eventYear}`}
             className="w-full h-full object-cover"
+            loading="eager"
+            onError={(e) => {
+              e.currentTarget.src = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=450&fit=crop";
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
           
