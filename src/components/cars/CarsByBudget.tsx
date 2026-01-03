@@ -9,10 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const budgetRanges = [
-  { label: 'Under ₹5L', value: '5', min: 0, max: 500000 },
-  { label: '₹5-10L', value: '10', min: 500000, max: 1000000 },
-  { label: '₹10-15L', value: '15', min: 1000000, max: 1500000 },
-  { label: '₹15-25L', value: '25', min: 1500000, max: 2500000 },
+  { label: 'Under ₹5L', value: '5', slug: 'under-5-lakh', min: 0, max: 500000 },
+  { label: '₹5-10L', value: '10', slug: '5-10-lakh', min: 500000, max: 1000000 },
+  { label: '₹10-15L', value: '15', slug: '10-15-lakh', min: 1000000, max: 1500000 },
+  { label: '₹15-25L', value: '25', slug: '15-25-lakh', min: 1500000, max: 2500000 },
 ];
 
 const formatPrice = (price: number | null) => {
@@ -119,7 +119,7 @@ const CarsByBudget = () => {
             )}
             
             <div className="text-center mt-6">
-              <Link to={`/cars/budget/${range.label.toLowerCase().replace(/[₹\s]/g, '-').replace('--', '-')}`}>
+              <Link to={`/cars/budget/${range.slug}`}>
                 <Button variant="outline" className="gap-2">
                   View All Cars {range.label} <ChevronRight className="w-4 h-4" />
                 </Button>

@@ -12,12 +12,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const budgetRanges = [
-  { label: 'Under ₹5 Lakh', value: '0-5', slug: 'under-5-lakh' },
-  { label: '₹5-10 Lakh', value: '5-10', slug: '5-10-lakh' },
-  { label: '₹10-15 Lakh', value: '10-15', slug: '10-15-lakh' },
-  { label: '₹15-20 Lakh', value: '15-20', slug: '15-20-lakh' },
-  { label: '₹20-30 Lakh', value: '20-30', slug: '20-30-lakh' },
-  { label: 'Above ₹30 Lakh', value: '30-999', slug: 'above-30-lakh' },
+  { label: 'Under ₹5 Lakh', slug: 'under-5-lakh' },
+  { label: '₹5-10 Lakh', slug: '5-10-lakh' },
+  { label: '₹10-15 Lakh', slug: '10-15-lakh' },
+  { label: '₹15-25 Lakh', slug: '15-25-lakh' },
+  { label: '₹25-50 Lakh', slug: '25-50-lakh' },
+  { label: 'Above ₹50 Lakh', slug: 'above-50-lakh' },
 ];
 
 const bodyTypes = [
@@ -131,7 +131,7 @@ const CarSearchHero = ({ onSearch }: CarSearchHeroProps) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-48">
                   {budgetRanges.map((range) => (
-                    <DropdownMenuItem key={range.value} asChild>
+                    <DropdownMenuItem key={range.slug} asChild>
                       <Link to={`/cars/budget/${range.slug}`}>{range.label}</Link>
                     </DropdownMenuItem>
                   ))}
@@ -195,7 +195,7 @@ const CarSearchHero = ({ onSearch }: CarSearchHeroProps) => {
                     ⚡ Electric Cars
                   </Badge>
                 </Link>
-                <Link to="/cars/budget/under-10-lakh">
+                <Link to="/cars/budget/5-10-lakh">
                   <Badge variant="outline" className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors px-3 py-1.5">
                     Under ₹10 Lakh
                   </Badge>

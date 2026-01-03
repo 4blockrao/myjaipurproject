@@ -2,12 +2,12 @@ import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Car, MapPin, Phone, Calendar, Fuel, Settings, Users, ChevronRight, Check, ArrowLeft, Share2 } from 'lucide-react';
+import { Car, MapPin, Phone, Calendar, Fuel, Settings, Users, ChevronRight, Check, ArrowLeft, Share2, Gauge, Zap, Shield, X, Star, Scale } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import NativeBottomNav from '@/components/home/NativeBottomNav';
 import { Footer } from '@/components/layout/Footer';
 import { useState } from 'react';
@@ -52,7 +52,23 @@ const CarModelPage = () => {
     enabled: !!carModel?.brand?.id
   });
 
+  const { data: similarCars } = useQuery({
+    queryKey: ['similar-cars', carModel?.body_type, carModel?.id],
+    queryFn: async () => {
+      if (!carModel) return [];
+      const { data } = await supabase
+        .from('car_models')
+        .select(`*, brand:car_brands(name, slug)`)
+        .eq('body_type', carModel.body_type)
+        .neq('id', carModel.id)
+        .limit(4);
+      return data || [];
+    },
+    enabled: !!carModel
+  });
+
   const formatPrice = (price: number) => {
+    if (!price) return 'N/A';
     if (price >= 10000000) return `₹${(price / 10000000).toFixed(2)} Cr`;
     if (price >= 100000) return `₹${(price / 100000).toFixed(2)} L`;
     return `₹${price.toLocaleString('en-IN')}`;
@@ -109,6 +125,24 @@ const CarModelPage = () => {
     : carModel.waiting_period_weeks <= 6 ? 'Moderate' : 'High'
     : 'Check with dealer';
 
+  const specs = {
+    engine: [
+      { label: 'Engine CC', value: carModel.engine_cc ? `${carModel.engine_cc} cc` : 'N/A' },
+      { label: 'Power', value: carModel.power_bhp ? `${carModel.power_bhp} bhp` : 'N/A' },
+      { label: 'Torque', value: carModel.torque_nm ? `${carModel.torque_nm} Nm` : 'N/A' },
+      { label: 'Fuel Type', value: carModel.fuel_type || 'Petrol' },
+      { label: 'Transmission', value: carModel.transmission || 'Manual' },
+    ],
+    mileage: [
+      { label: 'City Mileage', value: carModel.mileage_city ? `${carModel.mileage_city} kmpl` : 'N/A' },
+      { label: 'Highway Mileage', value: carModel.mileage_highway ? `${carModel.mileage_highway} kmpl` : 'N/A' },
+    ],
+    dimensions: [
+      { label: 'Body Type', value: carModel.body_type || 'N/A' },
+      { label: 'Seating Capacity', value: carModel.seating_capacity ? `${carModel.seating_capacity} Seater` : '5 Seater' },
+    ]
+  };
+
   return (
     <>
       <Helmet>
@@ -133,7 +167,7 @@ const CarModelPage = () => {
         </script>
       </Helmet>
 
-      <div className="min-h-screen bg-background pb-20">
+      <div className="min-h-screen bg-background pb-24">
         {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-muted to-background">
           {/* Navigation */}
@@ -143,9 +177,16 @@ const CarModelPage = () => {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
-            <Button variant="secondary" size="icon" className="rounded-full shadow-lg">
-              <Share2 className="w-5 h-5" />
-            </Button>
+            <div className="flex gap-2">
+              <Link to={`/cars/compare?car1=${carModel.id}`}>
+                <Button variant="secondary" size="icon" className="rounded-full shadow-lg">
+                  <Scale className="w-5 h-5" />
+                </Button>
+              </Link>
+              <Button variant="secondary" size="icon" className="rounded-full shadow-lg">
+                <Share2 className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
 
           {/* Car Image */}
@@ -172,20 +213,27 @@ const CarModelPage = () => {
               </div>
               
               <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-                {carModel.brand?.name} {carModel.name} On-Road Price in Jaipur (2025)
+                {carModel.brand?.name} {carModel.name}
               </h1>
+              <p className="text-muted-foreground mt-1">On-Road Price in Jaipur (January 2025)</p>
               
               <div className="mt-4 p-4 bg-primary/5 rounded-xl border border-primary/10">
-                <p className="text-sm text-muted-foreground">Jaipur On-Road Estimate</p>
-                <p className="text-3xl font-bold text-primary mt-1">
-                  {formatPrice(carModel.on_road_price_jaipur_min)} – {formatPrice(carModel.on_road_price_jaipur_max)}
-                </p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-3xl font-bold text-primary">
+                    {formatPrice(carModel.on_road_price_jaipur_min)}
+                  </p>
+                  <span className="text-muted-foreground">–</span>
+                  <p className="text-xl font-semibold text-foreground">
+                    {formatPrice(carModel.on_road_price_jaipur_max)}
+                  </p>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">*On-road price in Jaipur (incl. RTO, insurance)</p>
                 <div className="flex flex-wrap gap-4 mt-3 text-sm">
                   <span className="flex items-center gap-1 text-muted-foreground">
                     <Calendar className="w-4 h-4" /> Waiting: {waitingPeriodLabel}
                   </span>
                   <span className="flex items-center gap-1 text-muted-foreground">
-                    <MapPin className="w-4 h-4" /> Available Citywide
+                    <MapPin className="w-4 h-4" /> {dealers?.length || 0}+ Dealers in Jaipur
                   </span>
                 </div>
               </div>
@@ -196,7 +244,7 @@ const CarModelPage = () => {
                   className="flex-1 md:flex-none"
                   onClick={() => { setEnquiryType('price'); setShowEnquiry(true); }}
                 >
-                  Get Price Quote
+                  Get On-Road Price
                 </Button>
                 <Button 
                   variant="outline"
@@ -205,55 +253,171 @@ const CarModelPage = () => {
                 >
                   Book Test Drive
                 </Button>
-                <Link to={`/cars/${brand}/compare`} className="flex-1 md:flex-none">
-                  <Button variant="secondary" className="w-full">Compare</Button>
-                </Link>
               </div>
             </CardContent>
           </Card>
 
           {/* Key Specs */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+          <div className="grid grid-cols-4 gap-2 mt-6">
             {[
-              { icon: Fuel, label: 'Fuel Type', value: carModel.fuel_type?.replace('-', ' ') || 'Petrol' },
-              { icon: Settings, label: 'Transmission', value: carModel.transmission?.toUpperCase() || 'Manual' },
-              { icon: Car, label: 'Body Type', value: carModel.body_type?.replace('-', ' ') || 'SUV' },
-              { icon: Users, label: 'Seating', value: carModel.seating_capacity ? `${carModel.seating_capacity} Seater` : '5 Seater' },
+              { icon: Fuel, label: 'Fuel', value: carModel.fuel_type || 'Petrol' },
+              { icon: Settings, label: 'Trans.', value: carModel.transmission?.toUpperCase() || 'Manual' },
+              { icon: Gauge, label: 'Mileage', value: carModel.mileage_city ? `${carModel.mileage_city}` : 'N/A' },
+              { icon: Users, label: 'Seats', value: carModel.seating_capacity || '5' },
             ].map((spec, i) => (
-              <Card key={i}>
-                <CardContent className="p-4 text-center">
-                  <spec.icon className="w-6 h-6 text-primary mx-auto mb-2" />
+              <Card key={i} className="text-center">
+                <CardContent className="p-3">
+                  <spec.icon className="w-5 h-5 text-primary mx-auto mb-1" />
                   <p className="text-xs text-muted-foreground">{spec.label}</p>
-                  <p className="font-semibold text-foreground capitalize">{spec.value}</p>
+                  <p className="font-semibold text-foreground text-sm capitalize">{spec.value}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          {/* Best For */}
-          {carModel.best_for && carModel.best_for.length > 0 && (
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle className="text-lg">Who This Car is Best For</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {carModel.best_for.map((item: string, i: number) => (
-                    <li key={i} className="flex items-center gap-2 text-foreground">
-                      <Check className="w-4 h-4 text-green-500" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
+          {/* Detailed Specs Tabs */}
+          <Card className="mt-6">
+            <Tabs defaultValue="specs">
+              <TabsList className="w-full justify-start border-b rounded-none h-auto p-0">
+                <TabsTrigger value="specs" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary">
+                  Specifications
+                </TabsTrigger>
+                <TabsTrigger value="pros-cons" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary">
+                  Pros & Cons
+                </TabsTrigger>
+                <TabsTrigger value="similar" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary">
+                  Similar Cars
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="specs" className="p-4 space-y-6">
+                <div>
+                  <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-primary" /> Engine & Performance
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {specs.engine.map((spec, i) => (
+                      <div key={i} className="flex justify-between p-2 bg-muted/50 rounded">
+                        <span className="text-muted-foreground text-sm">{spec.label}</span>
+                        <span className="font-medium text-foreground text-sm capitalize">{spec.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <Gauge className="w-4 h-4 text-primary" /> Mileage
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {specs.mileage.map((spec, i) => (
+                      <div key={i} className="flex justify-between p-2 bg-muted/50 rounded">
+                        <span className="text-muted-foreground text-sm">{spec.label}</span>
+                        <span className="font-medium text-foreground text-sm">{spec.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <Car className="w-4 h-4 text-primary" /> Dimensions
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {specs.dimensions.map((spec, i) => (
+                      <div key={i} className="flex justify-between p-2 bg-muted/50 rounded">
+                        <span className="text-muted-foreground text-sm">{spec.label}</span>
+                        <span className="font-medium text-foreground text-sm capitalize">{spec.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="pros-cons" className="p-4">
+                <div className="grid md:grid-cols-2 gap-6">
+                  {carModel.pros && carModel.pros.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold text-green-600 mb-3 flex items-center gap-2">
+                        <Check className="w-4 h-4" /> What We Like
+                      </h3>
+                      <ul className="space-y-2">
+                        {carModel.pros.map((pro: string, i: number) => (
+                          <li key={i} className="flex items-start gap-2 text-foreground">
+                            <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <Check className="w-3 h-3" />
+                            </span>
+                            {pro}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {carModel.cons && carModel.cons.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold text-red-600 mb-3 flex items-center gap-2">
+                        <X className="w-4 h-4" /> What Could Be Better
+                      </h3>
+                      <ul className="space-y-2">
+                        {carModel.cons.map((con: string, i: number) => (
+                          <li key={i} className="flex items-start gap-2 text-foreground">
+                            <span className="w-5 h-5 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <X className="w-3 h-3" />
+                            </span>
+                            {con}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                {carModel.best_for && carModel.best_for.length > 0 && (
+                  <div className="mt-6 p-4 bg-primary/5 rounded-lg">
+                    <h3 className="font-semibold text-foreground mb-3">Best For</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {carModel.best_for.map((item: string, i: number) => (
+                        <Badge key={i} variant="secondary">{item}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="similar" className="p-4">
+                {similarCars && similarCars.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    {similarCars.map((car: any) => (
+                      <Link key={car.id} to={`/cars/${car.brand?.slug}/${car.slug}`}>
+                        <Card className="hover:shadow-md transition-shadow">
+                          <CardContent className="p-3">
+                            <div className="aspect-video bg-muted rounded mb-2 flex items-center justify-center">
+                              {car.cover_image ? (
+                                <img src={car.cover_image} alt={car.name} className="w-full h-full object-cover rounded" />
+                              ) : (
+                                <Car className="w-8 h-8 text-muted-foreground/30" />
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">{car.brand?.name}</p>
+                            <h4 className="font-semibold text-foreground text-sm">{car.name}</h4>
+                            <p className="text-primary font-bold text-sm mt-1">{formatPrice(car.on_road_price_jaipur_min)}</p>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">No similar cars found</p>
+                )}
+              </TabsContent>
+            </Tabs>
+          </Card>
 
           {/* Dealers */}
           <Card className="mt-6">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">Dealers Selling {carModel.name} in Jaipur</CardTitle>
-              <Link to={`/cars/dealers/${brand}`}>
+              <CardTitle className="text-lg">{carModel.brand?.name} Dealers in Jaipur</CardTitle>
+              <Link to={`/cars/dealers?brand=${brand}`}>
                 <Button variant="ghost" size="sm" className="text-primary">
                   View All <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -263,24 +427,25 @@ const CarModelPage = () => {
               {dealers && dealers.length > 0 ? (
                 <div className="space-y-3">
                   {dealers.map((dealer: any) => (
-                    <div key={dealer.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-foreground">{dealer.name}</p>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                          <MapPin className="w-3 h-3" /> {dealer.locality}
-                        </p>
+                    <Link key={dealer.id} to={`/cars/dealers/${dealer.slug}`}>
+                      <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
+                        <div>
+                          <p className="font-medium text-foreground">{dealer.name}</p>
+                          <p className="text-sm text-muted-foreground flex items-center gap-1">
+                            <MapPin className="w-3 h-3" /> {dealer.locality}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          {dealer.rating > 0 && (
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                              {dealer.rating}
+                            </div>
+                          )}
+                          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        {dealer.phone && (
-                          <a href={`tel:${dealer.phone}`}>
-                            <Button size="sm" variant="outline">
-                              <Phone className="w-4 h-4" />
-                            </Button>
-                          </a>
-                        )}
-                        <Button size="sm">Enquire</Button>
-                      </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               ) : (
@@ -291,16 +456,20 @@ const CarModelPage = () => {
         </div>
 
         {/* Sticky Bottom CTA */}
-        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-card border-t p-4 z-40">
-          <div className="container flex gap-3">
+        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-card border-t p-3 z-40">
+          <div className="container flex gap-2">
             <Button 
               className="flex-1"
               onClick={() => { setEnquiryType('price'); setShowEnquiry(true); }}
             >
-              Enquire Now
+              Get Price Quote
             </Button>
-            <Button variant="outline" className="flex-1">
-              <Phone className="w-4 h-4 mr-2" /> Call Dealer
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => { setEnquiryType('test-drive'); setShowEnquiry(true); }}
+            >
+              Book Test Drive
             </Button>
           </div>
         </div>
@@ -310,7 +479,7 @@ const CarModelPage = () => {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {enquiryType === 'price' ? 'Get Price Quote' : 'Book Test Drive'} - {carModel.brand?.name} {carModel.name}
+                {enquiryType === 'price' ? 'Get On-Road Price' : 'Book Test Drive'} - {carModel.brand?.name} {carModel.name}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleEnquirySubmit} className="space-y-4">
@@ -327,8 +496,8 @@ const CarModelPage = () => {
                 <Input id="email" name="email" type="email" />
               </div>
               <div>
-                <Label htmlFor="locality">Your Locality</Label>
-                <Input id="locality" name="locality" placeholder="e.g., Mansarovar" />
+                <Label htmlFor="locality">Your Locality in Jaipur</Label>
+                <Input id="locality" name="locality" placeholder="e.g., Mansarovar, Vaishali Nagar" />
               </div>
               <div>
                 <Label htmlFor="intent">Buying Intent</Label>
@@ -338,12 +507,15 @@ const CarModelPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="researching">Just Researching</SelectItem>
-                    <SelectItem value="likely-to-buy">Likely to Buy Soon</SelectItem>
-                    <SelectItem value="ready-to-buy">Ready to Buy</SelectItem>
+                    <SelectItem value="likely-to-buy">Planning to Buy in 1-3 Months</SelectItem>
+                    <SelectItem value="ready-to-buy">Ready to Buy This Month</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <Button type="submit" className="w-full">Submit Enquiry</Button>
+              <p className="text-xs text-muted-foreground text-center">
+                By submitting, you agree to be contacted by authorized {carModel.brand?.name} dealers
+              </p>
             </form>
           </DialogContent>
         </Dialog>
