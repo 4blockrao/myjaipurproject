@@ -89,6 +89,9 @@ import CarModelPage from "./pages/CarModelPage";
 import CarDealerPage from "./pages/CarDealerPage";
 import CarDealersListPage from "./pages/CarDealersListPage";
 import EVCarsPage from "./pages/EVCarsPage";
+import CarsByBudgetPage from "./pages/CarsByBudgetPage";
+import CarsByBodyTypePage from "./pages/CarsByBodyTypePage";
+import CarComparePage from "./pages/CarComparePage";
 
 // Properties Hub
 import PropertiesHubPage from "./pages/PropertiesHubPage";
@@ -222,10 +225,14 @@ function App() {
               {/* Cars Hub */}
               <Route path="/cars" element={<CarsHubPage />} />
               <Route path="/cars/ev" element={<EVCarsPage />} />
+              <Route path="/cars/compare" element={<CarComparePage />} />
+              <Route path="/cars/budget/:range" element={<CarsByBudgetPage />} />
+              <Route path="/cars/body-type/:bodyType" element={<CarsByBodyTypePage />} />
               <Route path="/cars/dealers" element={<CarDealersListPage />} />
               <Route path="/cars/dealers/:slug" element={<CarDealerPage />} />
-              <Route path="/cars/:brandSlug" element={<CarBrandPage />} />
-              <Route path="/cars/:brandSlug/:modelSlug" element={<CarModelPage />} />
+              <Route path="/cars/:brand" element={<CarBrandPage />} />
+              <Route path="/cars/:brand/:model" element={<CarModelPage />} />
+              <Route path="/cars/:brand/:model/on-road-price-in-jaipur" element={<CarModelPage />} />
               
               {/* Properties Hub */}
               <Route path="/properties" element={<PropertiesHubPage />} />
