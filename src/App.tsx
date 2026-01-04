@@ -85,7 +85,10 @@ import LocalityCategoryPage from "./pages/LocalityCategoryPage";
 // Cars Hub
 import CarsHubPage from "./pages/CarsHubPage";
 import CarBrandPage from "./pages/CarBrandPage";
+import CarBrandsPage from "./pages/CarBrandsPage";
+import CarBrandHubPage from "./pages/CarBrandHubPage";
 import CarModelPage from "./pages/CarModelPage";
+import CarModelDetailPage from "./pages/CarModelDetailPage";
 import CarDealerPage from "./pages/CarDealerPage";
 import CarDealersListPage from "./pages/CarDealersListPage";
 import EVCarsPage from "./pages/EVCarsPage";
@@ -222,16 +225,17 @@ function App() {
               <Route path="/jaipur/:slug/:category" element={<LocalityCategoryPage />} />
               <Route path="/jaipur/:slug" element={<LocalityPage />} />
               
-              {/* Cars Hub */}
+{/* Cars Hub */}
               <Route path="/cars" element={<CarsHubPage />} />
+              <Route path="/cars/brands" element={<CarBrandsPage />} />
               <Route path="/cars/ev" element={<EVCarsPage />} />
               <Route path="/cars/compare" element={<CarComparePage />} />
               <Route path="/cars/budget/:range" element={<CarsByBudgetPage />} />
               <Route path="/cars/body-type/:bodyType" element={<CarsByBodyTypePage />} />
               <Route path="/cars/dealers" element={<CarDealersListPage />} />
               <Route path="/cars/dealers/:slug" element={<CarDealerPage />} />
-              <Route path="/cars/:brand" element={<CarBrandPage />} />
-              <Route path="/cars/:brand/:model" element={<CarModelPage />} />
+              <Route path="/cars/:brand" element={<CarBrandHubPage />} />
+              <Route path="/cars/:brand/:model" element={<CarModelDetailPage />} />
               <Route path="/cars/:brand/:model/on-road-price-in-jaipur" element={<CarModelPage />} />
               
               {/* Properties Hub */}
