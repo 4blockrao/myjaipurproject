@@ -67,41 +67,37 @@ const DealDetailPage = () => {
     if (id) {
       fetchDealDetails();
       fetchReviews();
-      fetchRelatedDeals();
     }
   }, [id]);
 
+  useEffect(() => {
+    if (deal?.category) {
+      fetchRelatedDeals();
+    }
+  }, [deal?.category]);
+
   const fetchDealDetails = async () => {
     try {
-      // Mock data - in real implementation, fetch from deals table
-      const mockDeal: Deal = {
-        id: id!,
-        title: "Royal Rajasthani Thali Experience",
-        description: "Indulge in an authentic Royal Rajasthani Thali featuring over 15 traditional dishes including Dal Baati Churma, Gatte ki Sabzi, Ker Sangri, and much more. Experience the rich culinary heritage of Rajasthan in our beautifully decorated restaurant with live folk music.",
-        category: "Food & Dining",
-        discount_percentage: 50,
-        original_price: 800,
-        discounted_price: 400,
-        location: "C-Scheme, Jaipur",
-        image_url: "/placeholder.svg",
-        start_date: "2024-06-01T00:00:00Z",
-        end_date: "2024-07-31T23:59:59Z",
-        terms_conditions: "Valid for dine-in only. Cannot be combined with other offers. Advanced booking recommended. Valid for up to 4 people per coupon.",
-        max_redemptions: 100,
-        current_redemptions: 45,
-        merchants: {
-          id: "1",
-          business_name: "Royal Heritage Restaurant",
-          business_type: "Restaurant",
-          address: "123 Heritage Plaza, C-Scheme, Jaipur, Rajasthan 302001",
-          phone: "+91 141-555-0123",
-          website: "www.royalheritage.com",
-          average_rating: 4.7,
-          total_reviews: 324,
-          description: "Established in 1985, Royal Heritage Restaurant has been serving authentic Rajasthani cuisine to locals and tourists alike. Our chefs use traditional recipes passed down through generations."
-        }
-      };
-      setDeal(mockDeal);
+      const { data, error } = await supabase
+        .from('deals')
+        .select(`
+          id, title, description, category, discount_percentage,
+          original_price, discounted_price, location, image_url,
+          start_date, end_date, terms_conditions, max_redemptions,
+          current_redemptions,
+          merchants (
+            id, business_name, business_type, address, phone,
+            website, average_rating, total_reviews, description
+          )
+        `)
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      
+      if (data) {
+        setDeal(data as Deal);
+      }
     } catch (error) {
       console.error('Error fetching deal details:', error);
       toast({
@@ -115,62 +111,37 @@ const DealDetailPage = () => {
   };
 
   const fetchReviews = async () => {
-    // Mock data - in real implementation, fetch from reviews table
-    const mockReviews: Review[] = [
-      {
-        id: "1",
-        user_name: "Priya S.",
-        rating: 5,
-        comment: "Amazing food! The thali was huge and every dish was delicious. The ambiance with live folk music made it even better.",
-        created_at: "2024-06-15T10:30:00Z",
-        helpful_count: 12
-      },
-      {
-        id: "2",
-        user_name: "Rahul K.",
-        rating: 4,
-        comment: "Great value for money. The Dal Baati Churma was outstanding. Service was quick and staff was friendly.",
-        created_at: "2024-06-10T18:45:00Z",
-        helpful_count: 8
-      },
-      {
-        id: "3",
-        user_name: "Anita M.",
-        rating: 5,
-        comment: "Perfect place for experiencing authentic Rajasthani cuisine. The discount made it even more attractive!",
-        created_at: "2024-06-08T14:20:00Z",
-        helpful_count: 15
-      }
-    ];
-    setReviews(mockReviews);
+    // Reviews would be fetched from a reviews table when implemented
+    // For now, we'll leave this empty as there's no reviews table linked to deals
+    setReviews([]);
   };
 
   const fetchRelatedDeals = async () => {
-    // Mock data - in real implementation, fetch similar deals
-    const mockRelatedDeals: Deal[] = [
-      {
-        id: "2",
-        title: "Buffet Dinner at Spice Garden",
-        description: "All-you-can-eat buffet with 50+ dishes",
-        category: "Food & Dining",
-        discount_percentage: 40,
-        original_price: 1200,
-        discounted_price: 720,
-        location: "Malviya Nagar, Jaipur",
-        start_date: "2024-06-01T00:00:00Z",
-        end_date: "2024-07-31T23:59:59Z",
-        merchants: {
-          id: "2",
-          business_name: "Spice Garden",
-          business_type: "Restaurant",
-          address: "Malviya Nagar, Jaipur",
-          phone: "+91 141-555-0124",
-          average_rating: 4.5,
-          total_reviews: 189
-        }
-      }
-    ];
-    setRelatedDeals(mockRelatedDeals);
+    if (!deal?.category) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('deals')
+        .select(`
+          id, title, description, category, discount_percentage,
+          original_price, discounted_price, location, image_url,
+          start_date, end_date,
+          merchants (
+            id, business_name, business_type, address, phone,
+            average_rating, total_reviews
+          )
+        `)
+        .eq('is_active', true)
+        .eq('category', deal.category)
+        .neq('id', id)
+        .limit(4);
+
+      if (error) throw error;
+      setRelatedDeals((data || []) as Deal[]);
+    } catch (error) {
+      console.error('Error fetching related deals:', error);
+      setRelatedDeals([]);
+    }
   };
 
   const handleSaveDeal = () => {
