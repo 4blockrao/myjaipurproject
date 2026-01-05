@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Users, FileText, Store, Calendar, BarChart3, Newspaper } from "lucide-react";
+import { Shield, Users, FileText, Store, Calendar, BarChart3, Newspaper, Car } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import AppLayout from "@/components/layout/AppLayout";
 import RoleManager from "@/components/admin/RoleManager";
-import DealApprovalQueue from "@/components/admin/DealApprovalQueue";
+import DealsManagement from "@/components/admin/DealsManagement";
 import EventsManagement from "@/components/admin/EventsManagement";
 import MerchantsManagement from "@/components/admin/MerchantsManagement";
 import UsersManagement from "@/components/admin/UsersManagement";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import ArticleCMS from "@/components/admin/cms/ArticleCMS";
+import CarsManagement from "@/components/admin/CarsManagement";
 
 const AdminDashboardPage = () => {
   const [user, setUser] = useState<any>(null);
@@ -80,6 +81,10 @@ const AdminDashboardPage = () => {
               <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden xs:inline">Deals</span>
             </TabsTrigger>
+            <TabsTrigger value="cars" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 data-[state=active]:bg-background">
+              <Car className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Cars</span>
+            </TabsTrigger>
             <TabsTrigger value="events" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 data-[state=active]:bg-background">
               <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden xs:inline">Events</span>
@@ -97,11 +102,10 @@ const AdminDashboardPage = () => {
           <TabsContent value="analytics"><AdminAnalytics /></TabsContent>
           <TabsContent value="users"><UsersManagement /></TabsContent>
           <TabsContent value="merchants"><MerchantsManagement /></TabsContent>
-          <TabsContent value="deals"><DealApprovalQueue /></TabsContent>
+          <TabsContent value="deals"><DealsManagement /></TabsContent>
+          <TabsContent value="cars"><CarsManagement /></TabsContent>
           <TabsContent value="events"><EventsManagement /></TabsContent>
-          <TabsContent value="content">
-            <ArticleCMS />
-          </TabsContent>
+          <TabsContent value="content"><ArticleCMS /></TabsContent>
           <TabsContent value="roles"><RoleManager /></TabsContent>
         </Tabs>
       </div>

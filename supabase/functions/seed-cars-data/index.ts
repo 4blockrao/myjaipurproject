@@ -183,12 +183,46 @@ Deno.serve(async (req) => {
 
     console.log(`Inserted/updated ${insertedModels?.length || 0} models`);
 
+    // Seed dealers
+    const dealersData = [
+      { name: 'Maruti Suzuki Arena - Mansarovar', slug: 'maruti-arena-mansarovar', brand_slug: 'maruti-suzuki', locality: 'Mansarovar', address: 'Sector 7, Mansarovar, Jaipur', phone: '0141-2780101', dealer_type: 'Authorized', is_verified: true, rating: 4.2 },
+      { name: 'Maruti Nexa - Malviya Nagar', slug: 'maruti-nexa-malviya-nagar', brand_slug: 'maruti-suzuki', locality: 'Malviya Nagar', address: 'D-15, Malviya Nagar, Jaipur', phone: '0141-2521234', dealer_type: 'Authorized', is_verified: true, rating: 4.5 },
+      { name: 'Tata Motors - Tonk Road', slug: 'tata-motors-tonk-road', brand_slug: 'tata', locality: 'Lalkothi', address: 'Tonk Road, Near Lalkothi, Jaipur', phone: '0141-2741010', dealer_type: 'Authorized', is_verified: true, rating: 4.3 },
+      { name: 'Hyundai - C-Scheme', slug: 'hyundai-c-scheme', brand_slug: 'hyundai', locality: 'C-Scheme', address: 'Ashok Marg, C-Scheme, Jaipur', phone: '0141-2362525', dealer_type: 'Authorized', is_verified: true, rating: 4.4 },
+      { name: 'Mahindra - Vaishali Nagar', slug: 'mahindra-vaishali-nagar', brand_slug: 'mahindra', locality: 'Vaishali Nagar', address: 'Main Road, Vaishali Nagar, Jaipur', phone: '0141-2351515', dealer_type: 'Authorized', is_verified: true, rating: 4.1 },
+      { name: 'Kia - Ajmer Road', slug: 'kia-ajmer-road', brand_slug: 'kia', locality: 'Ajmer Road', address: 'Ajmer Road, Near Vidyadhar Nagar, Jaipur', phone: '0141-2345678', dealer_type: 'Authorized', is_verified: true, rating: 4.6 },
+      { name: 'Toyota - MI Road', slug: 'toyota-mi-road', brand_slug: 'toyota', locality: 'MI Road', address: 'MI Road, Jaipur', phone: '0141-2369898', dealer_type: 'Authorized', is_verified: true, rating: 4.3 },
+      { name: 'Honda - Gopalpura', slug: 'honda-gopalpura', brand_slug: 'honda', locality: 'Gopalpura', address: 'Gopalpura Bypass, Jaipur', phone: '0141-2501234', dealer_type: 'Authorized', is_verified: true, rating: 4.2 },
+      { name: 'MG Motor - Jagatpura', slug: 'mg-motor-jagatpura', brand_slug: 'mg', locality: 'Jagatpura', address: 'Jagatpura Road, Jaipur', phone: '0141-2987654', dealer_type: 'Authorized', is_verified: true, rating: 4.4 },
+      { name: 'Skoda - Raja Park', slug: 'skoda-raja-park', brand_slug: 'skoda', locality: 'Raja Park', address: 'Raja Park, Jaipur', phone: '0141-2654321', dealer_type: 'Authorized', is_verified: true, rating: 4.0 },
+    ];
+
+    const dealersToInsert = dealersData.map(d => ({
+      ...d,
+      brand_id: brandSlugToId[d.brand_slug],
+      city: 'Jaipur'
+    })).filter(d => d.brand_id);
+
+    const { data: insertedDealers, error: dealersError } = await supabase
+      .from('car_dealers')
+      .upsert(dealersToInsert, { onConflict: 'slug' })
+      .select();
+
+    if (dealersError) {
+      console.error('Error inserting dealers:', dealersError);
+    }
+
+    console.log(`Inserted/updated ${insertedDealers?.length || 0} dealers`);
+
     return new Response(
       JSON.stringify({
         success: true,
-        brands_count: insertedBrands?.length || 0,
-        models_count: insertedModels?.length || 0,
-        message: 'Car data seeded successfully'
+        stats: {
+          brands: insertedBrands?.length || 0,
+          models: insertedModels?.length || 0,
+          dealers: insertedDealers?.length || 0
+        },
+        message: 'Car data seeded/updated successfully'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
