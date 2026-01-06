@@ -5,7 +5,7 @@ import { Helmet } from 'react-helmet-async';
 import { 
   ChevronRight, MapPin, Fuel, Settings, Users, Zap, Calendar, 
   Gauge, Car, ThumbsUp, ThumbsDown, CheckCircle, Phone, Clock,
-  ChevronDown, ChevronUp
+  ChevronDown, ChevronUp, TrendingUp
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/layout/AppLayout';
@@ -21,6 +21,18 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
+// Fallback images for cars when cover_image is missing
+const getCarFallbackImage = (bodyType: string) => {
+  const bodyTypeImages: Record<string, string> = {
+    'suv': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/141867/nexon-exterior-right-front-three-quarter-79.png',
+    'compact-suv': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/107541/punch-exterior-right-front-three-quarter-62.png',
+    'hatchback': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/102849/swift-exterior-right-front-three-quarter-2.png',
+    'sedan': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/144169/verna-exterior-right-front-three-quarter-57.png',
+    'muv': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/115025/ertiga-exterior-right-front-three-quarter-3.png',
+  };
+  return bodyTypeImages[bodyType] || bodyTypeImages['suv'];
+};
+
 const formatPrice = (price: number) => {
   if (price >= 10000000) {
     return `₹${(price / 10000000).toFixed(2)} Cr`;
@@ -31,6 +43,7 @@ const formatPrice = (price: number) => {
 const CarModelDetailPage = () => {
   const { brand, model } = useParams<{ brand: string; model: string }>();
   const [showAllSpecs, setShowAllSpecs] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const { data: brandData } = useQuery({
     queryKey: ['car-brand', brand],
@@ -157,29 +170,27 @@ const CarModelDetailPage = () => {
               {/* Left - Image */}
               <div className="relative">
                 <div className="aspect-video bg-card rounded-xl overflow-hidden border">
-                  {carModel.cover_image ? (
-                    <img
-                      src={carModel.cover_image}
-                      alt={fullName}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-muted">
-                      <Car className="h-24 w-24 text-muted-foreground" />
-                    </div>
-                  )}
+                  <img
+                    src={imageError ? getCarFallbackImage(carModel.body_type) : (carModel.cover_image || getCarFallbackImage(carModel.body_type))}
+                    alt={fullName}
+                    className="w-full h-full object-cover"
+                    onError={() => setImageError(true)}
+                    loading="lazy"
+                  />
                 </div>
 
                 {/* Badges */}
-                <div className="absolute top-4 left-4 flex gap-2">
+                <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
                   {carModel.is_new_launch && (
-                    <Badge variant="default">New Launch</Badge>
+                    <Badge className="bg-green-500 text-white">New Launch</Badge>
                   )}
                   {carModel.is_trending && (
-                    <Badge variant="secondary">Trending</Badge>
+                    <Badge className="bg-orange-500 text-white gap-1">
+                      <TrendingUp className="h-3 w-3" /> Trending
+                    </Badge>
                   )}
                   {carModel.is_ev && (
-                    <Badge className="bg-green-600 hover:bg-green-700 gap-1">
+                    <Badge className="bg-emerald-500 text-white gap-1">
                       <Zap className="h-3 w-3" /> Electric
                     </Badge>
                   )}
@@ -601,14 +612,13 @@ const CarModelDetailPage = () => {
                   to={`/cars/${car.car_brands.slug}/${car.slug}`}
                   className="group bg-card border rounded-xl overflow-hidden hover:shadow-md transition-all"
                 >
-                  <div className="aspect-video bg-muted">
-                    {car.cover_image && (
-                      <img
-                        src={car.cover_image}
-                        alt={car.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                    )}
+                  <div className="aspect-video bg-muted overflow-hidden">
+                    <img
+                      src={car.cover_image || getCarFallbackImage(car.body_type)}
+                      alt={`${car.car_brands.name} ${car.name}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      loading="lazy"
+                    />
                   </div>
                   <div className="p-3">
                     <p className="text-xs text-muted-foreground">{car.car_brands.name}</p>
