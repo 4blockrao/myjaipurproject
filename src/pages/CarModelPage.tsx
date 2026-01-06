@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Car, MapPin, Phone, Calendar, Fuel, Settings, Users, ChevronRight, Check, ArrowLeft, Share2, Gauge, Zap, Shield, X, Star, Scale } from 'lucide-react';
+import { Car, MapPin, Phone, Calendar, Fuel, Settings, Users, ChevronRight, Check, ArrowLeft, Share2, Gauge, Zap, Shield, X, Star, Scale, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,10 +17,23 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
+// Fallback images for cars when cover_image is missing
+const getCarFallbackImage = (bodyType: string) => {
+  const bodyTypeImages: Record<string, string> = {
+    'suv': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/141867/nexon-exterior-right-front-three-quarter-79.png',
+    'compact-suv': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/107541/punch-exterior-right-front-three-quarter-62.png',
+    'hatchback': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/102849/swift-exterior-right-front-three-quarter-2.png',
+    'sedan': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/144169/verna-exterior-right-front-three-quarter-57.png',
+    'muv': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/115025/ertiga-exterior-right-front-three-quarter-3.png',
+  };
+  return bodyTypeImages[bodyType] || bodyTypeImages['suv'];
+};
+
 const CarModelPage = () => {
   const { brand, model } = useParams();
   const [showEnquiry, setShowEnquiry] = useState(false);
   const [enquiryType, setEnquiryType] = useState<'price' | 'test-drive'>('price');
+  const [imageError, setImageError] = useState(false);
 
   const { data: carModel, isLoading } = useQuery({
     queryKey: ['car-model', brand, model],
@@ -190,14 +203,14 @@ const CarModelPage = () => {
           </div>
 
           {/* Car Image */}
-          <div className="aspect-[16/10] md:aspect-[21/9] relative">
-            {carModel.cover_image ? (
-              <img src={carModel.cover_image} alt={carModel.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center">
-                <Car className="w-24 h-24 text-muted-foreground/30" />
-              </div>
-            )}
+          <div className="aspect-[16/10] md:aspect-[21/9] relative overflow-hidden">
+            <img 
+              src={imageError ? getCarFallbackImage(carModel.body_type) : (carModel.cover_image || getCarFallbackImage(carModel.body_type))} 
+              alt={`${carModel.brand?.name} ${carModel.name}`} 
+              className="w-full h-full object-cover"
+              onError={() => setImageError(true)}
+              loading="lazy"
+            />
           </div>
         </section>
 
@@ -208,8 +221,12 @@ const CarModelPage = () => {
               {/* Title & Price */}
               <div className="flex flex-wrap gap-2 mb-2">
                 {carModel.is_new_launch && <Badge className="bg-green-500 text-white">New Launch</Badge>}
-                {carModel.is_ev && <Badge className="bg-emerald-500 text-white">Electric</Badge>}
-                {carModel.is_trending && <Badge className="bg-primary text-white">Trending</Badge>}
+                {carModel.is_ev && <Badge className="bg-emerald-500 text-white">⚡ Electric</Badge>}
+                {carModel.is_trending && (
+                  <Badge className="bg-orange-500 text-white gap-1">
+                    <TrendingUp className="w-3 h-3" /> Trending
+                  </Badge>
+                )}
               </div>
               
               <h1 className="text-2xl md:text-3xl font-bold text-foreground">
@@ -389,17 +406,18 @@ const CarModelPage = () => {
                   <div className="grid grid-cols-2 gap-3">
                     {similarCars.map((car: any) => (
                       <Link key={car.id} to={`/cars/${car.brand?.slug}/${car.slug}`}>
-                        <Card className="hover:shadow-md transition-shadow">
+                        <Card className="hover:shadow-md transition-shadow group overflow-hidden">
                           <CardContent className="p-3">
-                            <div className="aspect-video bg-muted rounded mb-2 flex items-center justify-center">
-                              {car.cover_image ? (
-                                <img src={car.cover_image} alt={car.name} className="w-full h-full object-cover rounded" />
-                              ) : (
-                                <Car className="w-8 h-8 text-muted-foreground/30" />
-                              )}
+                            <div className="aspect-video bg-muted rounded mb-2 overflow-hidden">
+                              <img 
+                                src={car.cover_image || getCarFallbackImage(car.body_type)} 
+                                alt={`${car.brand?.name} ${car.name}`} 
+                                className="w-full h-full object-cover rounded group-hover:scale-105 transition-transform"
+                                loading="lazy"
+                              />
                             </div>
                             <p className="text-xs text-muted-foreground">{car.brand?.name}</p>
-                            <h4 className="font-semibold text-foreground text-sm">{car.name}</h4>
+                            <h4 className="font-semibold text-foreground text-sm group-hover:text-primary transition-colors">{car.name}</h4>
                             <p className="text-primary font-bold text-sm mt-1">{formatPrice(car.on_road_price_jaipur_min)}</p>
                           </CardContent>
                         </Card>

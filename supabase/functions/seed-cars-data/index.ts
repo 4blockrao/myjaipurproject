@@ -32,23 +32,53 @@ const brandsData = [
 
 // Body type mapper to match database constraint: hatchback, sedan, suv, muv, compact-suv, coupe, convertible, pickup, van
 const mapBodyType = (type: string): string => {
+  const normalizedType = type?.toLowerCase().trim() || 'suv';
   const map: Record<string, string> = {
-    'Hatchback': 'hatchback',
-    'Sedan': 'sedan',
-    'SUV': 'suv',
-    'MUV': 'muv',
-    'MPV': 'muv',
-    'Compact SUV': 'compact-suv',
-    'Micro SUV': 'compact-suv',
-    'SUV Coupe': 'suv',
-    'Electric SUV': 'suv',
-    'Electric Crossover': 'suv',
-    'Coupe': 'coupe',
-    'Convertible': 'convertible',
-    'Pickup': 'pickup',
-    'Van': 'van',
+    'hatchback': 'hatchback',
+    'sedan': 'sedan',
+    'suv': 'suv',
+    'muv': 'muv',
+    'mpv': 'muv',
+    'compact suv': 'compact-suv',
+    'compact-suv': 'compact-suv',
+    'micro suv': 'compact-suv',
+    'suv coupe': 'suv',
+    'electric suv': 'suv',
+    'electric crossover': 'suv',
+    'coupe': 'coupe',
+    'convertible': 'convertible',
+    'pickup': 'pickup',
+    'van': 'van',
   };
-  return map[type] || 'suv';
+  return map[normalizedType] || 'suv';
+};
+
+// Fuel type mapper to match database constraint: petrol, diesel, cng, electric, hybrid, plug-in-hybrid
+const mapFuelType = (type: string): string => {
+  const normalizedType = type?.toLowerCase().trim() || 'petrol';
+  const map: Record<string, string> = {
+    'petrol': 'petrol',
+    'diesel': 'diesel',
+    'cng': 'cng',
+    'electric': 'electric',
+    'hybrid': 'hybrid',
+    'plug-in-hybrid': 'plug-in-hybrid',
+    'plug-in hybrid': 'plug-in-hybrid',
+  };
+  return map[normalizedType] || 'petrol';
+};
+
+// Transmission mapper to match database constraint: manual, automatic, amt, cvt, dct
+const mapTransmission = (type: string): string => {
+  const normalizedType = type?.toLowerCase().trim() || 'manual';
+  const map: Record<string, string> = {
+    'manual': 'manual',
+    'automatic': 'automatic',
+    'amt': 'amt',
+    'cvt': 'cvt',
+    'dct': 'dct',
+  };
+  return map[normalizedType] || 'manual';
 };
 
 // Comprehensive models data with Jaipur-specific pricing
@@ -162,14 +192,14 @@ Deno.serve(async (req) => {
 
     const brandMap = new Map(allBrands?.map(b => [b.slug, b.id]) || []);
 
-    // Step 3: Insert models
+    // Step 3: Insert models with mapped values for constraints
     const modelsToInsert = modelsData.map(m => ({
       brand_id: brandMap.get(m.brand_slug),
       name: m.name,
       slug: m.slug,
-      body_type: m.body_type,
-      fuel_type: m.fuel_type,
-      transmission: m.transmission,
+      body_type: mapBodyType(m.body_type),
+      fuel_type: mapFuelType(m.fuel_type),
+      transmission: mapTransmission(m.transmission),
       ex_showroom_price_min: m.ex_showroom_price_min,
       ex_showroom_price_max: m.ex_showroom_price_max,
       on_road_price_jaipur_min: m.on_road_price_jaipur_min,
