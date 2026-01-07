@@ -315,14 +315,18 @@ const DealsManagement = () => {
     );
   }
 
-  const DealForm = () => (
+  const handleFormChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const renderDealForm = () => (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
           <Label>Title *</Label>
           <Input
             value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            onChange={(e) => handleFormChange('title', e.target.value)}
             placeholder="Deal title"
           />
         </div>
@@ -330,7 +334,7 @@ const DealsManagement = () => {
           <Label>Description</Label>
           <Textarea
             value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={(e) => handleFormChange('description', e.target.value)}
             placeholder="Deal description"
           />
         </div>
@@ -339,7 +343,7 @@ const DealsManagement = () => {
           <Input
             type="number"
             value={formData.original_price}
-            onChange={(e) => setFormData({ ...formData, original_price: e.target.value })}
+            onChange={(e) => handleFormChange('original_price', e.target.value)}
           />
         </div>
         <div>
@@ -347,12 +351,12 @@ const DealsManagement = () => {
           <Input
             type="number"
             value={formData.discounted_price}
-            onChange={(e) => setFormData({ ...formData, discounted_price: e.target.value })}
+            onChange={(e) => handleFormChange('discounted_price', e.target.value)}
           />
         </div>
         <div>
           <Label>Category</Label>
-          <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
+          <Select value={formData.category} onValueChange={(v) => handleFormChange('category', v)}>
             <SelectTrigger>
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
@@ -369,13 +373,13 @@ const DealsManagement = () => {
           <Label>Location</Label>
           <Input
             value={formData.location}
-            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            onChange={(e) => handleFormChange('location', e.target.value)}
             placeholder="e.g., Malviya Nagar"
           />
         </div>
         <div>
           <Label>Merchant</Label>
-          <Select value={formData.merchant_id} onValueChange={(v) => setFormData({ ...formData, merchant_id: v })}>
+          <Select value={formData.merchant_id} onValueChange={(v) => handleFormChange('merchant_id', v)}>
             <SelectTrigger>
               <SelectValue placeholder="Select merchant" />
             </SelectTrigger>
@@ -391,7 +395,7 @@ const DealsManagement = () => {
           <Input
             type="number"
             value={formData.jaicoin_reward}
-            onChange={(e) => setFormData({ ...formData, jaicoin_reward: e.target.value })}
+            onChange={(e) => handleFormChange('jaicoin_reward', e.target.value)}
           />
         </div>
         <div>
@@ -399,7 +403,7 @@ const DealsManagement = () => {
           <Input
             type="date"
             value={formData.start_date}
-            onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+            onChange={(e) => handleFormChange('start_date', e.target.value)}
           />
         </div>
         <div>
@@ -407,14 +411,14 @@ const DealsManagement = () => {
           <Input
             type="date"
             value={formData.end_date}
-            onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+            onChange={(e) => handleFormChange('end_date', e.target.value)}
           />
         </div>
         <div className="col-span-2">
           <Label>Image URL</Label>
           <Input
             value={formData.image_url}
-            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+            onChange={(e) => handleFormChange('image_url', e.target.value)}
             placeholder="https://..."
           />
         </div>
@@ -475,7 +479,7 @@ const DealsManagement = () => {
                   <DialogTitle>Create New Deal</DialogTitle>
                   <DialogDescription>Add a new deal to the platform</DialogDescription>
                 </DialogHeader>
-                <DealForm />
+                {renderDealForm()}
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
                   <Button onClick={createDeal} disabled={!formData.title}>Create Deal</Button>
@@ -584,7 +588,7 @@ const DealsManagement = () => {
                             <DialogHeader>
                               <DialogTitle>Edit Deal</DialogTitle>
                             </DialogHeader>
-                            <DealForm />
+                            {renderDealForm()}
                             <DialogFooter>
                               <Button variant="outline" onClick={() => setEditingDeal(null)}>Cancel</Button>
                               <Button onClick={updateDeal}>Save Changes</Button>
