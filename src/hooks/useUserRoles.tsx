@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-export type UserRole = 'user' | 'pro_user' | 'merchant' | 'listing_agent' | 'listing_supervisor' | 'admin';
+export type UserRole = 'user' | 'pro_user' | 'merchant' | 'listing_agent' | 'listing_supervisor' | 'admin' | 'real_estate_broker' | 'event_organizer';
 
 interface UserRoleData {
   role: UserRole;

@@ -63,6 +63,11 @@ import MerchantPage from "./pages/MerchantPage";
 import MerchantDetailPage from "./pages/MerchantDetailPage";
 import MerchantsPage from "./pages/MerchantsPage";
 
+// Vendor/Partner Pages
+import PartnerHubPage from "./pages/PartnerHubPage";
+import VendorRegistrationPage from "./pages/VendorRegistrationPage";
+import BrokerDashboardPage from "./pages/BrokerDashboardPage";
+
 // Admin
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 
@@ -208,6 +213,11 @@ function App() {
               <Route path="/merchant" element={<MerchantPage />} />
               <Route path="/merchant/:id" element={<MerchantDetailPage />} />
               <Route path="/merchants" element={<MerchantsPage />} />
+              
+              {/* Partner/Vendor Registration */}
+              <Route path="/partner" element={<PartnerHubPage />} />
+              <Route path="/register/vendor" element={<VendorRegistrationPage />} />
+              <Route path="/broker/dashboard" element={<BrokerDashboardPage />} />
               
               {/* Admin */}
               <Route path="/admin" element={<AdminDashboardPage />} />
