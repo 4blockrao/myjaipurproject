@@ -250,7 +250,7 @@ Deno.serve(async (req) => {
 
     const dealersToInsert = dealersData.map(d => ({
       ...d,
-      brand_id: brandSlugToId[d.brand_slug],
+      brand_id: brandMap.get(d.brand_slug),
       city: 'Jaipur'
     })).filter(d => d.brand_id);
 
