@@ -2739,6 +2739,72 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_applications: {
+        Row: {
+          address: string | null
+          admin_notes: string | null
+          business_name: string
+          business_type: string | null
+          city: string | null
+          contact_email: string
+          contact_phone: string
+          created_at: string | null
+          description: string | null
+          documents: Json | null
+          id: string
+          locality: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          social_handles: Json | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          vendor_type: string
+        }
+        Insert: {
+          address?: string | null
+          admin_notes?: string | null
+          business_name: string
+          business_type?: string | null
+          city?: string | null
+          contact_email: string
+          contact_phone: string
+          created_at?: string | null
+          description?: string | null
+          documents?: Json | null
+          id?: string
+          locality?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          social_handles?: Json | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+          vendor_type: string
+        }
+        Update: {
+          address?: string | null
+          admin_notes?: string | null
+          business_name?: string
+          business_type?: string | null
+          city?: string | null
+          contact_email?: string
+          contact_phone?: string
+          created_at?: string | null
+          description?: string | null
+          documents?: Json | null
+          id?: string
+          locality?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          social_handles?: Json | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+          vendor_type?: string
+        }
+        Relationships: []
+      }
       zones: {
         Row: {
           confidence_score: number | null
@@ -2873,6 +2939,8 @@ export type Database = {
         | "listing_agent"
         | "listing_supervisor"
         | "admin"
+        | "real_estate_broker"
+        | "event_organizer"
       article_status: "draft" | "published" | "archived"
       news_category:
         | "city"
@@ -3015,6 +3083,8 @@ export const Constants = {
         "listing_agent",
         "listing_supervisor",
         "admin",
+        "real_estate_broker",
+        "event_organizer",
       ],
       article_status: ["draft", "published", "archived"],
       news_category: [
