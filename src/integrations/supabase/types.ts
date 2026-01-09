@@ -543,6 +543,45 @@ export type Database = {
           },
         ]
       }
+      click_events: {
+        Row: {
+          created_at: string
+          element_class: string | null
+          element_id: string | null
+          element_text: string | null
+          element_type: string | null
+          id: string
+          page_url: string
+          session_id: string
+          target_url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          element_class?: string | null
+          element_id?: string | null
+          element_text?: string | null
+          element_type?: string | null
+          id?: string
+          page_url: string
+          session_id: string
+          target_url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          element_class?: string | null
+          element_id?: string | null
+          element_text?: string | null
+          element_type?: string | null
+          id?: string
+          page_url?: string
+          session_id?: string
+          target_url?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       community_posts: {
         Row: {
           content: string
@@ -1946,6 +1985,42 @@ export type Database = {
           },
         ]
       }
+      page_views: {
+        Row: {
+          created_at: string
+          id: string
+          page_title: string | null
+          page_url: string
+          referrer_url: string | null
+          scroll_depth: number | null
+          session_id: string
+          time_on_page: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page_title?: string | null
+          page_url: string
+          referrer_url?: string | null
+          scroll_depth?: number | null
+          session_id: string
+          time_on_page?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page_title?: string | null
+          page_url?: string
+          referrer_url?: string | null
+          scroll_depth?: number | null
+          session_id?: string
+          time_on_page?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       post_likes: {
         Row: {
           created_at: string | null
@@ -2554,6 +2629,42 @@ export type Database = {
         }
         Relationships: []
       }
+      search_queries: {
+        Row: {
+          clicked_result_id: string | null
+          clicked_result_type: string | null
+          created_at: string
+          id: string
+          results_count: number | null
+          search_query: string
+          search_type: string | null
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          clicked_result_id?: string | null
+          clicked_result_type?: string | null
+          created_at?: string
+          id?: string
+          results_count?: number | null
+          search_query: string
+          search_type?: string | null
+          session_id: string
+          user_id?: string | null
+        }
+        Update: {
+          clicked_result_id?: string | null
+          clicked_result_type?: string | null
+          created_at?: string
+          id?: string
+          results_count?: number | null
+          search_query?: string
+          search_type?: string | null
+          session_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       shared_deal_links: {
         Row: {
           created_at: string
@@ -2588,6 +2699,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      soft_registrations: {
+        Row: {
+          browser: string | null
+          city: string | null
+          completed_user_id: string | null
+          created_at: string
+          device_type: string | null
+          email: string | null
+          fields_filled: string[] | null
+          form_started_at: string
+          full_name: string | null
+          id: string
+          ip_address: string | null
+          is_completed: boolean | null
+          last_interaction_at: string
+          locality: string | null
+          phone: string | null
+          session_id: string
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          browser?: string | null
+          city?: string | null
+          completed_user_id?: string | null
+          created_at?: string
+          device_type?: string | null
+          email?: string | null
+          fields_filled?: string[] | null
+          form_started_at?: string
+          full_name?: string | null
+          id?: string
+          ip_address?: string | null
+          is_completed?: boolean | null
+          last_interaction_at?: string
+          locality?: string | null
+          phone?: string | null
+          session_id: string
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          browser?: string | null
+          city?: string | null
+          completed_user_id?: string | null
+          created_at?: string
+          device_type?: string | null
+          email?: string | null
+          fields_filled?: string[] | null
+          form_started_at?: string
+          full_name?: string | null
+          id?: string
+          ip_address?: string | null
+          is_completed?: boolean | null
+          last_interaction_at?: string
+          locality?: string | null
+          phone?: string | null
+          session_id?: string
+          state?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       spin_attempts: {
         Row: {
@@ -2802,6 +2976,105 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           vendor_type?: string
+        }
+        Relationships: []
+      }
+      visitor_sessions: {
+        Row: {
+          browser: string | null
+          browser_version: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          device_type: string | null
+          first_visit_at: string
+          id: string
+          ip_address: string | null
+          is_converted: boolean | null
+          landing_page: string | null
+          last_activity_at: string
+          latitude: number | null
+          longitude: number | null
+          os: string | null
+          os_version: string | null
+          referrer: string | null
+          screen_height: number | null
+          screen_width: number | null
+          session_id: string
+          state: string | null
+          total_clicks: number | null
+          total_page_views: number | null
+          user_agent: string | null
+          user_id: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          browser?: string | null
+          browser_version?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          first_visit_at?: string
+          id?: string
+          ip_address?: string | null
+          is_converted?: boolean | null
+          landing_page?: string | null
+          last_activity_at?: string
+          latitude?: number | null
+          longitude?: number | null
+          os?: string | null
+          os_version?: string | null
+          referrer?: string | null
+          screen_height?: number | null
+          screen_width?: number | null
+          session_id: string
+          state?: string | null
+          total_clicks?: number | null
+          total_page_views?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          browser?: string | null
+          browser_version?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          first_visit_at?: string
+          id?: string
+          ip_address?: string | null
+          is_converted?: boolean | null
+          landing_page?: string | null
+          last_activity_at?: string
+          latitude?: number | null
+          longitude?: number | null
+          os?: string | null
+          os_version?: string | null
+          referrer?: string | null
+          screen_height?: number | null
+          screen_width?: number | null
+          session_id?: string
+          state?: string | null
+          total_clicks?: number | null
+          total_page_views?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Relationships: []
       }

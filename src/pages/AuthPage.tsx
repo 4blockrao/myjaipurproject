@@ -2,26 +2,31 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Eye, EyeOff, Mail, Lock, User, Phone, Shield, ArrowLeft, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Phone, Shield, ArrowLeft, CheckCircle, MapPin, Sparkles } from "lucide-react";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { useSoftRegistration } from "@/hooks/useSoftRegistration";
 
 // Validation schemas
 const emailSchema = z.string().trim().email("Please enter a valid email").max(255);
 const passwordSchema = z.string().min(8, "Password must be at least 8 characters").max(72);
 const nameSchema = z.string().trim().min(2, "Name must be at least 2 characters").max(100);
-const phoneSchema = z.string().regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit mobile number").optional().or(z.literal(""));
+const phoneSchema = z.string().regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit mobile number");
 
 const AuthPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, signIn, signUp, isLoading: authLoading } = useAuth();
+  const { onFieldBlur, markCompleted } = useSoftRegistration();
   
   const redirectPath = searchParams.get("redirect") || "/";
   const defaultTab = searchParams.get("tab") || "signin";
@@ -37,10 +42,24 @@ const AuthPage = () => {
     confirmPassword: "",
     fullName: "",
     phone: "",
+    locality: "",
     agreeToTerms: false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Fetch localities
+  const { data: localities } = useQuery({
+    queryKey: ['localities-dropdown'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('localities')
+        .select('slug, name')
+        .order('name');
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -118,7 +137,7 @@ const AuthPage = () => {
     newErrors.password = validateField("password", formData.password) || "";
     newErrors.confirmPassword = validateField("confirmPassword", formData.confirmPassword) || "";
     newErrors.fullName = validateField("fullName", formData.fullName) || "";
-    if (formData.phone) newErrors.phone = validateField("phone", formData.phone) || "";
+    newErrors.phone = validateField("phone", formData.phone) || "";
 
     if (!formData.agreeToTerms) {
       toast.error("Please agree to the terms and conditions");
@@ -132,20 +151,26 @@ const AuthPage = () => {
     }
 
     setIsLoading(true);
-    const { error } = await signUp(formData.email, formData.password, {
+    const result = await signUp(formData.email, formData.password, {
       full_name: formData.fullName.trim(),
-      phone: formData.phone.trim() || null,
+      phone: formData.phone.trim(),
+      locality: formData.locality || null,
       referral_code_used: referralCode || null,
     });
     setIsLoading(false);
 
-    if (error) {
+    if (result.error) {
       let message = "Sign up failed. Please try again.";
-      if (error.message.includes("already registered")) {
+      if (result.error.message.includes("already registered")) {
         message = "An account with this email already exists. Please sign in.";
       }
       toast.error(message);
       return;
+    }
+
+    // Mark soft registration as completed
+    if (result.data?.user?.id) {
+      markCompleted(result.data.user.id);
     }
 
     toast.success("Account created! Welcome to JaipurCircle.");
@@ -284,6 +309,7 @@ const AuthPage = () => {
                             placeholder="Your full name"
                             value={formData.fullName}
                             onChange={(e) => handleInputChange("fullName", e.target.value)}
+                            onBlur={(e) => onFieldBlur('fullName', e.target.value)}
                             className="pl-10 h-11"
                             autoComplete="name"
                           />
@@ -292,7 +318,7 @@ const AuthPage = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="signup-phone" className="text-sm font-medium">Phone Number</Label>
+                        <Label htmlFor="signup-phone" className="text-sm font-medium">Phone Number *</Label>
                         <div className="relative">
                           <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                           <Input
@@ -301,11 +327,38 @@ const AuthPage = () => {
                             placeholder="10-digit mobile number"
                             value={formData.phone}
                             onChange={(e) => handleInputChange("phone", e.target.value)}
+                            onBlur={(e) => onFieldBlur('phone', e.target.value)}
                             className="pl-10 h-11"
                             autoComplete="tel"
                           />
                         </div>
                         {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-locality" className="text-sm font-medium">Your Locality</Label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+                          <Select 
+                            value={formData.locality} 
+                            onValueChange={(value) => {
+                              setFormData({ ...formData, locality: value });
+                              onFieldBlur('locality', value);
+                            }}
+                          >
+                            <SelectTrigger className="pl-10 h-11">
+                              <SelectValue placeholder="Select your locality" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[300px]">
+                              {localities?.map((loc) => (
+                                <SelectItem key={loc.slug} value={loc.slug}>
+                                  {loc.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Get deals & events from your area</p>
                       </div>
 
                       <div className="space-y-2">
@@ -318,6 +371,7 @@ const AuthPage = () => {
                             placeholder="you@example.com"
                             value={formData.email}
                             onChange={(e) => handleInputChange("email", e.target.value)}
+                            onBlur={(e) => onFieldBlur('email', e.target.value)}
                             className="pl-10 h-11"
                             autoComplete="email"
                           />
