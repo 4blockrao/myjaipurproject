@@ -168,10 +168,8 @@ const AuthPage = () => {
       return;
     }
 
-    // Mark soft registration as completed
-    if (result.data?.user?.id) {
-      markCompleted(result.data.user.id);
-    }
+    // Mark soft registration as completed (user session will be set by auth listener)
+    markCompleted(user?.id || 'completed');
 
     toast.success("Account created! Welcome to JaipurCircle.");
     navigate(redirectPath, { replace: true });
