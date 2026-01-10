@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import AuthModal from "@/components/auth/AuthModal";
 import HeaderMinimal from "@/components/home/HeaderMinimal";
 import HeroCarousel from "@/components/home/HeroCarousel";
 import SearchBarFloating from "@/components/home/SearchBarFloating";
@@ -24,7 +24,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const { user } = useAuth();
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const { toast } = useToast();
 
@@ -106,7 +106,7 @@ const Index = () => {
       {/* Minimal Header with Locality Badge */}
       <HeaderMinimal
         isAuthenticated={isAuthenticated}
-        onSignIn={() => setShowAuthModal(true)}
+        onSignIn={() => navigate('/auth')}
         localityBadge={
           userLocality ? (
             <LocalityBadge
@@ -154,9 +154,6 @@ const Index = () => {
 
       <Footer />
       <BottomNavHeritage />
-
-      {/* Auth Modal */}
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
 
       {/* Locality Prompt Modal - shown on first visit */}
       <LocalityPromptModal

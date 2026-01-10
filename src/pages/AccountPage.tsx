@@ -9,8 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import NativeBottomNav from "@/components/home/NativeBottomNav";
-import AuthModal from "@/components/auth/AuthModal";
-import { 
+import {
   Coins, Trophy, Users, Star, Gift, Target,
   Heart, ShoppingBag, Settings, Share2, Crown,
   Flame, ArrowRight, RotateCcw, Dice6, Award,
@@ -30,7 +29,6 @@ const AccountPage = () => {
   const [profile, setProfile] = useState<any>(null);
   const [balance, setBalance] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -183,7 +181,7 @@ const AccountPage = () => {
             </div>
 
             <Button 
-              onClick={() => setShowAuthModal(true)} 
+              onClick={() => navigate('/auth?tab=signup')} 
               size="lg" 
               className="w-full rounded-xl h-12 text-base"
             >
@@ -193,7 +191,7 @@ const AccountPage = () => {
             <p className="text-xs text-muted-foreground">
               Already have an account?{" "}
               <button 
-                onClick={() => setShowAuthModal(true)}
+                onClick={() => navigate('/auth')}
                 className="text-primary font-medium"
               >
                 Sign In
@@ -203,7 +201,6 @@ const AccountPage = () => {
         </main>
 
         <NativeBottomNav />
-        <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
       </div>
     );
   }

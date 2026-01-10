@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import FloatingHeader from "@/components/layout/FloatingHeader";
 import NativeBottomNav from "@/components/home/NativeBottomNav";
-import AuthModal from "@/components/auth/AuthModal";
 import {
   Users, Share2, Copy, Gift, Trophy, Check, 
   ChevronRight, Sparkles, Crown, Coins, Star,
@@ -32,7 +31,6 @@ const ReferralProgramPage = () => {
     totalEarned: 0
   });
   const [copied, setCopied] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -218,7 +216,7 @@ const ReferralProgramPage = () => {
           </div>
 
           <Button 
-            onClick={() => setShowAuthModal(true)} 
+            onClick={() => navigate('/auth?tab=signup')} 
             size="lg" 
             className="w-full h-14 text-lg rounded-xl"
           >
@@ -228,7 +226,6 @@ const ReferralProgramPage = () => {
         </main>
 
         <NativeBottomNav />
-        <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
       </div>
     );
   }
