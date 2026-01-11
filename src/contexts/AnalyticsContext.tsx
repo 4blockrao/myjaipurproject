@@ -1,7 +1,16 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+
+interface AnalyticsContextType {
+  sessionId: string;
+  trackClick: (elementType: string, elementText?: string, elementId?: string, targetUrl?: string) => void;
+  trackSearch: (query: string, searchType: string, resultsCount?: number) => void;
+  markConverted: () => void;
+}
+
+const AnalyticsContext = createContext<AnalyticsContextType | null>(null);
 
 // Generate unique session ID
 const getOrCreateSessionId = (): string => {
@@ -18,12 +27,10 @@ const getOrCreateSessionId = (): string => {
 const parseUserAgent = () => {
   const ua = navigator.userAgent;
   
-  // Device type
   let deviceType = 'desktop';
   if (/Mobi|Android/i.test(ua)) deviceType = 'mobile';
   else if (/Tablet|iPad/i.test(ua)) deviceType = 'tablet';
   
-  // Browser
   let browser = 'unknown';
   let browserVersion = '';
   if (ua.includes('Firefox')) {
@@ -40,7 +47,6 @@ const parseUserAgent = () => {
     browserVersion = ua.match(/Edg\/([\d.]+)/)?.[1] || '';
   }
   
-  // OS
   let os = 'unknown';
   let osVersion = '';
   if (ua.includes('Windows')) {
@@ -75,16 +81,8 @@ const parseUtmParams = () => {
 };
 
 // Fetch geolocation from IP
-const fetchGeoLocation = async (): Promise<{
-  ip: string;
-  city: string;
-  state: string;
-  country: string;
-  latitude: number;
-  longitude: number;
-} | null> => {
+const fetchGeoLocation = async () => {
   try {
-    // Using ip-api.com (free, no API key needed for basic usage)
     const response = await fetch('https://ip-api.com/json/?fields=status,message,country,regionName,city,lat,lon,query');
     if (!response.ok) return null;
     const data = await response.json();
@@ -102,7 +100,7 @@ const fetchGeoLocation = async (): Promise<{
   }
 };
 
-export const useAnalytics = () => {
+export const AnalyticsProvider = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
   const { user } = useAuth();
   const sessionId = useRef(getOrCreateSessionId());
@@ -120,14 +118,15 @@ export const useAnalytics = () => {
       const geo = await fetchGeoLocation();
 
       try {
-        await supabase.from('visitor_sessions').upsert({
+        const now = new Date().toISOString();
+        const { error } = await supabase.from('visitor_sessions').upsert({
           session_id: sessionId.current,
-          ip_address: geo?.ip,
-          city: geo?.city,
-          state: geo?.state,
-          country: geo?.country,
-          latitude: geo?.latitude,
-          longitude: geo?.longitude,
+          ip_address: geo?.ip || null,
+          city: geo?.city || null,
+          state: geo?.state || null,
+          country: geo?.country || null,
+          latitude: geo?.latitude || null,
+          longitude: geo?.longitude || null,
           device_type: deviceType,
           browser,
           browser_version: browserVersion,
@@ -136,11 +135,23 @@ export const useAnalytics = () => {
           screen_width: window.screen.width,
           screen_height: window.screen.height,
           user_agent: navigator.userAgent,
-          referrer: document.referrer || undefined,
+          referrer: document.referrer || null,
           landing_page: window.location.pathname,
-          user_id: user?.id,
-          ...utmParams,
+          user_id: user?.id || null,
+          first_visit_at: now,
+          last_activity_at: now,
+          utm_source: utmParams.utm_source || null,
+          utm_medium: utmParams.utm_medium || null,
+          utm_campaign: utmParams.utm_campaign || null,
+          utm_term: utmParams.utm_term || null,
+          utm_content: utmParams.utm_content || null,
         }, { onConflict: 'session_id' });
+        
+        if (error) {
+          console.error('Failed to initialize session:', error);
+        } else {
+          console.log('Analytics session initialized:', sessionId.current);
+        }
       } catch (error) {
         console.error('Failed to initialize session:', error);
       }
@@ -149,15 +160,13 @@ export const useAnalytics = () => {
     initSession();
   }, [user?.id]);
 
-  // Track page views
+  // Track page views on route change
   useEffect(() => {
     const trackPageView = async () => {
-      const timeOnPreviousPage = Math.floor((Date.now() - pageStartTime.current) / 1000);
       pageStartTime.current = Date.now();
 
       try {
-        // Insert page view
-        await supabase.from('page_views').insert({
+        const { error } = await supabase.from('page_views').insert({
           session_id: sessionId.current,
           page_url: location.pathname + location.search,
           page_title: document.title,
@@ -165,10 +174,13 @@ export const useAnalytics = () => {
           user_id: user?.id,
         });
 
-        // Update session stats
+        if (error) {
+          console.error('Failed to track page view:', error);
+        }
+
+        // Update session last activity
         await supabase.from('visitor_sessions')
           .update({
-            total_page_views: supabase.rpc ? undefined : undefined, // Will use increment
             last_activity_at: new Date().toISOString(),
             user_id: user?.id,
           })
@@ -179,66 +191,79 @@ export const useAnalytics = () => {
     };
 
     trackPageView();
-  }, [location.pathname, user?.id]);
+  }, [location.pathname, location.search, user?.id]);
 
   // Track clicks
-  const trackClick = useCallback(async (
+  const trackClick = useCallback((
     elementType: string,
     elementText?: string,
     elementId?: string,
     targetUrl?: string
   ) => {
-    try {
-      await supabase.from('click_events').insert({
-        session_id: sessionId.current,
-        page_url: window.location.pathname,
-        element_type: elementType,
-        element_text: elementText?.substring(0, 200),
-        element_id: elementId,
-        target_url: targetUrl,
-        user_id: user?.id,
-      });
-    } catch (error) {
-      console.error('Failed to track click:', error);
-    }
+    supabase.from('click_events').insert({
+      session_id: sessionId.current,
+      page_url: window.location.pathname,
+      element_type: elementType,
+      element_text: elementText?.substring(0, 200),
+      element_id: elementId,
+      target_url: targetUrl,
+      user_id: user?.id,
+    }).then(({ error }) => {
+      if (error) console.error('Failed to track click:', error);
+    });
   }, [user?.id]);
 
   // Track search
-  const trackSearch = useCallback(async (
+  const trackSearch = useCallback((
     query: string,
     searchType: string,
     resultsCount?: number
   ) => {
-    try {
-      await supabase.from('search_queries').insert({
-        session_id: sessionId.current,
-        search_query: query,
-        search_type: searchType,
-        results_count: resultsCount,
-        user_id: user?.id,
+    supabase.from('search_queries').insert({
+      session_id: sessionId.current,
+      search_query: query,
+      search_type: searchType,
+      results_count: resultsCount,
+      user_id: user?.id,
+    }).then(({ error }) => {
+      if (error) console.error('Failed to track search:', error);
+    });
+  }, [user?.id]);
+
+  // Mark session as converted
+  const markConverted = useCallback(() => {
+    supabase.from('visitor_sessions')
+      .update({ is_converted: true, user_id: user?.id })
+      .eq('session_id', sessionId.current)
+      .then(({ error }) => {
+        if (error) console.error('Failed to mark conversion:', error);
       });
-    } catch (error) {
-      console.error('Failed to track search:', error);
-    }
   }, [user?.id]);
 
-  // Mark session as converted (user signed up)
-  const markConverted = useCallback(async () => {
-    try {
-      await supabase.from('visitor_sessions')
-        .update({ is_converted: true, user_id: user?.id })
-        .eq('session_id', sessionId.current);
-    } catch (error) {
-      console.error('Failed to mark conversion:', error);
-    }
-  }, [user?.id]);
-
-  return {
-    sessionId: sessionId.current,
-    trackClick,
-    trackSearch,
-    markConverted,
-  };
+  return (
+    <AnalyticsContext.Provider value={{
+      sessionId: sessionId.current,
+      trackClick,
+      trackSearch,
+      markConverted,
+    }}>
+      {children}
+    </AnalyticsContext.Provider>
+  );
 };
 
-export default useAnalytics;
+export const useAnalytics = () => {
+  const context = useContext(AnalyticsContext);
+  if (!context) {
+    // Return no-op functions if used outside provider
+    return {
+      sessionId: '',
+      trackClick: () => {},
+      trackSearch: () => {},
+      markConverted: () => {},
+    };
+  }
+  return context;
+};
+
+export default AnalyticsProvider;
