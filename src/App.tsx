@@ -6,7 +6,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { GlobalSEO } from "@/components/seo/GlobalSEO";
 import { AuthProvider } from "@/contexts/AuthContext";
-
+import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
 // Core Pages
 import Index from "./pages/Index";
 import AboutPage from "./pages/AboutPage";
@@ -134,133 +134,135 @@ function App() {
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              {/* Sitewide Default SEO - provides fallback meta for all pages */}
-              <GlobalSEO />
-              <Routes>
-                {/* Core Routes */}
-                <Route path="/" element={<Index />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/auth" element={<AuthPage />} />
-                
-              {/* Account Hub */}
-              <Route path="/account" element={<AccountPage />} />
-              <Route path="/referral-success" element={<ReferralSuccessPage />} />
-              <Route path="/referral-program" element={<ReferralProgramPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/help" element={<HelpPage />} />
-              <Route path="/pro" element={<ProMembershipPage />} />
-              <Route path="/leaderboard" element={<LeaderboardPage />} />
-              
-              {/* Legacy redirects */}
-              <Route path="/profile" element={<Navigate to="/account" replace />} />
-              <Route path="/dashboard" element={<Navigate to="/account" replace />} />
-              <Route path="/wallet" element={<Navigate to="/account?tab=wallet" replace />} />
-              <Route path="/orders" element={<Navigate to="/account?tab=orders" replace />} />
-              <Route path="/coupons" element={<Navigate to="/account?tab=orders" replace />} />
-              <Route path="/favorites" element={<Navigate to="/account" replace />} />
-              <Route path="/referral" element={<Navigate to="/referral-program" replace />} />
-              <Route path="/jaicoin-zone" element={<Navigate to="/account" replace />} />
-              <Route path="/gamification" element={<Navigate to="/account" replace />} />
-              <Route path="/my-deals" element={<Navigate to="/account?tab=orders" replace />} />
-              <Route path="/challenges" element={<Navigate to="/account" replace />} />
-              
-              {/* Category Pages */}
-              <Route path="/categories/:slug" element={<CategoryPage />} />
-              <Route path="/categories/:slug/:childSlug" element={<CategoryPage />} />
-              
-              {/* Deals & Shopping */}
-              <Route path="/deals" element={<DealsPage />} />
-              <Route path="/deal/:id" element={<DealDetailPage />} />
-              <Route path="/categories" element={<CategoriesPage />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/checkout/:orderId" element={<CheckoutPage />} />
-              <Route path="/new-checkout" element={<NewCheckoutPage />} />
-              <Route path="/new-checkout/:orderId" element={<NewCheckoutPage />} />
-              <Route path="/order-success" element={<OrderSuccessPage />} />
-              <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
-              
-              {/* News */}
-              <Route path="/news" element={<NewsPage />} />
-              <Route path="/news/create" element={<CreateNewsPage />} />
-              <Route path="/news/:category" element={<NewsCategoryPage />} />
-              <Route path="/news/:category/:slug" element={<NewsArticlePage />} />
-              
-              {/* Events */}
-              <Route path="/events" element={<EventsPage />} />
-              <Route path="/events/create" element={<CreateEventPage />} />
-              <Route path="/events/organizer" element={<EventOrganizerDashboardPage />} />
-              <Route path="/events/free" element={<EventsFreeFilterPage />} />
-              <Route path="/events/workshops" element={<EventsWorkshopsPage />} />
-              <Route path="/events/today" element={<EventsTodayPage />} />
-              <Route path="/events/this-week" element={<EventsThisWeekPage />} />
-              <Route path="/events/this-weekend" element={<EventsThisWeekendPage />} />
-              <Route path="/events/in/:locality" element={<EventsLocalityPage />} />
-              <Route path="/events/category/:category" element={<EventCategoryPage />} />
-              <Route path="/events/past/:slug" element={<PastEventPage />} />
-              <Route path="/events/series/:seriesSlug" element={<EventSeriesPage />} />
-              <Route path="/events/:category/:locality" element={<EventFusionPage />} />
-              <Route path="/events/:slug" element={<EventDetailPage />} />
-              
-              {/* Venue, Organizer & Artist Pages */}
-              <Route path="/venues/:slug" element={<VenuePage />} />
-              <Route path="/organizers/:slug" element={<OrganizerPage />} />
-              <Route path="/artists/:slug" element={<ArtistPage />} />
-              
-              {/* Merchant */}
-              <Route path="/merchant-onboarding" element={<MerchantOnboardingPage />} />
-              <Route path="/merchant-dashboard" element={<MerchantDashboardPage />} />
-              <Route path="/merchant-portal" element={<MerchantPortalPage />} />
-              <Route path="/merchant" element={<MerchantPage />} />
-              <Route path="/merchant/:id" element={<MerchantDetailPage />} />
-              <Route path="/merchants" element={<MerchantsPage />} />
-              
-              {/* Partner/Vendor Registration */}
-              <Route path="/partner" element={<PartnerHubPage />} />
-              <Route path="/register/vendor" element={<VendorRegistrationPage />} />
-              <Route path="/broker/dashboard" element={<BrokerDashboardPage />} />
-              
-              {/* Admin */}
-              <Route path="/admin" element={<AdminDashboardPage />} />
-              
-              {/* Utility */}
-              <Route path="/scan" element={<ScanPage />} />
-              <Route path="/install" element={<InstallPage />} />
-              <Route path="/sitemap" element={<SitemapPage />} />
-              
-              {/* Locality & Zone Pages */}
-              <Route path="/jaipur" element={<JaipurPage />} />
-              <Route path="/jaipur/all" element={<LocalitiesIndexPage />} />
-              <Route path="/jaipur/zones" element={<ZonesIndexPage />} />
-              <Route path="/jaipur/zones/:zoneSlug" element={<ZonePage />} />
-              <Route path="/jaipur/:slug/:category" element={<LocalityCategoryPage />} />
-              <Route path="/jaipur/:slug" element={<LocalityPage />} />
-              
-{/* Cars Hub */}
-              <Route path="/cars" element={<CarsHubPage />} />
-              <Route path="/cars/brands" element={<CarBrandsPage />} />
-              <Route path="/cars/ev" element={<EVCarsPage />} />
-              <Route path="/cars/compare" element={<CarComparePage />} />
-              <Route path="/cars/budget/:range" element={<CarsByBudgetPage />} />
-              <Route path="/cars/body-type/:bodyType" element={<CarsByBodyTypePage />} />
-              <Route path="/cars/dealers" element={<CarDealersListPage />} />
-              <Route path="/cars/dealers/:slug" element={<CarDealerPage />} />
-              <Route path="/cars/:brand" element={<CarBrandHubPage />} />
-              <Route path="/cars/:brand/:model" element={<CarModelDetailPage />} />
-              <Route path="/cars/:brand/:model/on-road-price-in-jaipur" element={<CarModelPage />} />
-              
-              {/* Properties Hub */}
-              <Route path="/properties" element={<PropertiesHubPage />} />
-              <Route path="/properties/in/:locality" element={<PropertiesLocalityPage />} />
-              <Route path="/properties/:slug" element={<PropertyDetailPage />} />
-              
-              {/* Legacy redirects */}
-              <Route path="/explore" element={<Navigate to="/deals" replace />} />
-              <Route path="/pro-membership" element={<Navigate to="/pro" replace />} />
-              <Route path="/analytics" element={<Navigate to="/account" replace />} />
-              
-              {/* 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+              <AnalyticsProvider>
+                {/* Sitewide Default SEO - provides fallback meta for all pages */}
+                <GlobalSEO />
+                <Routes>
+                  {/* Core Routes */}
+                  <Route path="/" element={<Index />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/auth" element={<AuthPage />} />
+                  
+                  {/* Account Hub */}
+                  <Route path="/account" element={<AccountPage />} />
+                  <Route path="/referral-success" element={<ReferralSuccessPage />} />
+                  <Route path="/referral-program" element={<ReferralProgramPage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/help" element={<HelpPage />} />
+                  <Route path="/pro" element={<ProMembershipPage />} />
+                  <Route path="/leaderboard" element={<LeaderboardPage />} />
+                  
+                  {/* Legacy redirects */}
+                  <Route path="/profile" element={<Navigate to="/account" replace />} />
+                  <Route path="/dashboard" element={<Navigate to="/account" replace />} />
+                  <Route path="/wallet" element={<Navigate to="/account?tab=wallet" replace />} />
+                  <Route path="/orders" element={<Navigate to="/account?tab=orders" replace />} />
+                  <Route path="/coupons" element={<Navigate to="/account?tab=orders" replace />} />
+                  <Route path="/favorites" element={<Navigate to="/account" replace />} />
+                  <Route path="/referral" element={<Navigate to="/referral-program" replace />} />
+                  <Route path="/jaicoin-zone" element={<Navigate to="/account" replace />} />
+                  <Route path="/gamification" element={<Navigate to="/account" replace />} />
+                  <Route path="/my-deals" element={<Navigate to="/account?tab=orders" replace />} />
+                  <Route path="/challenges" element={<Navigate to="/account" replace />} />
+                  
+                  {/* Category Pages */}
+                  <Route path="/categories/:slug" element={<CategoryPage />} />
+                  <Route path="/categories/:slug/:childSlug" element={<CategoryPage />} />
+                  
+                  {/* Deals & Shopping */}
+                  <Route path="/deals" element={<DealsPage />} />
+                  <Route path="/deal/:id" element={<DealDetailPage />} />
+                  <Route path="/categories" element={<CategoriesPage />} />
+                  <Route path="/checkout" element={<CheckoutPage />} />
+                  <Route path="/checkout/:orderId" element={<CheckoutPage />} />
+                  <Route path="/new-checkout" element={<NewCheckoutPage />} />
+                  <Route path="/new-checkout/:orderId" element={<NewCheckoutPage />} />
+                  <Route path="/order-success" element={<OrderSuccessPage />} />
+                  <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
+                  
+                  {/* News */}
+                  <Route path="/news" element={<NewsPage />} />
+                  <Route path="/news/create" element={<CreateNewsPage />} />
+                  <Route path="/news/:category" element={<NewsCategoryPage />} />
+                  <Route path="/news/:category/:slug" element={<NewsArticlePage />} />
+                  
+                  {/* Events */}
+                  <Route path="/events" element={<EventsPage />} />
+                  <Route path="/events/create" element={<CreateEventPage />} />
+                  <Route path="/events/organizer" element={<EventOrganizerDashboardPage />} />
+                  <Route path="/events/free" element={<EventsFreeFilterPage />} />
+                  <Route path="/events/workshops" element={<EventsWorkshopsPage />} />
+                  <Route path="/events/today" element={<EventsTodayPage />} />
+                  <Route path="/events/this-week" element={<EventsThisWeekPage />} />
+                  <Route path="/events/this-weekend" element={<EventsThisWeekendPage />} />
+                  <Route path="/events/in/:locality" element={<EventsLocalityPage />} />
+                  <Route path="/events/category/:category" element={<EventCategoryPage />} />
+                  <Route path="/events/past/:slug" element={<PastEventPage />} />
+                  <Route path="/events/series/:seriesSlug" element={<EventSeriesPage />} />
+                  <Route path="/events/:category/:locality" element={<EventFusionPage />} />
+                  <Route path="/events/:slug" element={<EventDetailPage />} />
+                  
+                  {/* Venue, Organizer & Artist Pages */}
+                  <Route path="/venues/:slug" element={<VenuePage />} />
+                  <Route path="/organizers/:slug" element={<OrganizerPage />} />
+                  <Route path="/artists/:slug" element={<ArtistPage />} />
+                  
+                  {/* Merchant */}
+                  <Route path="/merchant-onboarding" element={<MerchantOnboardingPage />} />
+                  <Route path="/merchant-dashboard" element={<MerchantDashboardPage />} />
+                  <Route path="/merchant-portal" element={<MerchantPortalPage />} />
+                  <Route path="/merchant" element={<MerchantPage />} />
+                  <Route path="/merchant/:id" element={<MerchantDetailPage />} />
+                  <Route path="/merchants" element={<MerchantsPage />} />
+                  
+                  {/* Partner/Vendor Registration */}
+                  <Route path="/partner" element={<PartnerHubPage />} />
+                  <Route path="/register/vendor" element={<VendorRegistrationPage />} />
+                  <Route path="/broker/dashboard" element={<BrokerDashboardPage />} />
+                  
+                  {/* Admin */}
+                  <Route path="/admin" element={<AdminDashboardPage />} />
+                  
+                  {/* Utility */}
+                  <Route path="/scan" element={<ScanPage />} />
+                  <Route path="/install" element={<InstallPage />} />
+                  <Route path="/sitemap" element={<SitemapPage />} />
+                  
+                  {/* Locality & Zone Pages */}
+                  <Route path="/jaipur" element={<JaipurPage />} />
+                  <Route path="/jaipur/all" element={<LocalitiesIndexPage />} />
+                  <Route path="/jaipur/zones" element={<ZonesIndexPage />} />
+                  <Route path="/jaipur/zones/:zoneSlug" element={<ZonePage />} />
+                  <Route path="/jaipur/:slug/:category" element={<LocalityCategoryPage />} />
+                  <Route path="/jaipur/:slug" element={<LocalityPage />} />
+                  
+                  {/* Cars Hub */}
+                  <Route path="/cars" element={<CarsHubPage />} />
+                  <Route path="/cars/brands" element={<CarBrandsPage />} />
+                  <Route path="/cars/ev" element={<EVCarsPage />} />
+                  <Route path="/cars/compare" element={<CarComparePage />} />
+                  <Route path="/cars/budget/:range" element={<CarsByBudgetPage />} />
+                  <Route path="/cars/body-type/:bodyType" element={<CarsByBodyTypePage />} />
+                  <Route path="/cars/dealers" element={<CarDealersListPage />} />
+                  <Route path="/cars/dealers/:slug" element={<CarDealerPage />} />
+                  <Route path="/cars/:brand" element={<CarBrandHubPage />} />
+                  <Route path="/cars/:brand/:model" element={<CarModelDetailPage />} />
+                  <Route path="/cars/:brand/:model/on-road-price-in-jaipur" element={<CarModelPage />} />
+                  
+                  {/* Properties Hub */}
+                  <Route path="/properties" element={<PropertiesHubPage />} />
+                  <Route path="/properties/in/:locality" element={<PropertiesLocalityPage />} />
+                  <Route path="/properties/:slug" element={<PropertyDetailPage />} />
+                  
+                  {/* Legacy redirects */}
+                  <Route path="/explore" element={<Navigate to="/deals" replace />} />
+                  <Route path="/pro-membership" element={<Navigate to="/pro" replace />} />
+                  <Route path="/analytics" element={<Navigate to="/account" replace />} />
+                  
+                  {/* 404 */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </AnalyticsProvider>
           </BrowserRouter>
           </AuthProvider>
         </QueryClientProvider>
