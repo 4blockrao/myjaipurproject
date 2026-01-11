@@ -115,18 +115,11 @@ export const AnalyticsProvider = ({ children }: { children: ReactNode }) => {
     const initSession = async () => {
       const { deviceType, browser, browserVersion, os, osVersion } = parseUserAgent();
       const utmParams = parseUtmParams();
-      const geo = await fetchGeoLocation();
-
+      
+      // First create session immediately without geo (faster)
       try {
-        const now = new Date().toISOString();
-        const { error } = await supabase.from('visitor_sessions').upsert({
+        const { error: insertError } = await supabase.from('visitor_sessions').insert({
           session_id: sessionId.current,
-          ip_address: geo?.ip || null,
-          city: geo?.city || null,
-          state: geo?.state || null,
-          country: geo?.country || null,
-          latitude: geo?.latitude || null,
-          longitude: geo?.longitude || null,
           device_type: deviceType,
           browser,
           browser_version: browserVersion,
@@ -138,19 +131,33 @@ export const AnalyticsProvider = ({ children }: { children: ReactNode }) => {
           referrer: document.referrer || null,
           landing_page: window.location.pathname,
           user_id: user?.id || null,
-          first_visit_at: now,
-          last_activity_at: now,
           utm_source: utmParams.utm_source || null,
           utm_medium: utmParams.utm_medium || null,
           utm_campaign: utmParams.utm_campaign || null,
           utm_term: utmParams.utm_term || null,
           utm_content: utmParams.utm_content || null,
-        }, { onConflict: 'session_id' });
+        });
         
-        if (error) {
-          console.error('Failed to initialize session:', error);
+        if (insertError) {
+          console.error('Failed to initialize session:', insertError);
         } else {
           console.log('Analytics session initialized:', sessionId.current);
+          
+          // Then fetch geo data and update session (non-blocking)
+          fetchGeoLocation().then(async (geo) => {
+            if (geo) {
+              await supabase.from('visitor_sessions')
+                .update({
+                  ip_address: geo.ip,
+                  city: geo.city,
+                  state: geo.state,
+                  country: geo.country,
+                  latitude: geo.latitude,
+                  longitude: geo.longitude,
+                })
+                .eq('session_id', sessionId.current);
+            }
+          });
         }
       } catch (error) {
         console.error('Failed to initialize session:', error);
