@@ -2,15 +2,19 @@ import { useState } from "react";
 import { Search, MapPin, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
+import { useAnalytics } from "@/contexts/AnalyticsContext";
 
 const SearchBarFloating = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const navigate = useNavigate();
+  const { trackSearch } = useAnalytics();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      // Track the search
+      trackSearch(searchQuery.trim(), 'homepage_search');
       navigate(`/deals?search=${encodeURIComponent(searchQuery)}`);
     }
   };

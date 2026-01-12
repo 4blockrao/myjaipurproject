@@ -64,7 +64,16 @@ const HotDealsSection = ({
   }
 
   if (!deals || deals.length === 0) {
-    return null;
+    return (
+      <section className="py-5">
+        <div className="px-4 flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-foreground">{title}</h2>
+        </div>
+        <div className="px-4">
+          <p className="text-muted-foreground text-sm">No deals available right now. Check back soon!</p>
+        </div>
+      </section>
+    );
   }
 
   return (
