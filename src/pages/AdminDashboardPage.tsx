@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Users, FileText, Store, Calendar, BarChart3, Newspaper, Car, Activity } from "lucide-react";
+import { Shield, Users, FileText, Store, Calendar, BarChart3, Newspaper, Car, Activity, Ticket, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import AppLayout from "@/components/layout/AppLayout";
@@ -14,6 +14,8 @@ import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import ArticleCMS from "@/components/admin/cms/ArticleCMS";
 import CarsManagement from "@/components/admin/CarsManagement";
 import SiteAnalyticsDashboard from "@/components/admin/SiteAnalyticsDashboard";
+import EventRegistrationsManagement from "@/components/admin/EventRegistrationsManagement";
+import OrdersManagement from "@/components/admin/OrdersManagement";
 
 const AdminDashboardPage = () => {
   const [user, setUser] = useState<any>(null);
@@ -74,6 +76,14 @@ const AdminDashboardPage = () => {
               <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden xs:inline">Business</span>
             </TabsTrigger>
+            <TabsTrigger value="orders" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 data-[state=active]:bg-background">
+              <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Orders</span>
+            </TabsTrigger>
+            <TabsTrigger value="event-tickets" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 data-[state=active]:bg-background">
+              <Ticket className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Tickets</span>
+            </TabsTrigger>
             <TabsTrigger value="users" className="gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 data-[state=active]:bg-background">
               <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden xs:inline">Users</span>
@@ -106,6 +116,8 @@ const AdminDashboardPage = () => {
 
           <TabsContent value="site-analytics"><SiteAnalyticsDashboard /></TabsContent>
           <TabsContent value="analytics"><AdminAnalytics /></TabsContent>
+          <TabsContent value="orders"><OrdersManagement /></TabsContent>
+          <TabsContent value="event-tickets"><EventRegistrationsManagement /></TabsContent>
           <TabsContent value="users"><UsersManagement /></TabsContent>
           <TabsContent value="merchants"><MerchantsManagement /></TabsContent>
           <TabsContent value="deals"><DealsManagement /></TabsContent>
