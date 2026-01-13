@@ -71,14 +71,14 @@ const EventRegistrationsManagement = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // Calculate stats
+  // Calculate stats from filtered data
   const stats = {
     total: registrations?.length || 0,
     pending: registrations?.filter((r) => r.status === "pending").length || 0,
     confirmed: registrations?.filter((r) => r.status === "confirmed").length || 0,
     cancelled: registrations?.filter((r) => r.status === "cancelled").length || 0,
-    totalRevenue: registrations?.reduce((sum, r) => sum + (r.total_amount || 0), 0) || 0,
-    totalTickets: registrations?.reduce((sum, r) => sum + (r.ticket_count || 0), 0) || 0,
+    totalRevenue: registrations?.reduce((sum, r) => sum + Number(r.total_amount || 0), 0) || 0,
+    totalTickets: registrations?.reduce((sum, r) => sum + Number(r.ticket_count || 1), 0) || 0,
   };
 
   const exportRegistrations = () => {
