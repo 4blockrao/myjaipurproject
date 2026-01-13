@@ -8,9 +8,12 @@ import CategoryIconGrid from "@/components/home/CategoryIconGrid";
 import HotDealsSection from "@/components/home/HotDealsSection";
 import BottomNavHeritage from "@/components/home/BottomNavHeritage";
 import { NewsHomeSection } from "@/components/news/NewsHomeSection";
-import EventHomeSection from "@/components/events/EventHomeSection";
 import TopMerchantsSection from "@/components/home/TopMerchantsSection";
 import TopLocalitiesSection from "@/components/home/TopLocalitiesSection";
+import FeaturedProductsSection from "@/components/home/FeaturedProductsSection";
+import TrendingDealsSection from "@/components/home/TrendingDealsSection";
+import UpcomingEventsSection from "@/components/home/UpcomingEventsSection";
+import RecentDealsSection from "@/components/home/RecentDealsSection";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import HomeSEO from "@/components/seo/HomeSEO";
@@ -66,16 +69,18 @@ const Index = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch deals - filter by locality if set
-  const { data: deals = [], isLoading: dealsLoading } = useQuery({
-    queryKey: ["deals", selectedCategory, userLocality?.slug],
+  // Fetch hot deals - filter by locality if set
+  const { data: hotDeals = [], isLoading: dealsLoading } = useQuery({
+    queryKey: ["hot-deals-home", selectedCategory, userLocality?.slug],
     queryFn: async () => {
       let query = supabase
         .from("deals")
         .select(`*, merchants (business_name, is_verified, average_rating, address)`)
         .eq("approval_status", "approved")
         .eq("is_active", true)
-        .order("created_at", { ascending: false });
+        .gte("end_date", new Date().toISOString())
+        .order("discount_percentage", { ascending: false })
+        .limit(10);
 
       if (selectedCategory !== "all") {
         query = query.eq("category", selectedCategory);
@@ -92,11 +97,6 @@ const Index = () => {
     },
     staleTime: 5 * 60 * 1000,
   });
-
-  // Hot deals - sorted by discount
-  const hotDeals = [...deals]
-    .sort((a, b) => (b.discount_percentage || 0) - (a.discount_percentage || 0))
-    .slice(0, 8);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -128,17 +128,24 @@ const Index = () => {
         {/* Category Icons - includes Property & Cars */}
         <CategoryIconGrid onCategorySelect={setSelectedCategory} />
 
-        {/* Hot Deals Section */}
+        {/* Hot Deals Section - Locality filtered */}
         <HotDealsSection
           deals={hotDeals}
           isLoading={dealsLoading}
           title={userLocality ? `Hot Deals in ${userLocality.name}` : "Hot Deals in Jaipur"}
         />
 
-        {/* Events Section */}
-        <section className="px-4">
-          <EventHomeSection />
-        </section>
+        {/* Trending Deals - Featured deals */}
+        <TrendingDealsSection />
+
+        {/* Upcoming Events */}
+        <UpcomingEventsSection />
+
+        {/* Featured Products */}
+        <FeaturedProductsSection />
+
+        {/* Recently Added Deals */}
+        <RecentDealsSection />
 
         {/* News Section */}
         <section className="px-4">

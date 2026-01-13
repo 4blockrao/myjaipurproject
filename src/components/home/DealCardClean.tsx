@@ -38,7 +38,7 @@ const DealCardClean = ({ deal }: DealCardCleanProps) => {
   return (
     <article 
       className="w-[280px] flex-shrink-0 group cursor-pointer"
-      onClick={() => navigate(`/deals/${deal.id}`)}
+      onClick={() => navigate(`/deal/${deal.id}`)}
     >
       {/* Image container */}
       <div className="relative h-36 rounded-t-2xl overflow-hidden">
