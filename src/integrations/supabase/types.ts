@@ -762,6 +762,7 @@ export type Database = {
           discount_percentage: number | null
           discounted_price: number | null
           end_date: string | null
+          gallery_images: string[] | null
           id: string
           image_url: string | null
           inventory_count: number | null
@@ -801,6 +802,7 @@ export type Database = {
           discount_percentage?: number | null
           discounted_price?: number | null
           end_date?: string | null
+          gallery_images?: string[] | null
           id?: string
           image_url?: string | null
           inventory_count?: number | null
@@ -840,6 +842,7 @@ export type Database = {
           discount_percentage?: number | null
           discounted_price?: number | null
           end_date?: string | null
+          gallery_images?: string[] | null
           id?: string
           image_url?: string | null
           inventory_count?: number | null
@@ -1655,10 +1658,12 @@ export type Database = {
           listing_fee_paid: boolean | null
           listing_payment_id: string | null
           listing_tier: string | null
+          locality: string | null
           logo_url: string | null
           phone: string | null
           photos: string[] | null
           referred_by: string | null
+          slug: string | null
           social_handles: Json | null
           total_deals: number | null
           total_reviews: number | null
@@ -1683,10 +1688,12 @@ export type Database = {
           listing_fee_paid?: boolean | null
           listing_payment_id?: string | null
           listing_tier?: string | null
+          locality?: string | null
           logo_url?: string | null
           phone?: string | null
           photos?: string[] | null
           referred_by?: string | null
+          slug?: string | null
           social_handles?: Json | null
           total_deals?: number | null
           total_reviews?: number | null
@@ -1711,10 +1718,12 @@ export type Database = {
           listing_fee_paid?: boolean | null
           listing_payment_id?: string | null
           listing_tier?: string | null
+          locality?: string | null
           logo_url?: string | null
           phone?: string | null
           photos?: string[] | null
           referred_by?: string | null
+          slug?: string | null
           social_handles?: Json | null
           total_deals?: number | null
           total_reviews?: number | null

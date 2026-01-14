@@ -58,6 +58,10 @@ const DealsManagement = () => {
     merchant_id: "",
     jaicoin_reward: "10",
     image_url: "",
+    gallery_images: "",
+    terms_conditions: "",
+    usage_terms: "",
+    tags: "",
     start_date: "",
     end_date: ""
   });
@@ -415,11 +419,46 @@ const DealsManagement = () => {
           />
         </div>
         <div className="col-span-2">
-          <Label>Image URL</Label>
+          <Label>Main Image URL</Label>
           <Input
             value={formData.image_url}
             onChange={(e) => handleFormChange('image_url', e.target.value)}
-            placeholder="https://..."
+            placeholder="https://example.com/image.jpg"
+          />
+        </div>
+        <div className="col-span-2">
+          <Label>Gallery Images (comma-separated URLs)</Label>
+          <Textarea
+            value={formData.gallery_images}
+            onChange={(e) => handleFormChange('gallery_images', e.target.value)}
+            placeholder="https://image1.jpg, https://image2.jpg"
+            rows={2}
+          />
+        </div>
+        <div className="col-span-2">
+          <Label>Terms & Conditions</Label>
+          <Textarea
+            value={formData.terms_conditions}
+            onChange={(e) => handleFormChange('terms_conditions', e.target.value)}
+            placeholder="Enter terms and conditions..."
+            rows={3}
+          />
+        </div>
+        <div className="col-span-2">
+          <Label>Usage Instructions</Label>
+          <Textarea
+            value={formData.usage_terms}
+            onChange={(e) => handleFormChange('usage_terms', e.target.value)}
+            placeholder="How to use this deal..."
+            rows={2}
+          />
+        </div>
+        <div className="col-span-2">
+          <Label>Tags (comma-separated)</Label>
+          <Input
+            value={formData.tags}
+            onChange={(e) => handleFormChange('tags', e.target.value)}
+            placeholder="discount, offer, special"
           />
         </div>
       </div>
