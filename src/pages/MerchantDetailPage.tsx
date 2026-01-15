@@ -25,11 +25,19 @@ const MerchantDetailPage = () => {
   const { data: merchant, isLoading } = useQuery({
     queryKey: ['merchant', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('merchants')
-        .select('*')
-        .eq('id', id)
-        .single();
+      // Try to find by ID first, then by slug
+      let query = supabase.from('merchants').select('*');
+      
+      // Check if 'id' looks like a UUID or a slug
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id || '');
+      
+      if (isUUID) {
+        query = query.eq('id', id);
+      } else {
+        query = query.eq('slug', id);
+      }
+      
+      const { data, error } = await query.single();
       if (error) throw error;
       return data;
     },

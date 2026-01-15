@@ -4,17 +4,18 @@ interface MerchantSEOProps {
   merchant: {
     id: string;
     business_name: string;
-    business_type?: string;
-    description?: string;
-    address?: string;
-    locality?: string;
-    phone?: string;
-    email?: string;
-    website?: string;
-    logo_url?: string;
-    average_rating?: number;
-    total_reviews?: number;
-    is_verified?: boolean;
+    business_type?: string | null;
+    description?: string | null;
+    address?: string | null;
+    locality?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    website?: string | null;
+    logo_url?: string | null;
+    slug?: string | null;
+    average_rating?: number | null;
+    total_reviews?: number | null;
+    is_verified?: boolean | null;
   };
   dealsCount?: number;
 }
@@ -31,7 +32,9 @@ export const MerchantSEO = ({ merchant, dealsCount = 0 }: MerchantSEOProps) => {
     ? `${merchant.description.substring(0, 120)}... Find exclusive deals, contact info, reviews and offers from ${merchant.business_name} in ${locality}, Jaipur.`
     : `Explore exclusive deals and offers from ${merchant.business_name} in ${locality}, Jaipur. ${dealsCount > 0 ? `${dealsCount} active offers available.` : ''} Contact info, address, reviews and more.`;
 
-  const canonicalUrl = `https://myjaipurproject.lovable.app/merchant/${merchant.id}`;
+  // Use slug if available for SEO-friendly URL
+  const merchantPath = merchant.slug || merchant.id;
+  const canonicalUrl = `https://myjaipurproject.lovable.app/merchant/${merchantPath}`;
   const logoUrl = merchant.logo_url || 'https://myjaipurproject.lovable.app/favicon.png';
 
   // LocalBusiness Schema
