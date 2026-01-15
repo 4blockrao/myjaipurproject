@@ -6,13 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateOrder } from "@/hooks/useCreateOrder";
 import { useUserBalance } from "@/hooks/useUserBalance";
 import { 
   ArrowLeft, CreditCard, Coins, Gift, CheckCircle,
-  MapPin, Calendar, Phone, Users
+  MapPin, Calendar, Phone, Users, Wallet, Banknote
 } from "lucide-react";
 
 interface Deal {
@@ -34,6 +35,8 @@ interface Deal {
   };
 }
 
+type PaymentMethod = "cod" | "online";
+
 const CheckoutFlow = () => {
   const { dealId } = useParams<{ dealId: string }>();
   const navigate = useNavigate();
@@ -45,6 +48,7 @@ const CheckoutFlow = () => {
   const [user, setUser] = useState<any>(null);
   const [quantity, setQuantity] = useState(1);
   const [useJaiCoins, setUseJaiCoins] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
   const [contactInfo, setContactInfo] = useState({
     name: "",
     phone: "",
@@ -67,8 +71,22 @@ const CheckoutFlow = () => {
         ...prev,
         email: session.user.email || ""
       }));
+      
+      // Fetch user profile for name and phone
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, phone')
+        .eq('id', session.user.id)
+        .single();
+      
+      if (profile) {
+        setContactInfo(prev => ({
+          ...prev,
+          name: profile.full_name || "",
+          phone: profile.phone || ""
+        }));
+      }
     } else {
-      // Redirect to auth with return URL
       navigate(`/auth?redirect=/checkout/deal/${dealId}`);
     }
   };
@@ -122,13 +140,27 @@ const CheckoutFlow = () => {
     return Math.max(0, subtotal - jaiCoinsDiscount);
   };
 
+  const validatePhone = (phone: string) => {
+    const phoneRegex = /^[6-9]\d{9}$/;
+    return phoneRegex.test(phone.replace(/\s/g, ''));
+  };
+
   const handleCheckout = async () => {
     if (!deal || !user) return;
 
-    if (!contactInfo.name || !contactInfo.phone) {
+    if (!contactInfo.name.trim()) {
       toast({
-        title: "Missing Information",
-        description: "Please fill in all required contact details",
+        title: "Name Required",
+        description: "Please enter your full name",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!contactInfo.phone.trim() || !validatePhone(contactInfo.phone)) {
+      toast({
+        title: "Valid Phone Required",
+        description: "Please enter a valid 10-digit Indian mobile number",
         variant: "destructive"
       });
       return;
@@ -139,11 +171,18 @@ const CheckoutFlow = () => {
       quantity,
       totalAmount: getTotalAmount(),
       jaicoinsUsed: getJaiCoinsDiscount(),
+      paymentMethod,
       customerInfo: contactInfo
     };
 
     createOrderMutation.mutate(orderData, {
       onSuccess: (order) => {
+        toast({
+          title: "Order Placed Successfully!",
+          description: paymentMethod === "cod" 
+            ? "Your order has been confirmed. Pay at the time of redemption."
+            : "Payment confirmed. Your order is ready!",
+        });
         navigate(`/order-success/${order.id}`);
       }
     });
@@ -151,18 +190,18 @@ const CheckoutFlow = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (!deal) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="p-8 text-center max-w-md">
           <h2 className="text-2xl font-bold mb-4">Deal Not Found</h2>
-          <p className="text-gray-600 mb-6">The deal you're looking for is not available.</p>
+          <p className="text-muted-foreground mb-6">The deal you're looking for is not available.</p>
           <Button onClick={() => navigate('/deals')}>
             Browse Deals
           </Button>
@@ -172,18 +211,18 @@ const CheckoutFlow = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b shadow-sm">
+      <div className="bg-card border-b shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/deals')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Deals
+              Back
             </Button>
             <div>
               <h1 className="text-2xl font-bold">Checkout</h1>
-              <p className="text-gray-600">Complete your purchase</p>
+              <p className="text-muted-foreground">Complete your purchase</p>
             </div>
           </div>
         </div>
@@ -219,7 +258,8 @@ const CheckoutFlow = () => {
                       id="phone"
                       value={contactInfo.phone}
                       onChange={(e) => setContactInfo({...contactInfo, phone: e.target.value})}
-                      placeholder="+91 XXXXX XXXXX"
+                      placeholder="10-digit mobile number"
+                      maxLength={10}
                       required
                     />
                   </div>
@@ -231,7 +271,7 @@ const CheckoutFlow = () => {
                     type="email"
                     value={contactInfo.email}
                     disabled
-                    className="bg-gray-100"
+                    className="bg-muted"
                   />
                 </div>
               </CardContent>
@@ -264,8 +304,55 @@ const CheckoutFlow = () => {
               </CardContent>
             </Card>
 
+            {/* Payment Method Selection */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Wallet className="w-5 h-5" />
+                  Payment Method
+                </CardTitle>
+                <CardDescription>Select how you'd like to pay</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup 
+                  value={paymentMethod} 
+                  onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
+                  className="space-y-3"
+                >
+                  <div className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer transition-colors ${paymentMethod === 'cod' ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'}`}>
+                    <RadioGroupItem value="cod" id="cod" />
+                    <Label htmlFor="cod" className="flex items-center gap-3 cursor-pointer flex-1">
+                      <div className="p-2 bg-green-100 rounded-full">
+                        <Banknote className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Cash on Delivery</p>
+                        <p className="text-sm text-muted-foreground">Pay when you redeem at the store</p>
+                      </div>
+                    </Label>
+                  </div>
+                  
+                  <div className={`flex items-center space-x-3 p-4 border rounded-lg cursor-pointer transition-colors ${paymentMethod === 'online' ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'}`}>
+                    <RadioGroupItem value="online" id="online" />
+                    <Label htmlFor="online" className="flex items-center gap-3 cursor-pointer flex-1">
+                      <div className="p-2 bg-blue-100 rounded-full">
+                        <CreditCard className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Pay Online</p>
+                        <p className="text-sm text-muted-foreground">UPI, Cards, Netbanking (Coming Soon)</p>
+                      </div>
+                    </Label>
+                    {paymentMethod === 'online' && (
+                      <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded">Beta</span>
+                    )}
+                  </div>
+                </RadioGroup>
+              </CardContent>
+            </Card>
+
             {/* JaiCoins */}
-            {jaiCoinsBalance > 0 && (
+            {jaiCoinsBalance && jaiCoinsBalance > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -285,7 +372,7 @@ const CheckoutFlow = () => {
                         <Label htmlFor="jaicoins" className="font-medium cursor-pointer">
                           Use JaiCoins (Balance: {jaiCoinsBalance})
                         </Label>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           Save up to ₹{Math.min(jaiCoinsBalance, Math.floor(getSubtotal() * 0.1))}
                         </p>
                       </div>
@@ -310,8 +397,8 @@ const CheckoutFlow = () => {
                 <div className="space-y-3">
                   <div>
                     <h4 className="font-medium text-sm">{deal.title}</h4>
-                    <p className="text-xs text-gray-600">{deal.merchants.business_name}</p>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">{deal.merchants.business_name}</p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <MapPin className="w-3 h-3" />
                       <span>{deal.location}</span>
                     </div>
@@ -319,8 +406,8 @@ const CheckoutFlow = () => {
                   <div className="flex justify-between text-sm">
                     <span>Unit Price:</span>
                     <div>
-                      <span className="text-gray-500 line-through mr-2">₹{deal.original_price}</span>
-                      <span className="font-bold text-pink-600">₹{deal.discounted_price}</span>
+                      <span className="text-muted-foreground line-through mr-2">₹{deal.original_price}</span>
+                      <span className="font-bold text-primary">₹{deal.discounted_price}</span>
                     </div>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -341,6 +428,11 @@ const CheckoutFlow = () => {
                       <span>-₹{getJaiCoinsDiscount()}</span>
                     </div>
                   )}
+                  
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Payment Method</span>
+                    <span>{paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'}</span>
+                  </div>
                 </div>
 
                 <div className="border-t pt-4">
@@ -350,11 +442,20 @@ const CheckoutFlow = () => {
                   </div>
                 </div>
 
-                <div className="text-center p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-green-800 font-medium text-sm">
+                <div className="text-center p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                  <p className="text-green-800 dark:text-green-200 font-medium text-sm">
                     🎉 You're saving ₹{(deal.original_price * quantity) - getTotalAmount()}!
                   </p>
                 </div>
+
+                {deal.jaicoin_reward > 0 && (
+                  <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                    <p className="text-yellow-800 dark:text-yellow-200 font-medium text-sm flex items-center justify-center gap-2">
+                      <Coins className="w-4 h-4" />
+                      Earn {deal.jaicoin_reward * quantity} JaiCoins with this purchase!
+                    </p>
+                  </div>
+                )}
 
                 <Button 
                   onClick={handleCheckout}
@@ -368,13 +469,23 @@ const CheckoutFlow = () => {
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <CreditCard className="w-5 h-5" />
-                      Complete Purchase - ₹{getTotalAmount()}
+                      {paymentMethod === 'cod' ? (
+                        <Banknote className="w-5 h-5" />
+                      ) : (
+                        <CreditCard className="w-5 h-5" />
+                      )}
+                      {paymentMethod === 'cod' ? 'Place Order' : 'Pay Now'} - ₹{getTotalAmount()}
                     </div>
                   )}
                 </Button>
 
-                <div className="text-xs text-gray-500 text-center">
+                {paymentMethod === 'cod' && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    💡 Pay ₹{getTotalAmount()} at the store when you redeem your coupon
+                  </p>
+                )}
+
+                <div className="text-xs text-muted-foreground text-center">
                   By completing your purchase, you agree to our Terms of Service
                 </div>
               </CardContent>
