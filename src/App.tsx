@@ -174,9 +174,8 @@ function App() {
                   <Route path="/deal/:id" element={<DealDetailPage />} />
                   <Route path="/categories" element={<CategoriesPage />} />
                   <Route path="/checkout" element={<CheckoutPage />} />
+                  <Route path="/checkout/deal/:dealId" element={<NewCheckoutPage />} />
                   <Route path="/checkout/:orderId" element={<CheckoutPage />} />
-                  <Route path="/new-checkout" element={<NewCheckoutPage />} />
-                  <Route path="/new-checkout/:orderId" element={<NewCheckoutPage />} />
                   <Route path="/order-success" element={<OrderSuccessPage />} />
                   <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
                   

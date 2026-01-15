@@ -68,7 +68,8 @@ const CheckoutFlow = () => {
         email: session.user.email || ""
       }));
     } else {
-      navigate('/');
+      // Redirect to auth with return URL
+      navigate(`/auth?redirect=/checkout/deal/${dealId}`);
     }
   };
 

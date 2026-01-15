@@ -139,9 +139,23 @@ const DealDetailPage = () => {
     }
   };
 
-  const handlePurchase = () => {
+  const handlePurchase = async () => {
     if (!deal) return;
-    navigate(`/checkout?dealId=${deal.id}`);
+    
+    // Check authentication first
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to purchase this deal",
+        variant: "destructive"
+      });
+      navigate(`/auth?redirect=/deal/${deal.id}`);
+      return;
+    }
+    
+    // Navigate to checkout with deal ID
+    navigate(`/checkout/deal/${deal.id}`);
   };
 
   const getAvailability = () => {
