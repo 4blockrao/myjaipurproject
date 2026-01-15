@@ -30,6 +30,10 @@ interface Deal {
   start_date: string | null;
   end_date: string | null;
   image_url: string | null;
+  gallery_images: string[] | null;
+  terms_conditions: string | null;
+  usage_terms: string | null;
+  tags: string[] | null;
   merchant_id: string | null;
   created_at: string | null;
   merchants?: { business_name: string } | null;
@@ -270,6 +274,10 @@ const DealsManagement = () => {
       merchant_id: "",
       jaicoin_reward: "10",
       image_url: "",
+      gallery_images: "",
+      terms_conditions: "",
+      usage_terms: "",
+      tags: "",
       start_date: "",
       end_date: ""
     });
@@ -287,6 +295,10 @@ const DealsManagement = () => {
       merchant_id: deal.merchant_id || "",
       jaicoin_reward: deal.jaicoin_reward?.toString() || "10",
       image_url: deal.image_url || "",
+      gallery_images: deal.gallery_images?.join(", ") || "",
+      terms_conditions: deal.terms_conditions || "",
+      usage_terms: deal.usage_terms || "",
+      tags: deal.tags?.join(", ") || "",
       start_date: deal.start_date?.split('T')[0] || "",
       end_date: deal.end_date?.split('T')[0] || ""
     });
