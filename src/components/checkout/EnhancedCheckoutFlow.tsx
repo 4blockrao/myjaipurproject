@@ -175,6 +175,7 @@ const EnhancedCheckoutFlow = () => {
       quantity,
       totalAmount: getTotalAmount(),
       jaicoinsUsed: getJaiCoinsDiscount(),
+      paymentMethod: "cod" as const,
       customerInfo: contactInfo
     };
 
