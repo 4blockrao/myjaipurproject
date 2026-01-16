@@ -9,20 +9,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { DealDetailSEO } from "@/components/seo/DealDetailSEO";
+import { EnhancedDealSEO } from "@/components/seo/EnhancedDealSEO";
+import { DealPrerenderedContent } from "@/components/seo/DealPrerenderedContent";
 import { DealImageGallery } from "@/components/deals/DealImageGallery";
 import NativeBottomNav from "@/components/home/NativeBottomNav";
 import { 
   MapPin, Star, Clock, Users, Share2, Heart, 
   ArrowLeft, Calendar, Phone, Globe, Percent,
   ShoppingCart, Gift, Award, CheckCircle, Tag,
-  Store, ExternalLink, BadgeCheck, Coins, 
+  Store, BadgeCheck, Coins, 
   Navigation, MessageCircle, Info, FileText,
   ChevronRight, Sparkles, Shield, Zap
 } from "lucide-react";
 
 interface Deal {
   id: string;
+  slug?: string;
   title: string;
   description: string | null;
   category: string | null;
@@ -61,18 +63,24 @@ interface Deal {
 }
 
 const DealDetailPage = () => {
-  const { id } = useParams<{ id: string }>();
+  // Support both UUID (/deal/:id) and slug (/deals/:slug) routes
+  const { id, slug } = useParams<{ id?: string; slug?: string }>();
   const navigate = useNavigate();
   const [isSaved, setIsSaved] = useState(false);
   const { toast } = useToast();
+  
+  // Determine if we're using slug or id for the query
+  const identifier = slug || id;
+  const isSlugQuery = !!slug;
 
   const { data: deal, isLoading, error } = useQuery({
-    queryKey: ['deal', id],
+    queryKey: ['deal', identifier, isSlugQuery],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Build the query based on whether we have a slug or id
+      const query = supabase
         .from('deals')
         .select(`
-          id, title, description, category, subcategory,
+          id, slug, title, description, category, subcategory,
           discount_percentage, original_price, discounted_price,
           location, image_url, gallery_images, start_date, end_date,
           terms_conditions, max_redemptions, current_redemptions,
@@ -83,29 +91,32 @@ const DealDetailPage = () => {
             website, average_rating, total_reviews, description,
             logo_url, is_verified
           )
-        `)
-        .eq('id', id)
-        .single();
+        `);
+      
+      // Query by slug or id
+      const { data, error } = isSlugQuery
+        ? await query.eq('slug', identifier).single()
+        : await query.eq('id', identifier).single();
 
       if (error) throw error;
       return data as Deal;
     },
-    enabled: !!id
+    enabled: !!identifier
   });
 
   const { data: relatedDeals = [] } = useQuery({
-    queryKey: ['related-deals', deal?.category, id],
+    queryKey: ['related-deals', deal?.category, deal?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('deals')
         .select(`
-          id, title, description, category, discount_percentage,
+          id, slug, title, description, category, discount_percentage,
           original_price, discounted_price, location, image_url,
           merchants (id, business_name)
         `)
         .eq('is_active', true)
         .eq('category', deal?.category || '')
-        .neq('id', id || '')
+        .neq('id', deal?.id || '')
         .limit(4);
 
       if (error) throw error;
@@ -228,40 +239,48 @@ const DealDetailPage = () => {
   const locality = deal.location || merchant?.locality || 'Jaipur';
   const remainingTime = getRemainingTime();
 
+  // Prepare SEO data
+  const seoData = {
+    id: deal.id,
+    slug: deal.slug,
+    title: deal.title,
+    description: deal.description || undefined,
+    category: deal.category || undefined,
+    subcategory: deal.subcategory || undefined,
+    location: deal.location || undefined,
+    image_url: deal.image_url || undefined,
+    original_price: deal.original_price || undefined,
+    discounted_price: deal.discounted_price || undefined,
+    discount_percentage: deal.discount_percentage || undefined,
+    start_date: deal.start_date || undefined,
+    end_date: deal.end_date || undefined,
+    max_redemptions: deal.max_redemptions || undefined,
+    current_redemptions: deal.current_redemptions || undefined,
+    inventory_count: deal.inventory_count || undefined,
+    tags: deal.tags || undefined,
+    terms_conditions: deal.terms_conditions || undefined,
+    jaicoin_reward: deal.jaicoin_reward || undefined,
+    merchant: merchant ? {
+      business_name: merchant.business_name,
+      business_type: merchant.business_type || undefined,
+      address: merchant.address || undefined,
+      locality: merchant.locality || undefined,
+      phone: merchant.phone || undefined,
+      website: merchant.website || undefined,
+      average_rating: merchant.average_rating || undefined,
+      total_reviews: merchant.total_reviews || undefined,
+      is_verified: merchant.is_verified || undefined,
+      logo_url: merchant.logo_url || undefined
+    } : undefined
+  };
+
   return (
     <>
-      <DealDetailSEO 
-        deal={{
-          ...deal,
-          description: deal.description || undefined,
-          category: deal.category || undefined,
-          subcategory: deal.subcategory || undefined,
-          location: deal.location || undefined,
-          image_url: deal.image_url || undefined,
-          original_price: deal.original_price || undefined,
-          discounted_price: deal.discounted_price || undefined,
-          discount_percentage: deal.discount_percentage || undefined,
-          start_date: deal.start_date || undefined,
-          end_date: deal.end_date || undefined,
-          max_redemptions: deal.max_redemptions || undefined,
-          current_redemptions: deal.current_redemptions || undefined,
-          inventory_count: deal.inventory_count || undefined,
-          tags: deal.tags || undefined,
-          terms_conditions: deal.terms_conditions || undefined,
-          jaicoin_reward: deal.jaicoin_reward || undefined,
-          merchant: merchant ? {
-            business_name: merchant.business_name,
-            business_type: merchant.business_type || undefined,
-            address: merchant.address || undefined,
-            phone: merchant.phone || undefined,
-            website: merchant.website || undefined,
-            average_rating: merchant.average_rating || undefined,
-            total_reviews: merchant.total_reviews || undefined,
-            is_verified: merchant.is_verified || undefined,
-            logo_url: merchant.logo_url || undefined
-          } : undefined
-        }} 
-      />
+      {/* Enhanced SEO with dynamic meta tags and JSON-LD */}
+      <EnhancedDealSEO deal={seoData} />
+      
+      {/* Pre-rendered crawlable content - visible in page source for SEO */}
+      <DealPrerenderedContent deal={seoData} />
       
       <div className="min-h-screen bg-background pb-32">
         {/* Mobile Header */}
@@ -660,7 +679,7 @@ const DealDetailPage = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {relatedDeals.slice(0, 4).map((relatedDeal: any) => (
-                    <Link key={relatedDeal.id} to={`/deal/${relatedDeal.id}`}>
+                    <Link key={relatedDeal.id} to={relatedDeal.slug ? `/deals/${relatedDeal.slug}` : `/deal/${relatedDeal.id}`}>
                       <Card className="overflow-hidden hover:shadow-md transition-shadow h-full">
                         <div className="aspect-[4/3] bg-muted relative">
                           {relatedDeal.image_url ? (
