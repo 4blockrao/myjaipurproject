@@ -171,6 +171,9 @@ function App() {
                   
                   {/* Deals & Shopping */}
                   <Route path="/deals" element={<DealsPage />} />
+                  {/* SEO-friendly slug-based deal URLs (canonical) */}
+                  <Route path="/deals/:slug" element={<DealDetailPage />} />
+                  {/* Legacy UUID-based deal URLs (still work, redirect to canonical) */}
                   <Route path="/deal/:id" element={<DealDetailPage />} />
                   <Route path="/categories" element={<CategoriesPage />} />
                   <Route path="/checkout" element={<CheckoutPage />} />

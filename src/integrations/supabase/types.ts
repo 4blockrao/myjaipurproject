@@ -779,6 +779,7 @@ export type Database = {
           product_id: string | null
           purchase_price: number | null
           rejection_reason: string | null
+          slug: string | null
           start_date: string | null
           subcategory: string | null
           tags: string[] | null
@@ -819,6 +820,7 @@ export type Database = {
           product_id?: string | null
           purchase_price?: number | null
           rejection_reason?: string | null
+          slug?: string | null
           start_date?: string | null
           subcategory?: string | null
           tags?: string[] | null
@@ -859,6 +861,7 @@ export type Database = {
           product_id?: string | null
           purchase_price?: number | null
           rejection_reason?: string | null
+          slug?: string | null
           start_date?: string | null
           subcategory?: string | null
           tags?: string[] | null
@@ -3158,6 +3161,10 @@ export type Database = {
         Returns: undefined
       }
       generate_coupon_code: { Args: never; Returns: string }
+      generate_deal_slug: {
+        Args: { deal_id: string; title: string }
+        Returns: string
+      }
       generate_event_slug: { Args: { title: string }; Returns: string }
       generate_news_slug: { Args: { title: string }; Returns: string }
       generate_redemption_code: { Args: never; Returns: string }
