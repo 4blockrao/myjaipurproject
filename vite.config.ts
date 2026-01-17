@@ -1,75 +1,91 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
-import path from "path";
-import { componentTagger } from "lovable-tagger";
-import { VitePWA } from "vite-plugin-pwa";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import path from 'path';
+import { componentTagger } from 'lovable-tagger';
+import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   return {
     server: {
-      host: "::",
+      host: '::',
       port: 8080,
+    },
+    // SSG configuration
+    ssgOptions: {
+      script: 'async',
+      formatting: 'minify',
+      crittersOptions: {
+        reduceInlineStyles: false,
+      },
+      // Only pre-render routes that have getStaticPaths defined
+      includedRoutes: (paths: string[]) => {
+        // Include all static routes plus dynamic deal routes
+        return paths;
+      },
+      onFinished: () => {
+        console.log('[SSG] Static generation complete!');
+      },
     },
     plugins: [
       react(),
-      mode === "development" && componentTagger(),
+      mode === 'development' && componentTagger(),
       VitePWA({
-        registerType: "autoUpdate",
-        includeAssets: ["favicon.png", "robots.txt"],
+        registerType: 'autoUpdate',
+        includeAssets: ['favicon.png', 'robots.txt'],
         manifest: {
-          name: "JaipurCircle - Deals & Rewards",
-          short_name: "JaipurCircle",
-          description: "Discover amazing deals, earn JaiCoins, and save more in Jaipur",
-          theme_color: "#e91e63",
-          background_color: "#ffffff",
-          display: "standalone",
-          orientation: "portrait",
-          scope: "/",
-          start_url: "/",
+          name: 'JaipurCircle - Deals & Rewards',
+          short_name: 'JaipurCircle',
+          description: 'Discover amazing deals, earn JaiCoins, and save more in Jaipur',
+          theme_color: '#e91e63',
+          background_color: '#ffffff',
+          display: 'standalone',
+          orientation: 'portrait',
+          scope: '/',
+          start_url: '/',
           icons: [
             {
-              src: "/pwa-192x192.png",
-              sizes: "192x192",
-              type: "image/png",
-              purpose: "any maskable",
+              src: '/pwa-192x192.png',
+              sizes: '192x192',
+              type: 'image/png',
+              purpose: 'any maskable',
             },
             {
-              src: "/pwa-512x512.png",
-              sizes: "512x512",
-              type: "image/png",
-              purpose: "any maskable",
+              src: '/pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any maskable',
             },
           ],
-          categories: ["shopping", "lifestyle", "finance"],
+          categories: ['shopping', 'lifestyle', 'finance'],
           screenshots: [],
           shortcuts: [
             {
-              name: "Browse Deals",
-              short_name: "Deals",
-              url: "/deals",
-              icons: [{ src: "/pwa-192x192.png", sizes: "192x192" }],
+              name: 'Browse Deals',
+              short_name: 'Deals',
+              url: '/deals',
+              icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }],
             },
             {
-              name: "My Wallet",
-              short_name: "Wallet",
-              url: "/wallet",
-              icons: [{ src: "/pwa-192x192.png", sizes: "192x192" }],
+              name: 'My Wallet',
+              short_name: 'Wallet',
+              url: '/wallet',
+              icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }],
             },
           ],
         },
         workbox: {
-          maximumFileSizeToCacheInBytes: 6 * 1024 * 1024, // 6 MiB
-          globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+          maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-              handler: "CacheFirst",
+              handler: 'CacheFirst',
               options: {
-                cacheName: "google-fonts-cache",
+                cacheName: 'google-fonts-cache',
                 expiration: {
                   maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                  maxAgeSeconds: 60 * 60 * 24 * 365,
                 },
                 cacheableResponse: {
                   statuses: [0, 200],
@@ -82,7 +98,7 @@ export default defineConfig(({ mode }) => {
     ].filter(Boolean),
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./src"),
+        '@': path.resolve(__dirname, './src'),
       },
     },
   };
