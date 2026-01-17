@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -103,6 +103,19 @@ const DealDetailPage = () => {
     },
     enabled: !!identifier
   });
+
+  // Signal to the build-time prerenderer that this route is ready to be captured.
+  // (No runtime behavior/UI change; it is a no-op for normal users.)
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (!identifier) return;
+    if (isLoading) return;
+
+    // Fire once React has painted at least one frame with the final content
+    requestAnimationFrame(() => {
+      document.dispatchEvent(new Event('prerender-ready'));
+    });
+  }, [identifier, isLoading, deal, error]);
 
   const { data: relatedDeals = [] } = useQuery({
     queryKey: ['related-deals', deal?.category, deal?.id],
