@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { isPast } from 'date-fns';
 
-const SITE_URL = 'https://www.jaipurcircle.com';
+const SITE_URL = 'https://jaipurcircle.com';
 
 interface EnhancedDealSEOProps {
   deal: {

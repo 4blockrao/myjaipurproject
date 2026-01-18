@@ -47,13 +47,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string, metadata?: Record<string, any>) => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.jaipurcircle.com';
-
     const { error } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
       options: {
-        emailRedirectTo: `${origin}/`,
+        emailRedirectTo: `${window.location.origin}/`,
         data: metadata,
       },
     });
