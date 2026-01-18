@@ -83,16 +83,17 @@ const PropertyDetailPage = lazy(() => import('./pages/PropertyDetailPage'));
 const PropertiesLocalityPage = lazy(() => import('./pages/PropertiesLocalityPage'));
 
 // SSG: Fetch deal slugs at build time for pre-rendering
+// Returns empty array on any error - does NOT abort build
 async function getDealSlugPaths(): Promise<string[]> {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  
-  if (!supabaseUrl || !supabaseKey) {
-    console.warn('[SSG] Missing Supabase credentials, skipping deal pre-rendering');
-    return [];
-  }
-
   try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.warn('[SSG] Missing Supabase credentials, skipping deal slug pre-rendering');
+      return [];
+    }
+
     const url = new URL(`${supabaseUrl}/rest/v1/deals`);
     url.searchParams.set('select', 'slug');
     url.searchParams.set('is_active', 'eq.true');
@@ -107,29 +108,35 @@ async function getDealSlugPaths(): Promise<string[]> {
     });
 
     if (!res.ok) {
-      console.error('[SSG] Failed to fetch deals:', res.status);
+      console.warn('[SSG] Failed to fetch deals:', res.status, '- continuing without SSG for deals');
       return [];
     }
 
-    const deals = await res.json() as Array<{ slug: string }>;
-    const paths = deals.map(d => `/deals/${d.slug}`);
+    const deals = await res.json() as Array<{ slug: string | null }>;
+    // Filter out any null/undefined slugs to prevent bad paths
+    const validDeals = deals.filter(d => d.slug && typeof d.slug === 'string');
+    const paths = validDeals.map(d => `/deals/${d.slug}`);
     console.log(`[SSG] Pre-rendering ${paths.length} deal slug pages`);
     return paths;
   } catch (error) {
-    console.error('[SSG] Error fetching deals:', error);
+    // Graceful degradation - don't crash build, just skip SSG for deals
+    console.warn('[SSG] Error fetching deals (build continues):', error instanceof Error ? error.message : error);
     return [];
   }
 }
 
+// SSG: Fetch deal IDs at build time for legacy route support
+// Returns empty array on any error - does NOT abort build
 async function getDealIdPaths(): Promise<string[]> {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  
-  if (!supabaseUrl || !supabaseKey) {
-    return [];
-  }
-
   try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.warn('[SSG] Missing Supabase credentials, skipping deal ID pre-rendering');
+      return [];
+    }
+
     const url = new URL(`${supabaseUrl}/rest/v1/deals`);
     url.searchParams.set('select', 'id');
     url.searchParams.set('is_active', 'eq.true');
@@ -142,14 +149,20 @@ async function getDealIdPaths(): Promise<string[]> {
       },
     });
 
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.warn('[SSG] Failed to fetch deal IDs:', res.status, '- continuing without SSG');
+      return [];
+    }
 
-    const deals = await res.json() as Array<{ id: string }>;
-    const paths = deals.map(d => `/deal/${d.id}`);
+    const deals = await res.json() as Array<{ id: string | null }>;
+    // Filter out any null/undefined IDs to prevent bad paths
+    const validDeals = deals.filter(d => d.id && typeof d.id === 'string');
+    const paths = validDeals.map(d => `/deal/${d.id}`);
     console.log(`[SSG] Pre-rendering ${paths.length} deal ID pages`);
     return paths;
   } catch (error) {
-    console.error('[SSG] Error fetching deal IDs:', error);
+    // Graceful degradation - don't crash build, just skip SSG for deal IDs
+    console.warn('[SSG] Error fetching deal IDs (build continues):', error instanceof Error ? error.message : error);
     return [];
   }
 }
