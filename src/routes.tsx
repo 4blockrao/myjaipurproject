@@ -7,6 +7,9 @@ import RootLayout from './components/layout/RootLayout';
 import Index from './pages/Index';
 import NotFound from './pages/NotFound';
 
+// SSG Pages - Must be eager loaded for static generation
+import DealDetailPage from './pages/DealDetailPage';
+
 // Lazy load all other pages for code splitting
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const AuthPage = lazy(() => import('./pages/AuthPage'));
@@ -18,7 +21,6 @@ const HelpPage = lazy(() => import('./pages/HelpPage'));
 const ProMembershipPage = lazy(() => import('./pages/ProMembershipPage'));
 const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
 const DealsPage = lazy(() => import('./pages/DealsPage'));
-const DealDetailPage = lazy(() => import('./pages/DealDetailPage'));
 const CategoriesPage = lazy(() => import('./pages/CategoriesPage'));
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
 const NewCheckoutPage = lazy(() => import('./pages/NewCheckoutPage'));
