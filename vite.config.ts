@@ -18,7 +18,11 @@ export default defineConfig(({ mode }) => {
       crittersOptions: {
         reduceInlineStyles: false,
       },
-      onFinished() {
+      onPageRendered: (route: string, html: string) => {
+        console.log(`[SSG] Rendered: ${route}`);
+        return html;
+      },
+      onFinished: () => {
         console.log('[SSG] Static generation complete!');
       },
     },
