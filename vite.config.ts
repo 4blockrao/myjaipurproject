@@ -11,17 +11,17 @@ export default defineConfig(({ mode }) => {
       host: '::',
       port: 8080,
     },
-    // SSG configuration
+    // SSG configuration for vite-react-ssg
     ssgOptions: {
       script: 'async',
       formatting: 'minify',
       crittersOptions: {
         reduceInlineStyles: false,
       },
-      // Only pre-render routes that have getStaticPaths defined
-      includedRoutes: (paths: string[]) => {
-        // Include all static routes plus dynamic deal routes
-        return paths;
+      // Handle errors gracefully during SSG
+      onPageRendered: (route: string, html: string) => {
+        console.log(`[SSG] Rendered: ${route}`);
+        return html;
       },
       onFinished: () => {
         console.log('[SSG] Static generation complete!');
