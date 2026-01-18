@@ -10,6 +10,10 @@ interface SoftRegistrationData {
 
 // Get session ID from analytics
 const getSessionId = (): string => {
+  if (typeof window === 'undefined' || typeof sessionStorage === 'undefined') {
+    return 'ssg_session';
+  }
+
   const key = 'jc_session_id';
   let sessionId = sessionStorage.getItem(key);
   if (!sessionId) {
@@ -21,17 +25,21 @@ const getSessionId = (): string => {
 
 // Get device info
 const getDeviceInfo = () => {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    return { deviceType: 'server', browser: 'unknown' };
+  }
+
   const ua = navigator.userAgent;
   let deviceType = 'desktop';
   if (/Mobi|Android/i.test(ua)) deviceType = 'mobile';
   else if (/Tablet|iPad/i.test(ua)) deviceType = 'tablet';
-  
+
   let browser = 'unknown';
   if (ua.includes('Firefox')) browser = 'Firefox';
   else if (ua.includes('Chrome') && !ua.includes('Edg')) browser = 'Chrome';
   else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Safari';
   else if (ua.includes('Edg')) browser = 'Edge';
-  
+
   return { deviceType, browser };
 };
 

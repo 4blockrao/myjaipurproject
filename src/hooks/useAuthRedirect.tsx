@@ -1,5 +1,4 @@
-
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 interface UseAuthRedirectReturn {
   redirectPath: string | null;
@@ -13,6 +12,9 @@ export const useAuthRedirect = (): UseAuthRedirectReturn => {
 
   const setRedirectPath = useCallback((path: string | null) => {
     setRedirectPathState(path);
+
+    if (typeof window === 'undefined' || typeof sessionStorage === 'undefined') return;
+
     if (path) {
       sessionStorage.setItem('auth_redirect_path', path);
     } else {
@@ -22,38 +24,42 @@ export const useAuthRedirect = (): UseAuthRedirectReturn => {
 
   const clearRedirectPath = useCallback(() => {
     setRedirectPathState(null);
+    if (typeof window === 'undefined' || typeof sessionStorage === 'undefined') return;
     sessionStorage.removeItem('auth_redirect_path');
   }, []);
 
-  const handleAuthRedirect = useCallback((currentPath?: string) => {
-    // Check if user is in a checkout flow or specific flow that needs preservation
-    const checkoutPaths = ['/checkout', '/deal/', '/order', '/payment'];
-    const path = currentPath || window.location.pathname;
-    
-    const isCheckoutFlow = checkoutPaths.some(checkoutPath => 
-      path.includes(checkoutPath)
-    );
-    
-    if (isCheckoutFlow) {
-      setRedirectPath(path + window.location.search);
-    } else {
-      // For normal auth flows, clear any existing redirect
-      clearRedirectPath();
-    }
-  }, [setRedirectPath, clearRedirectPath]);
+  const handleAuthRedirect = useCallback(
+    (currentPath?: string) => {
+      if (typeof window === 'undefined') return;
 
-  // Initialize from sessionStorage on first load
-  useState(() => {
+      // Check if user is in a checkout flow or specific flow that needs preservation
+      const checkoutPaths = ['/checkout', '/deal/', '/order', '/payment'];
+      const path = currentPath || window.location.pathname;
+
+      const isCheckoutFlow = checkoutPaths.some((checkoutPath) => path.includes(checkoutPath));
+
+      if (isCheckoutFlow) {
+        setRedirectPath(path + window.location.search);
+      } else {
+        // For normal auth flows, clear any existing redirect
+        clearRedirectPath();
+      }
+    },
+    [setRedirectPath, clearRedirectPath]
+  );
+
+  // Initialize from sessionStorage on first client load
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof sessionStorage === 'undefined') return;
     const savedPath = sessionStorage.getItem('auth_redirect_path');
-    if (savedPath) {
-      setRedirectPathState(savedPath);
-    }
-  });
+    if (savedPath) setRedirectPathState(savedPath);
+  }, []);
 
   return {
     redirectPath,
     setRedirectPath,
     clearRedirectPath,
-    handleAuthRedirect
+    handleAuthRedirect,
   };
 };
+

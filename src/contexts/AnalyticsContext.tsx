@@ -14,6 +14,11 @@ const AnalyticsContext = createContext<AnalyticsContextType | null>(null);
 
 // Generate unique session ID
 const getOrCreateSessionId = (): string => {
+  // During SSG/SSR there is no sessionStorage; use a deterministic placeholder
+  if (typeof window === 'undefined' || typeof sessionStorage === 'undefined') {
+    return 'ssg_session';
+  }
+
   const key = 'jc_session_id';
   let sessionId = sessionStorage.getItem(key);
   if (!sessionId) {
@@ -25,12 +30,22 @@ const getOrCreateSessionId = (): string => {
 
 // Parse user agent for device info
 const parseUserAgent = () => {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    return {
+      deviceType: 'server',
+      browser: 'unknown',
+      browserVersion: '',
+      os: 'unknown',
+      osVersion: '',
+    };
+  }
+
   const ua = navigator.userAgent;
-  
+
   let deviceType = 'desktop';
   if (/Mobi|Android/i.test(ua)) deviceType = 'mobile';
   else if (/Tablet|iPad/i.test(ua)) deviceType = 'tablet';
-  
+
   let browser = 'unknown';
   let browserVersion = '';
   if (ua.includes('Firefox')) {
@@ -46,7 +61,7 @@ const parseUserAgent = () => {
     browser = 'Edge';
     browserVersion = ua.match(/Edg\/([\d.]+)/)?.[1] || '';
   }
-  
+
   let os = 'unknown';
   let osVersion = '';
   if (ua.includes('Windows')) {
@@ -64,12 +79,22 @@ const parseUserAgent = () => {
   } else if (ua.includes('Linux')) {
     os = 'Linux';
   }
-  
+
   return { deviceType, browser, browserVersion, os, osVersion };
 };
 
 // Parse UTM params from URL
 const parseUtmParams = () => {
+  if (typeof window === 'undefined') {
+    return {
+      utm_source: undefined,
+      utm_medium: undefined,
+      utm_campaign: undefined,
+      utm_term: undefined,
+      utm_content: undefined,
+    };
+  }
+
   const params = new URLSearchParams(window.location.search);
   return {
     utm_source: params.get('utm_source') || undefined,
