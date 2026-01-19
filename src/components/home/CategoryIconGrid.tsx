@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { 
   Tag, Calendar, Home, Car, Utensils, Sparkles, 
-  ShoppingBag, Building2, Ticket
+  ShoppingBag, Building2, Newspaper
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface CategoryIconGridProps {
   onCategorySelect?: (category: string) => void;
@@ -13,10 +14,11 @@ interface Category {
   id: string;
   name: string;
   icon: LucideIcon;
-  bgColor: string;
-  iconColor: string;
+  gradient: string;
+  shadowColor: string;
   path: string;
   isPillar?: boolean;
+  count?: string;
 }
 
 const CategoryIconGrid = ({ onCategorySelect }: CategoryIconGridProps) => {
@@ -28,70 +30,74 @@ const CategoryIconGrid = ({ onCategorySelect }: CategoryIconGridProps) => {
       id: "deals", 
       name: "Deals", 
       icon: Tag, 
-      bgColor: "bg-gradient-to-br from-rose-500 to-pink-600",
-      iconColor: "text-white",
+      gradient: "from-rose-500 to-pink-600",
+      shadowColor: "shadow-rose-500/30",
       path: "/deals",
-      isPillar: true
+      isPillar: true,
+      count: "200+"
     },
     { 
       id: "events", 
       name: "Events", 
       icon: Calendar, 
-      bgColor: "bg-gradient-to-br from-purple-500 to-violet-600",
-      iconColor: "text-white",
+      gradient: "from-violet-500 to-purple-600",
+      shadowColor: "shadow-violet-500/30",
       path: "/events",
-      isPillar: true
+      isPillar: true,
+      count: "50+"
     },
     { 
       id: "property", 
       name: "Property", 
       icon: Home, 
-      bgColor: "bg-gradient-to-br from-emerald-500 to-teal-600",
-      iconColor: "text-white",
+      gradient: "from-emerald-500 to-teal-600",
+      shadowColor: "shadow-emerald-500/30",
       path: "/properties",
-      isPillar: true
+      isPillar: true,
+      count: "1K+"
     },
     { 
       id: "automobile", 
       name: "Cars", 
       icon: Car, 
-      bgColor: "bg-gradient-to-br from-blue-500 to-indigo-600",
-      iconColor: "text-white",
+      gradient: "from-blue-500 to-indigo-600",
+      shadowColor: "shadow-blue-500/30",
       path: "/cars",
-      isPillar: true
+      isPillar: true,
+      count: "100+"
     },
     // Secondary categories
     { 
       id: "food", 
       name: "Food", 
       icon: Utensils, 
-      bgColor: "bg-gradient-to-br from-orange-400 to-red-500",
-      iconColor: "text-white",
+      gradient: "from-orange-400 to-red-500",
+      shadowColor: "shadow-orange-500/25",
       path: "/deals?category=Food+%26+Dining"
     },
     { 
       id: "beauty", 
       name: "Beauty", 
       icon: Sparkles, 
-      bgColor: "bg-gradient-to-br from-pink-400 to-rose-500",
-      iconColor: "text-white",
+      gradient: "from-pink-400 to-rose-500",
+      shadowColor: "shadow-pink-500/25",
       path: "/deals?category=Beauty+%26+Wellness"
     },
     { 
       id: "shopping", 
       name: "Shop", 
       icon: ShoppingBag, 
-      bgColor: "bg-gradient-to-br from-cyan-400 to-blue-500",
-      iconColor: "text-white",
+      gradient: "from-cyan-400 to-blue-500",
+      shadowColor: "shadow-cyan-500/25",
       path: "/deals?category=Shopping"
     },
     { 
-      id: "merchants", 
-      name: "Business", 
-      icon: Building2, 
-      bgColor: "bg-gradient-to-br from-slate-500 to-gray-600",
-      iconColor: "text-white",
-      path: "/merchants"
+      id: "news", 
+      name: "News", 
+      icon: Newspaper, 
+      gradient: "from-slate-500 to-gray-600",
+      shadowColor: "shadow-slate-500/25",
+      path: "/news"
     },
   ];
 
@@ -101,37 +107,55 @@ const CategoryIconGrid = ({ onCategorySelect }: CategoryIconGridProps) => {
   };
 
   return (
-    <section className="px-4 py-5">
-      {/* Horizontal scrollable category icons */}
-      <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-1">
-        {categories.map((category) => {
-          const IconComponent = category.icon;
+    <section className="px-4 py-5 -mt-6 relative z-10">
+      {/* Elevated card container */}
+      <div className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border/50 shadow-xl shadow-black/5 p-4">
+        {/* Horizontal scrollable category icons */}
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
+          {categories.map((category) => {
+            const IconComponent = category.icon;
+            
+            return (
+              <button
+                key={category.id}
+                onClick={() => handleCategoryClick(category)}
+                className="flex flex-col items-center gap-2 group flex-shrink-0"
+              >
+                {/* Icon container with gradient and shadow */}
+                <div className={cn(
+                  "relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br flex items-center justify-center transition-all duration-300",
+                  category.gradient,
+                  category.shadowColor,
+                  "shadow-lg group-hover:shadow-xl group-hover:scale-105 group-active:scale-95"
+                )}>
+                  <IconComponent className="w-6 h-6 sm:w-7 sm:h-7 text-white" strokeWidth={1.5} />
+                  
+                  {/* Pillar indicator */}
+                  {category.isPillar && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full border-2 border-card shadow-sm">
+                      <Sparkles className="w-2 h-2 absolute top-0.5 left-0.5 text-amber-700" />
+                    </div>
+                  )}
+                </div>
+                
+                {/* Label */}
+                <div className="flex flex-col items-center">
+                  <span className="text-xs font-semibold text-foreground whitespace-nowrap">
+                    {category.name}
+                  </span>
+                  {category.count && (
+                    <span className="text-[10px] text-muted-foreground">
+                      {category.count}
+                    </span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
           
-          return (
-            <button
-              key={category.id}
-              onClick={() => handleCategoryClick(category)}
-              className="flex flex-col items-center gap-2 group flex-shrink-0"
-            >
-              {/* Icon container with gradient */}
-              <div className={`relative w-16 h-16 rounded-2xl ${category.bgColor} flex items-center justify-center shadow-md group-hover:shadow-lg group-active:scale-95 transition-all duration-200`}>
-                <IconComponent className={`w-7 h-7 ${category.iconColor}`} />
-                {/* Pillar indicator */}
-                {category.isPillar && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-background" />
-                )}
-              </div>
-              
-              {/* Label */}
-              <span className="text-xs font-medium text-foreground whitespace-nowrap">
-                {category.name}
-              </span>
-            </button>
-          );
-        })}
-        
-        {/* Fade indicator for more */}
-        <div className="w-4 flex-shrink-0" />
+          {/* Fade indicator for more */}
+          <div className="w-2 flex-shrink-0" />
+        </div>
       </div>
     </section>
   );
