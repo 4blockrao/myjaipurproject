@@ -11,9 +11,10 @@ import { NewsHomeSection } from "@/components/news/NewsHomeSection";
 import TopMerchantsSection from "@/components/home/TopMerchantsSection";
 import TopLocalitiesSection from "@/components/home/TopLocalitiesSection";
 import FeaturedProductsSection from "@/components/home/FeaturedProductsSection";
-import TrendingDealsSection from "@/components/home/TrendingDealsSection";
-import UpcomingEventsSection from "@/components/home/UpcomingEventsSection";
-import RecentDealsSection from "@/components/home/RecentDealsSection";
+import EventsHomeSection from "@/components/home/EventsHomeSection";
+import PropertiesSection from "@/components/home/PropertiesSection";
+import CarsSection from "@/components/home/CarsSection";
+import CategoryPillarSection from "@/components/home/CategoryPillarSection";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import HomeSEO from "@/components/seo/HomeSEO";
@@ -24,6 +25,7 @@ import { LocalityPromptModal } from "@/components/home/LocalityPromptModal";
 import { LocalityBadge } from "@/components/home/LocalityBadge";
 import { LocalitySelectorModal } from "@/components/locality/LocalitySelectorModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { UtensilsCrossed, Sparkles } from "lucide-react";
 
 const Index = () => {
   const { user } = useAuth();
@@ -36,10 +38,8 @@ const Index = () => {
   const [showLocalityPrompt, setShowLocalityPrompt] = useState(false);
   const [showLocalitySelector, setShowLocalitySelector] = useState(false);
 
-  // Show locality prompt when needed
   useEffect(() => {
     if (shouldPromptLocality) {
-      // Small delay to let the page load first
       const timer = setTimeout(() => setShowLocalityPrompt(true), 1000);
       return () => clearTimeout(timer);
     }
@@ -55,7 +55,6 @@ const Index = () => {
 
   const isAuthenticated = !!user;
 
-  // Fetch user balance
   const { data: userBalance = 0 } = useQuery({
     queryKey: ["userBalance", user?.id],
     queryFn: async () => {
@@ -69,7 +68,6 @@ const Index = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch hot deals - filter by locality if set
   const { data: hotDeals = [], isLoading: dealsLoading } = useQuery({
     queryKey: ["hot-deals-home", selectedCategory, userLocality?.slug],
     queryFn: async () => {
@@ -86,7 +84,6 @@ const Index = () => {
         query = query.eq("category", selectedCategory);
       }
 
-      // Filter by locality if user has one set
       if (userLocality?.name) {
         query = query.ilike("location", `%${userLocality.name}%`);
       }
@@ -103,7 +100,6 @@ const Index = () => {
       <HomeSEO />
       <HomepageSchema />
 
-      {/* Premium Header with Locality Badge */}
       <HeaderMinimal
         isAuthenticated={isAuthenticated}
         onSignIn={() => navigate('/auth')}
@@ -120,41 +116,54 @@ const Index = () => {
       />
 
       <main className="flex-1 pb-24">
-        {/* Hero Carousel with multiple slides */}
         <HeroCarousel />
-
-        {/* Floating Search Bar */}
         <SearchBarFloating />
-
-        {/* Category Icons - includes Property & Cars */}
         <CategoryIconGrid onCategorySelect={setSelectedCategory} />
 
-        {/* Hot Deals Section - Locality filtered */}
+        {/* Hot Deals */}
         <HotDealsSection
           deals={hotDeals}
           isLoading={dealsLoading}
           title={userLocality ? `Hot Deals in ${userLocality.name}` : "Hot Deals in Jaipur"}
         />
 
-        {/* Trending Deals - Featured deals */}
-        <TrendingDealsSection />
+        {/* Events */}
+        <EventsHomeSection />
 
-        {/* Upcoming Events */}
-        <UpcomingEventsSection />
-
-        {/* Featured Products */}
+        {/* Featured Products (1-2 rows) */}
         <FeaturedProductsSection />
 
-        {/* Recently Added Deals */}
-        <RecentDealsSection />
+        {/* Food & Dining */}
+        <CategoryPillarSection
+          title="Food & Dining"
+          icon={UtensilsCrossed}
+          iconColor="bg-orange-500"
+          category="food"
+          viewAllLink="/deals?category=food"
+        />
 
-        {/* News Section */}
-        <section className="px-4">
-          <NewsHomeSection />
-        </section>
+        {/* Beauty & Wellness */}
+        <CategoryPillarSection
+          title="Beauty & Wellness"
+          icon={Sparkles}
+          iconColor="bg-pink-500"
+          category="beauty"
+          viewAllLink="/deals?category=beauty"
+        />
+
+        {/* Properties */}
+        <PropertiesSection />
+
+        {/* Cars */}
+        <CarsSection />
 
         {/* Top Merchants */}
         <TopMerchantsSection />
+
+        {/* News */}
+        <section className="px-4">
+          <NewsHomeSection />
+        </section>
 
         {/* Top Localities */}
         <TopLocalitiesSection />
@@ -163,14 +172,12 @@ const Index = () => {
       <Footer />
       <BottomNavHeritage />
 
-      {/* Locality Prompt Modal - shown on first visit */}
       <LocalityPromptModal
         open={showLocalityPrompt}
         onOpenChange={setShowLocalityPrompt}
         onSelect={handleLocalitySelect}
       />
 
-      {/* Locality Selector Modal - for changing locality */}
       <LocalitySelectorModal
         open={showLocalitySelector}
         onOpenChange={setShowLocalitySelector}
@@ -181,4 +188,3 @@ const Index = () => {
 };
 
 export default Index;
-
