@@ -103,10 +103,11 @@ const Index = () => {
       <HomeSEO />
       <HomepageSchema />
 
-      {/* Minimal Header with Locality Badge */}
+      {/* Premium Header with Locality Badge */}
       <HeaderMinimal
         isAuthenticated={isAuthenticated}
         onSignIn={() => navigate('/auth')}
+        jaiCoins={userBalance}
         localityBadge={
           userLocality ? (
             <LocalityBadge
