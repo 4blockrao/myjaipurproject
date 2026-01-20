@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import DealsSEO from "@/components/seo/DealsSEO";
 import { PillarSchema } from "@/components/seo/SchemaInjector";
+import { getProductPlaceholder } from "@/utils/placeholderImages";
 import { 
   Search, MapPin, Clock, Heart, Share2, 
   SlidersHorizontal, X, Store, Star, ChevronRight,
@@ -333,18 +334,15 @@ const DealsPage = () => {
                 <CardContent className="p-0">
                   <div className="flex gap-3 p-3">
                     {/* Deal Image */}
-                    <div className="relative h-24 w-24 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center shrink-0 overflow-hidden">
-                      {deal.image_url ? (
-                        <img 
-                          src={deal.image_url} 
-                          alt={deal.title}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-3xl">
-                          {categoryEmojis[deal.category || ""] || "🎁"}
-                        </span>
-                      )}
+                    <div className="relative h-24 w-24 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                      <img 
+                        src={deal.image_url || getProductPlaceholder(deal.category)} 
+                        alt={deal.title}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = getProductPlaceholder(deal.category);
+                        }}
+                      />
                       {deal.discount_percentage && (
                         <Badge className="absolute top-1.5 left-1.5 bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5">
                           {deal.discount_percentage}% OFF
