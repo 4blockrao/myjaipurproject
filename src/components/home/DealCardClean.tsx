@@ -1,7 +1,7 @@
 import { Heart, Star, Diamond, Clock, MapPin, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { getPlaceholderImage } from "@/utils/placeholderImages";
+import { getProductPlaceholder } from "@/utils/placeholderImages";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 
@@ -32,8 +32,8 @@ interface DealCardCleanProps {
 const DealCardClean = ({ deal, variant = 'default' }: DealCardCleanProps) => {
   const navigate = useNavigate();
   
-  // Use category-based placeholder if no image
-  const imageUrl = deal.image_url || getPlaceholderImage(deal.category);
+  // Use category-based product placeholder if no image
+  const imageUrl = deal.image_url || getProductPlaceholder(deal.category);
   
   const discountPercent = deal.discount_percentage || 
     (deal.original_price && deal.discounted_price 
