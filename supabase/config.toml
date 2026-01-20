@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.seed-tata-sierra-article]
 verify_jwt = false
+
+[functions.seed-cars-data]
+verify_jwt = false
+
+[functions.scrape-bookmyshow-events]
+verify_jwt = false

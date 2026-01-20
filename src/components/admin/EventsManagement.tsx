@@ -12,10 +12,13 @@ import {
   XCircle,
   Search,
   Download,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EventScraper } from "@/components/admin/EventScraper";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -169,7 +172,19 @@ const EventsManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <Tabs defaultValue="manage" className="space-y-6">
+      <TabsList>
+        <TabsTrigger value="manage" className="gap-2">
+          <Calendar className="w-4 h-4" />
+          Manage Events
+        </TabsTrigger>
+        <TabsTrigger value="scraper" className="gap-2">
+          <Globe className="w-4 h-4" />
+          Import from Web
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="manage" className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
@@ -406,7 +421,12 @@ const EventsManagement = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </TabsContent>
+
+      <TabsContent value="scraper">
+        <EventScraper />
+      </TabsContent>
+    </Tabs>
   );
 };
 
