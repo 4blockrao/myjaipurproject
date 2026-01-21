@@ -13,12 +13,14 @@ import {
   Search,
   Download,
   Globe,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventScraper } from "@/components/admin/EventScraper";
+import { EventEditor } from "@/components/admin/EventEditor";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -53,6 +55,7 @@ const EventsManagement = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [editingEvent, setEditingEvent] = useState<any>(null);
 
   const { data: events, isLoading } = useQuery({
     queryKey: ["admin-events", statusFilter],
@@ -77,13 +80,13 @@ const EventsManagement = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("event_registrations")
-        .select("event_id");
+        .select("event_id, ticket_count");
 
       if (error) throw error;
 
       const counts: Record<string, number> = {};
       data.forEach((r) => {
-        counts[r.event_id] = (counts[r.event_id] || 0) + 1;
+        counts[r.event_id] = (counts[r.event_id] || 0) + (r.ticket_count || 1);
       });
       return counts;
     },
@@ -200,7 +203,7 @@ const EventsManagement = () => {
             <CardTitle className="text-sm font-medium">Published</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.published}</div>
+            <div className="text-2xl font-bold text-primary">{stats.published}</div>
           </CardContent>
         </Card>
         <Card>
@@ -208,7 +211,7 @@ const EventsManagement = () => {
             <CardTitle className="text-sm font-medium">Drafts</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats.draft}</div>
+            <div className="text-2xl font-bold text-muted-foreground">{stats.draft}</div>
           </CardContent>
         </Card>
         <Card>
@@ -293,7 +296,7 @@ const EventsManagement = () => {
                           <div className="font-medium flex items-center gap-2">
                             {event.title}
                             {event.is_featured && (
-                              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                              <Star className="w-4 h-4 text-primary fill-primary" />
                             )}
                           </div>
                           <div className="text-sm text-muted-foreground">
@@ -332,6 +335,14 @@ const EventsManagement = () => {
                         <Button
                           variant="ghost"
                           size="sm"
+                          onClick={() => setEditingEvent(event)}
+                          title="Edit"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() =>
                             updateEventMutation.mutate({
                               id: event.id,
@@ -361,7 +372,7 @@ const EventsManagement = () => {
                             }
                             title="Publish"
                           >
-                            <CheckCircle className="w-4 h-4 text-green-600" />
+                            <CheckCircle className="w-4 h-4 text-primary" />
                           </Button>
                         ) : (
                           <Button
@@ -375,7 +386,7 @@ const EventsManagement = () => {
                             }
                             title="Unpublish"
                           >
-                            <XCircle className="w-4 h-4 text-yellow-600" />
+                            <XCircle className="w-4 h-4 text-muted-foreground" />
                           </Button>
                         )}
                         <a
@@ -426,6 +437,15 @@ const EventsManagement = () => {
       <TabsContent value="scraper">
         <EventScraper />
       </TabsContent>
+
+      {/* Event Editor Modal */}
+      {editingEvent && (
+        <EventEditor
+          event={editingEvent}
+          open={!!editingEvent}
+          onClose={() => setEditingEvent(null)}
+        />
+      )}
     </Tabs>
   );
 };
