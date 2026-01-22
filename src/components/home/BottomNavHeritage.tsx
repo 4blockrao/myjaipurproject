@@ -1,4 +1,4 @@
-import { Home, Tag, CalendarDays, MapPin, User } from "lucide-react";
+import { Home, Tag, CalendarDays, Newspaper, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,7 @@ const BottomNavHeritage = () => {
     { icon: Home, label: "Home", path: "/" },
     { icon: Tag, label: "Deals", path: "/deals" },
     { icon: CalendarDays, label: "Events", path: "/events" },
-    { icon: MapPin, label: "Explore", path: "/jaipur" },
+    { icon: Newspaper, label: "News", path: "/news" },
     { icon: User, label: "Account", path: "/account" }
   ];
 

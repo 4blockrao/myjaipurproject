@@ -6,7 +6,7 @@ import NativeBottomNav from "@/components/home/NativeBottomNav";
 import JaipurCircleLogo from "@/components/ui/JaipurCircleLogo";
 import { 
   CheckCircle, Trophy, Users, Gift, Share2, 
-  Home, ArrowRight, Coins, Crown, Sparkles,
+  Home, ArrowRight, Coins, Crown, Info,
   Target, Star, Zap
 } from "lucide-react";
 
@@ -51,7 +51,7 @@ const ReferralSuccessPage = () => {
         <Card>
           <CardContent className="p-6">
             <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
+              <Info className="w-5 h-5 text-primary" />
               What is JaipurCircle?
             </h3>
             <p className="text-muted-foreground text-sm mb-4">

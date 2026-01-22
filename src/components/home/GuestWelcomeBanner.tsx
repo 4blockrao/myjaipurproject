@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Gift, Coins, Users, ArrowRight, X, Sparkles } from "lucide-react";
+import { Gift, Coins, Users, ArrowRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -36,8 +36,8 @@ const GuestWelcomeBanner = ({ onSignUp }: GuestWelcomeBannerProps) => {
         <div className="p-4 space-y-4">
           {/* Header */}
           <div className="flex items-start gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-primary to-primary/80 rounded-xl shadow-lg shadow-primary/20">
-              <Sparkles className="w-6 h-6 text-primary-foreground" />
+            <div className="p-2.5 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl shadow-lg shadow-amber-500/20">
+              <Coins className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1 pr-6">
               <h3 className="font-bold text-foreground text-lg">

@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   Users, Coins, Gift, Star, Trophy, Crown,
-  Share2, ChevronRight, Sparkles, Target
+  Share2, ChevronRight, Target
 } from "lucide-react";
 
 interface ReferEarnSectionProps {
@@ -131,7 +131,7 @@ const ReferEarnSection = ({ user, profile }: ReferEarnSectionProps) => {
       <div className="relative max-w-7xl mx-auto">
         <div className="text-center mb-6 lg:mb-8">
           <Badge className="bg-gradient-to-r from-pink-500 to-orange-400 text-white border-0 mb-3 lg:mb-4 px-3 lg:px-4 py-1 lg:py-2">
-            <Sparkles className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
+            <Coins className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
             <span className="text-xs lg:text-sm">Refer & Earn Program</span>
           </Badge>
           <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-3 lg:mb-4 px-2">
