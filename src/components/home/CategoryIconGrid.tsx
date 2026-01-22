@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { 
-  Tag, Calendar, Home, Car, Utensils, Sparkles, 
+  Tag, Calendar, Home, Car, Utensils, Heart, 
   ShoppingBag, Building2, Newspaper
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
@@ -78,7 +78,7 @@ const CategoryIconGrid = ({ onCategorySelect }: CategoryIconGridProps) => {
     { 
       id: "beauty", 
       name: "Beauty", 
-      icon: Sparkles, 
+      icon: Heart, 
       gradient: "from-pink-400 to-rose-500",
       shadowColor: "shadow-pink-500/25",
       path: "/deals?category=Beauty+%26+Wellness"
@@ -107,7 +107,7 @@ const CategoryIconGrid = ({ onCategorySelect }: CategoryIconGridProps) => {
   };
 
   return (
-    <section className="px-4 py-5 -mt-6 relative z-10">
+    <section className="px-4 pt-6 pb-5 relative z-10">
       {/* Elevated card container */}
       <div className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border/50 shadow-xl shadow-black/5 p-4">
         {/* Horizontal scrollable category icons */}
@@ -130,10 +130,10 @@ const CategoryIconGrid = ({ onCategorySelect }: CategoryIconGridProps) => {
                 )}>
                   <IconComponent className="w-6 h-6 sm:w-7 sm:h-7 text-white" strokeWidth={1.5} />
                   
-                  {/* Pillar indicator */}
+                  {/* Pillar indicator - small star */}
                   {category.isPillar && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full border-2 border-card shadow-sm">
-                      <Sparkles className="w-2 h-2 absolute top-0.5 left-0.5 text-amber-700" />
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full border-2 border-card shadow-sm flex items-center justify-center">
+                      <span className="text-[8px]">⭐</span>
                     </div>
                   )}
                 </div>

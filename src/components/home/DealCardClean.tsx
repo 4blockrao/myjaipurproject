@@ -1,4 +1,4 @@
-import { Heart, Star, Diamond, Clock, MapPin, Sparkles } from "lucide-react";
+import { Heart, Star, Diamond, Clock, MapPin, Coins } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { getProductPlaceholder } from "@/utils/placeholderImages";
@@ -175,7 +175,7 @@ const DealCardClean = ({ deal, variant = 'default' }: DealCardCleanProps) => {
               variant="secondary" 
               className="text-xs bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/50 dark:to-orange-950/50 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800"
             >
-              <Sparkles className="w-3 h-3 mr-1" />
+              <Coins className="w-3 h-3 mr-1" />
               +{deal.jaicoin_reward}
             </Badge>
           )}

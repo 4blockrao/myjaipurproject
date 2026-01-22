@@ -19,13 +19,13 @@ export const LocalityBadge = ({
       <button
         onClick={onClick}
         className={cn(
-          "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors text-sm font-medium text-primary",
+          "flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors text-sm font-medium text-primary",
           className
         )}
       >
-        <MapPin className="w-3.5 h-3.5" />
-        <span className="max-w-[120px] truncate">{localityName}</span>
-        <ChevronDown className="w-3.5 h-3.5" />
+        <MapPin className="w-3.5 h-3.5 shrink-0" />
+        <span className="max-w-[90px] truncate">{localityName}</span>
+        <ChevronDown className="w-3.5 h-3.5 shrink-0" />
       </button>
     );
   }

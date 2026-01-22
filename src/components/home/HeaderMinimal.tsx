@@ -1,4 +1,4 @@
-import { User, Search, Bell, Sparkles } from "lucide-react";
+import { User, Search, Bell, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
 import JaipurCircleLogo from "@/components/ui/JaipurCircleLogo";
@@ -23,12 +23,14 @@ const HeaderMinimal = ({
 
   return (
     <header className="bg-background/80 backdrop-blur-xl sticky top-0 z-40 safe-area-pt border-b border-border/20">
-      <div className="px-4 py-3 flex items-center justify-between gap-3">
-        {/* Logo and Locality */}
-        <div className="flex items-center gap-3 min-w-0">
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <JaipurCircleLogo size="md" />
-          </Link>
+      <div className="px-4 py-3 flex items-center justify-between gap-2">
+        {/* Logo */}
+        <Link to="/" className="flex items-center shrink-0">
+          <JaipurCircleLogo size="md" />
+        </Link>
+        
+        {/* Locality Badge - centered */}
+        <div className="flex-1 flex justify-center min-w-0 px-2">
           {localityBadge}
         </div>
         
@@ -42,7 +44,7 @@ const HeaderMinimal = ({
               className="hidden sm:flex items-center gap-1.5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 text-amber-700 dark:text-amber-400 rounded-full px-3 h-9"
               onClick={() => navigate('/account/wallet')}
             >
-              <Sparkles className="w-4 h-4" />
+              <Coins className="w-4 h-4" />
               <span className="font-semibold">{jaiCoins.toLocaleString()}</span>
             </Button>
           )}
