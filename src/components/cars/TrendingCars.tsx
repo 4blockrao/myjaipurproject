@@ -14,16 +14,19 @@ const formatPrice = (price: number | null) => {
   return `₹${(price / 100000).toFixed(2)} L`;
 };
 
-// Fallback images for cars when cover_image is missing
-const getCarFallbackImage = (bodyType: string, brandName: string) => {
-  const bodyTypeImages: Record<string, string> = {
-    'suv': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/141867/nexon-exterior-right-front-three-quarter-79.png',
-    'compact-suv': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/107541/punch-exterior-right-front-three-quarter-62.png',
-    'hatchback': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/102849/swift-exterior-right-front-three-quarter-2.png',
-    'sedan': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/144169/verna-exterior-right-front-three-quarter-57.png',
-    'muv': 'https://imgd.aeplcdn.com/664x374/n/cw/ec/115025/ertiga-exterior-right-front-three-quarter-3.png',
-  };
-  return bodyTypeImages[bodyType] || bodyTypeImages['suv'];
+// Reliable car placeholder images using Unsplash (always available)
+const carPlaceholders: Record<string, string> = {
+  'suv': 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=600&h=400&fit=crop',
+  'compact-suv': 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&h=400&fit=crop',
+  'hatchback': 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&h=400&fit=crop',
+  'sedan': 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&h=400&fit=crop',
+  'muv': 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&h=400&fit=crop',
+  'default': 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&h=400&fit=crop',
+};
+
+const getCarFallbackImage = (bodyType: string | null) => {
+  if (!bodyType) return carPlaceholders['default'];
+  return carPlaceholders[bodyType.toLowerCase()] || carPlaceholders['default'];
 };
 
 const TrendingCars = () => {
@@ -83,8 +86,8 @@ const TrendingCars = () => {
             ))
           ) : trendingModels?.map((model: any) => {
             const imageUrl = imageErrors.has(model.id) 
-              ? getCarFallbackImage(model.body_type, model.brand?.name)
-              : (model.cover_image || getCarFallbackImage(model.body_type, model.brand?.name));
+              ? getCarFallbackImage(model.body_type)
+              : (model.cover_image || getCarFallbackImage(model.body_type));
 
             return (
               <Link 
