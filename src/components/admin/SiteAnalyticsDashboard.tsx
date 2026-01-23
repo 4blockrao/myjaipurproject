@@ -18,7 +18,76 @@ import {
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
 const SiteAnalyticsDashboard = () => {
-  // Fetch visitor sessions
+  // Fetch total counts separately for accurate stats
+  const { data: sessionCount, isLoading: sessionCountLoading } = useQuery({
+    queryKey: ['admin-session-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('visitor_sessions')
+        .select('*', { count: 'exact', head: true });
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  const { data: pageViewCount, isLoading: pageViewCountLoading } = useQuery({
+    queryKey: ['admin-pageview-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('page_views')
+        .select('*', { count: 'exact', head: true });
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  const { data: searchCount, isLoading: searchCountLoading } = useQuery({
+    queryKey: ['admin-search-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('search_queries')
+        .select('*', { count: 'exact', head: true });
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  const { data: clickCount, isLoading: clickCountLoading } = useQuery({
+    queryKey: ['admin-click-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('click_events')
+        .select('*', { count: 'exact', head: true });
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  const { data: softRegCount, isLoading: softRegCountLoading } = useQuery({
+    queryKey: ['admin-softreg-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('soft_registrations')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_completed', false);
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  const { data: convertedCount } = useQuery({
+    queryKey: ['admin-converted-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('visitor_sessions')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_converted', true);
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  // Fetch visitor sessions for details (limited for display)
   const { data: sessions, isLoading: sessionsLoading } = useQuery({
     queryKey: ['admin-visitor-sessions'],
     queryFn: async () => {
@@ -26,13 +95,13 @@ const SiteAnalyticsDashboard = () => {
         .from('visitor_sessions')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(500);
+        .limit(100);
       if (error) throw error;
       return data || [];
     },
   });
 
-  // Fetch page views
+  // Fetch page views for breakdown (limited for display)
   const { data: pageViews, isLoading: pageViewsLoading } = useQuery({
     queryKey: ['admin-page-views'],
     queryFn: async () => {
@@ -40,13 +109,13 @@ const SiteAnalyticsDashboard = () => {
         .from('page_views')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(1000);
+        .limit(500);
       if (error) throw error;
       return data || [];
     },
   });
 
-  // Fetch search queries
+  // Fetch search queries for display
   const { data: searches, isLoading: searchesLoading } = useQuery({
     queryKey: ['admin-search-queries'],
     queryFn: async () => {
@@ -54,27 +123,13 @@ const SiteAnalyticsDashboard = () => {
         .from('search_queries')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(500);
+        .limit(100);
       if (error) throw error;
       return data || [];
     },
   });
 
-  // Fetch click events
-  const { data: clicks, isLoading: clicksLoading } = useQuery({
-    queryKey: ['admin-click-events'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('click_events')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(500);
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  // Fetch soft registrations
+  // Fetch soft registrations for display
   const { data: softRegs, isLoading: softRegsLoading } = useQuery({
     queryKey: ['admin-soft-registrations'],
     queryFn: async () => {
@@ -82,22 +137,24 @@ const SiteAnalyticsDashboard = () => {
         .from('soft_registrations')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(500);
+        .limit(100);
       if (error) throw error;
       return data || [];
     },
   });
 
-  const isLoading = sessionsLoading || pageViewsLoading || searchesLoading || clicksLoading || softRegsLoading;
+  const isLoading = sessionCountLoading || pageViewCountLoading || searchCountLoading || 
+                    clickCountLoading || softRegCountLoading || sessionsLoading || 
+                    pageViewsLoading || searchesLoading || softRegsLoading;
 
-  // Stats calculations
-  const totalSessions = sessions?.length || 0;
-  const totalPageViews = pageViews?.length || 0;
-  const totalSearches = searches?.length || 0;
-  const totalClicks = clicks?.length || 0;
-  const totalSoftRegs = softRegs?.filter(r => !r.is_completed)?.length || 0;
+  // Stats from COUNT queries (accurate totals)
+  const totalSessions = sessionCount || 0;
+  const totalPageViews = pageViewCount || 0;
+  const totalSearches = searchCount || 0;
+  const totalClicks = clickCount || 0;
+  const totalSoftRegs = softRegCount || 0;
   const conversionRate = totalSessions > 0 
-    ? ((sessions?.filter(s => s.is_converted)?.length || 0) / totalSessions * 100).toFixed(1)
+    ? ((convertedCount || 0) / totalSessions * 100).toFixed(1)
     : '0';
 
   // Device breakdown
