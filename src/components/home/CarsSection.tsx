@@ -7,39 +7,51 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronRight, Car, Fuel, Gauge, Zap } from "lucide-react";
 import { useState } from "react";
 
-// Reliable car placeholder images by body type
+// Reliable car placeholder images by body type - using stable Unsplash URLs
 const carPlaceholders: Record<string, string> = {
-  'suv': 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=300&fit=crop',
-  'compact-suv': 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=300&fit=crop',
-  'hatchback': 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=300&fit=crop',
-  'sedan': 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=300&fit=crop',
-  'muv': 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=300&fit=crop',
-  'default': 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=300&fit=crop',
+  'suv': 'https://images.unsplash.com/photo-1606611013016-96f7f5c69d10?w=400&h=300&fit=crop&auto=format',
+  'compact-suv': 'https://images.unsplash.com/photo-1625395005224-0fce68a3cdc8?w=400&h=300&fit=crop&auto=format',
+  'compact suv': 'https://images.unsplash.com/photo-1625395005224-0fce68a3cdc8?w=400&h=300&fit=crop&auto=format',
+  'hatchback': 'https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=400&h=300&fit=crop&auto=format',
+  'sedan': 'https://images.unsplash.com/photo-1617531653332-bd46c24f2068?w=400&h=300&fit=crop&auto=format',
+  'muv': 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=300&fit=crop&auto=format',
+  'coupe': 'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=400&h=300&fit=crop&auto=format',
+  'default': 'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=400&h=300&fit=crop&auto=format',
 };
 
 const getCarPlaceholder = (bodyType: string | null) => {
   if (!bodyType) return carPlaceholders['default'];
-  return carPlaceholders[bodyType.toLowerCase()] || carPlaceholders['default'];
+  const key = bodyType.toLowerCase().trim();
+  return carPlaceholders[key] || carPlaceholders['default'];
 };
 
 // Separate card component to properly use hooks
 const CarCard = ({ car, formatPrice, navigate }: { car: any; formatPrice: (p: number | null) => string; navigate: any }) => {
   const [imgError, setImgError] = useState(false);
-  const imgSrc = imgError ? getCarPlaceholder(car.body_type) : (car.cover_image || getCarPlaceholder(car.body_type));
+  const [imgLoaded, setImgLoaded] = useState(false);
+  
+  // Always use placeholder if no cover_image or on error
+  const hasCoverImage = car.cover_image && car.cover_image.trim() !== '';
+  const imgSrc = imgError || !hasCoverImage ? getCarPlaceholder(car.body_type) : car.cover_image;
 
   return (
     <Card 
       onClick={() => navigate(`/cars/${car.car_brands?.slug}/${car.slug}`)}
-      className="w-52 shrink-0 cursor-pointer group overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 bg-gradient-to-b from-card to-muted/30"
+      className="w-48 shrink-0 cursor-pointer group overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 bg-gradient-to-b from-card to-muted/30"
     >
       {/* Image */}
-      <div className="relative h-28 overflow-hidden bg-gradient-to-br from-muted/50 to-muted">
+      <div className="relative h-28 overflow-hidden bg-gradient-to-br from-muted/30 to-muted/60">
+        {/* Placeholder background while loading */}
+        {!imgLoaded && (
+          <div className="absolute inset-0 animate-pulse bg-muted/50" />
+        )}
         <img 
           src={imgSrc} 
           alt={car.name}
-          className="w-full h-full object-contain p-2 group-hover:scale-110 transition-transform duration-500"
+          className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
           loading="lazy"
-          onError={() => setImgError(true)}
+          onLoad={() => setImgLoaded(true)}
+          onError={() => { setImgError(true); setImgLoaded(true); }}
         />
         
         {/* Badges */}
