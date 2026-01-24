@@ -1,6 +1,7 @@
 import { Home, Tag, CalendarDays, Newspaper, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAnalytics } from "@/contexts/AnalyticsContext";
 
 interface NavItem {
   icon: React.ElementType;
@@ -10,6 +11,7 @@ interface NavItem {
 
 const BottomNavHeritage = () => {
   const location = useLocation();
+  const { trackClick } = useAnalytics();
 
   const navItems: NavItem[] = [
     { icon: Home, label: "Home", path: "/" },
@@ -22,6 +24,10 @@ const BottomNavHeritage = () => {
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
     return location.pathname.startsWith(path);
+  };
+
+  const handleNavClick = (item: NavItem) => {
+    trackClick('bottom_nav', item.label, item.path, item.path);
   };
 
   return (
@@ -37,6 +43,7 @@ const BottomNavHeritage = () => {
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={() => handleNavClick(item)}
                 className={cn(
                   "flex flex-col items-center py-2.5 px-3 sm:px-5 transition-all duration-300 min-w-[56px] relative group",
                   active ? "text-primary" : "text-muted-foreground hover:text-foreground"
