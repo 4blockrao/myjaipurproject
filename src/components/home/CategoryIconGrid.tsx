@@ -107,11 +107,11 @@ const CategoryIconGrid = ({ onCategorySelect }: CategoryIconGridProps) => {
   };
 
   return (
-    <section className="px-4 pt-6 pb-5 relative z-10">
+    <section className="px-4 pt-4 pb-3 relative z-10">
       {/* Elevated card container */}
-      <div className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border/50 shadow-xl shadow-black/5 p-4">
+      <div className="bg-card/90 backdrop-blur-xl rounded-xl border border-border/40 shadow-lg p-3">
         {/* Horizontal scrollable category icons */}
-        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
+        <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-0.5 px-0.5">
           {categories.map((category) => {
             const IconComponent = category.icon;
             
@@ -119,42 +119,37 @@ const CategoryIconGrid = ({ onCategorySelect }: CategoryIconGridProps) => {
               <button
                 key={category.id}
                 onClick={() => handleCategoryClick(category)}
-                className="flex flex-col items-center gap-2 group flex-shrink-0"
+                className="flex flex-col items-center gap-1.5 group flex-shrink-0 min-w-[52px]"
               >
                 {/* Icon container with gradient and shadow */}
                 <div className={cn(
-                  "relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br flex items-center justify-center transition-all duration-300",
+                  "relative w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center transition-all duration-300",
                   category.gradient,
                   category.shadowColor,
-                  "shadow-lg group-hover:shadow-xl group-hover:scale-105 group-active:scale-95"
+                  "shadow-md group-hover:shadow-lg group-hover:scale-105 group-active:scale-95"
                 )}>
-                  <IconComponent className="w-6 h-6 sm:w-7 sm:h-7 text-white" strokeWidth={1.5} />
+                  <IconComponent className="w-5 h-5 text-white" strokeWidth={1.5} />
                   
                   {/* Pillar indicator - small star */}
                   {category.isPillar && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full border-2 border-card shadow-sm flex items-center justify-center">
-                      <span className="text-[8px]">⭐</span>
+                    <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-amber-400 rounded-full border-[1.5px] border-card shadow-sm flex items-center justify-center">
+                      <span className="text-[6px]">⭐</span>
                     </div>
                   )}
                 </div>
                 
                 {/* Label */}
                 <div className="flex flex-col items-center">
-                  <span className="text-xs font-semibold text-foreground whitespace-nowrap">
+                  <span className="text-[11px] font-semibold text-foreground whitespace-nowrap">
                     {category.name}
                   </span>
-                  {category.count && (
-                    <span className="text-[10px] text-muted-foreground">
-                      {category.count}
-                    </span>
-                  )}
                 </div>
               </button>
             );
           })}
           
           {/* Fade indicator for more */}
-          <div className="w-2 flex-shrink-0" />
+          <div className="w-1 flex-shrink-0" />
         </div>
       </div>
     </section>
