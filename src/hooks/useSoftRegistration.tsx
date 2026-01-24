@@ -73,17 +73,14 @@ export const useSoftRegistration = () => {
     
     try {
       const { deviceType, browser } = getDeviceInfo();
-      const location = await fetchLocation();
       
+      // Build payload without waiting for location (non-blocking)
       const payload = {
         session_id: sessionId.current,
         email: dataRef.current.email || null,
         full_name: dataRef.current.fullName || null,
         phone: dataRef.current.phone || null,
         locality: dataRef.current.locality || null,
-        ip_address: location?.ip,
-        city: location?.city,
-        state: location?.state,
         device_type: deviceType,
         browser,
         fields_filled: Array.from(fieldsFilledRef.current),
@@ -92,20 +89,41 @@ export const useSoftRegistration = () => {
 
       if (softRegId.current) {
         // Update existing record
-        await supabase
+        const { error } = await supabase
           .from('soft_registrations')
           .update(payload)
           .eq('id', softRegId.current);
+        
+        if (error) {
+          console.error('Failed to update soft registration:', error);
+        }
       } else {
         // Insert new record
-        const { data: inserted } = await supabase
+        const { data: inserted, error } = await supabase
           .from('soft_registrations')
           .insert(payload)
           .select('id')
           .single();
         
-        if (inserted) {
+        if (error) {
+          console.error('Failed to insert soft registration:', error);
+        } else if (inserted) {
           softRegId.current = inserted.id;
+          console.log('Soft registration created:', inserted.id);
+          
+          // Now fetch location and update (non-blocking)
+          fetchLocation().then(async (location) => {
+            if (location && softRegId.current) {
+              await supabase
+                .from('soft_registrations')
+                .update({
+                  ip_address: location.ip,
+                  city: location.city,
+                  state: location.state,
+                })
+                .eq('id', softRegId.current);
+            }
+          });
         }
       }
     } catch (error) {
