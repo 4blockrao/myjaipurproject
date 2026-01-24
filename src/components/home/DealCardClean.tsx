@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { getProductPlaceholder } from "@/utils/placeholderImages";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
+import { useAnalytics } from "@/contexts/AnalyticsContext";
 
 interface DealCardCleanProps {
   deal: {
@@ -31,6 +32,7 @@ interface DealCardCleanProps {
 
 const DealCardClean = ({ deal, variant = 'default' }: DealCardCleanProps) => {
   const navigate = useNavigate();
+  const { trackClick } = useAnalytics();
   
   // Use category-based product placeholder if no image
   const imageUrl = deal.image_url || getProductPlaceholder(deal.category);
@@ -42,6 +44,7 @@ const DealCardClean = ({ deal, variant = 'default' }: DealCardCleanProps) => {
 
   const handleClick = () => {
     const dealPath = deal.slug ? `/deals/${deal.slug}` : `/deal/${deal.id}`;
+    trackClick('deal_card', deal.title, deal.id, dealPath);
     navigate(dealPath);
   };
 

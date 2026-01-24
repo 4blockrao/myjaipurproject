@@ -3,6 +3,7 @@ import { Clock, Eye, Heart, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
+import { useAnalytics } from '@/contexts/AnalyticsContext';
 
 interface NewsCardProps {
   article: {
@@ -51,17 +52,24 @@ const newsPlaceholders: Record<string, string> = {
 };
 
 export function NewsCard({ article, variant = 'default' }: NewsCardProps) {
+  const { trackClick } = useAnalytics();
   const timeAgo = article.published_at || article.created_at 
     ? formatDistanceToNow(new Date(article.published_at || article.created_at!), { addSuffix: true })
     : '';
 
   const imageUrl = article.cover_image || newsPlaceholders[article.category] || newsPlaceholders.default;
+  const articlePath = `/news/${article.category}/${article.slug}`;
+
+  const handleClick = () => {
+    trackClick('news_card', article.title, article.id, articlePath);
+  };
 
   if (variant === 'compact') {
     return (
       <Link 
-        to={`/news/${article.category}/${article.slug}`}
+        to={articlePath}
         className="flex gap-3 p-3 rounded-xl bg-card hover:bg-accent/50 transition-colors"
+        onClick={handleClick}
       >
         <img 
           src={imageUrl} 
@@ -86,8 +94,9 @@ export function NewsCard({ article, variant = 'default' }: NewsCardProps) {
   if (variant === 'featured') {
     return (
       <Link 
-        to={`/news/${article.category}/${article.slug}`}
+        to={articlePath}
         className="relative block overflow-hidden rounded-2xl group"
+        onClick={handleClick}
       >
         <div className="aspect-[16/9] bg-muted">
           <img 
@@ -115,8 +124,9 @@ export function NewsCard({ article, variant = 'default' }: NewsCardProps) {
 
   return (
     <Link 
-      to={`/news/${article.category}/${article.slug}`}
+      to={articlePath}
       className="block bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border"
+      onClick={handleClick}
     >
       <div className="aspect-[16/10] bg-muted">
         <img 

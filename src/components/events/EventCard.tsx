@@ -3,6 +3,7 @@ import { Calendar, MapPin, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { normalizeImageUrl } from "@/utils/imageUrl";
+import { useAnalytics } from "@/contexts/AnalyticsContext";
 
 interface EventCardProps {
   event: {
@@ -26,6 +27,7 @@ interface EventCardProps {
 }
 
 const EventCard = ({ event, variant = "default" }: EventCardProps) => {
+  const { trackClick } = useAnalytics();
   const startDate = new Date(event.start_date);
   const dayOfMonth = format(startDate, "d");
   const monthShort = format(startDate, "MMM").toUpperCase();
@@ -33,12 +35,17 @@ const EventCard = ({ event, variant = "default" }: EventCardProps) => {
   const isoDate = startDate.toISOString();
   const fullDateStr = format(startDate, "EEEE, MMMM d, yyyy 'at' h:mm a");
 
+  const handleEventClick = () => {
+    trackClick('event_card', event.title, event.id, `/events/${event.slug}`);
+  };
+
   if (variant === "compact") {
     return (
       <Link 
         to={`/events/${event.slug}`} 
         className="block"
         aria-label={`View ${event.title} event on ${fullDateStr}`}
+        onClick={handleEventClick}
       >
         <article 
           className="flex gap-3 p-3 rounded-xl bg-card border border-border hover:border-primary/30 transition-all"
@@ -85,6 +92,7 @@ const EventCard = ({ event, variant = "default" }: EventCardProps) => {
         to={`/events/${event.slug}`} 
         className="block"
         aria-label={`View featured event: ${event.title}`}
+        onClick={handleEventClick}
       >
         <article 
           className="relative overflow-hidden rounded-2xl bg-card border border-border group"
@@ -148,6 +156,7 @@ const EventCard = ({ event, variant = "default" }: EventCardProps) => {
       to={`/events/${event.slug}`} 
       className="block"
       aria-label={`View ${event.title} - ${event.category} event`}
+      onClick={handleEventClick}
     >
       <article 
         className="bg-card border border-border rounded-xl overflow-hidden hover:border-primary/30 transition-all group"

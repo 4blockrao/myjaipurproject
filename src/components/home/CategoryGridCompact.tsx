@@ -4,6 +4,7 @@ import {
   Dumbbell, Car, Wrench, Plane, ChevronRight
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
+import { useAnalytics } from "@/contexts/AnalyticsContext";
 
 interface CategoryGridProps {
   dealCounts?: Record<string, number>;
@@ -20,6 +21,7 @@ interface Category {
 
 const CategoryGridCompact = ({ dealCounts = {}, onCategorySelect }: CategoryGridProps) => {
   const navigate = useNavigate();
+  const { trackClick } = useAnalytics();
 
   const categories: Category[] = [
     { id: "Food & Dining", name: "Food", icon: Utensils, gradient: "from-orange-500 to-red-500", emoji: "🍽️" },
@@ -33,6 +35,7 @@ const CategoryGridCompact = ({ dealCounts = {}, onCategorySelect }: CategoryGrid
   ];
 
   const handleCategoryClick = (categoryId: string) => {
+    trackClick('category', categoryId, categoryId, `/deals?category=${encodeURIComponent(categoryId)}`);
     onCategorySelect?.(categoryId);
     navigate(`/deals?category=${encodeURIComponent(categoryId)}`);
   };
