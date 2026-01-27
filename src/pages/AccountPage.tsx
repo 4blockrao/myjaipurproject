@@ -210,45 +210,46 @@ const AccountPage = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header with Profile Summary */}
-      <header className="sticky top-0 z-40 bg-gradient-to-r from-primary to-primary/80 text-white">
-        <div className="px-4 pt-4 pb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-lg font-semibold">My Account</h1>
+      <header className="sticky top-0 z-40 bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground">
+        <div className="px-4 pt-safe pb-5">
+          {/* Top Bar */}
+          <div className="flex items-center justify-between py-3">
+            <h1 className="text-lg font-bold">My Account</h1>
             <Button 
               variant="ghost" 
               size="icon" 
-              className="text-white hover:bg-white/10"
+              className="text-primary-foreground/90 hover:bg-primary-foreground/10 rounded-xl"
               onClick={handleSignOut}
             >
               <LogOut className="w-5 h-5" />
             </Button>
           </div>
 
-          {/* User Info */}
-          <div className="flex items-center gap-3">
-            <Avatar className="w-14 h-14 border-2 border-white/30">
+          {/* User Info Card */}
+          <div className="flex items-center gap-4 bg-primary-foreground/10 backdrop-blur-sm rounded-2xl p-4">
+            <Avatar className="w-16 h-16 border-2 border-primary-foreground/30 shadow-lg">
               <AvatarImage src={profile?.avatar_url} />
-              <AvatarFallback className="bg-white/20 text-white font-bold">
+              <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground font-bold text-lg">
                 {getInitials(profile?.full_name || 'User')}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mb-1">
                 <h2 className="font-bold text-lg truncate">{profile?.full_name || 'User'}</h2>
                 {profile?.is_pro && (
-                  <Badge className="bg-amber-400 text-amber-900 text-xs">
+                  <Badge className="bg-amber-400 text-amber-900 text-[10px] px-1.5 py-0.5">
                     <Crown className="w-3 h-3 mr-0.5" /> PRO
                   </Badge>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-white/80 text-sm">
-                <span className="text-lg">{rank.icon}</span>
-                <span>{rank.name} Member</span>
+              <div className="flex items-center gap-2 text-primary-foreground/80 text-sm">
+                <span className="text-base">{rank.icon}</span>
+                <span className="font-medium">{rank.name} Member</span>
               </div>
             </div>
-            <div className="text-right">
+            <div className="text-right bg-primary-foreground/10 rounded-xl px-3 py-2">
               <div className="text-2xl font-bold">{balance}</div>
-              <div className="text-xs text-white/70">JAICoins</div>
+              <div className="text-xs text-primary-foreground/70 font-medium">JAICoins</div>
             </div>
           </div>
         </div>
@@ -256,34 +257,34 @@ const AccountPage = () => {
 
       {/* Tabs Navigation */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <div className="sticky top-[120px] z-30 bg-background border-b">
+        <div className="sticky top-[156px] z-30 bg-background/95 backdrop-blur-sm border-b shadow-sm">
           <TabsList className="w-full h-auto p-0 bg-transparent rounded-none grid grid-cols-5">
-            <TabsTrigger value="dashboard" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 text-xs">
-              <div className="flex flex-col items-center gap-1">
+            <TabsTrigger value="dashboard" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none py-3.5 text-xs font-medium transition-all">
+              <div className="flex flex-col items-center gap-1.5">
                 <Target className="w-4 h-4" />
                 <span>Home</span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="referral" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 text-xs">
-              <div className="flex flex-col items-center gap-1">
+            <TabsTrigger value="referral" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none py-3.5 text-xs font-medium transition-all">
+              <div className="flex flex-col items-center gap-1.5">
                 <Users className="w-4 h-4" />
                 <span>Refer</span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="wallet" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 text-xs">
-              <div className="flex flex-col items-center gap-1">
+            <TabsTrigger value="wallet" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none py-3.5 text-xs font-medium transition-all">
+              <div className="flex flex-col items-center gap-1.5">
                 <Wallet className="w-4 h-4" />
                 <span>Wallet</span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="orders" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 text-xs">
-              <div className="flex flex-col items-center gap-1">
+            <TabsTrigger value="orders" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none py-3.5 text-xs font-medium transition-all">
+              <div className="flex flex-col items-center gap-1.5">
                 <Receipt className="w-4 h-4" />
                 <span>Orders</span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 text-xs">
-              <div className="flex flex-col items-center gap-1">
+            <TabsTrigger value="settings" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none py-3.5 text-xs font-medium transition-all">
+              <div className="flex flex-col items-center gap-1.5">
                 <Settings className="w-4 h-4" />
                 <span>Settings</span>
               </div>

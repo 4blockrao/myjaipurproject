@@ -1,13 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { useUserBalance } from "@/hooks/useUserBalance";
+import { useUserTransactions } from "@/hooks/useUserTransactions";
+import { supabase } from "@/integrations/supabase/client";
 import ScratchCard from "@/components/gamification/ScratchCard";
 import { 
   Coins, TrendingUp, TrendingDown, Gift, ArrowRight, 
-  RotateCcw, Dice6 
+  RotateCcw, Sparkles, Wallet
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -17,18 +20,8 @@ interface AccountWalletProps {
   onRefreshBalance?: () => void;
 }
 
-interface Transaction {
-  id: string;
-  amount: number;
-  type: string;
-  source: string;
-  description: string;
-  created_at: string;
-}
-
 const AccountWallet = ({ user, balance, onRefreshBalance }: AccountWalletProps) => {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: transactions = [], isLoading, refetch: refetchTransactions } = useUserTransactions();
   const [dailySpinUsed, setDailySpinUsed] = useState(() => {
     const lastSpin = localStorage.getItem(`lastSpin_${user?.id}`);
     return lastSpin === new Date().toDateString();
@@ -40,30 +33,6 @@ const AccountWallet = ({ user, balance, onRefreshBalance }: AccountWalletProps) 
   const [showScratchCard, setShowScratchCard] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    if (user) {
-      fetchTransactions();
-    }
-  }, [user]);
-
-  const fetchTransactions = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('jaicoin_transactions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-      setTransactions(data || []);
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleDailySpin = async () => {
     if (dailySpinUsed || !user) return;
@@ -93,7 +62,7 @@ const AccountWallet = ({ user, balance, onRefreshBalance }: AccountWalletProps) 
         setDailySpinUsed(true);
         localStorage.setItem(`lastSpin_${user.id}`, new Date().toDateString());
         onRefreshBalance?.();
-        fetchTransactions();
+        refetchTransactions();
         
       } catch (error) {
         console.error('Error awarding spin reward:', error);
@@ -144,49 +113,62 @@ const AccountWallet = ({ user, balance, onRefreshBalance }: AccountWalletProps) 
     if (days === 0) return 'Today';
     if (days === 1) return 'Yesterday';
     if (days < 7) return `${days} days ago`;
-    return date.toLocaleDateString();
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
   };
 
   const totalEarned = transactions
-    .filter(t => t.type === 'earned')
-    .reduce((sum, t) => sum + t.amount, 0);
+    .filter((t: any) => t.type === 'earned')
+    .reduce((sum: number, t: any) => sum + t.amount, 0);
 
   const totalSpent = transactions
-    .filter(t => t.type === 'spent')
-    .reduce((sum, t) => sum + t.amount, 0);
+    .filter((t: any) => t.type === 'spent')
+    .reduce((sum: number, t: any) => sum + t.amount, 0);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Balance Card */}
-      <Card className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white border-0">
-        <CardContent className="p-6">
-          <div className="text-center">
-            <Coins className="w-10 h-10 mx-auto mb-2 opacity-90" />
-            <p className="text-yellow-100 mb-1">Available Balance</p>
-            <p className="text-4xl font-bold">{balance}</p>
-            <p className="text-sm text-yellow-100">JAICoins</p>
+      <Card className="bg-gradient-to-br from-amber-400 via-yellow-400 to-orange-500 text-white border-0 overflow-hidden relative">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSI0Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
+        <CardContent className="p-6 relative z-10">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <Wallet className="w-8 h-8" />
+            </div>
+            <div className="flex-1">
+              <p className="text-white/80 text-sm font-medium mb-0.5">Available Balance</p>
+              <p className="text-4xl font-bold tracking-tight">{balance}</p>
+              <p className="text-white/70 text-xs mt-0.5">JAICoins</p>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center gap-1 text-green-500 mb-1">
-              <TrendingUp className="w-4 h-4" />
-              <span className="font-bold">{totalEarned}</span>
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="font-bold text-lg text-green-700">{totalEarned}</p>
+                <p className="text-xs text-green-600 font-medium">Total Earned</p>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">Total Earned</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center gap-1 text-red-500 mb-1">
-              <TrendingDown className="w-4 h-4" />
-              <span className="font-bold">{totalSpent}</span>
+        <Card className="bg-gradient-to-br from-red-50 to-rose-50 border-red-200/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-500 flex items-center justify-center">
+                <TrendingDown className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="font-bold text-lg text-red-700">{totalSpent}</p>
+                <p className="text-xs text-red-600 font-medium">Total Spent</p>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">Total Spent</p>
           </CardContent>
         </Card>
       </div>
@@ -197,40 +179,49 @@ const AccountWallet = ({ user, balance, onRefreshBalance }: AccountWalletProps) 
         
         <div className="grid grid-cols-2 gap-3">
           {/* Spin Wheel */}
-          <Card className={`${dailySpinUsed ? 'opacity-60' : ''}`}>
+          <Card className={`overflow-hidden ${dailySpinUsed ? 'opacity-60' : ''}`}>
             <CardContent className="p-4 text-center">
-              <div className={`w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-400 flex items-center justify-center ${isSpinning ? 'animate-spin' : ''}`}>
-                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                  <RotateCcw className="w-5 h-5 text-purple-500" />
+              <div className={`w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-purple-400 via-pink-400 to-yellow-400 flex items-center justify-center shadow-lg ${isSpinning ? 'animate-spin' : ''}`}>
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center">
+                  <RotateCcw className="w-6 h-6 text-purple-500" />
                 </div>
               </div>
-              <h4 className="font-semibold text-sm mb-1">Daily Spin</h4>
+              <h4 className="font-bold text-sm mb-0.5">Daily Spin</h4>
               <p className="text-xs text-muted-foreground mb-3">Win 5-50 JAICoins</p>
               <Button
                 onClick={handleDailySpin}
                 disabled={dailySpinUsed || isSpinning}
                 size="sm"
-                className="w-full"
+                className="w-full rounded-xl font-semibold"
               >
-                {isSpinning ? 'Spinning...' : dailySpinUsed ? 'Done ✓' : 'Spin Now!'}
+                {isSpinning ? (
+                  <span className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 animate-pulse" />
+                    Spinning...
+                  </span>
+                ) : dailySpinUsed ? (
+                  'Done ✓'
+                ) : (
+                  'Spin Now!'
+                )}
               </Button>
             </CardContent>
           </Card>
 
           {/* Scratch Card */}
-          <Card className={`${scratchCardUsed ? 'opacity-60' : ''}`}>
+          <Card className={`overflow-hidden ${scratchCardUsed ? 'opacity-60' : ''}`}>
             <CardContent className="p-4 text-center">
-              <div className="w-14 h-10 mx-auto mb-3 rounded-lg bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center">
-                <Gift className="w-5 h-5 text-white" />
+              <div className="w-16 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg">
+                <Gift className="w-6 h-6 text-white" />
               </div>
-              <h4 className="font-semibold text-sm mb-1">Scratch Card</h4>
+              <h4 className="font-bold text-sm mb-0.5">Scratch Card</h4>
               <p className="text-xs text-muted-foreground mb-3">Mystery reward!</p>
               <Button
                 onClick={handleScratchCard}
                 disabled={scratchCardUsed}
                 size="sm"
                 variant="outline"
-                className="w-full"
+                className="w-full rounded-xl font-semibold"
               >
                 {scratchCardUsed ? 'Done ✓' : 'Scratch!'}
               </Button>
@@ -241,10 +232,10 @@ const AccountWallet = ({ user, balance, onRefreshBalance }: AccountWalletProps) 
 
       {/* Redeem CTA */}
       <Link to="/deals">
-        <Card className="bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
+        <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20 hover:shadow-md transition-all active:scale-[0.99]">
           <CardContent className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
+              <div className="p-2.5 bg-primary/10 rounded-xl">
                 <Gift className="w-5 h-5 text-primary" />
               </div>
               <div>
@@ -260,34 +251,47 @@ const AccountWallet = ({ user, balance, onRefreshBalance }: AccountWalletProps) 
       {/* Transaction History */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Transaction History</CardTitle>
+          <CardTitle className="text-base font-semibold">Transaction History</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {isLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent mx-auto mb-2"></div>
-              <p className="text-sm text-muted-foreground">Loading...</p>
+            <div className="p-4 space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <div className="flex-1">
+                    <Skeleton className="h-4 w-3/4 mb-1" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                  <Skeleton className="h-5 w-12" />
+                </div>
+              ))}
             </div>
           ) : transactions.length === 0 ? (
-            <div className="text-center py-8">
-              <Coins className="w-10 h-10 mx-auto mb-2 text-muted-foreground/50" />
-              <p className="text-muted-foreground">No transactions yet</p>
-              <p className="text-sm text-muted-foreground">Complete tasks to earn JAICoins!</p>
+            <div className="text-center py-10 px-4">
+              <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-muted flex items-center justify-center">
+                <Coins className="w-7 h-7 text-muted-foreground" />
+              </div>
+              <p className="font-medium text-muted-foreground">No transactions yet</p>
+              <p className="text-sm text-muted-foreground mt-1">Complete tasks to earn JAICoins!</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {transactions.map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+            <div className="divide-y divide-border/50">
+              {transactions.slice(0, 20).map((transaction: any) => (
+                <div key={transaction.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-xl">{getSourceIcon(transaction.source)}</span>
+                    <span className="text-2xl">{getSourceIcon(transaction.source)}</span>
                     <div className="min-w-0">
                       <p className="font-medium text-sm truncate">{transaction.description}</p>
                       <p className="text-xs text-muted-foreground">{formatDate(transaction.created_at)}</p>
                     </div>
                   </div>
                   <Badge 
-                    variant={transaction.type === 'earned' ? 'default' : 'secondary'}
-                    className={transaction.type === 'earned' ? 'bg-green-500' : 'bg-red-500'}
+                    variant="secondary"
+                    className={transaction.type === 'earned' 
+                      ? 'bg-green-100 text-green-700 font-semibold' 
+                      : 'bg-red-100 text-red-700 font-semibold'
+                    }
                   >
                     {transaction.type === 'earned' ? '+' : '-'}{transaction.amount}
                   </Badge>
@@ -303,7 +307,7 @@ const AccountWallet = ({ user, balance, onRefreshBalance }: AccountWalletProps) 
         onClose={() => {
           setShowScratchCard(false);
           onRefreshBalance?.();
-          fetchTransactions();
+          refetchTransactions();
         }}
         trigger="daily"
       />
