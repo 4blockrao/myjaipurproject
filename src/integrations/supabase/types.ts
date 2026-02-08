@@ -1363,7 +1363,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
-          metadata: Json | null
+          metadata: Json
           source: string
           type: string
           user_id: string | null
@@ -1373,7 +1373,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
-          metadata?: Json | null
+          metadata?: Json
           source: string
           type: string
           user_id?: string | null
@@ -1383,7 +1383,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
-          metadata?: Json | null
+          metadata?: Json
           source?: string
           type?: string
           user_id?: string | null
@@ -1481,6 +1481,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      locality_civic_facts: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          fact_key: string
+          fact_value: string
+          id: string
+          locality_id: string
+          source_label: string | null
+          source_url: string | null
+          updated_at: string
+          verified_at: string | null
+          visibility: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          fact_key: string
+          fact_value: string
+          id?: string
+          locality_id: string
+          source_label?: string | null
+          source_url?: string | null
+          updated_at?: string
+          verified_at?: string | null
+          visibility?: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          fact_key?: string
+          fact_value?: string
+          id?: string
+          locality_id?: string
+          source_label?: string | null
+          source_url?: string | null
+          updated_at?: string
+          verified_at?: string | null
+          visibility?: string
+        }
+        Relationships: []
       }
       merchant_analytics: {
         Row: {
@@ -1993,6 +2035,122 @@ export type Database = {
             columns: ["merchant_id"]
             isOneToOne: false
             referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_registry: {
+        Row: {
+          canonical_url: string
+          created_at: string
+          entity_id: string | null
+          entity_key: string | null
+          entity_table: string | null
+          id: string
+          index_state: string
+          last_published_at: string | null
+          page_type: string
+          quality_score: number | null
+          reasons: Json | null
+          uniqueness_score: number | null
+          updated_at: string
+          url_path: string
+        }
+        Insert: {
+          canonical_url: string
+          created_at?: string
+          entity_id?: string | null
+          entity_key?: string | null
+          entity_table?: string | null
+          id?: string
+          index_state?: string
+          last_published_at?: string | null
+          page_type?: string
+          quality_score?: number | null
+          reasons?: Json | null
+          uniqueness_score?: number | null
+          updated_at?: string
+          url_path: string
+        }
+        Update: {
+          canonical_url?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_key?: string | null
+          entity_table?: string | null
+          id?: string
+          index_state?: string
+          last_published_at?: string | null
+          page_type?: string
+          quality_score?: number | null
+          reasons?: Json | null
+          uniqueness_score?: number | null
+          updated_at?: string
+          url_path?: string
+        }
+        Relationships: []
+      }
+      page_seo: {
+        Row: {
+          created_at: string
+          description: string | null
+          entities: Json | null
+          faq: Json | null
+          fingerprint_hash: string | null
+          generated_at: string | null
+          generation_version: string | null
+          h1: string | null
+          is_published: boolean
+          keywords: string[] | null
+          page_id: string
+          published_at: string | null
+          schema_jsonld: Json | null
+          semantic_signature: Json | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          entities?: Json | null
+          faq?: Json | null
+          fingerprint_hash?: string | null
+          generated_at?: string | null
+          generation_version?: string | null
+          h1?: string | null
+          is_published?: boolean
+          keywords?: string[] | null
+          page_id: string
+          published_at?: string | null
+          schema_jsonld?: Json | null
+          semantic_signature?: Json | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          entities?: Json | null
+          faq?: Json | null
+          fingerprint_hash?: string | null
+          generated_at?: string | null
+          generation_version?: string | null
+          h1?: string | null
+          is_published?: boolean
+          keywords?: string[] | null
+          page_id?: string
+          published_at?: string | null
+          schema_jsonld?: Json | null
+          semantic_signature?: Json | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_seo_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: true
+            referencedRelation: "page_registry"
             referencedColumns: ["id"]
           },
         ]
@@ -3219,6 +3377,15 @@ export type Database = {
       increment_event_views: { Args: { event_id: string }; Returns: undefined }
       is_pro_member: { Args: { user_uuid: string }; Returns: boolean }
       upgrade_to_pro_user: { Args: { _user_id: string }; Returns: undefined }
+      upsert_page_registry: {
+        Args: {
+          p_canonical_url?: string
+          p_index_state?: string
+          p_page_type: string
+          p_url_path: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role:
