@@ -113,6 +113,9 @@ const AuthPage = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Capture soft registration for sign-in users too (email only)
+    onFieldBlur('email', formData.email);
     
     const emailError = validateField("email", formData.email);
     if (emailError || !formData.password) {
@@ -291,6 +294,7 @@ const AuthPage = () => {
                             placeholder="you@example.com"
                             value={formData.email}
                             onChange={(e) => handleInputChange("email", e.target.value)}
+                            onBlur={(e) => onFieldBlur('email', e.target.value)}
                             className="pl-10 h-12 bg-background/50 border-muted-foreground/20 focus:border-primary focus:ring-2 focus:ring-primary/20"
                             autoComplete="email"
                           />
