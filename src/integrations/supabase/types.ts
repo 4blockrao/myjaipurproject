@@ -1400,6 +1400,7 @@ export type Database = {
           geo_lat: number | null
           geo_lng: number | null
           id: number
+          known_for: string | null
           major_landmarks: Json | null
           meta: Json | null
           micro_localities: string[] | null
@@ -1409,6 +1410,7 @@ export type Database = {
           pin_codes: string[] | null
           police_station: string | null
           population_estimate: number | null
+          seo_blurb: string | null
           slug: string
           tags: string[] | null
           updated_at: string | null
@@ -1427,6 +1429,7 @@ export type Database = {
           geo_lat?: number | null
           geo_lng?: number | null
           id?: number
+          known_for?: string | null
           major_landmarks?: Json | null
           meta?: Json | null
           micro_localities?: string[] | null
@@ -1436,6 +1439,7 @@ export type Database = {
           pin_codes?: string[] | null
           police_station?: string | null
           population_estimate?: number | null
+          seo_blurb?: string | null
           slug: string
           tags?: string[] | null
           updated_at?: string | null
@@ -1454,6 +1458,7 @@ export type Database = {
           geo_lat?: number | null
           geo_lng?: number | null
           id?: number
+          known_for?: string | null
           major_landmarks?: Json | null
           meta?: Json | null
           micro_localities?: string[] | null
@@ -1463,6 +1468,7 @@ export type Database = {
           pin_codes?: string[] | null
           police_station?: string | null
           population_estimate?: number | null
+          seo_blurb?: string | null
           slug?: string
           tags?: string[] | null
           updated_at?: string | null
@@ -3328,6 +3334,22 @@ export type Database = {
       generate_redemption_code: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       generate_registration_code: { Args: never; Returns: string }
+      get_event_public: {
+        Args: { p_slug: string }
+        Returns: {
+          category: string
+          city: string
+          event_date: string
+          event_time: string
+          locality_name: string
+          locality_slug: string
+          price_from: string
+          slug: string
+          title: string
+          updated_at: string
+          venue: string
+        }[]
+      }
       get_order_details: {
         Args: { order_uuid: string }
         Returns: {
