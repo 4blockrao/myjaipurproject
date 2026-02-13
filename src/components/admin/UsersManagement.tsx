@@ -335,8 +335,9 @@ const UsersManagement = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>User</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Location</TableHead>
+                   <TableHead>Email</TableHead>
+                   <TableHead>Phone</TableHead>
+                   <TableHead>Location</TableHead>
                   <TableHead>Balance</TableHead>
                   <TableHead>Activity</TableHead>
                   <TableHead>Roles</TableHead>
@@ -368,17 +369,15 @@ const UsersManagement = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex items-center gap-1">
-                          <Mail className="w-3 h-3 text-muted-foreground" />
-                          <span className="truncate max-w-[180px]">{user.email}</span>
-                        </div>
-                        {user.phone && (
-                          <div className="flex items-center gap-1 text-muted-foreground">
-                            <Phone className="w-3 h-3" />
-                            {user.phone}
-                          </div>
-                        )}
+                      <div className="flex items-center gap-1 text-sm">
+                        <Mail className="w-3 h-3 text-muted-foreground" />
+                        <span className="truncate max-w-[180px]">{user.email || "-"}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-sm">
+                        <Phone className="w-3 h-3 text-muted-foreground" />
+                        <span>{user.phone || "-"}</span>
                       </div>
                     </TableCell>
                     <TableCell>
