@@ -55,6 +55,7 @@ const EventsManagement = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [timeFilter, setTimeFilter] = useState<"upcoming" | "past" | "all">("upcoming");
   const [editingEvent, setEditingEvent] = useState<any>(null);
 
   const { data: events, isLoading } = useQuery({
@@ -126,7 +127,15 @@ const EventsManagement = () => {
     },
   });
 
-  const filteredEvents = events?.filter(
+  const now = new Date().toISOString();
+  const upcomingEvents = events?.filter((e) => e.start_date >= now) || [];
+  const pastEvents = events?.filter((e) => e.start_date < now) || [];
+
+  const timeFilteredEvents = timeFilter === "upcoming" ? upcomingEvents 
+    : timeFilter === "past" ? pastEvents 
+    : events || [];
+
+  const filteredEvents = timeFilteredEvents.filter(
     (event) =>
       event.title.toLowerCase().includes(search.toLowerCase()) ||
       event.category?.toLowerCase().includes(search.toLowerCase())
@@ -134,6 +143,8 @@ const EventsManagement = () => {
 
   const stats = {
     total: events?.length || 0,
+    upcoming: upcomingEvents.length,
+    past: pastEvents.length,
     published: events?.filter((e) => e.status === "published").length || 0,
     draft: events?.filter((e) => e.status === "draft").length || 0,
     featured: events?.filter((e) => e.is_featured).length || 0,
@@ -189,7 +200,7 @@ const EventsManagement = () => {
 
       <TabsContent value="manage" className="space-y-6">
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Events</CardTitle>
@@ -198,12 +209,20 @@ const EventsManagement = () => {
             <div className="text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className={timeFilter === "upcoming" ? "ring-2 ring-primary" : ""}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Published</CardTitle>
+            <CardTitle className="text-sm font-medium cursor-pointer" onClick={() => setTimeFilter("upcoming")}>Upcoming</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">{stats.published}</div>
+            <div className="text-2xl font-bold text-green-600">{stats.upcoming}</div>
+          </CardContent>
+        </Card>
+        <Card className={timeFilter === "past" ? "ring-2 ring-primary" : ""}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium cursor-pointer" onClick={() => setTimeFilter("past")}>Past</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-muted-foreground">{stats.past}</div>
           </CardContent>
         </Card>
         <Card>
@@ -246,6 +265,16 @@ const EventsManagement = () => {
                 className="pl-10"
               />
             </div>
+            <Select value={timeFilter} onValueChange={(v) => setTimeFilter(v as any)}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="upcoming">Upcoming</SelectItem>
+                <SelectItem value="past">Past</SelectItem>
+                <SelectItem value="all">All Events</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-40">
                 <SelectValue />

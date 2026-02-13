@@ -36,7 +36,7 @@ export function EventScraper() {
   const [isLoading, setIsLoading] = useState(false);
   const [isScraping, setIsScraping] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-  const [dryRun, setDryRun] = useState(true);
+  const [dryRun, setDryRun] = useState(false);
   const [scrapedEvents, setScrapedEvents] = useState<ScrapedEvent[]>([]);
   const [importResults, setImportResults] = useState<{
     total: number;
