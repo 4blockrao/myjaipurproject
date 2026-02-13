@@ -158,7 +158,7 @@ export const EventQuickSummary = ({ event }: EventQuickSummaryProps) => {
   ];
 
   return (
-    <Card className="border-primary/20 bg-gradient-to-br from-card to-muted/30">
+    <Card className="event-quick-info border-primary/20 bg-gradient-to-br from-card to-muted/30">
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
           <Tag className="w-5 h-5 text-primary" />

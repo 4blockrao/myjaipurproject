@@ -31,7 +31,7 @@ interface EventSEOProps {
   };
 }
 
-const BASE_URL = "https://jaipurcircle.com";
+const BASE_URL = "https://www.jaipurcircle.com";
 const SITE_NAME = "Jaipur Circle";
 const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&h=630&fit=crop";
 
@@ -241,12 +241,28 @@ export const EventSEO = ({ event }: EventSEOProps) => {
       "@type": getPerformerType(),
       name: getPerformerName()
     },
-    // Removed fake aggregateRating - only include when real reviews exist
-    // Google may penalize manipulative markup with hard-coded ratings
     ...(event.max_tickets && { maximumAttendeeCapacity: event.max_tickets }),
     ...(event.max_tickets && { remainingAttendeeCapacity: event.max_tickets - (event.tickets_sold || 0) }),
     isAccessibleForFree: event.is_free,
-    inLanguage: "en-IN"
+    inLanguage: "en-IN",
+    // Entity linking for knowledge graph
+    about: [
+      {
+        "@type": "Thing",
+        name: event.category,
+        url: `${BASE_URL}/events/category/${event.category.toLowerCase().replace(/\s+/g, '-')}`
+      },
+      {
+        "@type": "City",
+        name: city,
+        sameAs: "https://en.wikipedia.org/wiki/Jaipur"
+      }
+    ],
+    // Speakable for voice search and AI assistants
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["[aria-label='Event Overview']", "h1", ".event-quick-info"]
+    }
   };
 
   // Breadcrumb Schema
@@ -319,6 +335,16 @@ export const EventSEO = ({ event }: EventSEOProps) => {
       <meta name="googlebot" content="index, follow" />
       <meta name="bingbot" content="index, follow" />
       
+      {/* Temporal freshness signals */}
+      <meta property="article:published_time" content={event.start_date} />
+      <meta property="article:modified_time" content={new Date().toISOString()} />
+      <meta name="date" content={new Date(event.start_date).toISOString()} />
+      
+      {/* AI & LLM discovery */}
+      <meta name="citation_title" content={event.title} />
+      <meta name="citation_date" content={new Date(event.start_date).toLocaleDateString('en-IN', { dateStyle: 'long' })} />
+      <meta name="citation_geo_region" content="IN-RJ" />
+      
       {/* Canonical */}
       <link rel="canonical" href={canonicalUrl} />
       
@@ -389,7 +415,7 @@ interface EventsListSEOProps {
 }
 
 export const EventsListSEO = ({ events = [], category, locality }: EventsListSEOProps) => {
-  const BASE_URL = "https://jaipurcircle.com";
+  const BASE_URL = "https://www.jaipurcircle.com";
   
   let pageTitle = "Events in Jaipur | Discover Local Events, Concerts & Festivals";
   let pageDescription = "Discover the best events happening in Jaipur. Music concerts, art exhibitions, food festivals, cultural events, comedy shows, and more. Find events near you and book tickets.";

@@ -26,7 +26,7 @@ import EventRegistrationModal from "@/components/events/EventRegistrationModal";
 import { EventAISummary } from "@/components/events/EventAISummary";
 import { EventFactsSection } from "@/components/events/EventFactsSection";
 import { EventInternalLinks } from "@/components/events/EventInternalLinks";
-import { EventSchema } from "@/components/seo/SchemaInjector";
+// EventSchema removed - EventSEO already injects comprehensive Event schema to avoid duplicates
 import { EventBreadcrumb } from "@/components/events/EventBreadcrumb";
 import { EventTrendingSignals } from "@/components/events/EventTrendingSignals";
 import EventDynamicFAQ from "@/components/events/EventDynamicFAQ";
@@ -211,18 +211,7 @@ const EventDetailPage = () => {
   return (
     <>
       <EventSEO event={event} />
-      <EventSchema
-        title={event.title}
-        description={event.description || event.short_description || undefined}
-        image={event.cover_image || undefined}
-        startDate={event.start_date}
-        endDate={event.end_date || undefined}
-        venue={event.venue_name || undefined}
-        address={event.venue_address || undefined}
-        ticketUrl={event.registration_url || undefined}
-        price={event.ticket_price || undefined}
-        url={`https://www.jaipurcircle.com/events/${event.slug}`}
-      />
+      {/* EventSEO handles ALL structured data - no duplicate EventSchema needed */}
 
       <div className="min-h-screen bg-background pb-32">
         {/* HERO BLOCK - Cover Image with Essential Above-the-Fold Elements */}
