@@ -6,6 +6,10 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
     },
     {
+      "source": "/events/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
+    },
+    {
       "source": "/((?!sitemap\\.xml|sitemap-pages\\.xml|robots\\.txt|favicon\\.ico|favicon\\.png|manifest\\.json|.*\\.png|.*\\.jpg|.*\\.svg).*)",
       "destination": "/index.html"
     }

@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.scrape-bookmyshow-events]
 verify_jwt = false
+
+[functions.event-ssr]
+verify_jwt = false
