@@ -10,6 +10,22 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
     {
+      "source": "/deals/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/page-ssr?type=deal&slug=:slug"
+    },
+    {
+      "source": "/news/:category/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/page-ssr?type=news&category=:category&slug=:slug"
+    },
+    {
+      "source": "/merchant/:id",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/page-ssr?type=merchant&slug=:id"
+    },
+    {
+      "source": "/jaipur/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/page-ssr?type=locality&slug=:slug"
+    },
+    {
       "source": "/((?!sitemap\\.xml|sitemap-pages\\.xml|robots\\.txt|favicon\\.ico|favicon\\.png|manifest\\.json|.*\\.png|.*\\.jpg|.*\\.svg).*)",
       "destination": "/index.html"
     }
