@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.event-ssr]
 verify_jwt = false
+
+[functions.page-ssr]
+verify_jwt = false
