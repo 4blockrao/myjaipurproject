@@ -22,10 +22,9 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/page-ssr?type=merchant&slug=:id"
     },
 
-    // ✅ NEW: canonical locality route (required because sitemap now emits /localities/{slug})
     {
-      "source": "/localities/:slug",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/page-ssr?type=locality&slug=:slug"
+      "source": "/localities/:slug*",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/page-ssr?type=locality&slug=:slug*"
     },
 
     {
