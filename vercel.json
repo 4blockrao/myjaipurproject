@@ -20,6 +20,15 @@
       "source": "/sitemap.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
     },
+
+    { "source": "/sitemap-localities.xml", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=localities" },
+    { "source": "/sitemap-zones.xml", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=zones" },
+    { "source": "/sitemap-deals.xml", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=deals" },
+    { "source": "/sitemap-merchants.xml", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=merchants" },
+    { "source": "/sitemap-events.xml", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=events" },
+    { "source": "/sitemap-news.xml", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news" },
+    { "source": "/sitemap-news-google.xml", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap" },
+
     {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
@@ -36,18 +45,16 @@
       "source": "/merchant/:id",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/page-ssr?type=merchant&slug=:id"
     },
-
     {
       "source": "/localities/:slug*",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/page-ssr?type=locality&slug=:slug*"
     },
-
     {
       "source": "/jaipur/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/page-ssr?type=locality&slug=:slug"
     },
     {
-      "source": "/((?!sitemap\\.xml|sitemap-pages\\.xml|robots\\.txt|favicon\\.ico|favicon\\.png|manifest\\.json|.*\\.png|.*\\.jpg|.*\\.svg).*)",
+      "source": "/((?!sitemap\\.xml|sitemap-pages\\.xml|sitemap-localities\\.xml|sitemap-zones\\.xml|sitemap-deals\\.xml|sitemap-merchants\\.xml|sitemap-events\\.xml|sitemap-news\\.xml|sitemap-news-google\\.xml|robots\\.txt|favicon\\.ico|favicon\\.png|manifest\\.json|.*\\.png|.*\\.jpg|.*\\.svg).*)",
       "destination": "/index.html"
     }
   ]
