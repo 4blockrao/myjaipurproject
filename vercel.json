@@ -6,7 +6,6 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
 
-    /* ✅ EVENTS LISTING must be SPA (fixes your /events 500) */
     {
       "source": "/events",
       "destination": "/index.html"
@@ -16,19 +15,15 @@
       "destination": "/index.html"
     },
 
-    /* ✅ EVENTS SEO detail pages must be SSR */
     {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
-
-    /* ✅ Category/locality listing stays SPA */
     {
       "source": "/events/:category/:locality",
       "destination": "/events?category=:category&locality=:locality"
     },
 
-    /* --- SITEMAPS --- */
     {
       "source": "/sitemap.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
@@ -66,7 +61,6 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
 
-    /* ✅ Default SPA fallback */
     {
       "source": "/(.*)",
       "destination": "/index.html"
