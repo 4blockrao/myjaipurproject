@@ -6,22 +6,31 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
 
-    // ✅ EVENTS LISTING SSR (Hub + scoped listing)
+    // ----------------------------
+    // EVENTS SSR (listing + detail)
+    // ----------------------------
+
+    // Listing hub: /events
     {
       "source": "/events",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
     },
+
+    // Listing scoped: /events/:category/:locality  -> same SSR, with query params
     {
       "source": "/events/:category/:locality",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
     },
 
-    // ✅ EVENTS DETAIL SSR (already exists)
+    // Event detail: /events/:slug  -> event-ssr
     {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
 
+    // --------------------------------
+    // SITEMAPS (first-party endpoints)
+    // --------------------------------
     {
       "source": "/sitemap.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
@@ -59,6 +68,7 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
 
+    // SPA fallback LAST
     {
       "source": "/(.*)",
       "destination": "/index.html"
