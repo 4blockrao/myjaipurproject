@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     // Load merchant by slug (your DB has merchants.slug)
     const { data: merchant, error: mErr } = await supabase
       .from("merchants")
-      .select("id, slug, business_name, description, logo_url, cover_image_url, address, phone, website, updated_at, created_at, is_active")
+      .select("id, slug, business_name, description, logo_url, logo_url, address, phone, website, updated_at, created_at, is_active")
       .eq("slug", merchantSlug)
       .maybeSingle();
 
@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
       `${name} in ${localityName}, Jaipur. View contact details, address, photos and latest updates on ${SITE_NAME}.`;
 
     const img =
-      merchant.cover_image_url ||
+      merchant.logo_url ||
       merchant.logo_url ||
       `${SITE_URL}/og-default.png`;
 
