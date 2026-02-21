@@ -6,31 +6,70 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
 
-    // ----------------------------
-    // EVENTS SSR (listing + detail)
-    // ----------------------------
+    // -----------------------------
+    // SPA ROUTES THAT MUST NOT HIT SSR
+    // Put these BEFORE /events/:slug
+    // -----------------------------
+    {
+      "source": "/events/create",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/today",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/this-week",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/this-weekend",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/free",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/workshops",
+      "destination": "/index.html"
+    },
 
-    // Listing hub: /events
+    // If your UI links to category-only pages like /events/music, let SPA handle them
+    {
+      "source": "/events/:category",
+      "destination": "/index.html"
+    },
+
+    // Venue pages are SPA in your current setup (until you build venue-ssr)
+    {
+      "source": "/venues/:slug",
+      "destination": "/index.html"
+    },
+
+    // -----------------------------
+    // EVENTS SSR
+    // -----------------------------
+    // Listing SSR: /events and /events/:category/:locality
+    // IMPORTANT: change destination function name if yours differs (events-list-ssr vs events-ssr-list etc.)
     {
       "source": "/events",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
     },
-
-    // Listing scoped: /events/:category/:locality  -> same SSR, with query params
     {
       "source": "/events/:category/:locality",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
     },
 
-    // Event detail: /events/:slug  -> event-ssr
+    // Detail SSR: /events/:slug
     {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
 
-    // --------------------------------
-    // SITEMAPS (first-party endpoints)
-    // --------------------------------
+    // -----------------------------
+    // SITEMAPS (first-party)
+    // -----------------------------
     {
       "source": "/sitemap.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
@@ -68,7 +107,9 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
 
-    // SPA fallback LAST
+    // -----------------------------
+    // SPA FALLBACK
+    // -----------------------------
     {
       "source": "/(.*)",
       "destination": "/index.html"
