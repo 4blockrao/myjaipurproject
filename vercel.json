@@ -6,31 +6,43 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
 
-    // --- MUST BE ABOVE /events/:slug (otherwise SSR hijacks SPA pages like /events/create) ---
-    { "source": "/events/create", "destination": "/index.html" },
-    { "source": "/events/today", "destination": "/index.html" },
-    { "source": "/events/this-week", "destination": "/index.html" },
-    { "source": "/events/this-weekend", "destination": "/index.html" },
-    { "source": "/events/free", "destination": "/index.html" },
-    { "source": "/events/workshops", "destination": "/index.html" },
+    {
+      "source": "/events",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
+    },
+    {
+      "source": "/events/:category/:locality",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
+    },
 
-    // Venues are SPA pages
-    { "source": "/venues/:venueSlug", "destination": "/index.html" },
+    {
+      "source": "/events/create",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/today",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/this-week",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/this-weekend",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/free",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/workshops",
+      "destination": "/index.html"
+    },
 
-    // If these exist in your SPA (common in your app):
-    { "source": "/organizers/:organizerSlug", "destination": "/index.html" },
-    { "source": "/artists/:artistSlug", "destination": "/index.html" },
-
-    // Event detail SSR (single segment only)
     {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
-    },
-
-    // Clean listing URLs -> SPA listing with query
-    {
-      "source": "/events/:category/:locality",
-      "destination": "/events?category=:category&locality=:locality"
     },
 
     {
