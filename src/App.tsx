@@ -13,32 +13,34 @@ import AboutPage from "./pages/AboutPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
-import LocalityPage from "./pages/LocalityPage";
-import LocalitiesIndexPage from "./pages/LocalitiesIndexPage";
 import JaipurPage from "./pages/JaipurPage";
-import ZonePage from "./pages/ZonePage";
+import LocalitiesIndexPage from "./pages/LocalitiesIndexPage";
 import ZonesIndexPage from "./pages/ZonesIndexPage";
+import ZonePage from "./pages/ZonePage";
+import LocalityPage from "./pages/LocalityPage";
 import LocalityCategoryPage from "./pages/LocalityCategoryPage";
 
-// Events
 import EventsPage from "./pages/EventsPage";
 import EventDetailPage from "./pages/EventDetailPage";
 import CreateEventPage from "./pages/CreateEventPage";
-import EventsTodayPage from "./pages/EventsTodayPage";
-import EventsThisWeekPage from "./pages/EventsThisWeekPage";
-import EventsThisWeekendPage from "./pages/EventsThisWeekendPage";
 import EventsFreeFilterPage from "./pages/EventsFreeFilterPage";
 import EventsWorkshopsPage from "./pages/EventsWorkshopsPage";
 import EventsLocalityPage from "./pages/EventsLocalityPage";
-import EventCategoryPage from "./pages/EventCategoryPage";
+import EventsTodayPage from "./pages/EventsTodayPage";
+import EventsThisWeekPage from "./pages/EventsThisWeekPage";
+import EventsThisWeekendPage from "./pages/EventsThisWeekendPage";
 import VenuePage from "./pages/VenuePage";
+import OrganizerPage from "./pages/OrganizerPage";
+import ArtistPage from "./pages/ArtistPage";
+import PastEventPage from "./pages/PastEventPage";
+import EventSeriesPage from "./pages/EventSeriesPage";
 
 const queryClient = new QueryClient();
 
 /**
- * ⚠️ ROUTE ORDER MATTERS
- * More specific routes must come BEFORE dynamic routes like /events/:slug
- * Otherwise /events/create, /events/today etc will be treated as :slug.
+ * ⚠️ CRITICAL ROUTING FILE
+ * DO NOT REMOVE OR MODIFY ROUTES WITHOUT VERIFICATION.
+ * Missing routes will cause production-wide 404 issues.
  */
 function App() {
   return (
@@ -58,7 +60,7 @@ function App() {
                   <Route path="/about" element={<AboutPage />} />
                   <Route path="/auth" element={<AuthPage />} />
 
-                  {/* Jaipur / Localities */}
+                  {/* Jaipur locality SEO */}
                   <Route path="/jaipur" element={<JaipurPage />} />
                   <Route path="/jaipur/all" element={<LocalitiesIndexPage />} />
                   <Route path="/jaipur/zones" element={<ZonesIndexPage />} />
@@ -66,34 +68,31 @@ function App() {
                   <Route path="/jaipur/:slug/:category" element={<LocalityCategoryPage />} />
                   <Route path="/jaipur/:slug" element={<LocalityPage />} />
 
-                  {/* ---------------------------------
-                      EVENTS (restore missing routes)
-                      --------------------------------- */}
+                  {/* Events (IMPORTANT: static routes first, then params) */}
                   <Route path="/events" element={<EventsPage />} />
 
-                  {/* Filters from the Events hub UI */}
+                  {/* Filter pages used by EventsPage links */}
                   <Route path="/events/today" element={<EventsTodayPage />} />
                   <Route path="/events/this-week" element={<EventsThisWeekPage />} />
                   <Route path="/events/this-weekend" element={<EventsThisWeekendPage />} />
                   <Route path="/events/free" element={<EventsFreeFilterPage />} />
                   <Route path="/events/workshops" element={<EventsWorkshopsPage />} />
-
-                  {/* Create Event must be BEFORE /events/:slug */}
+                  <Route path="/events/past" element={<PastEventPage />} />
                   <Route path="/events/create" element={<CreateEventPage />} />
 
-                  {/* Events by category page (used by "Events by category in Jaipur") */}
-                  <Route path="/events/category/:categorySlug" element={<EventCategoryPage />} />
-
-                  {/* Scoped listing SSR route: /events/:category/:locality */}
+                  {/* Listing page (category/locality) */}
                   <Route path="/events/:category/:locality" element={<EventsLocalityPage />} />
 
-                  {/* Event detail (keep LAST among /events/*) */}
+                  {/* Event detail must be last */}
                   <Route path="/events/:slug" element={<EventDetailPage />} />
 
-                  {/* Venues (your broken example is /venues/strings-cocktail-lounge) */}
+                  {/* Venue / organizer / artist / series */}
                   <Route path="/venues/:venueSlug" element={<VenuePage />} />
+                  <Route path="/organizers/:organizerSlug" element={<OrganizerPage />} />
+                  <Route path="/artists/:artistSlug" element={<ArtistPage />} />
+                  <Route path="/series/:seriesSlug" element={<EventSeriesPage />} />
 
-                  {/* 404 */}
+                  {/* Fallback */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </AnalyticsProvider>
