@@ -1,49 +1,53 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [
+
+  "routes": [
+    { "handle": "filesystem" },
+
     {
-      "source": "/sitemap.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
+      "src": "^/sitemap\\.xml$",
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
     },
     {
-      "source": "/sitemap-test.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
+      "src": "^/sitemap-test\\.xml$",
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
     },
     {
-      "source": "/sitemap-pages.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=pages"
+      "src": "^/sitemap-pages\\.xml$",
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=pages"
     },
     {
-      "source": "/sitemap-localities.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=localities"
+      "src": "^/sitemap-localities\\.xml$",
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=localities"
     },
     {
-      "source": "/sitemap-zones.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=zones"
+      "src": "^/sitemap-zones\\.xml$",
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=zones"
     },
     {
-      "source": "/sitemap-deals.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=deals"
+      "src": "^/sitemap-deals\\.xml$",
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=deals"
     },
     {
-      "source": "/sitemap-merchants.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=merchants"
+      "src": "^/sitemap-merchants\\.xml$",
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=merchants"
     },
     {
-      "source": "/sitemap-events.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=events"
+      "src": "^/sitemap-events\\.xml$",
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=events"
     },
     {
-      "source": "/sitemap-news.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news"
+      "src": "^/sitemap-news\\.xml$",
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news"
     },
     {
-      "source": "/sitemap-news-google.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
+      "src": "^/sitemap-news-google\\.xml$",
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
+
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/.*",
+      "dest": "/index.html"
     }
   ]
 }
