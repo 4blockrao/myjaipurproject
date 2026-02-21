@@ -6,71 +6,30 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
 
-    /* -----------------------------
-       EVENTS: protect SPA routes first
-       ----------------------------- */
-    {
-      "source": "/events/create",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/today",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/this-week",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/this-weekend",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/free",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/workshops",
-      "destination": "/index.html"
-    },
+    // --- IMPORTANT: SPA ROUTES THAT MUST NOT HIT /events/:slug ---
+    { "source": "/events/create", "destination": "/index.html" },
+    { "source": "/events/today", "destination": "/index.html" },
+    { "source": "/events/this-week", "destination": "/index.html" },
+    { "source": "/events/this-weekend", "destination": "/index.html" },
+    { "source": "/events/free", "destination": "/index.html" },
+    { "source": "/events/workshops", "destination": "/index.html" },
 
-    /* -----------------------------
-       EVENTS: category-only pages (/events/music etc.)
-       IMPORTANT: only match known categories so event slugs aren't hijacked
-       ----------------------------- */
-    {
-      "source": "/events/:category(music|comedy|workshops|food|nightlife|sports|theatre|festival)",
-      "destination": "/events?category=:category"
-    },
+    // If you use locality pages under /events/locality/<slug> in SPA:
+    { "source": "/events/locality/:localitySlug", "destination": "/index.html" },
 
-    /* -----------------------------
-       EVENTS: category + locality listing
-       (keeps your current SPA query behavior)
-       ----------------------------- */
-    {
-      "source": "/events/:category/:locality",
-      "destination": "/events?category=:category&locality=:locality"
-    },
-
-    /* -----------------------------
-       EVENTS: event detail SSR (must come AFTER the exceptions)
-       ----------------------------- */
+    // SSR event detail pages (single event)
     {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
 
-    /* -----------------------------
-       VENUES: SPA routes (so /venues/... doesn't 404)
-       ----------------------------- */
+    // Clean listing URL -> SPA listing endpoint pattern (keeps canonical clean)
     {
-      "source": "/venues/:slug",
-      "destination": "/index.html"
+      "source": "/events/:category/:locality",
+      "destination": "/events?category=:category&locality=:locality"
     },
 
-    /* -----------------------------
-       SITEMAPS
-       ----------------------------- */
+    // Sitemaps (first-party URLs served via Supabase function)
     {
       "source": "/sitemap.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
@@ -108,9 +67,7 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
 
-    /* -----------------------------
-       SPA fallback
-       ----------------------------- */
+    // SPA catch-all
     {
       "source": "/(.*)",
       "destination": "/index.html"
