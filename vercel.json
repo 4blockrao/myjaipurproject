@@ -6,10 +6,14 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
 
-    // -----------------------------
-    // SPA ROUTES THAT MUST NOT HIT SSR
-    // Put these BEFORE /events/:slug
-    // -----------------------------
+    /*
+      -----------------------------
+      EVENTS ROUTING (IMPORTANT)
+      -----------------------------
+      Rule order matters in Vercel rewrites.
+      We MUST protect SPA routes like /events/create and filters from being captured by /events/:slug.
+    */
+
     {
       "source": "/events/create",
       "destination": "/index.html"
@@ -35,41 +39,49 @@
       "destination": "/index.html"
     },
 
-    // If your UI links to category-only pages like /events/music, let SPA handle them
+    /*
+      Category + Locality listing pages.
+      Keep your existing SPA query-based behavior for now.
+      (If you later deploy a dedicated listing SSR edge function, we’ll swap this destination.)
+    */
+    {
+      "source": "/events/:category/:locality",
+      "destination": "/events?category=:category&locality=:locality"
+    },
+
+    /*
+      Category-only pages like /events/music should be SPA (NOT event-ssr).
+      This prevents /events/:slug from hijacking category routes.
+    */
     {
       "source": "/events/:category",
       "destination": "/index.html"
     },
 
-    // Venue pages are SPA in your current setup (until you build venue-ssr)
-    {
-      "source": "/venues/:slug",
-      "destination": "/index.html"
-    },
-
-    // -----------------------------
-    // EVENTS SSR
-    // -----------------------------
-    // Listing SSR: /events and /events/:category/:locality
-    // IMPORTANT: change destination function name if yours differs (events-list-ssr vs events-ssr-list etc.)
-    {
-      "source": "/events",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
-    },
-    {
-      "source": "/events/:category/:locality",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
-    },
-
-    // Detail SSR: /events/:slug
+    /*
+      Event detail SSR MUST come AFTER all SPA exceptions above.
+    */
     {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
 
-    // -----------------------------
-    // SITEMAPS (first-party)
-    // -----------------------------
+    /*
+      Venues are SPA pages in your current app (no SSR edge function exists for venues).
+      Without this, /venues/... can 404 depending on how Vercel serves static assets.
+    */
+    {
+      "source": "/venues/:slug",
+      "destination": "/index.html"
+    },
+
+    /*
+      (Optional but safe) If you have organizer/artist pages as SPA routes, uncomment these:
+      { "source": "/organizers/:slug", "destination": "/index.html" },
+      { "source": "/artists/:slug", "destination": "/index.html" },
+      { "source": "/event-series/:slug", "destination": "/index.html" },
+    */
+
     {
       "source": "/sitemap.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
@@ -107,9 +119,6 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
 
-    // -----------------------------
-    // SPA FALLBACK
-    // -----------------------------
     {
       "source": "/(.*)",
       "destination": "/index.html"
