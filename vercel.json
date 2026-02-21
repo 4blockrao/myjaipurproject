@@ -6,42 +6,54 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
 
-    /* -------------------------------
-       EVENTS: PROTECT SPA ROUTES FIRST
-       ------------------------------- */
+    // ---------------------------
+    // EVENTS: SEO SSR LISTINGS
+    // ---------------------------
 
-    /* SPA (filters + create + category pages etc.) */
-    { "source": "/events/create", "destination": "/index.html" },
-    { "source": "/events/today", "destination": "/index.html" },
-    { "source": "/events/this-week", "destination": "/index.html" },
-    { "source": "/events/this-weekend", "destination": "/index.html" },
-    { "source": "/events/free", "destination": "/index.html" },
-    { "source": "/events/workshops", "destination": "/index.html" },
-    { "source": "/events/past", "destination": "/index.html" },
-
-    /* If you have other known SPA routes under /events, add them above this line. */
-
-    /* SSR listing pages: /events/:category/:locality */
-    {
-      "source": "/events/:category/:locality",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
-    },
-
-    /* SSR hub page: /events */
+    // Events hub (indexable)
     {
       "source": "/events",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
     },
 
-    /* SSR event detail page: /events/:slug (ONLY after SPA protections) */
+    // Filter pages (SSR listings so they get correct meta/schema; avoids SPA thin-index bloat)
+    {
+      "source": "/events/today",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?filter=today"
+    },
+    {
+      "source": "/events/this-week",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?filter=this-week"
+    },
+    {
+      "source": "/events/this-weekend",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?filter=this-weekend"
+    },
+    {
+      "source": "/events/free",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?filter=free"
+    },
+    {
+      "source": "/events/workshops",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?filter=workshops"
+    },
+
+    // Category + locality listings (indexability gated by inventory threshold inside SSR)
+    {
+      "source": "/events/:category/:locality",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
+    },
+
+    // IMPORTANT: Event detail SSR must come AFTER the above,
+    // so it doesn't hijack /events/create or /events/today etc.
     {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
 
-    /* -------------------------------
-       SITEMAPS: FIRST-PARTY URLs
-       ------------------------------- */
+    // ---------------------------
+    // SITEMAPS (first-party URLs)
+    // ---------------------------
 
     {
       "source": "/sitemap.xml",
@@ -80,9 +92,9 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
 
-    /* -------------------------------
-       SPA FALLBACK
-       ------------------------------- */
+    // ---------------------------
+    // SPA fallback
+    // ---------------------------
     {
       "source": "/(.*)",
       "destination": "/index.html"
