@@ -7,6 +7,15 @@
     },
 
     {
+      "source": "/events/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
+    },
+    {
+      "source": "/events/:category/:locality",
+      "destination": "/events?category=:category&locality=:locality"
+    },
+
+    {
       "source": "/sitemap.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
     },
