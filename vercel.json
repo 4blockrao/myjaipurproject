@@ -68,7 +68,10 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
 >>>>>>> 5908759 (Fix: restore Vercel rewrites (sitemaps + merchant redirect + SPA fallback))
     },
-
+{
+  "source": "/jaipur/:locality/merchants/:slug",
+  "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-ssr?locality=:locality&slug=:slug"
+},
     {
       "source": "/(.*)",
       "destination": "/index.html"
