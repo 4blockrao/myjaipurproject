@@ -41,8 +41,6 @@
       "source": "/sitemap-news-google.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
-
-    // ✅ SPA fallback: send all app routes to index.html
     {
       "source": "/(.*)",
       "destination": "/index.html"
