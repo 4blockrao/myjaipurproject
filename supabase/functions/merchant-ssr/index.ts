@@ -8,240 +8,227 @@ const corsHeaders = {
 const SITE_URL = "https://www.jaipurcircle.com";
 const SITE_NAME = "JaipurCircle";
 
-function esc(str: string): string {
-  if (!str) return "";
-  return str
+function esc(s: string): string {
+  return (s || "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(/'/g, "&#39;");
 }
 
-function escJson(obj: any): string {
-  // JSON inside <script> should not break out
-  return JSON.stringify(obj).replace(/</g, "\\u003c");
+function escJson(v: any): string {
+  return esc(JSON.stringify(v));
 }
 
-function fmtDate(iso: string | null | undefined): string {
-  if (!iso) return new Date().toISOString().slice(0, 10);
-  return iso.includes("T") ? iso.split("T")[0] : iso;
+function fmtDate(d?: string | null): string {
+  if (!d) return "";
+  const dt = new Date(d);
+  return dt.toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" });
 }
 
-function slugToTitle(slug: string): string {
-  return slug
-    .split("-")
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-}
-
-async function fetchIndexHtml(): Promise<string> {
-  // Use the deployed index.html as the template
-  const res = await fetch(`${SITE_URL}/index.html`, { headers: { "Cache-Control": "no-cache" } });
-  if (!res.ok) throw new Error(`Failed to fetch index.html: ${res.status}`);
-  return await res.text();
+function pickPrimaryLocalitySlug(localitySlugParam: string | null, localityRow: any | null) {
+  // If caller provides locality, prefer that for canonical (it matches your URL structure).
+  // If not, fall back to locality row slug if we have it.
+  if (localitySlugParam) return localitySlugParam;
+  return localityRow?.slug || "jaipur";
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const url = new URL(req.url);
-    const localitySlug = (url.searchParams.get("locality") || "").trim();
-    const merchantSlug = (url.searchParams.get("slug") || "").trim();
+    const u = new URL(req.url);
+    const localitySlug = u.searchParams.get("locality");
+    const merchantSlug = u.searchParams.get("slug");
 
-    if (!localitySlug || !merchantSlug) {
-      return new Response("Missing locality or slug", {
+    if (!merchantSlug) {
+      return new Response(JSON.stringify({ error: "Missing slug" }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "text/plain; charset=utf-8" },
+        headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
       });
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceKey);
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const [indexHtml, merchantRes, localityRes] = await Promise.all([
-      fetchIndexHtml(),
-      supabase
-        .from("merchants")
-        .select("id, slug, business_name, business_type, logo_url, updated_at, locality_slug")
-        .eq("slug", merchantSlug)
-        .eq("locality_slug", localitySlug)
-        .limit(1)
-        .maybeSingle(),
-      supabase
-        .from("localities")
-        .select("slug, name, updated_at, zone, seo_blurb, known_for")
-        .eq("slug", localitySlug)
-        .limit(1)
-        .maybeSingle(),
-    ]);
+    // Load merchant by slug (your DB has merchants.slug)
+    const { data: merchant, error: mErr } = await supabase
+      .from("merchants")
+      .select("id, slug, business_name, description, logo_url, cover_image_url, address, phone, website, updated_at, created_at, is_active")
+      .eq("slug", merchantSlug)
+      .maybeSingle();
 
-    if (merchantRes.error) throw merchantRes.error;
-    if (localityRes.error) throw localityRes.error;
-
-    const merchant = merchantRes.data;
-    const locality = localityRes.data;
-
+    if (mErr) throw mErr;
     if (!merchant) {
-      // Let SPA show its own 404 page (but keep status 200 so Vercel doesn't hard-404)
-      return new Response(indexHtml, {
-        status: 200,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "text/html; charset=utf-8",
-          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
-        },
+      return new Response(JSON.stringify({ error: "Merchant not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
       });
     }
 
-    const localityName = locality?.name || slugToTitle(localitySlug);
-    const city = "Jaipur";
-    const canonical = `${SITE_URL}/jaipur/${encodeURIComponent(localitySlug)}/merchants/${encodeURIComponent(merchantSlug)}`;
+    // Find primary locality (entity_locality_map)
+    const { data: mapRow } = await supabase
+      .from("entity_locality_map")
+      .select("locality_id")
+      .eq("entity_type", "merchant")
+      .eq("entity_id", merchant.id)
+      .eq("is_primary", true)
+      .maybeSingle();
 
-    const businessName = merchant.business_name || slugToTitle(merchantSlug);
-    const businessType = merchant.business_type || "Business";
-    const img = merchant.logo_url || `${SITE_URL}/logo-lanscape.png`;
+    let localityRow: any | null = null;
+    if (mapRow?.locality_id) {
+      const { data: loc } = await supabase
+        .from("localities")
+        .select("id, name, slug, zone, updated_at")
+        .eq("id", mapRow.locality_id)
+        .maybeSingle();
+      localityRow = loc || null;
+    }
 
-    const title = `${businessName} in ${localityName}, ${city} | ${SITE_NAME}`;
-    const metaDesc =
-      locality?.seo_blurb
-        ? `${businessName} (${businessType}) in ${localityName}, ${city}. ${locality.seo_blurb}`
-        : `${businessName} (${businessType}) in ${localityName}, ${city}. Hours, location, reviews and contact info on ${SITE_NAME}.`;
+    const canonicalLocality = pickPrimaryLocalitySlug(localitySlug, localityRow);
+    const canonical = `${SITE_URL}/jaipur/${encodeURIComponent(canonicalLocality)}/merchants/${encodeURIComponent(merchant.slug)}`;
 
-    // JSON-LD (LocalBusiness)
-    const schema = {
+    // If request is already for canonical route, serve SSR HTML.
+    // If someone hits the function directly with a different locality, we still serve canonical in <link>.
+    const name = merchant.business_name || merchant.slug;
+    const localityName = localityRow?.name || canonicalLocality.replace(/-/g, " ");
+    const title = `${name} in ${localityName}, Jaipur — Address, Phone, Reviews & Offers`;
+    const desc =
+      merchant.description?.trim() ||
+      `${name} in ${localityName}, Jaipur. View contact details, address, photos and latest updates on ${SITE_NAME}.`;
+
+    const img =
+      merchant.cover_image_url ||
+      merchant.logo_url ||
+      `${SITE_URL}/og-default.png`;
+
+    const schemaLocalBusiness = {
       "@context": "https://schema.org",
       "@type": "LocalBusiness",
-      "name": businessName,
-      "url": canonical,
-      "image": img,
-      "logo": img,
-      "areaServed": {
-        "@type": "City",
-        "name": city,
-      },
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": localityName,
-        "addressRegion": "Rajasthan",
-        "addressCountry": "IN",
-      },
+      name,
+      url: canonical,
+      image: img,
+      telephone: merchant.phone || undefined,
+      sameAs: merchant.website || undefined,
+      address: merchant.address
+        ? { "@type": "PostalAddress", streetAddress: merchant.address, addressLocality: "Jaipur", addressRegion: "RJ", addressCountry: "IN" }
+        : undefined,
     };
 
     const breadcrumb = {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL + "/" },
-        { "@type": "ListItem", position: 2, name: "Jaipur", item: SITE_URL + "/jaipur" },
-        { "@type": "ListItem", position: 3, name: localityName, item: SITE_URL + "/jaipur/" + localitySlug },
-        { "@type": "ListItem", position: 4, name: "Merchants", item: SITE_URL + "/merchants" },
-        { "@type": "ListItem", position: 5, name: businessName, item: canonical },
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "Jaipur", item: `${SITE_URL}/jaipur` },
+        { "@type": "ListItem", position: 3, name: localityName, item: `${SITE_URL}/jaipur/${canonicalLocality}` },
+        { "@type": "ListItem", position: 4, name: name, item: canonical },
       ],
     };
 
-    // Simple FAQ (safe generic)
     const faqSchema = {
       "@context": "https://schema.org",
       "@type": "FAQPage",
       mainEntity: [
         {
           "@type": "Question",
-          name: `Where is ${businessName} located?`,
+          name: `Where is ${name} located in Jaipur?`,
           acceptedAnswer: {
             "@type": "Answer",
-            text: `${businessName} is located in ${localityName}, ${city}. Visit the merchant page on ${SITE_NAME} for details.`,
+            text: merchant.address ? `${name} is located at ${merchant.address} in ${localityName}, Jaipur.` : `${name} is located in ${localityName}, Jaipur.`,
           },
         },
         {
           "@type": "Question",
-          name: `What does ${businessName} offer?`,
+          name: `How to contact ${name}?`,
           acceptedAnswer: {
             "@type": "Answer",
-            text: `${businessName} is listed as a ${businessType} in ${localityName}, ${city}.`,
+            text: merchant.phone ? `You can call ${name} at ${merchant.phone}.` : `Contact details for ${name} are available on this page.`,
+          },
+        },
+        {
+          "@type": "Question",
+          name: `Is ${name} currently active on ${SITE_NAME}?`,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: merchant.is_active ? `Yes, ${name} is active on ${SITE_NAME}.` : `This listing may be inactive currently on ${SITE_NAME}.`,
           },
         },
       ],
     };
 
-    // Meta tags injected into <head>
+    // Load SPA index.html from the deployed site
+    const indexRes = await fetch(`${SITE_URL}/index.html`, { headers: { "User-Agent": "JaipurCircle-SSR/1.0" } });
+    const indexHtml = await indexRes.text();
+
     const metaTags = `
-    <title>${esc(title)}</title>
-    <meta name="description" content="${esc(metaDesc)}">
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
-    <link rel="canonical" href="${canonical}">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="${canonical}">
-    <meta property="og:site_name" content="${SITE_NAME}">
-    <meta property="og:title" content="${esc(title)}">
-    <meta property="og:description" content="${esc(metaDesc)}">
-    <meta property="og:image" content="${esc(img)}">
-    <meta property="og:locale" content="en_IN">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${esc(title)}">
-    <meta name="twitter:description" content="${esc(metaDesc)}">
-    <meta name="twitter:image" content="${esc(img)}">
-    <meta name="geo.region" content="IN-RJ">
-    <meta name="geo.placename" content="${esc(localityName)}">
-    <script type="application/ld+json">${escJson(schema)}</script>
-    <script type="application/ld+json">${escJson(breadcrumb)}</script>
-    <script type="application/ld+json">${escJson(faqSchema)}</script>`;
+<title>${esc(title)}</title>
+<meta name="description" content="${esc(desc)}">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<link rel="canonical" href="${canonical}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="${canonical}">
+<meta property="og:site_name" content="${SITE_NAME}">
+<meta property="og:title" content="${esc(title)}">
+<meta property="og:description" content="${esc(desc)}">
+<meta property="og:image" content="${esc(img)}">
+<meta property="og:locale" content="en_IN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(title)}">
+<meta name="twitter:description" content="${esc(desc)}">
+<meta name="twitter:image" content="${esc(img)}">
+<script type="application/ld+json">${escJson(schemaLocalBusiness)}</script>
+<script type="application/ld+json">${escJson(breadcrumb)}</script>
+<script type="application/ld+json">${escJson(faqSchema)}</script>
+`;
 
-    const updatedAt = fmtDate(merchant.updated_at || locality?.updated_at);
+    const preContent = `
+<div class="ssr-prerender" style="max-width:900px;margin:0 auto;padding:20px;font-family:system-ui,sans-serif">
+  <nav aria-label="Breadcrumb">
+    <a href="/">Home</a> › <a href="/jaipur">Jaipur</a> › <a href="/jaipur/${esc(canonicalLocality)}">${esc(localityName)}</a> › ${esc(name)}
+  </nav>
 
-    // Pre-render content for crawlers (React hydrates over)
-    const preContent = `<div class="ssr-prerender" style="max-width:900px;margin:0 auto;padding:20px;font-family:system-ui,sans-serif">
-<nav aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/jaipur">Jaipur</a> › <a href="/jaipur/${esc(localitySlug)}">${esc(localityName)}</a> › <a href="/merchants">Merchants</a> › ${esc(businessName)}</nav>
-<h1>${esc(businessName)} in ${esc(localityName)}, Jaipur</h1>
-<p style="color:#555;margin-top:8px">${esc(metaDesc)}</p>
+  <h1>${esc(name)} in ${esc(localityName)}, Jaipur</h1>
 
-<div style="margin:16px 0">
-<table style="width:100%;border-collapse:collapse"><tbody>
-<tr><th style="text-align:left;padding:8px;border-bottom:1px solid #eee;width:160px;color:#666">Business</th><td style="padding:8px;border-bottom:1px solid #eee">${esc(businessName)}</td></tr>
-<tr><th style="text-align:left;padding:8px;border-bottom:1px solid #eee;width:160px;color:#666">Type</th><td style="padding:8px;border-bottom:1px solid #eee">${esc(businessType)}</td></tr>
-<tr><th style="text-align:left;padding:8px;border-bottom:1px solid #eee;width:160px;color:#666">Locality</th><td style="padding:8px;border-bottom:1px solid #eee">${esc(localityName)}</td></tr>
-<tr><th style="text-align:left;padding:8px;border-bottom:1px solid #eee;width:160px;color:#666">City</th><td style="padding:8px;border-bottom:1px solid #eee">Jaipur</td></tr>
-<tr><th style="text-align:left;padding:8px;border-bottom:1px solid #eee;width:160px;color:#666">Last Updated</th><td style="padding:8px;border-bottom:1px solid #eee">${esc(updatedAt)}</td></tr>
-</tbody></table>
+  <p style="color:#555;line-height:1.6">${esc(desc)}</p>
+
+  <div style="margin:16px 0;padding:14px;border:1px solid #eee;border-radius:10px">
+    <h2 style="margin:0 0 10px 0;font-size:18px">Quick Info</h2>
+    <ul style="margin:0;padding-left:18px;line-height:1.7">
+      <li><strong>Locality:</strong> ${esc(localityName)}</li>
+      ${merchant.address ? `<li><strong>Address:</strong> ${esc(merchant.address)}</li>` : ""}
+      ${merchant.phone ? `<li><strong>Phone:</strong> ${esc(merchant.phone)}</li>` : ""}
+      ${merchant.website ? `<li><strong>Website:</strong> <a href="${esc(merchant.website)}" rel="nofollow">${esc(merchant.website)}</a></li>` : ""}
+      <li><strong>Last updated:</strong> ${esc(fmtDate(merchant.updated_at || merchant.created_at))}</li>
+    </ul>
+  </div>
+
+  <section>
+    <h2>Frequently Asked Questions</h2>
+    <h3>Where is ${esc(name)} located?</h3>
+    <p>${merchant.address ? `${esc(name)} is located at ${esc(merchant.address)} in ${esc(localityName)}, Jaipur.` : `${esc(name)} is located in ${esc(localityName)}, Jaipur.`}</p>
+    <h3>How to contact ${esc(name)}?</h3>
+    <p>${merchant.phone ? `Call ${esc(merchant.phone)}.` : `Contact details are available on this page.`}</p>
+    <h3>How to find this listing?</h3>
+    <p>Use the canonical URL: <a href="${canonical}">${canonical}</a></p>
+  </section>
 </div>
+`;
 
-<section>
-<h2>About</h2>
-<p>${esc(businessName)} is listed on ${SITE_NAME} as a ${esc(businessType)} serving ${esc(localityName)}, Jaipur.</p>
-</section>
-
-<section>
-<h2>Frequently Asked Questions</h2>
-<h3>Where is ${esc(businessName)} located?</h3>
-<p>${esc(businessName)} is located in ${esc(localityName)}, Jaipur.</p>
-<h3>What does ${esc(businessName)} offer?</h3>
-<p>${esc(businessName)} is listed as a ${esc(businessType)} in ${esc(localityName)}, Jaipur.</p>
-</section>
-
-</div>`;
-
-    // Inject into index.html
     let html = indexHtml;
 
-    // Remove generic meta (best-effort, safe if missing)
+    // Clear common generic tags (best-effort, same approach as event-ssr)
     html = html.replace(/<title>[^<]*<\/title>/, "");
     html = html.replace(/<meta name="description"[^>]*>/, "");
-    html = html.replace(/<meta name="keywords"[^>]*>/, "");
     html = html.replace(/<meta property="og:title"[^>]*>/, "");
     html = html.replace(/<meta property="og:description"[^>]*>/, "");
     html = html.replace(/<meta property="og:url"[^>]*>/, "");
     html = html.replace(/<meta property="og:type"[^>]*>/, "");
     html = html.replace(/<meta name="twitter:card"[^>]*>/, "");
 
-    // Inject merchant meta tags
     html = html.replace("</head>", `${metaTags}\n</head>`);
-
-    // Inject SSR content into root
     html = html.replace('<div id="root"></div>', `<div id="root">${preContent}</div>`);
 
     return new Response(html, {
@@ -254,9 +241,9 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("Merchant SSR error:", err);
-    return new Response("Internal Server Error", {
+    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "text/plain; charset=utf-8" },
+      headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
     });
   }
 });
