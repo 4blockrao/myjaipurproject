@@ -2,11 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
-      "source": "/merchant/:id",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
+      "source": "/sitemap.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
     },
     {
-      "source": "/sitemap.xml",
+      "source": "/sitemap-test.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
     },
     {
@@ -40,6 +40,12 @@
     {
       "source": "/sitemap-news-google.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
+    },
+
+    // ✅ SPA fallback: send all app routes to index.html
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
