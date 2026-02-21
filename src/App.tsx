@@ -1,6 +1,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -111,30 +111,78 @@ function App() {
                   <Route path="/" element={<Index />} />
                   <Route path="/about" element={<AboutPage />} />
                   <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/account" element={<AccountPage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/help" element={<HelpPage />} />
+                  <Route path="/pro" element={<ProMembershipPage />} />
+                  <Route path="/leaderboard" element={<LeaderboardPage />} />
+                  <Route path="/referral-program" element={<ReferralProgramPage />} />
+                  <Route path="/referral-success" element={<ReferralSuccessPage />} />
+                  <Route path="/install" element={<InstallPage />} />
+                  <Route path="/scan" element={<ScanPage />} />
+                  <Route path="/sitemap" element={<SitemapPage />} />
+
+                  {/* Categories */}
+                  <Route path="/categories" element={<CategoriesPage />} />
+                  <Route path="/category/:slug" element={<CategoryPage />} />
 
                   {/* Deals */}
                   <Route path="/deals" element={<DealsPage />} />
                   <Route path="/deal/:id" element={<DealDetailPage />} />
-
-                  {/* Categories */}
-                  <Route path="/categories" element={<CategoriesPage />} />
+                  <Route path="/checkout" element={<CheckoutPage />} />
+                  <Route path="/new-checkout" element={<NewCheckoutPage />} />
+                  <Route path="/order-success" element={<OrderSuccessPage />} />
 
                   {/* News */}
                   <Route path="/news" element={<NewsPage />} />
+                  <Route path="/news/create" element={<CreateNewsPage />} />
                   <Route path="/news/:category" element={<NewsCategoryPage />} />
                   <Route path="/news/:category/:slug" element={<NewsArticlePage />} />
 
-                  {/* Events */}
+                  {/* Events hub + filters */}
                   <Route path="/events" element={<EventsPage />} />
+                  <Route path="/events/today" element={<EventsTodayPage />} />
+                  <Route path="/events/this-week" element={<EventsThisWeekPage />} />
+                  <Route path="/events/this-weekend" element={<EventsThisWeekendPage />} />
+                  <Route path="/events/free" element={<EventsFreeFilterPage />} />
+                  <Route path="/events/workshops" element={<EventsWorkshopsPage />} />
+
+                  {/* Events taxonomy / discovery */}
+                  <Route path="/events/category/:categorySlug" element={<EventCategoryPage />} />
+                  <Route path="/events/locality/:localitySlug" element={<EventsLocalityPage />} />
+                  <Route path="/events/fusion" element={<EventFusionPage />} />
+
+                  {/* Events creation + dashboards */}
+                  <Route path="/events/create" element={<CreateEventPage />} />
+                  <Route path="/events/organizer" element={<EventOrganizerDashboardPage />} />
+
+                  {/* Event entities */}
+                  <Route path="/events/series/:seriesSlug" element={<EventSeriesPage />} />
+                  <Route path="/events/past/:slug" element={<PastEventPage />} />
+                  <Route path="/organizers/:organizerSlug" element={<OrganizerPage />} />
+                  <Route path="/artists/:artistSlug" element={<ArtistPage />} />
+                  <Route path="/venues/:venueSlug" element={<VenuePage />} />
+
+                  {/* Event detail (SPA route; SSR rewrite will also serve HTML for direct loads) */}
                   <Route path="/events/:slug" element={<EventDetailPage />} />
-                  {/* Backward-compatible listing route used by SEO URLs */}
-                  <Route path="/events/:category/:locality" element={<EventsLocalityPage />} />
 
                   {/* Merchants */}
                   <Route path="/merchants" element={<MerchantsPage />} />
+                  <Route path="/merchant-onboarding" element={<MerchantOnboardingPage />} />
+                  <Route path="/merchant-dashboard" element={<MerchantDashboardPage />} />
+                  <Route path="/merchant-portal" element={<MerchantPortalPage />} />
                   <Route path="/merchant/:id" element={<MerchantDetailPage />} />
+                  <Route path="/merchant/:merchantSlug" element={<MerchantPage />} />
 
-                  {/* Jaipur */}
+                  {/* Partners / Vendor / Broker */}
+                  <Route path="/partners" element={<PartnerHubPage />} />
+                  <Route path="/vendor-registration" element={<VendorRegistrationPage />} />
+                  <Route path="/broker-dashboard" element={<BrokerDashboardPage />} />
+
+                  {/* Admin */}
+                  <Route path="/admin" element={<AdminDashboardPage />} />
+
+                  {/* Jaipur localities */}
                   <Route path="/jaipur" element={<JaipurPage />} />
                   <Route path="/jaipur/all" element={<LocalitiesIndexPage />} />
                   <Route path="/jaipur/zones" element={<ZonesIndexPage />} />
@@ -149,7 +197,25 @@ function App() {
                   <Route path="/jaipur/:slug/:category" element={<LocalityCategoryPage />} />
                   <Route path="/jaipur/:slug" element={<LocalityPage />} />
 
-                  {/* Catch-all */}
+                  {/* Properties */}
+                  <Route path="/properties" element={<PropertiesHubPage />} />
+                  <Route path="/property/:id" element={<PropertyDetailPage />} />
+                  <Route path="/properties/locality/:localitySlug" element={<PropertiesLocalityPage />} />
+
+                  {/* Cars */}
+                  <Route path="/cars" element={<CarsHubPage />} />
+                  <Route path="/cars/brands" element={<CarBrandsPage />} />
+                  <Route path="/cars/brand/:brandSlug" element={<CarBrandHubPage />} />
+                  <Route path="/cars/model/:modelSlug" element={<CarModelPage />} />
+                  <Route path="/cars/model/:modelSlug/:variantSlug" element={<CarModelDetailPage />} />
+                  <Route path="/cars/dealer/:dealerSlug" element={<CarDealerPage />} />
+                  <Route path="/cars/dealers" element={<CarDealersListPage />} />
+                  <Route path="/cars/ev" element={<EVCarsPage />} />
+                  <Route path="/cars/budget" element={<CarsByBudgetPage />} />
+                  <Route path="/cars/body-type" element={<CarsByBodyTypePage />} />
+                  <Route path="/cars/compare" element={<CarComparePage />} />
+
+                  {/* 404 MUST BE LAST */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </AnalyticsProvider>
