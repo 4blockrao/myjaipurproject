@@ -6,48 +6,42 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
 
-    {
-      "source": "/events",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
-    },
+    /* -------------------------------
+       EVENTS: PROTECT SPA ROUTES FIRST
+       ------------------------------- */
+
+    /* SPA (filters + create + category pages etc.) */
+    { "source": "/events/create", "destination": "/index.html" },
+    { "source": "/events/today", "destination": "/index.html" },
+    { "source": "/events/this-week", "destination": "/index.html" },
+    { "source": "/events/this-weekend", "destination": "/index.html" },
+    { "source": "/events/free", "destination": "/index.html" },
+    { "source": "/events/workshops", "destination": "/index.html" },
+    { "source": "/events/past", "destination": "/index.html" },
+
+    /* If you have other known SPA routes under /events, add them above this line. */
+
+    /* SSR listing pages: /events/:category/:locality */
     {
       "source": "/events/:category/:locality",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
     },
 
+    /* SSR hub page: /events */
     {
-      "source": "/events/today",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/this-week",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/this-weekend",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/free",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/workshops",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/past",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/create",
-      "destination": "/index.html"
+      "source": "/events",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
     },
 
+    /* SSR event detail page: /events/:slug (ONLY after SPA protections) */
     {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
+
+    /* -------------------------------
+       SITEMAPS: FIRST-PARTY URLs
+       ------------------------------- */
 
     {
       "source": "/sitemap.xml",
@@ -86,6 +80,9 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
 
+    /* -------------------------------
+       SPA FALLBACK
+       ------------------------------- */
     {
       "source": "/(.*)",
       "destination": "/index.html"
