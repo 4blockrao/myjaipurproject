@@ -7,16 +7,7 @@
     },
 
     {
-      "source": "/events/:category/:locality",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?category=:category&locality=:locality"
-    },
-
-    {
       "source": "/sitemap.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
-    },
-    {
-      "source": "/sitemap-test.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
     },
     {
