@@ -5,32 +5,14 @@
       "source": "/merchant/:id",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
-
-<<<<<<< HEAD
-    { "source": "/events/today", "destination": "/index.html" },
-    { "source": "/events/this-week", "destination": "/index.html" },
-    { "source": "/events/this-weekend", "destination": "/index.html" },
-    { "source": "/events/free", "destination": "/index.html" },
-    { "source": "/events/workshops", "destination": "/index.html" },
-    { "source": "/events/create", "destination": "/index.html" },
-    { "source": "/events/past", "destination": "/index.html" },
-
-=======
-    // ✅ Events listing hub + scoped listings SSR
-    // /events → events-list-ssr (hub)
     {
       "source": "/events",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
     },
-
-    // /events/:category/:locality → events-list-ssr?category=&locality=
     {
       "source": "/events/:category/:locality",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
     },
-
-    // ✅ Protect SPA subroutes under /events from being hijacked by /events/:slug
-    // These must go BEFORE /events/:slug
     {
       "source": "/events/create",
       "destination": "/index.html"
@@ -55,28 +37,10 @@
       "source": "/events/workshops",
       "destination": "/index.html"
     },
-
-    // ✅ Event detail SSR (single event)
-    // Keep this AFTER protected SPA routes
->>>>>>> 6d9cfc2 (Fix: correct events routing + protect SPA routes)
-    {
-      "source": "/events",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
-    },
-<<<<<<< HEAD
-    {
-      "source": "/events/:category/:locality",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
-    },
-
     {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
-=======
->>>>>>> 6d9cfc2 (Fix: correct events routing + protect SPA routes)
-
-    // ✅ Sitemaps (first-party URLs)
     {
       "source": "/sitemap.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
@@ -113,8 +77,6 @@
       "source": "/sitemap-news-google.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
-
-    // SPA fallback
     {
       "source": "/(.*)",
       "destination": "/index.html"
