@@ -10,15 +10,13 @@
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
-
-    {
-      "source": "/events",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
-    },
-
     {
       "source": "/events/:category/:locality",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
+    },
+    {
+      "source": "/events",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
     },
 
     {
