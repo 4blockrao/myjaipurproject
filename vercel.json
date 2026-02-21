@@ -5,6 +5,7 @@
       "source": "/merchant/:id",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
+
     {
       "source": "/events",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
@@ -13,10 +14,7 @@
       "source": "/events/:category/:locality",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
     },
-    {
-      "source": "/events/create",
-      "destination": "/index.html"
-    },
+
     {
       "source": "/events/today",
       "destination": "/index.html"
@@ -38,9 +36,19 @@
       "destination": "/index.html"
     },
     {
+      "source": "/events/past",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/create",
+      "destination": "/index.html"
+    },
+
+    {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
+
     {
       "source": "/sitemap.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
@@ -77,6 +85,7 @@
       "source": "/sitemap-news-google.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
+
     {
       "source": "/(.*)",
       "destination": "/index.html"
