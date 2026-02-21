@@ -1,1 +1,41 @@
-<PASTE THE JSON ABOVE HERE>
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/jaipur/:localitySlug/merchants/:merchantSlug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-ssr?locality=:localitySlug&slug=:merchantSlug"
+    },
+
+    {
+      "source": "/events/:category/:locality",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?category=:category&locality=:locality"
+    },
+
+    {
+      "source": "/jaipur/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-ssr?slug=:slug"
+    },
+
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
+    },
+    {
+      "source": "/sitemap-localities.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=localities"
+    },
+    {
+      "source": "/sitemap-events.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=events"
+    },
+    {
+      "source": "/sitemap-merchants.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=merchants"
+    },
+
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
