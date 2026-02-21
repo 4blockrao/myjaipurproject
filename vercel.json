@@ -1,106 +1,79 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
+    /*
+      =========================================================
+      EVENTS SECTION
+      =========================================================
+    */
+
+    /* 1️⃣ Protect SPA utility routes (MUST come first) */
     {
-      "source": "/merchant/:id",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
+      "source": "/events/create",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/today",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/this-week",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/this-weekend",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/free",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/workshops",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/past",
+      "destination": "/index.html"
     },
 
-    /* =========================
-       EVENTS: PROTECT SPA ROUTES
-       These MUST come BEFORE /events/:slug
-       ========================= */
-
-    { "source": "/events/create", "destination": "/index.html" },
-    { "source": "/events/today", "destination": "/index.html" },
-    { "source": "/events/this-week", "destination": "/index.html" },
-    { "source": "/events/this-weekend", "destination": "/index.html" },
-    { "source": "/events/free", "destination": "/index.html" },
-    { "source": "/events/workshops", "destination": "/index.html" },
-    { "source": "/events/past", "destination": "/index.html" },
-
-    /* =========================
-       EVENTS: LISTING SSR
-       ========================= */
-
-    {
-      "source": "/events",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
-    },
+    /* 2️⃣ Scoped listing SSR: /events/:category/:locality */
     {
       "source": "/events/:category/:locality",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
     },
 
-    /* =========================
-       EVENTS: DETAIL SSR
-       MUST come AFTER SPA-protected routes
-       ========================= */
+    /* 3️⃣ Events Hub SSR: /events */
+    {
+      "source": "/events",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
+    },
 
+    /* 4️⃣ Event Detail SSR: /events/:slug */
     {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
 
-    /* =========================
-       VENUES
-       If you have a venue SSR function, route it here.
-       If you do NOT, comment this out and SPA fallback will handle.
-       ========================= */
+    /*
+      =========================================================
+      VENUES
+      =========================================================
+    */
 
     {
       "source": "/venues/:slug",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/venue-ssr?slug=:slug"
-    },
-
-    /* =========================
-       SITEMAPS (first-party)
-       ========================= */
-
-    {
-      "source": "/sitemap.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
-    },
-    {
-      "source": "/sitemap-pages.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=pages"
-    },
-    {
-      "source": "/sitemap-localities.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=localities"
-    },
-    {
-      "source": "/sitemap-zones.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=zones"
-    },
-    {
-      "source": "/sitemap-deals.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=deals"
-    },
-    {
-      "source": "/sitemap-merchants.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=merchants"
-    },
-    {
-      "source": "/sitemap-events.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=events"
-    },
-    {
-      "source": "/sitemap-news.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news"
-    },
-    {
-      "source": "/sitemap-news-google.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
-    },
-
-    /* =========================
-       SPA FALLBACK (MUST be last)
-       ========================= */
-
-    {
-      "source": "/(.*)",
       "destination": "/index.html"
+    },
+
+    /*
+      =========================================================
+      MERCHANT REDIRECT (existing)
+      =========================================================
+    */
+
+    {
+      "source": "/merchant/:id",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     }
   ]
 }
