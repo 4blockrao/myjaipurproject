@@ -31,6 +31,18 @@ const TOP_LOCALITIES = [
   "bani-park",
 ];
 
+// Allowed tracking/query params that should NOT cause noindex
+const ALLOWED_TRACKING_KEYS = new Set([
+  "cb",
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "utm_content",
+  "gclid",
+  "fbclid",
+]);
+
 function esc(str: string): string {
   return String(str ?? "")
     .replace(/&/g, "&amp;")
@@ -73,43 +85,64 @@ function isLikelyBot(req: Request): boolean {
 
 type RobotsResult = { robots: string; reason: string };
 
-// Determine whether this request should be indexable (strict)
+function cleanToken(input: string): string {
+  return String(input || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "") // drop weird punctuation
+    .replace(/\s+/g, " ");
+}
+
+// Create hyphen/space variants so "vaishali-nagar" matches "Vaishali Nagar"
+function tokenVariants(input: string): string[] {
+  const t = cleanToken(input);
+  if (!t) return [];
+  const hyphenToSpace = t.replace(/-/g, " ");
+  const spaceToHyphen = t.replace(/\s+/g, "-");
+  const out = new Set<string>([t, hyphenToSpace, spaceToHyphen]);
+  return [...out].filter(Boolean);
+}
+
+function safeIlikeValue(v: string): string {
+  // Supabase .or uses a string DSL; keep it simple and avoid commas
+  return v.replace(/,/g, " ").trim();
+}
+
+// Determine whether this request should be indexable (strict but tracking-safe)
 function computeRobots(
   url: URL,
   isHub: boolean,
   isScoped: boolean,
   upcomingCount: number,
 ): RobotsResult {
-  // Only allow:
-  // - /events (hub)
-  // - /events/:category/:locality (scoped)
-  //
-  // Anything else (especially query variants like /events?category=...) = noindex,follow
-  const hasQuery = [...url.searchParams.keys()].length > 0;
+  const keys = [...url.searchParams.keys()];
 
-  // Hub must be clean (no query params)
+  // Hub should be indexable even with tracking params like ?cb=...
   if (isHub) {
-    if (hasQuery) return { robots: "noindex, follow", reason: "hub-query-variant" };
+    const noisy = keys.filter((k) => !ALLOWED_TRACKING_KEYS.has(k));
+    if (noisy.length > 0) return { robots: "noindex, follow", reason: "hub-query-noise" };
     return {
       robots: "index, follow, max-image-preview:large, max-snippet:-1",
       reason: "hub-ok",
     };
   }
 
-  // Scoped must be clean path too (we still receive query params because Vercel passes them;
-  // but we treat this function as canonical for the clean path routes only)
+  // Scoped pages receive category/locality in query via Vercel rewrite + may also include tracking
   if (isScoped) {
-    // Index only if inventory meets threshold
+    const allowed = new Set<string>(["category", "locality", ...ALLOWED_TRACKING_KEYS]);
+    const noisy = keys.filter((k) => !allowed.has(k));
+    if (noisy.length > 0) return { robots: "noindex, follow", reason: "scoped-query-noise" };
+
     if (upcomingCount < INDEX_MIN_UPCOMING) {
       return { robots: "noindex, follow", reason: "thin-inventory" };
     }
+
     return {
       robots: "index, follow, max-image-preview:large, max-snippet:-1",
       reason: "scoped-ok",
     };
   }
 
-  // Any other variant
   return { robots: "noindex, follow", reason: "non-canonical-variant" };
 }
 
@@ -162,12 +195,15 @@ Deno.serve(async (req: Request) => {
   try {
     const url = new URL(req.url);
 
-    const category = url.searchParams.get("category");
-    const locality = url.searchParams.get("locality");
+    const categoryRaw = url.searchParams.get("category");
+    const localityRaw = url.searchParams.get("locality");
+
+    const category = categoryRaw ? cleanToken(categoryRaw) : null;
+    const locality = localityRaw ? cleanToken(localityRaw) : null;
+
     const isHub = !category && !locality;
     const isScoped = Boolean(category && locality);
 
-    // Canonical URLs (only two indexable shapes)
     const canonical = isHub
       ? `${BASE_URL}/events`
       : `${BASE_URL}/events/${encodeURIComponent(category || "")}/${encodeURIComponent(locality || "")}`;
@@ -180,7 +216,6 @@ Deno.serve(async (req: Request) => {
 
     const nowIso = new Date().toISOString();
 
-    // Base query (upcoming)
     let q = supabase
       .from("events")
       .select(
@@ -197,13 +232,23 @@ Deno.serve(async (req: Request) => {
       .eq("status", "published")
       .gte("start_date", nowIso);
 
+    // Apply tolerant filters (hyphen/space variants)
     if (category) {
-      q = q.ilike("category", `%${category}%`);
-      countQ = countQ.ilike("category", `%${category}%`);
+      const vars = tokenVariants(category).map(safeIlikeValue);
+      if (vars.length > 0) {
+        const orExpr = vars.map((v) => `category.ilike.%${v}%`).join(",");
+        q = q.or(orExpr);
+        countQ = countQ.or(orExpr);
+      }
     }
+
     if (locality) {
-      q = q.ilike("locality", `%${locality}%`);
-      countQ = countQ.ilike("locality", `%${locality}%`);
+      const vars = tokenVariants(locality).map(safeIlikeValue);
+      if (vars.length > 0) {
+        const orExpr = vars.map((v) => `locality.ilike.%${v}%`).join(",");
+        q = q.or(orExpr);
+        countQ = countQ.or(orExpr);
+      }
     }
 
     const [listRes, countRes] = await Promise.all([q, countQ]);
@@ -213,7 +258,6 @@ Deno.serve(async (req: Request) => {
     const events = listRes.data ?? [];
     const upcoming = countRes.count ?? events.length;
 
-    // Robots rules (strict)
     const { robots } = computeRobots(url, isHub, isScoped, upcoming);
 
     const city = "Jaipur";
