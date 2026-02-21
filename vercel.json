@@ -5,13 +5,8 @@
       "source": "/merchant/:id",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
-
     {
       "source": "/sitemap.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
-    },
-    {
-      "source": "/sitemap-test.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
     },
     {
