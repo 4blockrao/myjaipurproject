@@ -1,11 +1,21 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+
   "rewrites": [
+
+    /* =========================
+       MERCHANT REDIRECT
+    ========================== */
     {
       "source": "/merchant/:id",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
 
+    /* =========================
+       EVENTS LISTING SSR
+       /events
+       /events/:category/:locality
+    ========================== */
     {
       "source": "/events",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
@@ -14,11 +24,35 @@
       "source": "/events/:category/:locality",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
     },
+
+    /* =========================
+       EVENT DETAIL SSR
+       /events/:slug
+    ========================== */
     {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
 
+    /* =========================
+       MERCHANT DETAIL SSR
+    ========================== */
+    {
+      "source": "/jaipur/:localitySlug/merchants/:merchantSlug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-ssr?localitySlug=:localitySlug&merchantSlug=:merchantSlug"
+    },
+
+    /* =========================
+       PAGE SSR (Static CMS Pages)
+    ========================== */
+    {
+      "source": "/about",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/page-ssr?slug=about"
+    },
+
+    /* =========================
+       SITEMAPS (FIRST-PARTY MASKED)
+    ========================== */
     {
       "source": "/sitemap.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
@@ -56,9 +90,13 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
 
+    /* =========================
+       SPA FALLBACK (KEEP LAST)
+    ========================== */
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
+
   ]
 }
