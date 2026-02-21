@@ -5,17 +5,10 @@
       "source": "/merchant/:id",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
-    {
-      "source": "/jaipur/:locality/merchants/:slug",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-ssr?locality=:locality&slug=:slug"
-    },
+
     {
       "source": "/events/:category/:locality",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?category=:category&locality=:locality"
-    },
-    {
-      "source": "/jaipur/:slug",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-ssr?slug=:slug"
     },
 
     {
