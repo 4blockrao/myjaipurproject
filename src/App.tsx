@@ -107,29 +107,50 @@ function App() {
               <AnalyticsProvider>
                 <GlobalSEO />
                 <Routes>
-
+                  {/* Core */}
                   <Route path="/" element={<Index />} />
                   <Route path="/about" element={<AboutPage />} />
                   <Route path="/auth" element={<AuthPage />} />
 
+                  {/* Deals */}
+                  <Route path="/deals" element={<DealsPage />} />
+                  <Route path="/deal/:id" element={<DealDetailPage />} />
+
+                  {/* Categories */}
+                  <Route path="/categories" element={<CategoriesPage />} />
+
+                  {/* News */}
+                  <Route path="/news" element={<NewsPage />} />
+                  <Route path="/news/:category" element={<NewsCategoryPage />} />
+                  <Route path="/news/:category/:slug" element={<NewsArticlePage />} />
+
+                  {/* Events */}
+                  <Route path="/events" element={<EventsPage />} />
+                  <Route path="/events/:slug" element={<EventDetailPage />} />
+                  {/* Backward-compatible listing route used by SEO URLs */}
+                  <Route path="/events/:category/:locality" element={<EventsLocalityPage />} />
+
+                  {/* Merchants */}
+                  <Route path="/merchants" element={<MerchantsPage />} />
                   <Route path="/merchant/:id" element={<MerchantDetailPage />} />
 
+                  {/* Jaipur */}
                   <Route path="/jaipur" element={<JaipurPage />} />
                   <Route path="/jaipur/all" element={<LocalitiesIndexPage />} />
                   <Route path="/jaipur/zones" element={<ZonesIndexPage />} />
                   <Route path="/jaipur/zones/:zoneSlug" element={<ZonePage />} />
 
                   {/* Canonical Merchant SEO Route */}
-                  <Route 
-                    path="/jaipur/:localitySlug/merchants/:merchantSlug" 
-                    element={<MerchantDetailPage />} 
+                  <Route
+                    path="/jaipur/:localitySlug/merchants/:merchantSlug"
+                    element={<MerchantDetailPage />}
                   />
 
                   <Route path="/jaipur/:slug/:category" element={<LocalityCategoryPage />} />
                   <Route path="/jaipur/:slug" element={<LocalityPage />} />
 
+                  {/* Catch-all */}
                   <Route path="*" element={<NotFound />} />
-
                 </Routes>
               </AnalyticsProvider>
             </BrowserRouter>
