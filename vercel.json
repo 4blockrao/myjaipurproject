@@ -6,38 +6,26 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
 
-    /* --- EVENTS: keep SEO SSR for detail pages --- */
-    {
-      "source": "/events/:slug",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
-    },
-
-    /* --- EVENTS: listing routes should remain SPA --- */
-    {
-      "source": "/events/:category/:locality",
-      "destination": "/events?category=:category&locality=:locality"
-    },
-
-    /* --- FORCE SPA SHELL for top-level routes (prevents Vercel 500 on /events) --- */
+    /* ✅ EVENTS LISTING must be SPA (fixes your /events 500) */
     {
       "source": "/events",
       "destination": "/index.html"
     },
     {
-      "source": "/deals",
+      "source": "/events/",
       "destination": "/index.html"
     },
+
+    /* ✅ EVENTS SEO detail pages must be SSR */
     {
-      "source": "/news",
-      "destination": "/index.html"
+      "source": "/events/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
+
+    /* ✅ Category/locality listing stays SPA */
     {
-      "source": "/merchants",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/properties",
-      "destination": "/index.html"
+      "source": "/events/:category/:locality",
+      "destination": "/events?category=:category&locality=:locality"
     },
 
     /* --- SITEMAPS --- */
@@ -78,7 +66,7 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
 
-    /* --- DEFAULT: SPA fallback for everything else --- */
+    /* ✅ Default SPA fallback */
     {
       "source": "/(.*)",
       "destination": "/index.html"
