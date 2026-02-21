@@ -6,7 +6,7 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
 
-    // --- IMPORTANT: SPA ROUTES THAT MUST NOT HIT /events/:slug ---
+    // --- MUST BE ABOVE /events/:slug (otherwise SSR hijacks SPA pages like /events/create) ---
     { "source": "/events/create", "destination": "/index.html" },
     { "source": "/events/today", "destination": "/index.html" },
     { "source": "/events/this-week", "destination": "/index.html" },
@@ -14,22 +14,25 @@
     { "source": "/events/free", "destination": "/index.html" },
     { "source": "/events/workshops", "destination": "/index.html" },
 
-    // If you use locality pages under /events/locality/<slug> in SPA:
-    { "source": "/events/locality/:localitySlug", "destination": "/index.html" },
+    // Venues are SPA pages
+    { "source": "/venues/:venueSlug", "destination": "/index.html" },
 
-    // SSR event detail pages (single event)
+    // If these exist in your SPA (common in your app):
+    { "source": "/organizers/:organizerSlug", "destination": "/index.html" },
+    { "source": "/artists/:artistSlug", "destination": "/index.html" },
+
+    // Event detail SSR (single segment only)
     {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
 
-    // Clean listing URL -> SPA listing endpoint pattern (keeps canonical clean)
+    // Clean listing URLs -> SPA listing with query
     {
       "source": "/events/:category/:locality",
       "destination": "/events?category=:category&locality=:locality"
     },
 
-    // Sitemaps (first-party URLs served via Supabase function)
     {
       "source": "/sitemap.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
@@ -67,7 +70,6 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
 
-    // SPA catch-all
     {
       "source": "/(.*)",
       "destination": "/index.html"
