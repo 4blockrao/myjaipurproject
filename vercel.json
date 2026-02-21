@@ -16,10 +16,6 @@
     },
 
     {
-      "source": "/events/create",
-      "destination": "/index.html"
-    },
-    {
       "source": "/events/today",
       "destination": "/index.html"
     },
@@ -37,6 +33,14 @@
     },
     {
       "source": "/events/workshops",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/past",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/events/create",
       "destination": "/index.html"
     },
 
