@@ -6,19 +6,41 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
 
-    {
-      "source": "/events",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-index-ssr"
-    },
+    /* --- EVENTS: keep SEO SSR for detail pages --- */
     {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
+
+    /* --- EVENTS: listing routes should remain SPA --- */
     {
       "source": "/events/:category/:locality",
       "destination": "/events?category=:category&locality=:locality"
     },
 
+    /* --- FORCE SPA SHELL for top-level routes (prevents Vercel 500 on /events) --- */
+    {
+      "source": "/events",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/deals",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/news",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/merchants",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/properties",
+      "destination": "/index.html"
+    },
+
+    /* --- SITEMAPS --- */
     {
       "source": "/sitemap.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
@@ -56,6 +78,7 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
 
+    /* --- DEFAULT: SPA fallback for everything else --- */
     {
       "source": "/(.*)",
       "destination": "/index.html"
