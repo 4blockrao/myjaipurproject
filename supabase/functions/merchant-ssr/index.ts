@@ -1,3 +1,7 @@
+export const config = {
+  verify_jwt: false,
+}
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
