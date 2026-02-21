@@ -26,11 +26,11 @@ const getOrCreateSessionId = (): string => {
 // Parse user agent for device info
 const parseUserAgent = () => {
   const ua = navigator.userAgent;
-  
+
   let deviceType = 'desktop';
   if (/Mobi|Android/i.test(ua)) deviceType = 'mobile';
   else if (/Tablet|iPad/i.test(ua)) deviceType = 'tablet';
-  
+
   let browser = 'unknown';
   let browserVersion = '';
   if (ua.includes('Firefox')) {
@@ -46,7 +46,7 @@ const parseUserAgent = () => {
     browser = 'Edge';
     browserVersion = ua.match(/Edg\/([\d.]+)/)?.[1] || '';
   }
-  
+
   let os = 'unknown';
   let osVersion = '';
   if (ua.includes('Windows')) {
@@ -64,7 +64,7 @@ const parseUserAgent = () => {
   } else if (ua.includes('Linux')) {
     os = 'Linux';
   }
-  
+
   return { deviceType, browser, browserVersion, os, osVersion };
 };
 
@@ -115,50 +115,64 @@ export const AnalyticsProvider = ({ children }: { children: ReactNode }) => {
     const initSession = async () => {
       const { deviceType, browser, browserVersion, os, osVersion } = parseUserAgent();
       const utmParams = parseUtmParams();
-      
-      // First create session immediately without geo (faster)
+
       try {
-        const { error: insertError } = await supabase.from('visitor_sessions').insert({
-          session_id: sessionId.current,
-          device_type: deviceType,
-          browser,
-          browser_version: browserVersion,
-          os,
-          os_version: osVersion,
-          screen_width: window.screen.width,
-          screen_height: window.screen.height,
-          user_agent: navigator.userAgent,
-          referrer: document.referrer || null,
-          landing_page: window.location.pathname,
-          user_id: user?.id || null,
-          utm_source: utmParams.utm_source || null,
-          utm_medium: utmParams.utm_medium || null,
-          utm_campaign: utmParams.utm_campaign || null,
-          utm_term: utmParams.utm_term || null,
-          utm_content: utmParams.utm_content || null,
-        });
-        
-        if (insertError) {
-          console.error('Failed to initialize session:', insertError);
-        } else {
-          console.log('Analytics session initialized:', sessionId.current);
-          
-          // Then fetch geo data and update session (non-blocking)
-          fetchGeoLocation().then(async (geo) => {
-            if (geo) {
-              await supabase.from('visitor_sessions')
-                .update({
-                  ip_address: geo.ip,
-                  city: geo.city,
-                  state: geo.state,
-                  country: geo.country,
-                  latitude: geo.latitude,
-                  longitude: geo.longitude,
-                })
-                .eq('session_id', sessionId.current);
-            }
-          });
+        /**
+         * ✅ IMPORTANT FIX:
+         * Use UPSERT instead of INSERT so the session init is idempotent.
+         * This prevents: duplicate key value violates unique constraint visitor_sessions_session_id_key
+         */
+        const { error: upsertError } = await supabase
+          .from('visitor_sessions')
+          .upsert(
+            {
+              session_id: sessionId.current,
+              device_type: deviceType,
+              browser,
+              browser_version: browserVersion,
+              os,
+              os_version: osVersion,
+              screen_width: window.screen.width,
+              screen_height: window.screen.height,
+              user_agent: navigator.userAgent,
+              referrer: document.referrer || null,
+              landing_page: window.location.pathname,
+              user_id: user?.id || null,
+              utm_source: utmParams.utm_source || null,
+              utm_medium: utmParams.utm_medium || null,
+              utm_campaign: utmParams.utm_campaign || null,
+              utm_term: utmParams.utm_term || null,
+              utm_content: utmParams.utm_content || null,
+              // keep last_activity_at warm on init
+              last_activity_at: new Date().toISOString(),
+            },
+            { onConflict: 'session_id' }
+          );
+
+        if (upsertError) {
+          console.error('Failed to initialize session (upsert):', upsertError);
+          return;
         }
+
+        // Geo update: non-blocking + safe
+        fetchGeoLocation()
+          .then(async (geo) => {
+            if (!geo) return;
+            const { error: geoErr } = await supabase
+              .from('visitor_sessions')
+              .update({
+                ip_address: geo.ip,
+                city: geo.city,
+                state: geo.state,
+                country: geo.country,
+                latitude: geo.latitude,
+                longitude: geo.longitude,
+              })
+              .eq('session_id', sessionId.current);
+
+            if (geoErr) console.error('Failed to update geo:', geoErr);
+          })
+          .catch(() => {});
       } catch (error) {
         console.error('Failed to initialize session:', error);
       }
@@ -185,13 +199,16 @@ export const AnalyticsProvider = ({ children }: { children: ReactNode }) => {
           console.error('Failed to track page view:', error);
         }
 
-        // Update session last activity
-        await supabase.from('visitor_sessions')
+        // Update session last activity (do not throw even if missing session row)
+        const { error: lastActErr } = await supabase
+          .from('visitor_sessions')
           .update({
             last_activity_at: new Date().toISOString(),
             user_id: user?.id,
           })
           .eq('session_id', sessionId.current);
+
+        if (lastActErr) console.error('Failed to update last activity:', lastActErr);
       } catch (error) {
         console.error('Failed to track page view:', error);
       }
@@ -201,45 +218,49 @@ export const AnalyticsProvider = ({ children }: { children: ReactNode }) => {
   }, [location.pathname, location.search, user?.id]);
 
   // Track clicks
-  const trackClick = useCallback((
-    elementType: string,
-    elementText?: string,
-    elementId?: string,
-    targetUrl?: string
-  ) => {
-    supabase.from('click_events').insert({
-      session_id: sessionId.current,
-      page_url: window.location.pathname,
-      element_type: elementType,
-      element_text: elementText?.substring(0, 200),
-      element_id: elementId,
-      target_url: targetUrl,
-      user_id: user?.id,
-    }).then(({ error }) => {
-      if (error) console.error('Failed to track click:', error);
-    });
-  }, [user?.id]);
+  const trackClick = useCallback(
+    (elementType: string, elementText?: string, elementId?: string, targetUrl?: string) => {
+      supabase
+        .from('click_events')
+        .insert({
+          session_id: sessionId.current,
+          page_url: window.location.pathname,
+          element_type: elementType,
+          element_text: elementText?.substring(0, 200),
+          element_id: elementId,
+          target_url: targetUrl,
+          user_id: user?.id,
+        })
+        .then(({ error }) => {
+          if (error) console.error('Failed to track click:', error);
+        });
+    },
+    [user?.id]
+  );
 
   // Track search
-  const trackSearch = useCallback((
-    query: string,
-    searchType: string,
-    resultsCount?: number
-  ) => {
-    supabase.from('search_queries').insert({
-      session_id: sessionId.current,
-      search_query: query,
-      search_type: searchType,
-      results_count: resultsCount,
-      user_id: user?.id,
-    }).then(({ error }) => {
-      if (error) console.error('Failed to track search:', error);
-    });
-  }, [user?.id]);
+  const trackSearch = useCallback(
+    (query: string, searchType: string, resultsCount?: number) => {
+      supabase
+        .from('search_queries')
+        .insert({
+          session_id: sessionId.current,
+          search_query: query,
+          search_type: searchType,
+          results_count: resultsCount,
+          user_id: user?.id,
+        })
+        .then(({ error }) => {
+          if (error) console.error('Failed to track search:', error);
+        });
+    },
+    [user?.id]
+  );
 
   // Mark session as converted
   const markConverted = useCallback(() => {
-    supabase.from('visitor_sessions')
+    supabase
+      .from('visitor_sessions')
       .update({ is_converted: true, user_id: user?.id })
       .eq('session_id', sessionId.current)
       .then(({ error }) => {
@@ -248,12 +269,14 @@ export const AnalyticsProvider = ({ children }: { children: ReactNode }) => {
   }, [user?.id]);
 
   return (
-    <AnalyticsContext.Provider value={{
-      sessionId: sessionId.current,
-      trackClick,
-      trackSearch,
-      markConverted,
-    }}>
+    <AnalyticsContext.Provider
+      value={{
+        sessionId: sessionId.current,
+        trackClick,
+        trackSearch,
+        markConverted,
+      }}
+    >
       {children}
     </AnalyticsContext.Provider>
   );
