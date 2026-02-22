@@ -1,5 +1,17 @@
 {
   "rewrites": [
+    /* =========================
+       SITEMAPS (FIRST-PARTY)
+       ========================= */
+
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-index"
+    },
+    {
+      "source": "/sitemap-events.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-events-xml"
+    },
 
     /* =========================
        EVENTS — SSR ROUTES
@@ -25,19 +37,6 @@
     {
       "source": "/artists/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/artist-ssr?slug=:slug"
-    },
-
-    /* =========================
-       SITEMAPS (FIRST-PARTY)
-       ========================= */
-
-    {
-      "source": "/sitemap.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-index"
-    },
-    {
-      "source": "/sitemap-events.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-events-xml"
     },
 
     /* =========================
