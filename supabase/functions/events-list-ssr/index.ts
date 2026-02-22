@@ -31,6 +31,77 @@ const TOP_LOCALITIES = [
   "bani-park",
 ];
 
+// Nearby/related localities (authority mesh). Keep small and intentional.
+const NEARBY_LOCALITIES: Record<string, string[]> = {
+  "vaishali-nagar": ["ajmer-road", "bani-park", "c-scheme"],
+  mansarovar: ["tonk-road", "malviya-nagar", "jagatpura"],
+  "malviya-nagar": ["jagatpura", "tonk-road", "mansarovar"],
+  "c-scheme": ["bani-park", "raja-park", "vaishali-nagar"],
+  jagatpura: ["malviya-nagar", "tonk-road", "mansarovar"],
+  "tonk-road": ["malviya-nagar", "mansarovar", "jagatpura"],
+  "ajmer-road": ["vaishali-nagar", "bani-park", "c-scheme"],
+  "bani-park": ["c-scheme", "vaishali-nagar", "ajmer-road"],
+  "raja-park": ["c-scheme", "malviya-nagar", "jln-marg"],
+  "jln-marg": ["malviya-nagar", "raja-park", "c-scheme"],
+};
+
+// Locality authority context (hand-curated for top localities; generic fallback otherwise)
+const LOCALITY_CONTEXT: Record<
+  string,
+  { vibe: string; venues: string; landmarks: string; transport: string }
+> = {
+  "vaishali-nagar": {
+    vibe:
+      "Vaishali Nagar is a lively residential + commercial hub in West Jaipur, known for cafes, lounges, and weekend social plans.",
+    venues:
+      "Events here often happen in lounges, cafes, malls, community halls, and nearby auditoriums.",
+    landmarks:
+      "Nearby areas include Ajmer Road and key shopping/food clusters that draw crowds from across the city.",
+    transport:
+      "Well-connected by major roads with easy cab/auto access; parking can be busy during peak hours.",
+  },
+  mansarovar: {
+    vibe:
+      "Mansarovar is one of Jaipur’s largest neighborhoods with a strong mix of families, students, and daily nightlife pockets.",
+    venues:
+      "You’ll see workshops, cultural events, open-mics, and community gatherings across cafes and studios.",
+    landmarks:
+      "Close to multiple markets and parks that drive consistent local footfall.",
+    transport:
+      "Strong connectivity via main roads and frequent local transit; best to plan around evening traffic.",
+  },
+  "malviya-nagar": {
+    vibe:
+      "Malviya Nagar blends premium residential zones with major retail and entertainment corridors.",
+    venues:
+      "Concerts, comedy shows, workshops, and exhibitions are common—often near malls and event venues.",
+    landmarks:
+      "Close to major shopping zones and arterial roads that make it a frequent hosting area.",
+    transport:
+      "Easy cab/auto access; plan for crowd surges on weekends and event nights.",
+  },
+  "c-scheme": {
+    vibe:
+      "C-Scheme is Jaipur’s central lifestyle district—popular for cafes, restaurants, galleries, and premium venues.",
+    venues:
+      "Expect comedy nights, live music, cultural events, and curated workshops in upscale venues.",
+    landmarks:
+      "Near key business and leisure zones, making it highly discoverable for citywide audiences.",
+    transport:
+      "Central and highly accessible; parking can be constrained at popular venues.",
+  },
+  jagatpura: {
+    vibe:
+      "Jagatpura is a fast-growing residential + student-friendly area with emerging venues and studios.",
+    venues:
+      "Workshops, community activities, and studio events tend to dominate here, with increasing nightlife options.",
+    landmarks:
+      "Close to education corridors and newer developments that regularly host community gatherings.",
+    transport:
+      "Good road connectivity; best to plan around peak commuting hours.",
+  },
+};
+
 function esc(str: string): string {
   return String(str ?? "")
     .replace(/&/g, "&amp;")
@@ -48,6 +119,16 @@ function titleCase(slug: string): string {
   return slug
     .replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function normalizeSlug(v: string): string {
+  return String(v || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[_\s]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function fmtDate(d: string): string {
@@ -70,76 +151,8 @@ function fmtTime(d: string): string {
 function isLikelyBot(req: Request): boolean {
   const ua = req.headers.get("user-agent") || "";
   return /bot|crawler|spider|slurp|bingpreview|facebookexternalhit|WhatsApp|TelegramBot/i.test(
-    ua
+    ua,
   );
-}
-
-// Simple, deterministic slugify to align incoming params with normalized DB values
-function slugify(input: string | null): string | null {
-  if (!input) return null;
-  const s = String(input).trim().toLowerCase();
-  if (!s) return null;
-
-  // spaces/underscores -> hyphen
-  const hyphen = s.replace(/[\s_]+/g, "-");
-
-  // remove non url-safe
-  const clean = hyphen.replace(/[^a-z0-9-]+/g, "");
-
-  // collapse multiple hyphens
-  const collapsed = clean.replace(/-{2,}/g, "-");
-
-  // trim hyphens
-  const trimmed = collapsed.replace(/^-+|-+$/g, "");
-
-  return trimmed || null;
-}
-
-// Small singularization to smooth common mismatch: "workshops" -> "workshop"
-function singularizeCategory(catSlug: string): string {
-  if (catSlug.endsWith("s") && catSlug.length > 3) return catSlug.slice(0, -1);
-  return catSlug;
-}
-
-type RobotsResult = { robots: string; reason: string };
-
-// Determine whether this request should be indexable, based on params + inventory + query noise
-function computeRobots(
-  url: URL,
-  hasCleanPath: boolean,
-  upcomingCount: number,
-  isScoped: boolean
-): RobotsResult {
-  // Allow only "clean" index pages:
-  // - /events
-  // - /events/:category/:locality
-  // Everything else = noindex,follow
-  const allowedNoise = new Set(["category", "locality"]);
-  const noisyKeys = [...url.searchParams.keys()].filter((k) => !allowedNoise.has(k));
-
-  if (!hasCleanPath) return { robots: "noindex, follow", reason: "non-canonical variant" };
-  if (noisyKeys.length > 0) return { robots: "noindex, follow", reason: "query-noise" };
-
-  // Category+locality pages only index if inventory meets threshold
-  if (isScoped && upcomingCount < INDEX_MIN_UPCOMING) {
-    return { robots: "noindex, follow", reason: "thin-inventory" };
-  }
-
-  return {
-    robots: "index, follow, max-image-preview:large, max-snippet:-1",
-    reason: "ok",
-  };
-}
-
-async function fetchIndexHtml(): Promise<string> {
-  try {
-    const resp = await fetch(`${BASE_URL}/index.html`, {
-      headers: { "User-Agent": "JaipurCircle-SSR/1.0" },
-    });
-    return await resp.text();
-  } catch {
-    return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body><div id="root"></div></body></html>`;
-  }
 }
 
 function injectHead(html: string, headInjection: string): string {
@@ -154,6 +167,45 @@ function injectPreRender(html: string, pre: string): string {
     return html.replace(/<body([^>]*)>/i, `<body$1>\n${pre}\n`);
   }
   return `${pre}\n${html}`;
+}
+
+async function fetchIndexHtml(): Promise<string> {
+  try {
+    const resp = await fetch(`${BASE_URL}/index.html`, {
+      headers: { "User-Agent": "JaipurCircle-SSR/1.0" },
+    });
+    return await resp.text();
+  } catch {
+    return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head><body><div id="root"></div></body></html>`;
+  }
+}
+
+// Determine whether this request should be indexable, based on params + inventory + query noise
+function computeRobots(
+  url: URL,
+  hasCleanPath: boolean,
+  upcomingCount: number,
+): { robots: string; reason: string } {
+  // Allow only "clean" index pages:
+  // - /events
+  // - /events/:category/:locality
+  // Everything else = noindex,follow
+  const allowedNoise = new Set(["category", "locality"]);
+  const noisyKeys = [...url.searchParams.keys()].filter((k) => !allowedNoise.has(k));
+
+  if (!hasCleanPath) return { robots: "noindex, follow", reason: "non-canonical variant" };
+  if (noisyKeys.length > 0) return { robots: "noindex, follow", reason: "query-noise" };
+
+  // Category+locality pages only index if inventory meets threshold
+  const hasScoped = Boolean(url.searchParams.get("category") && url.searchParams.get("locality"));
+  if (hasScoped && upcomingCount < INDEX_MIN_UPCOMING) {
+    return { robots: "noindex, follow", reason: "thin-inventory" };
+  }
+
+  return {
+    robots: "index, follow, max-image-preview:large, max-snippet:-1",
+    reason: "ok",
+  };
 }
 
 function buildInternalLinks(category?: string | null, locality?: string | null): string {
@@ -176,161 +228,130 @@ function buildInternalLinks(category?: string | null, locality?: string | null):
 </section>`;
 }
 
-type EventRow = {
-  id: string;
-  slug: string;
-  title: string;
-  category: string | null;
-  locality: string | null;
-  city: string | null;
-  venue_name: string | null;
-  venue_address: string | null;
-  start_date: string | null;
-  end_date: string | null;
-  is_free: boolean | null;
-  ticket_price: number | null;
-  cover_image: string | null;
-  short_description: string | null;
-  description: string | null;
-};
+function buildAuthorityLocalityBlock(category: string | null, locality: string | null): string {
+  if (!locality) return "";
 
-// Apply filters to a Supabase query with different strictness levels
-function applyScopedFilters(
-  q: any,
-  categoryRaw: string | null,
-  localityRaw: string | null,
-  mode:
-    | "EXACT_EXACT"
-    | "EXACT_ILIKE"
-    | "ILIKE_EXACT"
-    | "ILIKE_ILIKE"
-    | "DROP_LOCALITY"
-): any {
-  const catSlug = slugify(categoryRaw);
-  const locSlug = slugify(localityRaw);
+  const locSlug = normalizeSlug(locality);
+  const locLabel = titleCase(locSlug);
+  const city = "Jaipur";
 
-  // For category, also try singular form if useful
-  const catSingular = catSlug ? singularizeCategory(catSlug) : null;
+  const ctx = LOCALITY_CONTEXT[locSlug];
+  const base = ctx
+    ? ctx
+    : {
+        vibe: `${locLabel} is a popular Jaipur locality where residents and visitors explore food, culture, and entertainment. Events here are often easy to access for nearby neighborhoods.`,
+        venues:
+          `Common event venues around ${locLabel} include cafes, lounges, studios, community halls, and local event spaces—depending on the category.`,
+        landmarks:
+          `Look for events near well-known markets, main roads, and popular gathering spots around ${locLabel}.`,
+        transport:
+          `Plan around peak evening traffic; cabs/autos are usually available, and walking distances vary by venue cluster.`,
+      };
 
-  if (mode === "DROP_LOCALITY") {
-    // Keep category intent if present, but remove locality constraint
-    if (catSlug) {
-      // Prefer exact eq on normalized category
-      q = q.eq("category", catSlug);
-      // If plural/singular mismatch, broaden with ilike
-      if (catSingular && catSingular !== catSlug) {
-        // broaden slightly: category contains either
-        q = q.or(`category.eq.${catSlug},category.eq.${catSingular}`);
-      }
-    }
-    return q;
-  }
+  const catLabel = category ? titleCase(normalizeSlug(category)) : "Events";
 
-  if (catSlug) {
-    if (mode === "EXACT_EXACT" || mode === "EXACT_ILIKE") {
-      q = q.eq("category", catSlug);
-      // If plural/singular mismatch exists, widen exact using OR
-      if (catSingular && catSingular !== catSlug) {
-        q = q.or(`category.eq.${catSlug},category.eq.${catSingular}`);
-      }
-    } else {
-      // ilike
-      // use raw + slug to maximize matches in case DB has legacy strings
-      const raw = String(categoryRaw ?? "").trim();
-      const patterns = new Set<string>();
-      if (raw) patterns.add(raw);
-      if (catSlug) patterns.add(catSlug);
-      if (catSingular) patterns.add(catSingular);
-
-      // Supabase OR for ilike needs explicit statements
-      const orParts = [...patterns].map((p) => `category.ilike.%${p}%`);
-      q = q.or(orParts.join(","));
-    }
-  }
-
-  if (locSlug) {
-    if (mode === "EXACT_EXACT" || mode === "ILIKE_EXACT") {
-      q = q.eq("locality", locSlug);
-    } else {
-      const raw = String(localityRaw ?? "").trim();
-      const patterns = new Set<string>();
-      if (raw) patterns.add(raw);
-      if (locSlug) patterns.add(locSlug);
-
-      const orParts = [...patterns].map((p) => `locality.ilike.%${p}%`);
-      q = q.or(orParts.join(","));
-    }
-  }
-
-  return q;
+  return `
+<section style="margin-top:18px">
+  <h2 style="font-size:18px;margin:14px 0 6px">About ${esc(catLabel)} in ${esc(locLabel)}, ${esc(city)}</h2>
+  <div style="color:#444;font-size:14px;line-height:1.65">
+    <p style="margin:0 0 10px">${esc(base.vibe)}</p>
+    <p style="margin:0 0 10px"><strong>Typical venues:</strong> ${esc(base.venues)}</p>
+    <p style="margin:0 0 10px"><strong>Local context:</strong> ${esc(base.landmarks)}</p>
+    <p style="margin:0"><strong>Getting there:</strong> ${esc(base.transport)}</p>
+  </div>
+</section>`;
 }
 
-async function runScopedQuery(
-  supabase: any,
-  nowIso: string,
-  categoryRaw: string | null,
-  localityRaw: string | null,
-  mode:
-    | "EXACT_EXACT"
-    | "EXACT_ILIKE"
-    | "ILIKE_EXACT"
-    | "ILIKE_ILIKE"
-    | "DROP_LOCALITY"
-): Promise<{ events: EventRow[]; count: number }> {
-  // List query
-  let q = supabase
-    .from("events")
-    .select(
-      "id,slug,title,category,locality,city,venue_name,venue_address,start_date,end_date,is_free,ticket_price,cover_image,short_description,description"
-    )
-    .eq("status", "published")
-    .gte("start_date", nowIso)
-    .order("start_date", { ascending: true })
-    .limit(20);
+function buildAuthorityMeshLinks(category: string | null, locality: string | null): string {
+  if (!category || !locality) return "";
 
-  // Count query
-  let countQ = supabase
-    .from("events")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "published")
-    .gte("start_date", nowIso);
+  const cat = normalizeSlug(category);
+  const loc = normalizeSlug(locality);
 
-  q = applyScopedFilters(q, categoryRaw, localityRaw, mode);
-  countQ = applyScopedFilters(countQ, categoryRaw, localityRaw, mode);
+  const otherCats = TOP_CATEGORIES.filter((c) => c !== cat).slice(0, 6);
+  const nearby = (NEARBY_LOCALITIES[loc] || []).slice(0, 3);
 
-  const [listRes, countRes] = await Promise.all([q, countQ]);
+  const sameLocalityOtherCats = otherCats
+    .map((c) => `<a href="/events/${c}/${loc}" style="margin-right:10px">${esc(titleCase(c))} in ${esc(titleCase(loc))}</a>`)
+    .join("");
 
-  if (listRes.error) throw listRes.error;
-  if (countRes.error) throw countRes.error;
+  const nearbySameCategory = nearby
+    .map((l) => `<a href="/events/${cat}/${l}" style="margin-right:10px">${esc(titleCase(cat))} in ${esc(titleCase(l))}</a>`)
+    .join("");
 
-  return { events: (listRes.data ?? []) as EventRow[], count: countRes.count ?? 0 };
+  return `
+<section style="margin-top:18px">
+  <h2 style="font-size:18px;margin:14px 0 6px">More Ways to Explore</h2>
+  <div style="margin:0 0 10px">
+    <strong style="display:block;margin-bottom:6px">Other categories in ${esc(titleCase(loc))}</strong>
+    <div>${sameLocalityOtherCats || `<a href="/events">Browse all events</a>`}</div>
+  </div>
+  <div>
+    <strong style="display:block;margin-bottom:6px">Nearby localities for ${esc(titleCase(cat))}</strong>
+    <div>${nearbySameCategory || `<a href="/events/${esc(cat)}/${TOP_LOCALITIES[0]}">Popular pick: ${esc(titleCase(cat))} in ${esc(titleCase(TOP_LOCALITIES[0]))}</a>`}</div>
+  </div>
+</section>`;
+}
+
+function buildInventoryBadge(upcoming: number, isHub: boolean): string {
+  if (isHub) return "";
+  return `
+<div style="display:inline-flex;gap:8px;align-items:center;margin:8px 0 0">
+  <span style="display:inline-block;background:#111827;color:#fff;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:600">
+    🔥 ${upcoming} upcoming events
+  </span>
+  <span style="display:inline-block;background:#F3F4F6;color:#111827;border-radius:999px;padding:6px 10px;font-size:12px">
+    Updated ${esc(new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }))}
+  </span>
+</div>`;
+}
+
+// Build robust OR filters (Smart Fallback Model)
+function buildOrIlike(column: string, value: string): string {
+  const v = String(value || "").trim();
+  if (!v) return "";
+
+  const slug = normalizeSlug(v);
+  const spaced = slug.replace(/-/g, " ");
+  const titled = titleCase(slug);
+
+  // NOTE: Supabase .or() expects something like:
+  // "locality.ilike.%foo%,locality.ilike.%bar%"
+  // We intentionally keep patterns broad to match mixed-casing/messy data
+  const patterns = [
+    `${column}.ilike.%${slug}%`,
+    `${column}.ilike.%${spaced}%`,
+    `${column}.ilike.%${titled}%`,
+  ];
+
+  return patterns.join(",");
 }
 
 Deno.serve(async (req: Request) => {
   try {
     const url = new URL(req.url);
 
-    // Incoming params (from Vercel rewrite query)
+    // NOTE:
+    // This function is expected to be reached through Vercel rewrites:
+    // - /events  → events-list-ssr
+    // - /events/:category/:locality → events-list-ssr?category=:category&locality=:locality
+    // So we read category/locality from query params.
     const categoryRaw = url.searchParams.get("category");
     const localityRaw = url.searchParams.get("locality");
 
-    const category = slugify(categoryRaw);
-    const locality = slugify(localityRaw);
+    const category = categoryRaw ? normalizeSlug(categoryRaw) : null;
+    const locality = localityRaw ? normalizeSlug(localityRaw) : null;
 
     const isHub = !category && !locality;
-    const isScoped = Boolean(category && locality);
 
     // Canonical URLs (only two indexable shapes)
     const canonical = isHub
       ? `${BASE_URL}/events`
-      : `${BASE_URL}/events/${encodeURIComponent(category || "")}/${encodeURIComponent(
-          locality || ""
-        )}`;
+      : `${BASE_URL}/events/${encodeURIComponent(category || "")}/${encodeURIComponent(locality || "")}`;
 
     // This Edge Function is only reached via Vercel clean-path rewrites.
-    // If someone hits it directly with weird queries, we treat it as non-canonical.
-    // NOTE: We can’t trust url.pathname here because it’s a Supabase function URL.
-    const hasCleanPath = isHub || isScoped;
+    // (Noisy query variants should not be routed here.)
+    const hasCleanPath = true;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY");
@@ -339,79 +360,49 @@ Deno.serve(async (req: Request) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-
     const nowIso = new Date().toISOString();
 
-    let events: EventRow[] = [];
-    let upcoming = 0;
+    // Base query: upcoming events
+    let q = supabase
+      .from("events")
+      .select(
+        "id,slug,title,category,locality,city,venue_name,venue_address,start_date,end_date,is_free,ticket_price,cover_image,short_description,description",
+      )
+      .gte("start_date", nowIso)
+      .order("start_date", { ascending: true })
+      .limit(20);
 
-    // ✅ Smart Fallback Model
-    // - exact first
-    // - then progressively broaden
-    // - if still thin: drop locality to avoid empty pages (kept noindex via robots logic)
-    let matchMode:
-      | "HUB"
-      | "EXACT_EXACT"
-      | "EXACT_ILIKE"
-      | "ILIKE_EXACT"
-      | "ILIKE_ILIKE"
-      | "DROP_LOCALITY" = "HUB";
+    let countQ = supabase
+      .from("events")
+      .select("id", { count: "exact", head: true })
+      .gte("start_date", nowIso);
 
-    if (isHub) {
-      const res = await runScopedQuery(supabase, nowIso, null, null, "DROP_LOCALITY");
-      events = res.events;
-      upcoming = res.count;
-      matchMode = "HUB";
-    } else {
-      // Step 1: exact category + exact locality
-      let res = await runScopedQuery(supabase, nowIso, category, locality, "EXACT_EXACT");
-      events = res.events;
-      upcoming = res.count;
-      matchMode = "EXACT_EXACT";
-
-      // If thin, loosen locality matching first (common mismatch / legacy locality)
-      if (upcoming < INDEX_MIN_UPCOMING) {
-        res = await runScopedQuery(supabase, nowIso, category, locality, "EXACT_ILIKE");
-        if (res.count > upcoming) {
-          events = res.events;
-          upcoming = res.count;
-          matchMode = "EXACT_ILIKE";
-        }
-      }
-
-      // If still thin, loosen category matching (legacy categories / variants)
-      if (upcoming < INDEX_MIN_UPCOMING) {
-        res = await runScopedQuery(supabase, nowIso, category, locality, "ILIKE_EXACT");
-        if (res.count > upcoming) {
-          events = res.events;
-          upcoming = res.count;
-          matchMode = "ILIKE_EXACT";
-        }
-      }
-
-      // If still thin, loosen both
-      if (upcoming < INDEX_MIN_UPCOMING) {
-        res = await runScopedQuery(supabase, nowIso, category, locality, "ILIKE_ILIKE");
-        if (res.count > upcoming) {
-          events = res.events;
-          upcoming = res.count;
-          matchMode = "ILIKE_ILIKE";
-        }
-      }
-
-      // If still thin, drop locality (category-only) to avoid empty pages
-      // (We will still keep the page NOINDEX because it’s not a clean scoped inventory page.)
-      if (upcoming === 0 || (upcoming < Math.min(3, INDEX_MIN_UPCOMING))) {
-        res = await runScopedQuery(supabase, nowIso, category, locality, "DROP_LOCALITY");
-        if (res.count > upcoming) {
-          events = res.events;
-          upcoming = res.count;
-          matchMode = "DROP_LOCALITY";
-        }
+    // Smart fallback filtering: match messy category/locality formats
+    if (category) {
+      const or = buildOrIlike("category", category);
+      if (or) {
+        q = q.or(or);
+        countQ = countQ.or(or);
       }
     }
 
-    const { robots } = computeRobots(url, hasCleanPath, upcoming, isScoped);
+    if (locality) {
+      const or = buildOrIlike("locality", locality);
+      if (or) {
+        q = q.or(or);
+        countQ = countQ.or(or);
+      }
+    }
+
+    const [listRes, countRes] = await Promise.all([q, countQ]);
+
+    if (listRes.error) throw listRes.error;
+    if (countRes.error) throw countRes.error;
+
+    const events = listRes.data ?? [];
+    const upcoming = countRes.count ?? events.length;
+
+    const { robots } = computeRobots(url, hasCleanPath, upcoming);
 
     const city = "Jaipur";
     const catLabel = category ? titleCase(category) : "Events";
@@ -425,20 +416,20 @@ Deno.serve(async (req: Request) => {
       ? `Discover upcoming events in Jaipur: concerts, comedy shows, workshops, festivals and more. Browse by category and locality, see dates, venues and ticket prices.`
       : `Explore upcoming ${catLabel.toLowerCase()} events in ${locLabel}, Jaipur — dates, timings, venues and tickets. Updated regularly with new listings.`;
 
-    // Schema: Breadcrumb + CollectionPage + ItemList
+    // Schema: Breadcrumb + CollectionPage + ItemList + (Authority) Place
     const breadcrumb = {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: isHub
         ? [
-            { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-            { "@type": "ListItem", position: 2, name: "Events", item: `${BASE_URL}/events` },
-          ]
+          { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
+          { "@type": "ListItem", position: 2, name: "Events", item: `${BASE_URL}/events` },
+        ]
         : [
-            { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-            { "@type": "ListItem", position: 2, name: "Events", item: `${BASE_URL}/events` },
-            { "@type": "ListItem", position: 3, name: `${catLabel} in ${locLabel}`, item: canonical },
-          ],
+          { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
+          { "@type": "ListItem", position: 2, name: "Events", item: `${BASE_URL}/events` },
+          { "@type": "ListItem", position: 3, name: `${catLabel} in ${locLabel}`, item: canonical },
+        ],
     };
 
     const collection = {
@@ -464,6 +455,16 @@ Deno.serve(async (req: Request) => {
       })),
     };
 
+    const placeSchema = locality
+      ? {
+        "@context": "https://schema.org",
+        "@type": "Place",
+        name: locLabel,
+        containedInPlace: { "@type": "City", name: city, url: `${BASE_URL}/jaipur` },
+        url: canonical,
+      }
+      : null;
+
     const ogImage = DEFAULT_IMAGE;
 
     const metaTags = `
@@ -486,54 +487,38 @@ Deno.serve(async (req: Request) => {
 <script type="application/ld+json">${escJson(breadcrumb)}</script>
 <script type="application/ld+json">${escJson(collection)}</script>
 <script type="application/ld+json">${escJson(itemList)}</script>
+${placeSchema ? `<script type="application/ld+json">${escJson(placeSchema)}</script>` : ""}
 `;
-
-    const fallbackNote =
-      matchMode === "DROP_LOCALITY" && !isHub
-        ? `<p style="margin:10px 0 14px;padding:10px;border:1px dashed #ddd;border-radius:10px;color:#444">
-            Limited listings found for this exact locality. Showing Jaipur-wide <strong>${esc(
-              catLabel
-            )}</strong> events as a fallback.
-          </p>`
-        : "";
 
     const intro = isHub
       ? `<p style="margin:8px 0 14px">Browse Jaipur’s latest events by category and locality. We track concerts, comedy, workshops, festivals, nightlife, and more. Updated regularly.</p>`
-      : `<p style="margin:8px 0 14px">Showing upcoming <strong>${esc(
-          catLabel
-        )}</strong> events in <strong>${esc(
-          locLabel
-        )}</strong>, Jaipur. Total upcoming: <strong>${upcoming}</strong>.</p>`;
+      : `<p style="margin:8px 0 10px">Showing upcoming <strong>${esc(catLabel)}</strong> events in <strong>${esc(locLabel)}</strong>, Jaipur.</p>
+         ${buildInventoryBadge(upcoming, isHub)}`;
 
     const listHtml =
       events.length === 0
         ? `<p>No upcoming events found for this selection. Try another category/locality.</p>`
         : `<div style="display:flex;flex-direction:column;gap:12px">
-${events
-  .slice(0, 20)
-  .map((e: any) => {
-    const href = `/events/${e.slug}`;
-    const venue = e.venue_name || "TBA";
-    const loc = e.locality || "Jaipur";
-    const when = e.start_date ? `${fmtDate(e.start_date)} · ${fmtTime(e.start_date)}` : "";
-    const price = e.is_free ? "Free" : e.ticket_price ? `₹${e.ticket_price}` : "Paid";
-    const blurb = (e.short_description || e.description || "").toString().slice(0, 160);
+${events.slice(0, 20).map((e: any) => {
+  const href = `/events/${e.slug}`;
+  const venue = e.venue_name || "TBA";
+  const loc = e.locality || "Jaipur";
+  const when = e.start_date ? `${fmtDate(e.start_date)} · ${fmtTime(e.start_date)}` : "";
+  const price = e.is_free ? "Free" : e.ticket_price ? `₹${e.ticket_price}` : "Paid";
+  const blurb = (e.short_description || e.description || "").toString().slice(0, 160);
 
-    return `
+  return `
   <article style="border:1px solid #eee;border-radius:10px;padding:12px">
     <a href="${href}" style="text-decoration:none;color:inherit">
       <h2 style="margin:0 0 6px;font-size:18px;line-height:1.2">${esc(e.title)}</h2>
     </a>
-    <div style="color:#555;font-size:13px;margin-bottom:6px">${esc(when)} · ${esc(
-      venue
-    )} · ${esc(loc)} · <strong>${esc(price)}</strong></div>
+    <div style="color:#555;font-size:13px;margin-bottom:6px">${esc(when)} · ${esc(venue)} · ${esc(loc)} · <strong>${esc(price)}</strong></div>
     ${blurb ? `<p style="margin:0;color:#444;font-size:14px">${esc(blurb)}...</p>` : ""}
     <div style="margin-top:8px">
       <a href="${href}">View details</a>
     </div>
   </article>`;
-  })
-  .join("")}
+}).join("")}
 </div>`;
 
     const faq = isHub
@@ -541,34 +526,33 @@ ${events
 <section style="margin-top:18px">
   <h2 style="font-size:18px;margin:14px 0 6px">FAQs</h2>
   <h3 style="font-size:15px;margin:10px 0 4px">Where can I find today’s events in Jaipur?</h3>
-  <p style="margin:0 0 10px">Use this Events hub and filter by category/locality to see what’s happening today and this week.</p>
+  <p style="margin:0 0 10px">Use this Events hub and browse by category/locality to see what’s happening today and this week.</p>
   <h3 style="font-size:15px;margin:10px 0 4px">Do you list free events?</h3>
   <p style="margin:0 0 10px">Yes — many entries are marked Free when available.</p>
 </section>`
       : `
 <section style="margin-top:18px">
   <h2 style="font-size:18px;margin:14px 0 6px">FAQs</h2>
-  <h3 style="font-size:15px;margin:10px 0 4px">What are the best ${esc(
-    catLabel.toLowerCase()
-  )} venues near ${esc(locLabel)}?</h3>
+  <h3 style="font-size:15px;margin:10px 0 4px">What are popular ${esc(catLabel.toLowerCase())} venues near ${esc(locLabel)}?</h3>
   <p style="margin:0 0 10px">Browse the list above — we show venue names and timings. Open an event for full venue details.</p>
   <h3 style="font-size:15px;margin:10px 0 4px">How do I book tickets?</h3>
   <p style="margin:0 0 10px">Open any event and follow the booking/registration info on the event page.</p>
 </section>`;
 
     const internalLinks = buildInternalLinks(category, locality);
+    const authorityLocalityBlock = buildAuthorityLocalityBlock(category, locality);
+    const authorityMeshLinks = buildAuthorityMeshLinks(category, locality);
 
     const prerender = `
 <div class="ssr-prerender" style="max-width:900px;margin:0 auto;padding:18px 16px;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif">
   <nav aria-label="Breadcrumb" style="font-size:13px;color:#666;margin-bottom:10px">
-    <a href="/">Home</a> › <a href="/events">Events</a>${isHub ? "" : ` › <a href="${esc(
-      canonical
-    )}">${esc(catLabel)} in ${esc(locLabel)}</a>`}
+    <a href="/">Home</a> › <a href="/events">Events</a>${isHub ? "" : ` › <a href="${esc(canonical)}">${esc(catLabel)} in ${esc(locLabel)}</a>`}
   </nav>
   <h1 style="margin:0 0 8px;font-size:24px">${esc(pageTitle)}</h1>
   ${intro}
-  ${fallbackNote}
   ${listHtml}
+  ${authorityLocalityBlock}
+  ${authorityMeshLinks}
   ${internalLinks}
   ${faq}
 </div>`;
