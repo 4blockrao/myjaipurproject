@@ -7,6 +7,10 @@
     },
 
     {
+      "source": "/events/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
+    },
+    {
       "source": "/events",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
     },
@@ -16,37 +20,8 @@
     },
 
     {
-      "source": "/events/today",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/this-week",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/this-weekend",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/free",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/workshops",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/past",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/create",
-      "destination": "/index.html"
-    },
-
-    {
-      "source": "/events/:slug",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
+      "source": "/artists/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/artist-ssr?slug=:slug"
     },
 
     {
