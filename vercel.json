@@ -1,5 +1,6 @@
 {
   "rewrites": [
+
     /* =========================
        EVENTS — SSR ROUTES
        ========================= */
@@ -27,24 +28,16 @@
     },
 
     /* =========================
-       SITEMAPS
+       SITEMAPS (FIRST-PARTY)
        ========================= */
 
     {
       "source": "/sitemap.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap"
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-index"
     },
     {
       "source": "/sitemap-events.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=events"
-    },
-    {
-      "source": "/sitemap-news.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news"
-    },
-    {
-      "source": "/sitemap-news-google.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-events-xml"
     },
 
     /* =========================
