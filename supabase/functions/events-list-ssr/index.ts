@@ -571,16 +571,14 @@ serve(async (req: Request) => {
     const todayIso = nowIsoDateOnlyIST();
     const updatedHuman = formatHumanDateIST(todayIso);
 
-    // Robots rules:
-    // - Hub: index
-    // - Scoped: index ONLY if we have real scoped inventory (matchMode != hub and eventsCount > 0),
-    //           otherwise noindex (prevents thin pages).
-    const robots =
-      !isScoped
-        ? "index, follow, max-image-preview:large, max-snippet:-1"
-        : (matchMode !== "hub" && eventsRows.length > 0)
-            ? "index, follow, max-image-preview:large, max-snippet:-1"
-            : "noindex, follow";
+    // ✅ UPDATED Robots rules:
+    // - Hub: always index
+    // - Scoped: index if params are normalized (category+locality exist)
+    //   Even when 0 results or fallback/hub mode, we keep it indexable because we render:
+    //   authority + locality + popular combos + preview (not thin).
+    const robots = !isScoped
+      ? "index, follow, max-image-preview:large, max-snippet:-1"
+      : "index, follow, max-image-preview:large, max-snippet:-1";
 
     // Page meta
     let title = "Jaipur Events Calendar — Upcoming Events, Concerts, Comedy, Workshops | JaipurCircle";
