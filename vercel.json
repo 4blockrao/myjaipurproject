@@ -1,15 +1,9 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    {
-      "source": "/merchant/:id",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
-    },
+    /* =========================
+       EVENTS — SSR ROUTES
+       ========================= */
 
-    {
-      "source": "/events/:slug",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
-    },
     {
       "source": "/events",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
@@ -18,35 +12,27 @@
       "source": "/events/:category/:locality",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
     },
+    {
+      "source": "/events/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
+    },
+
+    /* =========================
+       ARTISTS — SSR ROUTE
+       ========================= */
 
     {
       "source": "/artists/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/artist-ssr?slug=:slug"
     },
 
+    /* =========================
+       SITEMAPS
+       ========================= */
+
     {
       "source": "/sitemap.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
-    },
-    {
-      "source": "/sitemap-pages.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=pages"
-    },
-    {
-      "source": "/sitemap-localities.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=localities"
-    },
-    {
-      "source": "/sitemap-zones.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=zones"
-    },
-    {
-      "source": "/sitemap-deals.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=deals"
-    },
-    {
-      "source": "/sitemap-merchants.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=merchants"
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap"
     },
     {
       "source": "/sitemap-events.xml",
@@ -60,6 +46,10 @@
       "source": "/sitemap-news-google.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
+
+    /* =========================
+       SPA FALLBACK (ALWAYS LAST)
+       ========================= */
 
     {
       "source": "/(.*)",
