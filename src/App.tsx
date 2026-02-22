@@ -1,28 +1,18 @@
-/**
- * ⚠️ CRITICAL ROUTING FILE
- * DO NOT REMOVE OR MODIFY ROUTES WITHOUT VERIFICATION.
- * Missing routes will cause production-wide 404 issues.
- */
-
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HelmetProvider } from "react-helmet-async";
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { HelmetProvider } from "react-helmet-async";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { GlobalSEO } from "@/components/seo/GlobalSEO";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
 
-// Core pages
 import Index from "./pages/Index";
 import AboutPage from "./pages/AboutPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
-// Account / user
 import AccountPage from "./pages/AccountPage";
 import ReferralSuccessPage from "./pages/ReferralSuccessPage";
 import ReferralProgramPage from "./pages/ReferralProgramPage";
@@ -31,7 +21,6 @@ import HelpPage from "./pages/HelpPage";
 import ProMembershipPage from "./pages/ProMembershipPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 
-// Deals
 import DealsPage from "./pages/DealsPage";
 import DealDetailPage from "./pages/DealDetailPage";
 import CategoriesPage from "./pages/CategoriesPage";
@@ -39,13 +28,11 @@ import CheckoutPage from "./pages/CheckoutPage";
 import NewCheckoutPage from "./pages/NewCheckoutPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
 
-// News
 import NewsPage from "./pages/NewsPage";
 import NewsArticlePage from "./pages/NewsArticlePage";
 import NewsCategoryPage from "./pages/NewsCategoryPage";
 import CreateNewsPage from "./pages/CreateNewsPage";
 
-// Events
 import EventsPage from "./pages/EventsPage";
 import EventDetailPage from "./pages/EventDetailPage";
 import CreateEventPage from "./pages/CreateEventPage";
@@ -64,7 +51,6 @@ import PastEventPage from "./pages/PastEventPage";
 import EventSeriesPage from "./pages/EventSeriesPage";
 import ArtistPage from "./pages/ArtistPage";
 
-// Merchants
 import MerchantOnboardingPage from "./pages/MerchantOnboardingPage";
 import MerchantDashboardPage from "./pages/MerchantDashboardPage";
 import MerchantPortalPage from "./pages/MerchantPortalPage";
@@ -72,31 +58,25 @@ import MerchantPage from "./pages/MerchantPage";
 import MerchantDetailPage from "./pages/MerchantDetailPage";
 import MerchantsPage from "./pages/MerchantsPage";
 
-// Partners / vendors
 import PartnerHubPage from "./pages/PartnerHubPage";
 import VendorRegistrationPage from "./pages/VendorRegistrationPage";
 import BrokerDashboardPage from "./pages/BrokerDashboardPage";
 
-// Admin
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 
-// Utility
 import ScanPage from "./pages/ScanPage";
 import SitemapPage from "./pages/SitemapPage";
-import InstallPage from "./pages/InstallPage";
 
-// Jaipur / localities / zones
 import LocalityPage from "./pages/LocalityPage";
 import LocalitiesIndexPage from "./pages/LocalitiesIndexPage";
 import JaipurPage from "./pages/JaipurPage";
 import ZonePage from "./pages/ZonePage";
 import ZonesIndexPage from "./pages/ZonesIndexPage";
+import InstallPage from "./pages/InstallPage";
 
-// Category pages
 import CategoryPage from "./pages/CategoryPage";
 import LocalityCategoryPage from "./pages/LocalityCategoryPage";
 
-// Cars (if present)
 import CarsHubPage from "./pages/CarsHubPage";
 import CarBrandsPage from "./pages/CarBrandsPage";
 import CarBrandHubPage from "./pages/CarBrandHubPage";
@@ -109,7 +89,6 @@ import CarsByBudgetPage from "./pages/CarsByBudgetPage";
 import CarsByBodyTypePage from "./pages/CarsByBodyTypePage";
 import CarComparePage from "./pages/CarComparePage";
 
-// Properties (if present)
 import PropertiesHubPage from "./pages/PropertiesHubPage";
 import PropertyDetailPage from "./pages/PropertyDetailPage";
 import PropertiesLocalityPage from "./pages/PropertiesLocalityPage";
@@ -133,14 +112,16 @@ function App() {
                   <Route path="/about" element={<AboutPage />} />
                   <Route path="/auth" element={<AuthPage />} />
 
-                  {/* Account / user */}
+                  {/* Account / Utility */}
                   <Route path="/account" element={<AccountPage />} />
-                  <Route path="/referral-success" element={<ReferralSuccessPage />} />
-                  <Route path="/referral-program" element={<ReferralProgramPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/help" element={<HelpPage />} />
                   <Route path="/pro" element={<ProMembershipPage />} />
                   <Route path="/leaderboard" element={<LeaderboardPage />} />
+                  <Route path="/referral-success" element={<ReferralSuccessPage />} />
+                  <Route path="/referral-program" element={<ReferralProgramPage />} />
+                  <Route path="/scan" element={<ScanPage />} />
+                  <Route path="/sitemap" element={<SitemapPage />} />
                   <Route path="/install" element={<InstallPage />} />
 
                   {/* Deals */}
@@ -148,7 +129,7 @@ function App() {
                   <Route path="/deal/:id" element={<DealDetailPage />} />
                   <Route path="/categories" element={<CategoriesPage />} />
                   <Route path="/checkout" element={<CheckoutPage />} />
-                  <Route path="/checkout-new" element={<NewCheckoutPage />} />
+                  <Route path="/checkout/new" element={<NewCheckoutPage />} />
                   <Route path="/order-success" element={<OrderSuccessPage />} />
 
                   {/* News */}
@@ -157,13 +138,48 @@ function App() {
                   <Route path="/news/:category" element={<NewsCategoryPage />} />
                   <Route path="/news/:category/:slug" element={<NewsArticlePage />} />
 
+                  {/* Events */}
+                  <Route path="/events" element={<EventsPage />} />
+                  <Route path="/events/create" element={<CreateEventPage />} />
+                  <Route path="/events/organizer" element={<EventOrganizerDashboardPage />} />
+                  <Route path="/events/free" element={<EventsFreeFilterPage />} />
+                  <Route path="/events/workshops" element={<EventsWorkshopsPage />} />
+                  <Route path="/events/today" element={<EventsTodayPage />} />
+                  <Route path="/events/this-week" element={<EventsThisWeekPage />} />
+                  <Route path="/events/this-weekend" element={<EventsThisWeekendPage />} />
+                  <Route path="/events/past" element={<PastEventPage />} />
+                  <Route path="/events/series/:slug" element={<EventSeriesPage />} />
+                  <Route path="/events/artist/:slug" element={<ArtistPage />} />
+                  <Route path="/events/category/:category" element={<EventCategoryPage />} />
+                  <Route path="/events/fusion" element={<EventFusionPage />} />
+                  <Route path="/events/:category/:locality" element={<EventsLocalityPage />} />
+                  <Route path="/events/:slug" element={<EventDetailPage />} />
+
+                  {/* Venues (FIX: restore SPA route) */}
+                  <Route path="/venues" element={<Navigate to="/events" replace />} />
+                  <Route path="/venues/:slug" element={<VenuePage />} />
+
                   {/* Merchants */}
                   <Route path="/merchants" element={<MerchantsPage />} />
-                  <Route path="/merchant/:id" element={<MerchantDetailPage />} />
                   <Route path="/merchant-onboarding" element={<MerchantOnboardingPage />} />
                   <Route path="/merchant-dashboard" element={<MerchantDashboardPage />} />
                   <Route path="/merchant-portal" element={<MerchantPortalPage />} />
-                  <Route path="/merchant-page" element={<MerchantPage />} />
+                  <Route path="/merchant/:id" element={<MerchantDetailPage />} />
+                  <Route path="/merchant/:slug" element={<MerchantPage />} />
+
+                  {/* Partner / Vendor / Broker */}
+                  <Route path="/partner-hub" element={<PartnerHubPage />} />
+                  <Route path="/vendor-registration" element={<VendorRegistrationPage />} />
+                  <Route path="/broker-dashboard" element={<BrokerDashboardPage />} />
+
+                  {/* Admin */}
+                  <Route path="/admin" element={<AdminDashboardPage />} />
+
+                  {/* Jaipur / Localities */}
+                  <Route path="/jaipur" element={<JaipurPage />} />
+                  <Route path="/jaipur/all" element={<LocalitiesIndexPage />} />
+                  <Route path="/jaipur/zones" element={<ZonesIndexPage />} />
+                  <Route path="/jaipur/zones/:zoneSlug" element={<ZonePage />} />
 
                   {/* Canonical Merchant SEO Route */}
                   <Route
@@ -171,77 +187,28 @@ function App() {
                     element={<MerchantDetailPage />}
                   />
 
-                  {/* Events (FIXED) */}
-                  <Route path="/events" element={<EventsPage />} />
-                  <Route path="/events/create" element={<CreateEventPage />} />
-                  <Route path="/events/organizer" element={<EventOrganizerDashboardPage />} />
-
-                  {/* Quick filter pages */}
-                  <Route path="/events/today" element={<EventsTodayPage />} />
-                  <Route path="/events/this-week" element={<EventsThisWeekPage />} />
-                  <Route path="/events/this-weekend" element={<EventsThisWeekendPage />} />
-                  <Route path="/events/free" element={<EventsFreeFilterPage />} />
-                  <Route path="/events/workshops" element={<EventsWorkshopsPage />} />
-                  <Route path="/events/past" element={<PastEventPage />} />
-
-                  {/* Category hub / special pages (if used anywhere) */}
-                  <Route path="/events/category/:categorySlug" element={<EventCategoryPage />} />
-                  <Route path="/events/fusion" element={<EventFusionPage />} />
-                  <Route path="/events/series/:seriesSlug" element={<EventSeriesPage />} />
-                  <Route path="/events/artist/:artistSlug" element={<ArtistPage />} />
-                  <Route path="/events/organizer/:organizerSlug" element={<OrganizerPage />} />
-
-                  {/* Locality-scoped listing */}
-                  <Route path="/events/:category/:locality" element={<EventsLocalityPage />} />
-
-                  {/* Event detail (keep AFTER the above so it doesn't hijack) */}
-                  <Route path="/events/:slug" element={<EventDetailPage />} />
-
-                  {/* Venues (FIXED) */}
-                  <Route path="/venues/:venueSlug" element={<VenuePage />} />
-
-                  {/* Jaipur / localities / zones */}
-                  <Route path="/jaipur" element={<JaipurPage />} />
-                  <Route path="/jaipur/all" element={<LocalitiesIndexPage />} />
-                  <Route path="/jaipur/zones" element={<ZonesIndexPage />} />
-                  <Route path="/jaipur/zones/:zoneSlug" element={<ZonePage />} />
                   <Route path="/jaipur/:slug/:category" element={<LocalityCategoryPage />} />
                   <Route path="/jaipur/:slug" element={<LocalityPage />} />
 
-                  {/* Category pages (site-wide) */}
-                  <Route path="/category/:slug" element={<CategoryPage />} />
-
-                  {/* Partners / vendors */}
-                  <Route path="/partners" element={<PartnerHubPage />} />
-                  <Route path="/vendor-registration" element={<VendorRegistrationPage />} />
-                  <Route path="/broker-dashboard" element={<BrokerDashboardPage />} />
-
-                  {/* Admin */}
-                  <Route path="/admin" element={<AdminDashboardPage />} />
-
-                  {/* Utility */}
-                  <Route path="/scan" element={<ScanPage />} />
-                  <Route path="/sitemap" element={<SitemapPage />} />
-
-                  {/* Cars (if routes exist in product) */}
+                  {/* Cars */}
                   <Route path="/cars" element={<CarsHubPage />} />
                   <Route path="/cars/brands" element={<CarBrandsPage />} />
                   <Route path="/cars/brands/:brandSlug" element={<CarBrandHubPage />} />
                   <Route path="/cars/models/:modelSlug" element={<CarModelPage />} />
-                  <Route path="/cars/model/:id" element={<CarModelDetailPage />} />
+                  <Route path="/cars/models/:modelSlug/:variantSlug" element={<CarModelDetailPage />} />
+                  <Route path="/cars/dealers/:dealerSlug" element={<CarDealerPage />} />
                   <Route path="/cars/dealers" element={<CarDealersListPage />} />
-                  <Route path="/cars/dealer/:dealerSlug" element={<CarDealerPage />} />
                   <Route path="/cars/ev" element={<EVCarsPage />} />
                   <Route path="/cars/budget" element={<CarsByBudgetPage />} />
                   <Route path="/cars/body-type" element={<CarsByBodyTypePage />} />
                   <Route path="/cars/compare" element={<CarComparePage />} />
 
-                  {/* Properties (if routes exist in product) */}
+                  {/* Properties */}
                   <Route path="/properties" element={<PropertiesHubPage />} />
-                  <Route path="/property/:id" element={<PropertyDetailPage />} />
-                  <Route path="/properties/:localitySlug" element={<PropertiesLocalityPage />} />
+                  <Route path="/properties/:slug" element={<PropertyDetailPage />} />
+                  <Route path="/properties/locality/:slug" element={<PropertiesLocalityPage />} />
 
-                  {/* 404 */}
+                  {/* Catch-all */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </AnalyticsProvider>
