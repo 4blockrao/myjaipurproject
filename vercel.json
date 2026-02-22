@@ -1,79 +1,73 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    /*
-      =========================================================
-      EVENTS SECTION
-      =========================================================
-    */
-
-    /* 1️⃣ Protect SPA utility routes (MUST come first) */
     {
-      "source": "/events/create",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/today",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/this-week",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/this-weekend",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/free",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/workshops",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/events/past",
-      "destination": "/index.html"
+      "source": "/merchant/:id",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
     },
 
-    /* 2️⃣ Scoped listing SSR: /events/:category/:locality */
+    { "source": "/events/today", "destination": "/index.html" },
+    { "source": "/events/this-week", "destination": "/index.html" },
+    { "source": "/events/this-weekend", "destination": "/index.html" },
+    { "source": "/events/free", "destination": "/index.html" },
+    { "source": "/events/workshops", "destination": "/index.html" },
+    { "source": "/events/create", "destination": "/index.html" },
+    { "source": "/events/past", "destination": "/index.html" },
+
+    {
+      "source": "/events",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
+    },
     {
       "source": "/events/:category/:locality",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
     },
 
-    /* 3️⃣ Events Hub SSR: /events */
-    {
-      "source": "/events",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
-    },
-
-    /* 4️⃣ Event Detail SSR: /events/:slug */
     {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
 
-    /*
-      =========================================================
-      VENUES
-      =========================================================
-    */
-
     {
-      "source": "/venues/:slug",
-      "destination": "/index.html"
+      "source": "/sitemap.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=index"
+    },
+    {
+      "source": "/sitemap-pages.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=pages"
+    },
+    {
+      "source": "/sitemap-localities.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=localities"
+    },
+    {
+      "source": "/sitemap-zones.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=zones"
+    },
+    {
+      "source": "/sitemap-deals.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=deals"
+    },
+    {
+      "source": "/sitemap-merchants.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=merchants"
+    },
+    {
+      "source": "/sitemap-events.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=events"
+    },
+    {
+      "source": "/sitemap-news.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news"
+    },
+    {
+      "source": "/sitemap-news-google.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
 
-    /*
-      =========================================================
-      MERCHANT REDIRECT (existing)
-      =========================================================
-    */
-
     {
-      "source": "/merchant/:id",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/merchant-redirect?id=:id"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
