@@ -1,5 +1,16 @@
 {
+  "redirects": [
+    {
+      "source": "/localities/:slug",
+      "destination": "/jaipur/:slug",
+      "permanent": true
+    }
+  ],
   "rewrites": [
+    /* =========================
+       EVENTS — SSR ROUTES
+       (keep first; do not break)
+       ========================= */
     {
       "source": "/events",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
@@ -13,16 +24,26 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
 
+    /* =========================
+       ARTISTS — SSR ROUTE
+       ========================= */
     {
       "source": "/artists/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/artist-ssr?slug=:slug"
     },
 
+    /* =========================
+       LOCALITIES — SSR ROUTE
+       IMPORTANT: page-ssr needs type + slug
+       ========================= */
     {
       "source": "/jaipur/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/page-ssr?type=locality&slug=:slug"
     },
 
+    /* =========================
+       SITEMAPS
+       ========================= */
     {
       "source": "/sitemap.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-index"
@@ -44,6 +65,9 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-artists"
     },
 
+    /* =========================
+       SPA FALLBACK (ALWAYS LAST)
+       ========================= */
     {
       "source": "/(.*)",
       "destination": "/index.html"
