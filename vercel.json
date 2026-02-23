@@ -1,11 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/__routing_test",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-ssr?slug=vaishali-nagar"
-    },
-
-    {
       "source": "/events",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
     },
