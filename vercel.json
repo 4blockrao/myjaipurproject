@@ -37,7 +37,15 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/stories-index-ssr"
     },
     {
+      "source": "/stories/",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/stories-index-ssr"
+    },
+    {
       "source": "/stories/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/story-ssr?slug=:slug"
+    },
+    {
+      "source": "/stories/:slug/",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/story-ssr?slug=:slug"
     },
 
