@@ -1,12 +1,13 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { GlobalSEO } from "@/components/seo/GlobalSEO";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AnalyticsProvider } from "@/contexts/AnalyticsContext";
+import { useEffect } from "react";
 
 import Index from "./pages/Index";
 import AboutPage from "./pages/AboutPage";
@@ -95,6 +96,28 @@ import PropertiesLocalityPage from "./pages/PropertiesLocalityPage";
 
 const queryClient = new QueryClient();
 
+/**
+ * IMPORTANT: Stories are served via SSR rewrites (Supabase edge).
+ * If the SPA boots on /stories/* (e.g. cached index.html or client navigation),
+ * we force a one-time hard reload so the browser fetches SSR HTML instead.
+ */
+function SSRHardReload() {
+  const loc = useLocation();
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+
+    // Prevent infinite reload loops
+    if (url.searchParams.get("__ssr") === "1") return;
+
+    // Add a marker param; SSR functions ignore unknown params.
+    url.searchParams.set("__ssr", "1");
+    window.location.replace(url.toString());
+  }, [loc.pathname, loc.search]);
+
+  return null;
+}
+
 function App() {
   return (
     <ErrorBoundary>
@@ -155,7 +178,7 @@ function App() {
                   <Route path="/events/:category/:locality" element={<EventsLocalityPage />} />
                   <Route path="/events/:slug" element={<EventDetailPage />} />
 
-                  {/* Venues (SPA) */}
+                  {/* Venues */}
                   <Route path="/venues" element={<Navigate to="/events" replace />} />
                   <Route path="/venues/:slug" element={<VenuePage />} />
 
@@ -208,9 +231,9 @@ function App() {
                   <Route path="/properties/:slug" element={<PropertyDetailPage />} />
                   <Route path="/properties/locality/:slug" element={<PropertiesLocalityPage />} />
 
-                  {/* Stories (SSR-controlled; prevent React from overriding SSR with NotFound) */}
-                  <Route path="/stories" element={<div />} />
-                  <Route path="/stories/:slug" element={<div />} />
+                  {/* STORIES (SSR) - force browser load */}
+                  <Route path="/stories" element={<SSRHardReload />} />
+                  <Route path="/stories/:slug" element={<SSRHardReload />} />
 
                   {/* Catch-all */}
                   <Route path="*" element={<NotFound />} />
