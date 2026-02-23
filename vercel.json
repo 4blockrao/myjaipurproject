@@ -33,12 +33,25 @@
     },
 
     {
+      "source": "/stories",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/stories-index-ssr"
+    },
+    {
+      "source": "/stories/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/story-ssr?slug=:slug"
+    },
+
+    {
       "source": "/sitemap.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-index"
     },
     {
       "source": "/sitemap-events.xml",
-  "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-events-xml"
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-events-xml"
+    },
+    {
+      "source": "/sitemap-stories.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-stories"
     },
     {
       "source": "/sitemap-news.xml",
