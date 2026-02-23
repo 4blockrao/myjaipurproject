@@ -1,11 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "/localities/:slug",
-      "destination": "/jaipur/:slug",
-      "permanent": true
-    }
-  ],
   "rewrites": [
     {
       "source": "/events",
@@ -19,21 +12,24 @@
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
+
     {
       "source": "/artists/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/artist-ssr?slug=:slug"
     },
+
     {
       "source": "/jaipur/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/page-ssr?type=locality&slug=:slug"
     },
+
     {
       "source": "/sitemap.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap"
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-index"
     },
     {
       "source": "/sitemap-events.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=events"
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-events-xml"
     },
     {
       "source": "/sitemap-news.xml",
@@ -47,6 +43,7 @@
       "source": "/sitemap-artists.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-artists"
     },
+
     {
       "source": "/(.*)",
       "destination": "/index.html"
