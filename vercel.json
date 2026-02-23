@@ -24,30 +24,26 @@
     },
 
     {
-      "source": "/localities",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-redirect"
-    },
-    {
       "source": "/localities/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-redirect?slug=:slug"
     },
+    {
+      "source": "/localities",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-redirect"
+    },
 
-    {
-      "source": "/stories",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/stories-index-ssr"
-    },
-    {
-      "source": "/stories/",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/stories-index-ssr"
-    },
+    /* ---- STORIES SSR (FIXED ORDER) ---- */
+
     {
       "source": "/stories/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/story-ssr?slug=:slug"
     },
     {
-      "source": "/stories/:slug/",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/story-ssr?slug=:slug"
+      "source": "/stories",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/stories-index-ssr"
     },
+
+    /* ---- SITEMAPS ---- */
 
     {
       "source": "/sitemap.xml",
@@ -73,6 +69,8 @@
       "source": "/sitemap-artists.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-artists"
     },
+
+    /* ---- SPA FALLBACK (ALWAYS LAST) ---- */
 
     {
       "source": "/(.*)",
