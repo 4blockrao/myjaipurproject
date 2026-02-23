@@ -1,90 +1,102 @@
 {
-  "routes": [
-
-    /* ---------------- EVENTS ---------------- */
-
+  "rewrites": [
     {
-      "src": "^/events/([^/]+)/([^/]+)$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=$1&locality=$2"
+      "source": "/events/:category/:locality",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
     },
     {
-      "src": "^/events/([^/]+)$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=$1"
+      "source": "/events/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
     {
-      "src": "^/events/?$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
+      "source": "/events",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
     },
-
-    /* ---------------- ARTISTS ---------------- */
-
     {
-      "src": "^/artists/([^/]+)$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/artist-ssr?slug=$1"
-    },
-
-    /* ---------------- LOCALITIES ---------------- */
-
-    {
-      "src": "^/jaipur/([^/]+)$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-ssr?slug=$1"
+      "source": "/events/",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
     },
 
     {
-      "src": "^/localities/([^/]+)$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-redirect?slug=$1"
+      "source": "/artists/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/artist-ssr?slug=:slug"
     },
     {
-      "src": "^/localities/?$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-redirect"
-    },
-
-    /* ---------------- STORIES (CRITICAL FIX) ---------------- */
-
-    {
-      "src": "^/stories/([^/]+)$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/story-ssr?slug=$1"
-    },
-    {
-      "src": "^/stories/?$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/stories-index-ssr"
+      "source": "/artists/:slug/",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/artist-ssr?slug=:slug"
     },
 
-    /* ---------------- SITEMAPS ---------------- */
-
     {
-      "src": "^/sitemap.xml$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-index"
+      "source": "/jaipur/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-ssr?slug=:slug"
     },
     {
-      "src": "^/sitemap-events.xml$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-events-xml"
-    },
-    {
-      "src": "^/sitemap-stories.xml$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-stories"
-    },
-    {
-      "src": "^/sitemap-news.xml$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news"
-    },
-    {
-      "src": "^/sitemap-news-google.xml$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
-    },
-    {
-      "src": "^/sitemap-artists.xml$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-artists"
+      "source": "/jaipur/:slug/",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-ssr?slug=:slug"
     },
 
-    /* ---------------- SPA FALLBACK ---------------- */
-
     {
-      "handle": "filesystem"
+      "source": "/localities",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-redirect"
     },
     {
-      "src": "^/(.*)$",
-      "dest": "/index.html"
+      "source": "/localities/",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-redirect"
+    },
+    {
+      "source": "/localities/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-redirect?slug=:slug"
+    },
+    {
+      "source": "/localities/:slug/",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-redirect?slug=:slug"
+    },
+
+    {
+      "source": "/stories/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/story-ssr?slug=:slug"
+    },
+    {
+      "source": "/stories/:slug/",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/story-ssr?slug=:slug"
+    },
+    {
+      "source": "/stories",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/stories-index-ssr"
+    },
+    {
+      "source": "/stories/",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/stories-index-ssr"
+    },
+
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-index"
+    },
+    {
+      "source": "/sitemap-events.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-events-xml"
+    },
+    {
+      "source": "/sitemap-stories.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-stories"
+    },
+    {
+      "source": "/sitemap-news.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news"
+    },
+    {
+      "source": "/sitemap-news-google.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
+    },
+    {
+      "source": "/sitemap-artists.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-artists"
+    },
+
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
