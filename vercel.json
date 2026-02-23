@@ -1,6 +1,11 @@
 {
   "rewrites": [
     {
+      "source": "/__routing_test",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-ssr?slug=vaishali-nagar"
+    },
+
+    {
       "source": "/events",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
     },
@@ -9,13 +14,10 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
     },
     {
-  "source": "/__routing_test",
-  "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-ssr?slug=vaishali-nagar"
-},
-    {
       "source": "/events/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
     },
+
     {
       "source": "/artists/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/artist-ssr?slug=:slug"
