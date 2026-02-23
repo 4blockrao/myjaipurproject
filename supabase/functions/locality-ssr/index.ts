@@ -1,4 +1,4 @@
-// JaipurCircle — Dedicated Locality SSR (REST-based, production safe)
+// JaipurCircle — Locality SSR (Locality-first, zone deprecated)
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
@@ -23,7 +23,9 @@ serve(async (req) => {
       .trim()
       .toLowerCase();
 
-    if (!slug) return text("Missing slug", 400);
+    if (!slug) {
+      return text("Missing slug", 400);
+    }
 
     const locality = await fetchLocality(slug);
 
@@ -32,7 +34,7 @@ serve(async (req) => {
     }
 
     const canonical = `${SITE_ORIGIN}/jaipur/${slug}`;
-    const title = buildTitle(locality);
+    const title = `Things to Do, Events & Local Guide for ${locality.name}, Jaipur`;
     const description = buildDescription(locality);
 
     let htmlDoc = await getIndexHtml();
@@ -40,18 +42,14 @@ serve(async (req) => {
     htmlDoc = replaceTitle(htmlDoc, title);
     htmlDoc = replaceMetaDescription(htmlDoc, description);
     htmlDoc = upsertCanonical(htmlDoc, canonical);
-
-    const jsonLdBlock = buildJsonLd(locality, canonical);
-    htmlDoc = upsertJsonLdBundle(htmlDoc, jsonLdBlock);
-
-    const ssrMarkup = buildMarkup(locality, canonical);
-    htmlDoc = injectIntoRoot(htmlDoc, ssrMarkup);
+    htmlDoc = upsertJsonLd(htmlDoc, locality, canonical);
+    htmlDoc = injectIntoRoot(htmlDoc, buildMarkup(locality, canonical));
 
     return new Response(htmlDoc, {
       headers: {
         "content-type": "text/html; charset=utf-8",
         "cache-control":
-          "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
+          "public, max-age=0, s-maxage=900, stale-while-revalidate=86400",
         "x-ssr-module": "locality-ssr",
       },
     });
@@ -64,7 +62,7 @@ serve(async (req) => {
 
 async function fetchLocality(slug: string) {
   const select =
-    "name,slug,zone,seo_blurb,known_for,pin_codes,geo_lat,geo_lng";
+    "name,slug,seo_blurb,known_for,pin_codes,geo_lat,geo_lng";
 
   const endpoint =
     `${SUPABASE_URL}/rest/v1/localities?` +
@@ -102,20 +100,7 @@ async function getIndexHtml(): Promise<string> {
   return html;
 }
 
-/* -------------------- SEO -------------------- */
-
-function normalizeZoneLabel(zoneRaw: string): string {
-  const z = (zoneRaw ?? "").trim();
-  if (!z) return "";
-  return /zone$/i.test(z) ? z : `${z} Zone`;
-}
-
-function buildTitle(loc: any): string {
-  const name = loc.name ?? slugToName(loc.slug);
-  const zone = normalizeZoneLabel(loc.zone ?? "");
-  const zoneSuffix = zone ? ` (${zone})` : "";
-  return `Things to Do, Events & Local Guide for ${name}, Jaipur${zoneSuffix}`;
-}
+/* -------------------- DESCRIPTION -------------------- */
 
 function buildDescription(loc: any): string {
   if (loc.seo_blurb?.trim()) {
@@ -128,20 +113,18 @@ function buildDescription(loc: any): string {
       : `Explore ${loc.name} in Jaipur.`;
 
   return truncate(
-    base + " Local landmarks, connectivity and useful tips.",
+    base + " Discover local landmarks, events and neighbourhood highlights.",
     165,
   );
 }
 
 /* -------------------- JSON-LD -------------------- */
 
-function buildJsonLd(loc: any, canonical: string) {
-  const name = loc.name ?? slugToName(loc.slug);
-
+function upsertJsonLd(html: string, loc: any, canonical: string) {
   const place = {
     "@context": "https://schema.org",
     "@type": "Place",
-    name: `${name}, Jaipur`,
+    name: `${loc.name}, Jaipur`,
     url: canonical,
     address: {
       "@type": "PostalAddress",
@@ -159,24 +142,34 @@ function buildJsonLd(loc: any, canonical: string) {
     };
   }
 
-  return {
-    place,
-  };
+  html = html.replace(
+    /<!-- LOCALITY_JSONLD_START -->[\s\S]*?<!-- LOCALITY_JSONLD_END -->/i,
+    "",
+  );
+
+  const block = `
+<!-- LOCALITY_JSONLD_START -->
+<script type="application/ld+json">
+${JSON.stringify(place)}
+</script>
+<!-- LOCALITY_JSONLD_END -->
+`;
+
+  return html.replace(/<\/head>/i, `${block}</head>`);
 }
 
 /* -------------------- MARKUP -------------------- */
 
 function buildMarkup(loc: any, canonical: string) {
-  const name = loc.name ?? slugToName(loc.slug);
-
   return `
 <style>
   .ssr-prerender{max-width:900px;margin:0 auto;padding:30px 16px;font-family:system-ui}
   .ssr-prerender h1{font-size:28px;margin:0 0 10px}
+  .ssr-prerender p{color:#444}
 </style>
 
 <div class="ssr-prerender" data-ssr="locality">
-  <h1>${escapeHtml(name)}, Jaipur</h1>
+  <h1>${escapeHtml(loc.name)}, Jaipur</h1>
   <p>${escapeHtml(buildDescription(loc))}</p>
   <p style="margin-top:10px;font-size:14px;color:#666">
     Canonical: <a href="${canonical}">${canonical}</a>
@@ -221,23 +214,6 @@ function upsertCanonical(html: string, canonical: string) {
   return html.replace(/<\/head>/i, `${tag}</head>`);
 }
 
-function upsertJsonLdBundle(html: string, bundle: any) {
-  html = html.replace(
-    /<!-- LOCALITY_SSR_JSONLD_START -->[\s\S]*?<!-- LOCALITY_SSR_JSONLD_END -->/i,
-    "",
-  );
-
-  const block = `
-<!-- LOCALITY_SSR_JSONLD_START -->
-<script type="application/ld+json">
-${JSON.stringify(bundle.place)}
-</script>
-<!-- LOCALITY_SSR_JSONLD_END -->
-`;
-
-  return html.replace(/<\/head>/i, `${block}</head>`);
-}
-
 function injectIntoRoot(html: string, inner: string) {
   return html.replace(
     /<div\s+id=["']root["'][^>]*>[\s\S]*?<\/div>/i,
@@ -246,13 +222,6 @@ function injectIntoRoot(html: string, inner: string) {
 }
 
 /* -------------------- UTIL -------------------- */
-
-function slugToName(slug: string) {
-  return slug
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-}
 
 function truncate(str: string, max: number) {
   if (str.length <= max) return str;
