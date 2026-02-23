@@ -38,7 +38,7 @@
     },
     {
       "source": "/sitemap-events.xml",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-events"
+  "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-events-xml"
     },
     {
       "source": "/sitemap-news.xml",
