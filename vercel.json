@@ -17,6 +17,22 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/artist-ssr?slug=:slug"
     },
     {
+      "source": "/sitemap.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap"
+    },
+    {
+      "source": "/sitemap-events.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=events"
+    },
+    {
+      "source": "/sitemap-news.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news"
+    },
+    {
+      "source": "/sitemap-news-google.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
+    },
+    {
       "source": "/sitemap-artists.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-artists"
     },
