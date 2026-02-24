@@ -1,22 +1,22 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { HelmetProvider } from 'react-helmet-async';
-import { LanguageProvider } from './contexts/LanguageContext';
-import App from './App.tsx';
-import './index.css';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import "./index.css";
 
-const container = document.getElementById("root");
-if (!container) {
-  throw new Error("Root container not found");
-}
+// Detect SSR-rendered pages (Supabase adds ?__ssr=1)
+const isSSRPage =
+  typeof window !== "undefined" &&
+  window.location.search.includes("__ssr=1");
 
-const root = createRoot(container);
-root.render(
-  <React.StrictMode>
-    <HelmetProvider>
-      <LanguageProvider>
+// Only mount React SPA if NOT an SSR page
+if (!isSSRPage) {
+  const rootElement = document.getElementById("root");
+
+  if (rootElement) {
+    ReactDOM.createRoot(rootElement).render(
+      <React.StrictMode>
         <App />
-      </LanguageProvider>
-    </HelmetProvider>
-  </React.StrictMode>
-);
+      </React.StrictMode>
+    );
+  }
+}
