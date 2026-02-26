@@ -128,7 +128,7 @@ const EventRegistrationModal = ({ event, open, onOpenChange }: EventRegistration
 
       // Call edge function for secure registration
       const response = await fetch(
-        `https://buwhgxyutfwadazjswio.supabase.co/functions/v1/register-for-event`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/register-for-event`,
         {
           method: "POST",
           headers: {
