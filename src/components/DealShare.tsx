@@ -113,8 +113,8 @@ const DealShare = ({ isOpen, onClose }: DealShareProps) => {
           commission_percentage: 8
         },
         merchants: {
-          business_name: deal.merchants?.business_name || 'Unknown Merchant',
-          is_verified: deal.merchants?.is_verified || false
+          business_name: (deal.merchants as any)?.[0]?.business_name || (deal.merchants as any)?.business_name || 'Unknown Merchant',
+          is_verified: (deal.merchants as any)?.[0]?.is_verified || (deal.merchants as any)?.is_verified || false
         }
       })) || [];
 

@@ -99,7 +99,7 @@ const DealDetailPage = () => {
         : await query.eq('id', identifier).single();
 
       if (error) throw error;
-      return data as Deal;
+      return data as unknown as Deal;
     },
     enabled: !!identifier
   });

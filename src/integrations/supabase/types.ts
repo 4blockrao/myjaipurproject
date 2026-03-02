@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      artists: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          id: string
+          instagram_url: string | null
+          name: string
+          slug: string
+          tags: string[]
+          updated_at: string
+          website_url: string | null
+          youtube_url: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          instagram_url?: string | null
+          name: string
+          slug: string
+          tags?: string[]
+          updated_at?: string
+          website_url?: string | null
+          youtube_url?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          instagram_url?: string | null
+          name?: string
+          slug?: string
+          tags?: string[]
+          updated_at?: string
+          website_url?: string | null
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
       car_brands: {
         Row: {
           country: string | null
@@ -1089,6 +1131,108 @@ export type Database = {
         }
         Relationships: []
       }
+      event_artists: {
+        Row: {
+          artist_id: string
+          created_at: string
+          event_id: string
+          role: string
+          sort_order: number
+        }
+        Insert: {
+          artist_id: string
+          created_at?: string
+          event_id: string
+          role?: string
+          sort_order?: number
+        }
+        Update: {
+          artist_id?: string
+          created_at?: string
+          event_id?: string
+          role?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_artists_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_artists_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_content_overrides: {
+        Row: {
+          audience_guide_md: string | null
+          event_id: string
+          faq_json: Json | null
+          faq_overrides: Json | null
+          hero_h1: string | null
+          internal_links: Json | null
+          internal_links_overrides: Json | null
+          intro_md: string | null
+          jsonld_overrides: Json | null
+          local_tips_md: string | null
+          locality_context_md: string | null
+          meta_description: string | null
+          meta_title: string | null
+          overview_md: string | null
+          slug: string | null
+          updated_at: string
+          venue_tips_md: string | null
+          why_attend_md: string | null
+        }
+        Insert: {
+          audience_guide_md?: string | null
+          event_id: string
+          faq_json?: Json | null
+          faq_overrides?: Json | null
+          hero_h1?: string | null
+          internal_links?: Json | null
+          internal_links_overrides?: Json | null
+          intro_md?: string | null
+          jsonld_overrides?: Json | null
+          local_tips_md?: string | null
+          locality_context_md?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          overview_md?: string | null
+          slug?: string | null
+          updated_at?: string
+          venue_tips_md?: string | null
+          why_attend_md?: string | null
+        }
+        Update: {
+          audience_guide_md?: string | null
+          event_id?: string
+          faq_json?: Json | null
+          faq_overrides?: Json | null
+          hero_h1?: string | null
+          internal_links?: Json | null
+          internal_links_overrides?: Json | null
+          intro_md?: string | null
+          jsonld_overrides?: Json | null
+          local_tips_md?: string | null
+          locality_context_md?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          overview_md?: string | null
+          slug?: string | null
+          updated_at?: string
+          venue_tips_md?: string | null
+          why_attend_md?: string | null
+        }
+        Relationships: []
+      }
       event_interests: {
         Row: {
           created_at: string | null
@@ -1200,6 +1344,8 @@ export type Database = {
           organizer_id: string | null
           organizer_name: string | null
           organizer_phone: string | null
+          performer_name: string | null
+          performer_slug: string | null
           published_at: string | null
           registration_deadline: string | null
           registration_url: string | null
@@ -1242,6 +1388,8 @@ export type Database = {
           organizer_id?: string | null
           organizer_name?: string | null
           organizer_phone?: string | null
+          performer_name?: string | null
+          performer_slug?: string | null
           published_at?: string | null
           registration_deadline?: string | null
           registration_url?: string | null
@@ -1284,6 +1432,8 @@ export type Database = {
           organizer_id?: string | null
           organizer_name?: string | null
           organizer_phone?: string | null
+          performer_name?: string | null
+          performer_slug?: string | null
           published_at?: string | null
           registration_deadline?: string | null
           registration_url?: string | null
@@ -1392,15 +1542,19 @@ export type Database = {
       }
       localities: {
         Row: {
+          access_note: string | null
           adjacent_localities: string[] | null
           assembly_constituency: string | null
+          best_for: string[] | null
           confidence_score: number | null
           connectivity: Json | null
           created_at: string | null
           geo_lat: number | null
           geo_lng: number | null
           id: number
+          index_override: string | null
           known_for: string | null
+          landmarks: string[] | null
           major_landmarks: Json | null
           meta: Json | null
           micro_localities: string[] | null
@@ -1411,25 +1565,32 @@ export type Database = {
           police_station: string | null
           population_estimate: number | null
           seo_blurb: string | null
+          should_index: boolean
           slug: string
           tags: string[] | null
           updated_at: string | null
+          venue_types: string[] | null
           verification_status: string | null
+          vibe_tags: string[] | null
           ward_name: string | null
           ward_number: string | null
           zone: string | null
           zone_id: string | null
         }
         Insert: {
+          access_note?: string | null
           adjacent_localities?: string[] | null
           assembly_constituency?: string | null
+          best_for?: string[] | null
           confidence_score?: number | null
           connectivity?: Json | null
           created_at?: string | null
           geo_lat?: number | null
           geo_lng?: number | null
           id?: number
+          index_override?: string | null
           known_for?: string | null
+          landmarks?: string[] | null
           major_landmarks?: Json | null
           meta?: Json | null
           micro_localities?: string[] | null
@@ -1440,25 +1601,32 @@ export type Database = {
           police_station?: string | null
           population_estimate?: number | null
           seo_blurb?: string | null
+          should_index?: boolean
           slug: string
           tags?: string[] | null
           updated_at?: string | null
+          venue_types?: string[] | null
           verification_status?: string | null
+          vibe_tags?: string[] | null
           ward_name?: string | null
           ward_number?: string | null
           zone?: string | null
           zone_id?: string | null
         }
         Update: {
+          access_note?: string | null
           adjacent_localities?: string[] | null
           assembly_constituency?: string | null
+          best_for?: string[] | null
           confidence_score?: number | null
           connectivity?: Json | null
           created_at?: string | null
           geo_lat?: number | null
           geo_lng?: number | null
           id?: number
+          index_override?: string | null
           known_for?: string | null
+          landmarks?: string[] | null
           major_landmarks?: Json | null
           meta?: Json | null
           micro_localities?: string[] | null
@@ -1469,10 +1637,13 @@ export type Database = {
           police_station?: string | null
           population_estimate?: number | null
           seo_blurb?: string | null
+          should_index?: boolean
           slug?: string
           tags?: string[] | null
           updated_at?: string | null
+          venue_types?: string[] | null
           verification_status?: string | null
+          vibe_tags?: string[] | null
           ward_name?: string | null
           ward_number?: string | null
           zone?: string | null
@@ -1710,11 +1881,13 @@ export type Database = {
           listing_payment_id: string | null
           listing_tier: string | null
           locality: string | null
+          locality_slug: string
           logo_url: string | null
           phone: string | null
           photos: string[] | null
+          primary_locality_id: number | null
           referred_by: string | null
-          slug: string | null
+          slug: string
           social_handles: Json | null
           total_deals: number | null
           total_reviews: number | null
@@ -1740,11 +1913,13 @@ export type Database = {
           listing_payment_id?: string | null
           listing_tier?: string | null
           locality?: string | null
+          locality_slug: string
           logo_url?: string | null
           phone?: string | null
           photos?: string[] | null
+          primary_locality_id?: number | null
           referred_by?: string | null
-          slug?: string | null
+          slug: string
           social_handles?: Json | null
           total_deals?: number | null
           total_reviews?: number | null
@@ -1770,11 +1945,13 @@ export type Database = {
           listing_payment_id?: string | null
           listing_tier?: string | null
           locality?: string | null
+          locality_slug?: string
           logo_url?: string | null
           phone?: string | null
           photos?: string[] | null
+          primary_locality_id?: number | null
           referred_by?: string | null
-          slug?: string | null
+          slug?: string
           social_handles?: Json | null
           total_deals?: number | null
           total_reviews?: number | null
@@ -1782,7 +1959,15 @@ export type Database = {
           user_id?: string | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "merchants_primary_locality_id_fkey"
+            columns: ["primary_locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       news_articles: {
         Row: {
@@ -2058,6 +2243,7 @@ export type Database = {
           page_type: string
           quality_score: number | null
           reasons: Json | null
+          slug: string | null
           uniqueness_score: number | null
           updated_at: string
           url_path: string
@@ -2074,6 +2260,7 @@ export type Database = {
           page_type?: string
           quality_score?: number | null
           reasons?: Json | null
+          slug?: string | null
           uniqueness_score?: number | null
           updated_at?: string
           url_path: string
@@ -2090,6 +2277,7 @@ export type Database = {
           page_type?: string
           quality_score?: number | null
           reasons?: Json | null
+          slug?: string | null
           uniqueness_score?: number | null
           updated_at?: string
           url_path?: string
@@ -2194,6 +2382,27 @@ export type Database = {
           session_id?: string
           time_on_page?: number | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      performers: {
+        Row: {
+          created_at: string
+          display_name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          slug?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2960,6 +3169,81 @@ export type Database = {
         }
         Relationships: []
       }
+      stories: {
+        Row: {
+          content: string
+          content_html: string | null
+          cover_image: string | null
+          cover_image_url: string | null
+          excerpt: string | null
+          id: string
+          meta_description: string | null
+          meta_title: string | null
+          published_at: string | null
+          related_category_slug: string | null
+          related_locality_slug: string | null
+          slug: string
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          content_html?: string | null
+          cover_image?: string | null
+          cover_image_url?: string | null
+          excerpt?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          related_category_slug?: string | null
+          related_locality_slug?: string | null
+          slug: string
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          content_html?: string | null
+          cover_image?: string | null
+          cover_image_url?: string | null
+          excerpt?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          related_category_slug?: string | null
+          related_locality_slug?: string | null
+          slug?: string
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      tag_taxonomy: {
+        Row: {
+          tag: string
+          tag_type: string
+          updated_at: string
+        }
+        Insert: {
+          tag: string
+          tag_type: string
+          updated_at?: string
+        }
+        Update: {
+          tag?: string
+          tag_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       test: {
         Row: {
           created_at: string
@@ -3301,9 +3585,90 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      locality_indexability: {
+        Row: {
+          published_events: number | null
+          should_index: boolean | null
+          slug: string | null
+        }
+        Relationships: []
+      }
+      locality_indexability_v2: {
+        Row: {
+          name: string | null
+          should_index: boolean | null
+          slug: string | null
+        }
+        Insert: {
+          name?: string | null
+          should_index?: never
+          slug?: string | null
+        }
+        Update: {
+          name?: string | null
+          should_index?: never
+          slug?: string | null
+        }
+        Relationships: []
+      }
+      v_registry_should_noindex: {
+        Row: {
+          exists_in_table: boolean | null
+          id: string | null
+          kind: string | null
+          slug: string | null
+          url_path: string | null
+        }
+        Relationships: []
+      }
+      v_sitemap_deals: {
+        Row: {
+          lastmod: string | null
+          loc: string | null
+        }
+        Insert: {
+          lastmod?: string | null
+          loc?: string | null
+        }
+        Update: {
+          lastmod?: string | null
+          loc?: string | null
+        }
+        Relationships: []
+      }
+      v_sitemap_events: {
+        Row: {
+          lastmod: string | null
+          loc: string | null
+        }
+        Insert: {
+          lastmod?: string | null
+          loc?: string | null
+        }
+        Update: {
+          lastmod?: string | null
+          loc?: string | null
+        }
+        Relationships: []
+      }
+      v_sitemap_localities: {
+        Row: {
+          lastmod: string | null
+          loc: string | null
+        }
+        Insert: {
+          lastmod?: string | null
+          loc?: string | null
+        }
+        Update: {
+          lastmod?: string | null
+          loc?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      _clean_performer_name: { Args: { p: string }; Returns: string }
       award_badge: {
         Args: {
           badge_description: string
@@ -3324,6 +3689,46 @@ export type Database = {
         }
         Returns: undefined
       }
+      clean_performer_name_v2: { Args: { p: string }; Returns: string }
+      clean_performer_name_v3: { Args: { p: string }; Returns: string }
+      compute_locality_should_index: {
+        Args: {
+          p_confidence_score: number
+          p_index_override: string
+          p_known_for: string
+          p_seo_blurb: string
+          p_verification_status: string
+        }
+        Returns: boolean
+      }
+      ensure_unique_merchant_slug: {
+        Args: {
+          p_base_slug: string
+          p_locality_slug: string
+          p_merchant_id: string
+        }
+        Returns: string
+      }
+      extract_performer_name_from_title: {
+        Args: { p_title: string }
+        Returns: string
+      }
+      extract_performer_name_from_title_v2: {
+        Args: { p_title: string }
+        Returns: string
+      }
+      extract_performer_name_from_title_v3: {
+        Args: { p_title: string }
+        Returns: string
+      }
+      extract_performer_name_from_title_v4: {
+        Args: { p_title: string }
+        Returns: string
+      }
+      extract_performer_name_from_title_v5: {
+        Args: { p_title: string }
+        Returns: string
+      }
       generate_coupon_code: { Args: never; Returns: string }
       generate_deal_slug: {
         Args: { deal_id: string; title: string }
@@ -3334,6 +3739,14 @@ export type Database = {
       generate_redemption_code: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       generate_registration_code: { Args: never; Returns: string }
+      get_artists_with_events: {
+        Args: never
+        Returns: {
+          last_event_updated_at: string
+          slug: string
+        }[]
+      }
+      get_event_overrides_by_slug: { Args: { p_slug: string }; Returns: Json }
       get_event_public: {
         Args: { p_slug: string }
         Returns: {
@@ -3398,6 +3811,30 @@ export type Database = {
       }
       increment_event_views: { Args: { event_id: string }; Returns: undefined }
       is_pro_member: { Args: { user_uuid: string }; Returns: boolean }
+      jc_slugify: { Args: { input: string }; Returns: string }
+      jc_to_slug: { Args: { p_text: string }; Returns: string }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
+      sitemap_events: {
+        Args: never
+        Returns: {
+          lastmod: string
+          path: string
+        }[]
+      }
+      sitemap_index_list: {
+        Args: never
+        Returns: {
+          sitemap_path: string
+        }[]
+      }
+      slugify: { Args: { p_text: string }; Returns: string }
+      slugify_performer: { Args: { p: string }; Returns: string }
+      slugify_simple: { Args: { p: string }; Returns: string }
+      touch_visitor_session: {
+        Args: { p_session_id: string }
+        Returns: undefined
+      }
       upgrade_to_pro_user: { Args: { _user_id: string }; Returns: undefined }
       upsert_page_registry: {
         Args: {
@@ -3427,6 +3864,7 @@ export type Database = {
         | "culture"
         | "business"
         | "sports"
+      story_status: "draft" | "published"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3573,6 +4011,7 @@ export const Constants = {
         "business",
         "sports",
       ],
+      story_status: ["draft", "published"],
     },
   },
 } as const

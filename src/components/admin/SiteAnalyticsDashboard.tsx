@@ -174,9 +174,9 @@ const SiteAnalyticsDashboard = () => {
   }, {} as Record<string, number>) || {};
 
   const topCities = Object.entries(cityBreakdown)
-    .sort((a, b) => b[1] - a[1])
+    .sort((a, b) => (b[1] as number) - (a[1] as number))
     .slice(0, 10)
-    .map(([name, value]) => ({ name, value }));
+    .map(([name, value]) => ({ name, value: value as number }));
 
   // UTM source breakdown
   const sourceBreakdown = sessions?.reduce((acc, s) => {
@@ -187,9 +187,9 @@ const SiteAnalyticsDashboard = () => {
   }, {} as Record<string, number>) || {};
 
   const topSources = Object.entries(sourceBreakdown)
-    .sort((a, b) => b[1] - a[1])
+    .sort((a, b) => (b[1] as number) - (a[1] as number))
     .slice(0, 10)
-    .map(([name, value]) => ({ name, value }));
+    .map(([name, value]) => ({ name, value: value as number }));
 
   // Top pages
   const pageBreakdown = pageViews?.reduce((acc, p) => {
@@ -199,9 +199,9 @@ const SiteAnalyticsDashboard = () => {
   }, {} as Record<string, number>) || {};
 
   const topPages = Object.entries(pageBreakdown)
-    .sort((a, b) => b[1] - a[1])
+    .sort((a, b) => (b[1] as number) - (a[1] as number))
     .slice(0, 10)
-    .map(([page, views]) => ({ page, views }));
+    .map(([page, views]) => ({ page, views: views as number }));
 
   // Top search queries
   const searchBreakdown = searches?.reduce((acc, s) => {
@@ -211,9 +211,9 @@ const SiteAnalyticsDashboard = () => {
   }, {} as Record<string, number>) || {};
 
   const topSearches = Object.entries(searchBreakdown)
-    .sort((a, b) => b[1] - a[1])
+    .sort((a, b) => (b[1] as number) - (a[1] as number))
     .slice(0, 15)
-    .map(([query, count]) => ({ query, count }));
+    .map(([query, count]) => ({ query, count: count as number }));
 
   // Daily sessions (last 7 days)
   const dailySessions = Array.from({ length: 7 }, (_, i) => {

@@ -135,8 +135,8 @@ const UsersManagement = () => {
       ]);
 
       return {
-        orders: ordersResult.data as UserOrder[] || [],
-        eventRegistrations: eventRegsResult.data as UserEventRegistration[] || [],
+        orders: (ordersResult.data as unknown as UserOrder[]) || [],
+        eventRegistrations: (eventRegsResult.data as unknown as UserEventRegistration[]) || [],
         transactions: transactionsResult.data || [],
       };
     },
