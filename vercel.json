@@ -2,76 +2,81 @@
   "routes": [
     { "handle": "filesystem" },
 
+    /* =========================================================
+       SSR ROUTES (DIRECT → SUPABASE EDGE FUNCTIONS)
+       This avoids api.jaipurcircle.com TLS 525 entirely.
+       ========================================================= */
+
     /* ---------- EVENTS SSR ---------- */
     {
       "src": "^/events/([^/]+)/([^/]+)/?$",
-      "dest": "/api/functions/v1/events-list-ssr?category=$1&locality=$2"
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=$1&locality=$2"
     },
     {
       "src": "^/events/([^/]+)/?$",
-      "dest": "/api/functions/v1/event-ssr?slug=$1"
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=$1"
     },
     {
       "src": "^/events/?$",
-      "dest": "/api/functions/v1/events-list-ssr"
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
     },
 
     /* ---------- ARTISTS SSR ---------- */
     {
       "src": "^/artists/([^/]+)/?$",
-      "dest": "/api/functions/v1/artist-ssr?slug=$1"
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/artist-ssr?slug=$1"
     },
 
     /* ---------- LOCALITY SSR ---------- */
     {
       "src": "^/jaipur/([^/]+)/?$",
-      "dest": "/api/functions/v1/locality-ssr?slug=$1"
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-ssr?slug=$1"
     },
 
     /* ---------- LEGACY LOCALITIES REDIRECT ---------- */
     {
       "src": "^/localities/([^/]+)/?$",
-      "dest": "/api/functions/v1/locality-redirect?slug=$1"
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-redirect?slug=$1"
     },
     {
       "src": "^/localities/?$",
-      "dest": "/api/functions/v1/locality-redirect"
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-redirect"
     },
 
     /* ---------- STORIES SSR ---------- */
     {
       "src": "^/stories/([^/]+)/?$",
-      "dest": "/api/functions/v1/story-ssr?slug=$1"
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/story-ssr?slug=$1"
     },
     {
       "src": "^/stories/?$",
-      "dest": "/api/functions/v1/stories-index-ssr"
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/stories-index-ssr"
     },
 
     /* ---------- SITEMAPS ---------- */
     {
       "src": "^/sitemap\\.xml$",
-      "dest": "/api/functions/v1/sitemap-index"
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-index"
     },
     {
       "src": "^/sitemap-events\\.xml$",
-      "dest": "/api/functions/v1/sitemap-events-xml"
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-events-xml"
     },
     {
       "src": "^/sitemap-stories\\.xml$",
-      "dest": "/api/functions/v1/sitemap-stories"
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-stories"
     },
     {
       "src": "^/sitemap-news\\.xml$",
-      "dest": "/api/functions/v1/sitemap?type=news"
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news"
     },
     {
       "src": "^/sitemap-news-google\\.xml$",
-      "dest": "/api/functions/v1/sitemap?type=news-sitemap"
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
     {
       "src": "^/sitemap-artists\\.xml$",
-      "dest": "/api/functions/v1/sitemap-artists"
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-artists"
     },
 
     /* ---------- SPA FALLBACK (ALWAYS LAST) ---------- */
