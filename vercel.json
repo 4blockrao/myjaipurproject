@@ -1,80 +1,102 @@
 {
-  "routes": [
+  "rewrites": [
     {
-      "src": "^/api/(.*)$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/$1"
-    },
-
-    { "handle": "filesystem" },
-
-    {
-      "src": "^/events/([^/]+)/([^/]+)/?$",
-      "dest": "/api/functions/v1/events-list-ssr?category=$1&locality=$2"
-    },
-    {
-      "src": "^/events/([^/]+)/?$",
-      "dest": "/api/functions/v1/event-ssr?slug=$1"
-    },
-    {
-      "src": "^/events/?$",
-      "dest": "/api/functions/v1/events-list-ssr"
+      "source": "/api/:path*",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/:path*"
     },
 
     {
-      "src": "^/artists/([^/]+)/?$",
-      "dest": "/api/functions/v1/artist-ssr?slug=$1"
+      "source": "/events/:category/:locality",
+      "destination": "/api/functions/v1/events-list-ssr?category=:category&locality=:locality"
+    },
+    {
+      "source": "/events/:slug",
+      "destination": "/api/functions/v1/event-ssr?slug=:slug"
+    },
+    {
+      "source": "/events",
+      "destination": "/api/functions/v1/events-list-ssr"
+    },
+    {
+      "source": "/events/",
+      "destination": "/api/functions/v1/events-list-ssr"
     },
 
     {
-      "src": "^/jaipur/([^/]+)/?$",
-      "dest": "/api/functions/v1/locality-ssr?slug=$1"
+      "source": "/artists/:slug",
+      "destination": "/api/functions/v1/artist-ssr?slug=:slug"
+    },
+    {
+      "source": "/artists/:slug/",
+      "destination": "/api/functions/v1/artist-ssr?slug=:slug"
     },
 
     {
-      "src": "^/localities/([^/]+)/?$",
-      "status": 308,
-      "headers": { "Location": "/jaipur/$1" }
+      "source": "/jaipur/:slug",
+      "destination": "/api/functions/v1/locality-ssr?slug=:slug"
     },
     {
-      "src": "^/localities/?$",
-      "status": 308,
-      "headers": { "Location": "/jaipur" }
+      "source": "/jaipur/:slug/",
+      "destination": "/api/functions/v1/locality-ssr?slug=:slug"
     },
 
     {
-      "src": "^/stories/([^/]+)/?$",
-      "dest": "/api/functions/v1/story-ssr?slug=$1"
+      "source": "/stories/:slug",
+      "destination": "/api/functions/v1/story-ssr?slug=:slug"
     },
     {
-      "src": "^/stories/?$",
-      "dest": "/api/functions/v1/stories-index-ssr"
+      "source": "/stories/:slug/",
+      "destination": "/api/functions/v1/story-ssr?slug=:slug"
+    },
+    {
+      "source": "/stories",
+      "destination": "/api/functions/v1/stories-index-ssr"
+    },
+    {
+      "source": "/stories/",
+      "destination": "/api/functions/v1/stories-index-ssr"
     },
 
     {
-      "src": "^/sitemap\\.xml$",
-      "dest": "/api/functions/v1/sitemap-index"
+      "source": "/sitemap.xml",
+      "destination": "/api/functions/v1/sitemap-index"
     },
     {
-      "src": "^/sitemap-events\\.xml$",
-      "dest": "/api/functions/v1/sitemap-events-xml"
+      "source": "/sitemap-events.xml",
+      "destination": "/api/functions/v1/sitemap-events-xml"
     },
     {
-      "src": "^/sitemap-stories\\.xml$",
-      "dest": "/api/functions/v1/sitemap-stories"
+      "source": "/sitemap-stories.xml",
+      "destination": "/api/functions/v1/sitemap-stories"
     },
     {
-      "src": "^/sitemap-news\\.xml$",
-      "dest": "/api/functions/v1/sitemap?type=news"
+      "source": "/sitemap-news.xml",
+      "destination": "/api/functions/v1/sitemap?type=news"
     },
     {
-      "src": "^/sitemap-news-google\\.xml$",
-      "dest": "/api/functions/v1/sitemap?type=news-sitemap"
+      "source": "/sitemap-news-google.xml",
+      "destination": "/api/functions/v1/sitemap?type=news-sitemap"
     },
     {
-      "src": "^/sitemap-artists\\.xml$",
-      "dest": "/api/functions/v1/sitemap-artists"
+      "source": "/sitemap-artists.xml",
+      "destination": "/api/functions/v1/sitemap-artists"
     },
 
-    { "src": "^/(.*)$", "dest": "/index.html" }
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/localities",
+      "destination": "/jaipur",
+      "permanent": true
+    },
+    {
+      "source": "/localities/:slug",
+      "destination": "/jaipur/:slug",
+      "permanent": true
+    }
   ]
 }
