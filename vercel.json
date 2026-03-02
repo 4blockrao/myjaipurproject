@@ -1,85 +1,80 @@
 {
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
-    },
-
-    {
       "source": "/events/:category/:locality",
-      "destination": "/api/functions/v1/events-list-ssr?category=:category&locality=:locality"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/events-list-ssr?category=:category&locality=:locality"
     },
     {
       "source": "/events/:slug",
-      "destination": "/api/functions/v1/event-ssr?slug=:slug"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/event-ssr?slug=:slug"
     },
     {
       "source": "/events",
-      "destination": "/api/functions/v1/events-list-ssr"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/events-list-ssr"
     },
     {
       "source": "/events/",
-      "destination": "/api/functions/v1/events-list-ssr"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/events-list-ssr"
     },
 
     {
       "source": "/artists/:slug",
-      "destination": "/api/functions/v1/artist-ssr?slug=:slug"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/artist-ssr?slug=:slug"
     },
     {
       "source": "/artists/:slug/",
-      "destination": "/api/functions/v1/artist-ssr?slug=:slug"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/artist-ssr?slug=:slug"
     },
 
     {
       "source": "/jaipur/:slug",
-      "destination": "/api/functions/v1/locality-ssr?slug=:slug"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/locality-ssr?slug=:slug"
     },
     {
       "source": "/jaipur/:slug/",
-      "destination": "/api/functions/v1/locality-ssr?slug=:slug"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/locality-ssr?slug=:slug"
     },
 
     {
       "source": "/stories/:slug",
-      "destination": "/api/functions/v1/story-ssr?slug=:slug"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/story-ssr?slug=:slug"
     },
     {
       "source": "/stories/:slug/",
-      "destination": "/api/functions/v1/story-ssr?slug=:slug"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/story-ssr?slug=:slug"
     },
     {
       "source": "/stories",
-      "destination": "/api/functions/v1/stories-index-ssr"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/stories-index-ssr"
     },
     {
       "source": "/stories/",
-      "destination": "/api/functions/v1/stories-index-ssr"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/stories-index-ssr"
     },
 
     {
       "source": "/sitemap.xml",
-      "destination": "/api/functions/v1/sitemap-index"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/sitemap-index"
     },
     {
       "source": "/sitemap-events.xml",
-      "destination": "/api/functions/v1/sitemap-events-xml"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/sitemap-events-xml"
     },
     {
       "source": "/sitemap-stories.xml",
-      "destination": "/api/functions/v1/sitemap-stories"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/sitemap-stories"
     },
     {
       "source": "/sitemap-news.xml",
-      "destination": "/api/functions/v1/sitemap?type=news"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/sitemap?type=news"
     },
     {
       "source": "/sitemap-news-google.xml",
-      "destination": "/api/functions/v1/sitemap?type=news-sitemap"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/sitemap?type=news-sitemap"
     },
     {
       "source": "/sitemap-artists.xml",
-      "destination": "/api/functions/v1/sitemap-artists"
+      "destination": "https://www.jaipurcircle.com/api/functions/v1/sitemap-artists"
     },
 
     {
