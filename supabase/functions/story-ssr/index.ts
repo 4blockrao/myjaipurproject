@@ -479,6 +479,6 @@ Deno.serve(async (req) => {
       },
     });
   } catch (e) {
-    return err(`Server error: ${e?.message || String(e)}`);
+    return err(`Server error: ${(e as Error)?.message || String(e)}`);
   }
 });

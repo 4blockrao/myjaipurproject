@@ -131,7 +131,7 @@ const DealsPage = () => {
       if (dealsResult.error) throw dealsResult.error;
       if (merchantsResult.error) throw merchantsResult.error;
 
-      setDeals(dealsResult.data || []);
+      setDeals((dealsResult.data as unknown as Deal[]) || []);
       setMerchants(merchantsResult.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);

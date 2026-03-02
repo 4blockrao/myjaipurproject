@@ -63,7 +63,7 @@ const DealApprovalQueue = () => {
 
       const formattedDeals = data?.map(deal => ({
         ...deal,
-        merchant: { business_name: deal.merchants?.business_name || 'Unknown Merchant' },
+        merchant: { business_name: (deal.merchants as any)?.[0]?.business_name || (deal.merchants as any)?.business_name || 'Unknown Merchant' },
         creator: {
           full_name: (deal.profiles as any)?.full_name || 'Unknown User',
           email: (deal.profiles as any)?.email || 'Unknown Email'

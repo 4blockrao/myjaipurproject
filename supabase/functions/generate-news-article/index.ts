@@ -54,7 +54,7 @@ async function fetchWithRetry(
       return response;
     } catch (error) {
       lastError = error as Error;
-      console.error(`Attempt ${attempt} failed:`, error.message);
+      console.error(`Attempt ${attempt} failed:`, (error as Error).message);
       
       if (attempt < retries) {
         await delay(RETRY_DELAY_MS * attempt);
@@ -224,9 +224,9 @@ Please provide the response in the following JSON format:
     const duration = Date.now() - startTime;
     console.error(`Error in generate-news-article (${duration}ms):`, error);
     
-    const errorMessage = error.message?.includes('timeout') 
+    const errorMessage = (error as Error).message?.includes('timeout') 
       ? 'Request timed out. The AI service is slow. Please try again.'
-      : error.message || 'Unknown error occurred';
+      : (error as Error).message || 'Unknown error occurred';
     
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
