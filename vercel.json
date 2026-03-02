@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://buwhgxyutfwadazjswio.supabase.co/:path*"
+      "destination": "/api/:path*"
     },
 
     {
@@ -17,14 +17,26 @@
       "source": "/events",
       "destination": "/api/functions/v1/events-list-ssr"
     },
+    {
+      "source": "/events/",
+      "destination": "/api/functions/v1/events-list-ssr"
+    },
 
     {
       "source": "/artists/:slug",
       "destination": "/api/functions/v1/artist-ssr?slug=:slug"
     },
+    {
+      "source": "/artists/:slug/",
+      "destination": "/api/functions/v1/artist-ssr?slug=:slug"
+    },
 
     {
       "source": "/jaipur/:slug",
+      "destination": "/api/functions/v1/locality-ssr?slug=:slug"
+    },
+    {
+      "source": "/jaipur/:slug/",
       "destination": "/api/functions/v1/locality-ssr?slug=:slug"
     },
 
@@ -33,7 +45,15 @@
       "destination": "/api/functions/v1/story-ssr?slug=:slug"
     },
     {
+      "source": "/stories/:slug/",
+      "destination": "/api/functions/v1/story-ssr?slug=:slug"
+    },
+    {
       "source": "/stories",
+      "destination": "/api/functions/v1/stories-index-ssr"
+    },
+    {
+      "source": "/stories/",
       "destination": "/api/functions/v1/stories-index-ssr"
     },
 
