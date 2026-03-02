@@ -1,97 +1,80 @@
 {
-  "rewrites": [
+  "routes": [
     {
-      "source": "/events/:category/:locality",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/events-list-ssr?category=:category&locality=:locality"
+      "src": "^/api/(.*)$",
+      "dest": "https://buwhgxyutfwadazjswio.supabase.co/$1"
+    },
+
+    { "handle": "filesystem" },
+
+    {
+      "src": "^/events/([^/]+)/([^/]+)/?$",
+      "dest": "/api/functions/v1/events-list-ssr?category=$1&locality=$2"
     },
     {
-      "source": "/events/:slug",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/event-ssr?slug=:slug"
+      "src": "^/events/([^/]+)/?$",
+      "dest": "/api/functions/v1/event-ssr?slug=$1"
     },
     {
-      "source": "/events",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/events-list-ssr"
-    },
-    {
-      "source": "/events/",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/events-list-ssr"
+      "src": "^/events/?$",
+      "dest": "/api/functions/v1/events-list-ssr"
     },
 
     {
-      "source": "/artists/:slug",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/artist-ssr?slug=:slug"
-    },
-    {
-      "source": "/artists/:slug/",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/artist-ssr?slug=:slug"
+      "src": "^/artists/([^/]+)/?$",
+      "dest": "/api/functions/v1/artist-ssr?slug=$1"
     },
 
     {
-      "source": "/jaipur/:slug",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/locality-ssr?slug=:slug"
-    },
-    {
-      "source": "/jaipur/:slug/",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/locality-ssr?slug=:slug"
+      "src": "^/jaipur/([^/]+)/?$",
+      "dest": "/api/functions/v1/locality-ssr?slug=$1"
     },
 
     {
-      "source": "/stories/:slug",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/story-ssr?slug=:slug"
+      "src": "^/localities/([^/]+)/?$",
+      "status": 308,
+      "headers": { "Location": "/jaipur/$1" }
     },
     {
-      "source": "/stories/:slug/",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/story-ssr?slug=:slug"
-    },
-    {
-      "source": "/stories",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/stories-index-ssr"
-    },
-    {
-      "source": "/stories/",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/stories-index-ssr"
+      "src": "^/localities/?$",
+      "status": 308,
+      "headers": { "Location": "/jaipur" }
     },
 
     {
-      "source": "/sitemap.xml",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/sitemap-index"
+      "src": "^/stories/([^/]+)/?$",
+      "dest": "/api/functions/v1/story-ssr?slug=$1"
     },
     {
-      "source": "/sitemap-events.xml",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/sitemap-events-xml"
-    },
-    {
-      "source": "/sitemap-stories.xml",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/sitemap-stories"
-    },
-    {
-      "source": "/sitemap-news.xml",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/sitemap?type=news"
-    },
-    {
-      "source": "/sitemap-news-google.xml",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/sitemap?type=news-sitemap"
-    },
-    {
-      "source": "/sitemap-artists.xml",
-      "destination": "https://www.jaipurcircle.com/api/functions/v1/sitemap-artists"
+      "src": "^/stories/?$",
+      "dest": "/api/functions/v1/stories-index-ssr"
     },
 
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/localities/:slug",
-      "destination": "/jaipur/:slug",
-      "permanent": true
+      "src": "^/sitemap\\.xml$",
+      "dest": "/api/functions/v1/sitemap-index"
     },
     {
-      "source": "/localities",
-      "destination": "/jaipur",
-      "permanent": true
-    }
+      "src": "^/sitemap-events\\.xml$",
+      "dest": "/api/functions/v1/sitemap-events-xml"
+    },
+    {
+      "src": "^/sitemap-stories\\.xml$",
+      "dest": "/api/functions/v1/sitemap-stories"
+    },
+    {
+      "src": "^/sitemap-news\\.xml$",
+      "dest": "/api/functions/v1/sitemap?type=news"
+    },
+    {
+      "src": "^/sitemap-news-google\\.xml$",
+      "dest": "/api/functions/v1/sitemap?type=news-sitemap"
+    },
+    {
+      "src": "^/sitemap-artists\\.xml$",
+      "dest": "/api/functions/v1/sitemap-artists"
+    },
+
+    { "src": "^/(.*)$", "dest": "/index.html" }
   ]
 }
