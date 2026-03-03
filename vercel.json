@@ -17,14 +17,12 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/:path*"
     },
 
-    // --- IMPORTANT: keep these SPA routes ABOVE /events/:slug ---
     { "source": "/events/today", "destination": "/index.html" },
     { "source": "/events/this-week", "destination": "/index.html" },
     { "source": "/events/this-weekend", "destination": "/index.html" },
     { "source": "/events/free", "destination": "/index.html" },
     { "source": "/events/workshops", "destination": "/index.html" },
 
-    // --- SSR event routes ---
     {
       "source": "/events/:category/:locality",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
@@ -38,19 +36,16 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
     },
 
-    // --- SSR artist route ---
     {
       "source": "/artists/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/artist-ssr?slug=:slug"
     },
 
-    // --- SSR locality route ---
     {
       "source": "/jaipur/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-ssr?slug=:slug"
     },
 
-    // --- SSR stories routes (you said ignore stories; leaving as-is for now) ---
     {
       "source": "/stories/:slug",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/story-ssr?slug=:slug"
@@ -60,7 +55,6 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/stories-index-ssr"
     },
 
-    // --- sitemaps ---
     {
       "source": "/sitemap.xml",
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-index"
@@ -86,7 +80,6 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-artists"
     },
 
-    // --- SPA fallback ---
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "redirects": [
