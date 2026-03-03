@@ -34,7 +34,6 @@
       "source": "/artists/:slug",
       "destination": "/api/functions/v1/artist-ssr?slug=:slug"
     },
-
     {
       "source": "/jaipur/:slug",
       "destination": "/api/functions/v1/locality-ssr?slug=:slug"
@@ -80,15 +79,7 @@
     }
   ],
   "redirects": [
-    {
-      "source": "/localities/:slug",
-      "destination": "/jaipur/:slug",
-      "permanent": true
-    },
-    {
-      "source": "/localities",
-      "destination": "/jaipur",
-      "permanent": true
-    }
+    { "source": "/localities/:slug", "destination": "/jaipur/:slug", "permanent": true },
+    { "source": "/localities", "destination": "/jaipur", "permanent": true }
   ]
 }
