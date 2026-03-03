@@ -17,24 +17,76 @@
       "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/:path*"
     },
 
-    { "source": "/events/:category/:locality", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality" },
-    { "source": "/events/:slug", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug" },
-    { "source": "/events", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr" },
+    // --- IMPORTANT: keep these SPA routes ABOVE /events/:slug ---
+    { "source": "/events/today", "destination": "/index.html" },
+    { "source": "/events/this-week", "destination": "/index.html" },
+    { "source": "/events/this-weekend", "destination": "/index.html" },
+    { "source": "/events/free", "destination": "/index.html" },
+    { "source": "/events/workshops", "destination": "/index.html" },
 
-    { "source": "/artists/:slug", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/artist-ssr?slug=:slug" },
+    // --- SSR event routes ---
+    {
+      "source": "/events/:category/:locality",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr?category=:category&locality=:locality"
+    },
+    {
+      "source": "/events/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/event-ssr?slug=:slug"
+    },
+    {
+      "source": "/events",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/events-list-ssr"
+    },
 
-    { "source": "/jaipur/:slug", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-ssr?slug=:slug" },
+    // --- SSR artist route ---
+    {
+      "source": "/artists/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/artist-ssr?slug=:slug"
+    },
 
-    { "source": "/stories/:slug", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/story-ssr?slug=:slug" },
-    { "source": "/stories", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/stories-index-ssr" },
+    // --- SSR locality route ---
+    {
+      "source": "/jaipur/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/locality-ssr?slug=:slug"
+    },
 
-    { "source": "/sitemap.xml", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-index" },
-    { "source": "/sitemap-events.xml", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-events-xml" },
-    { "source": "/sitemap-stories.xml", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-stories" },
-    { "source": "/sitemap-news.xml", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news" },
-    { "source": "/sitemap-news-google.xml", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap" },
-    { "source": "/sitemap-artists.xml", "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-artists" },
+    // --- SSR stories routes (you said ignore stories; leaving as-is for now) ---
+    {
+      "source": "/stories/:slug",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/story-ssr?slug=:slug"
+    },
+    {
+      "source": "/stories",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/stories-index-ssr"
+    },
 
+    // --- sitemaps ---
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-index"
+    },
+    {
+      "source": "/sitemap-events.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-events-xml"
+    },
+    {
+      "source": "/sitemap-stories.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-stories"
+    },
+    {
+      "source": "/sitemap-news.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news"
+    },
+    {
+      "source": "/sitemap-news-google.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap?type=news-sitemap"
+    },
+    {
+      "source": "/sitemap-artists.xml",
+      "destination": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/sitemap-artists"
+    },
+
+    // --- SPA fallback ---
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "redirects": [
