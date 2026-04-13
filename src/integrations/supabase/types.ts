@@ -426,6 +426,7 @@ export type Database = {
       events: {
         Row: {
           canonical_url: string | null
+          category: string | null
           cover_image: string | null
           cover_image_url: string | null
           created_at: string | null
@@ -439,16 +440,20 @@ export type Database = {
           id: string
           image_url: string | null
           index_status: Database["public"]["Enums"]["index_status_enum"] | null
+          is_featured: boolean | null
           is_free: boolean | null
           is_indexable: boolean | null
           is_online: boolean | null
+          locality: string | null
           locality_id: string | null
           meta_description: string | null
           meta_title: string | null
           online_url: string | null
+          organizer_name: string | null
           price_max: number | null
           price_min: number | null
           published_at: string | null
+          registration_url: string | null
           schema_json: Json | null
           seo_blurb: string | null
           seo_content: string | null
@@ -459,14 +464,18 @@ export type Database = {
           start_date: string | null
           start_time: string | null
           status: Database["public"]["Enums"]["status_enum"] | null
+          tags: string[] | null
           ticket_price: number | null
           title: string
           updated_at: string | null
           updated_by: string | null
+          venue_address: string | null
           venue_id: string | null
+          venue_name: string | null
         }
         Insert: {
           canonical_url?: string | null
+          category?: string | null
           cover_image?: string | null
           cover_image_url?: string | null
           created_at?: string | null
@@ -480,16 +489,20 @@ export type Database = {
           id?: string
           image_url?: string | null
           index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          is_featured?: boolean | null
           is_free?: boolean | null
           is_indexable?: boolean | null
           is_online?: boolean | null
+          locality?: string | null
           locality_id?: string | null
           meta_description?: string | null
           meta_title?: string | null
           online_url?: string | null
+          organizer_name?: string | null
           price_max?: number | null
           price_min?: number | null
           published_at?: string | null
+          registration_url?: string | null
           schema_json?: Json | null
           seo_blurb?: string | null
           seo_content?: string | null
@@ -500,14 +513,18 @@ export type Database = {
           start_date?: string | null
           start_time?: string | null
           status?: Database["public"]["Enums"]["status_enum"] | null
+          tags?: string[] | null
           ticket_price?: number | null
           title: string
           updated_at?: string | null
           updated_by?: string | null
+          venue_address?: string | null
           venue_id?: string | null
+          venue_name?: string | null
         }
         Update: {
           canonical_url?: string | null
+          category?: string | null
           cover_image?: string | null
           cover_image_url?: string | null
           created_at?: string | null
@@ -521,16 +538,20 @@ export type Database = {
           id?: string
           image_url?: string | null
           index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          is_featured?: boolean | null
           is_free?: boolean | null
           is_indexable?: boolean | null
           is_online?: boolean | null
+          locality?: string | null
           locality_id?: string | null
           meta_description?: string | null
           meta_title?: string | null
           online_url?: string | null
+          organizer_name?: string | null
           price_max?: number | null
           price_min?: number | null
           published_at?: string | null
+          registration_url?: string | null
           schema_json?: Json | null
           seo_blurb?: string | null
           seo_content?: string | null
@@ -541,11 +562,14 @@ export type Database = {
           start_date?: string | null
           start_time?: string | null
           status?: Database["public"]["Enums"]["status_enum"] | null
+          tags?: string[] | null
           ticket_price?: number | null
           title?: string
           updated_at?: string | null
           updated_by?: string | null
+          venue_address?: string | null
           venue_id?: string | null
+          venue_name?: string | null
         }
         Relationships: [
           {
