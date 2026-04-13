@@ -10,910 +10,278 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
       artists: {
         Row: {
-          avatar_url: string | null
           bio: string | null
-          created_at: string
-          id: string
-          instagram_url: string | null
-          name: string
-          slug: string
-          tags: string[]
-          updated_at: string
-          website_url: string | null
-          youtube_url: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string
-          id?: string
-          instagram_url?: string | null
-          name: string
-          slug: string
-          tags?: string[]
-          updated_at?: string
-          website_url?: string | null
-          youtube_url?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string
-          id?: string
-          instagram_url?: string | null
-          name?: string
-          slug?: string
-          tags?: string[]
-          updated_at?: string
-          website_url?: string | null
-          youtube_url?: string | null
-        }
-        Relationships: []
-      }
-      car_brands: {
-        Row: {
-          country: string | null
+          canonical_url: string | null
+          cover_image_url: string | null
           created_at: string | null
+          created_by: string | null
           description: string | null
-          display_order: number | null
+          editorial_status: string | null
+          h1_override: string | null
           id: string
-          is_popular: boolean | null
-          logo_url: string | null
+          image_url: string | null
+          index_status: Database["public"]["Enums"]["index_status_enum"] | null
+          is_indexable: boolean | null
+          meta_description: string | null
+          meta_title: string | null
           name: string
+          published_at: string | null
+          seo_blurb: string | null
+          seo_content: string | null
           slug: string
+          source_label: string | null
+          source_url: string | null
+          status: Database["public"]["Enums"]["status_enum"] | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
-          country?: string | null
+          bio?: string | null
+          canonical_url?: string | null
+          cover_image_url?: string | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
-          display_order?: number | null
+          editorial_status?: string | null
+          h1_override?: string | null
           id?: string
-          is_popular?: boolean | null
-          logo_url?: string | null
+          image_url?: string | null
+          index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          is_indexable?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
           name: string
+          published_at?: string | null
+          seo_blurb?: string | null
+          seo_content?: string | null
           slug: string
+          source_label?: string | null
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
-          country?: string | null
+          bio?: string | null
+          canonical_url?: string | null
+          cover_image_url?: string | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
-          display_order?: number | null
+          editorial_status?: string | null
+          h1_override?: string | null
           id?: string
-          is_popular?: boolean | null
-          logo_url?: string | null
+          image_url?: string | null
+          index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          is_indexable?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
           name?: string
+          published_at?: string | null
+          seo_blurb?: string | null
+          seo_content?: string | null
           slug?: string
+          source_label?: string | null
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
-      }
-      car_dealers: {
-        Row: {
-          address: string | null
-          brand_id: string | null
-          city: string | null
-          cover_image: string | null
-          created_at: string | null
-          dealer_type: string | null
-          email: string | null
-          gallery_images: string[] | null
-          id: string
-          is_verified: boolean | null
-          latitude: number | null
-          locality: string | null
-          longitude: number | null
-          meta_description: string | null
-          meta_title: string | null
-          models_available: string[] | null
-          name: string
-          phone: string | null
-          pincode: string | null
-          rating: number | null
-          review_count: number | null
-          services_offered: string[] | null
-          slug: string
-          updated_at: string | null
-          website: string | null
-          working_hours: Json | null
-        }
-        Insert: {
-          address?: string | null
-          brand_id?: string | null
-          city?: string | null
-          cover_image?: string | null
-          created_at?: string | null
-          dealer_type?: string | null
-          email?: string | null
-          gallery_images?: string[] | null
-          id?: string
-          is_verified?: boolean | null
-          latitude?: number | null
-          locality?: string | null
-          longitude?: number | null
-          meta_description?: string | null
-          meta_title?: string | null
-          models_available?: string[] | null
-          name: string
-          phone?: string | null
-          pincode?: string | null
-          rating?: number | null
-          review_count?: number | null
-          services_offered?: string[] | null
-          slug: string
-          updated_at?: string | null
-          website?: string | null
-          working_hours?: Json | null
-        }
-        Update: {
-          address?: string | null
-          brand_id?: string | null
-          city?: string | null
-          cover_image?: string | null
-          created_at?: string | null
-          dealer_type?: string | null
-          email?: string | null
-          gallery_images?: string[] | null
-          id?: string
-          is_verified?: boolean | null
-          latitude?: number | null
-          locality?: string | null
-          longitude?: number | null
-          meta_description?: string | null
-          meta_title?: string | null
-          models_available?: string[] | null
-          name?: string
-          phone?: string | null
-          pincode?: string | null
-          rating?: number | null
-          review_count?: number | null
-          services_offered?: string[] | null
-          slug?: string
-          updated_at?: string | null
-          website?: string | null
-          working_hours?: Json | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "car_dealers_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "car_brands"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      car_inquiries: {
-        Row: {
-          created_at: string | null
-          dealer_id: string | null
-          email: string | null
-          id: string
-          inquiry_type: string | null
-          intent_stage: string | null
-          locality: string | null
-          message: string | null
-          model_id: string | null
-          name: string
-          phone: string
-          preferred_time: string | null
-          status: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          dealer_id?: string | null
-          email?: string | null
-          id?: string
-          inquiry_type?: string | null
-          intent_stage?: string | null
-          locality?: string | null
-          message?: string | null
-          model_id?: string | null
-          name: string
-          phone: string
-          preferred_time?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          dealer_id?: string | null
-          email?: string | null
-          id?: string
-          inquiry_type?: string | null
-          intent_stage?: string | null
-          locality?: string | null
-          message?: string | null
-          model_id?: string | null
-          name?: string
-          phone?: string
-          preferred_time?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "car_inquiries_dealer_id_fkey"
-            columns: ["dealer_id"]
-            isOneToOne: false
-            referencedRelation: "car_dealers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "car_inquiries_model_id_fkey"
-            columns: ["model_id"]
-            isOneToOne: false
-            referencedRelation: "car_models"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      car_models: {
-        Row: {
-          best_for: string[] | null
-          body_type: string | null
-          brand_id: string | null
-          cons: string[] | null
-          cover_image: string | null
-          created_at: string | null
-          engine_cc: number | null
-          ex_showroom_price_max: number | null
-          ex_showroom_price_min: number | null
-          features: Json | null
-          fuel_type: string | null
-          gallery_images: string[] | null
-          id: string
-          is_ev: boolean | null
-          is_new_launch: boolean | null
-          is_trending: boolean | null
-          meta_description: string | null
-          meta_title: string | null
-          mileage_city: number | null
-          mileage_highway: number | null
-          name: string
-          on_road_price_jaipur_max: number | null
-          on_road_price_jaipur_min: number | null
-          power_bhp: number | null
-          pros: string[] | null
-          seating_capacity: number | null
-          slug: string
-          torque_nm: number | null
-          transmission: string | null
-          updated_at: string | null
-          variant_name: string | null
-          waiting_period_weeks: number | null
-        }
-        Insert: {
-          best_for?: string[] | null
-          body_type?: string | null
-          brand_id?: string | null
-          cons?: string[] | null
-          cover_image?: string | null
-          created_at?: string | null
-          engine_cc?: number | null
-          ex_showroom_price_max?: number | null
-          ex_showroom_price_min?: number | null
-          features?: Json | null
-          fuel_type?: string | null
-          gallery_images?: string[] | null
-          id?: string
-          is_ev?: boolean | null
-          is_new_launch?: boolean | null
-          is_trending?: boolean | null
-          meta_description?: string | null
-          meta_title?: string | null
-          mileage_city?: number | null
-          mileage_highway?: number | null
-          name: string
-          on_road_price_jaipur_max?: number | null
-          on_road_price_jaipur_min?: number | null
-          power_bhp?: number | null
-          pros?: string[] | null
-          seating_capacity?: number | null
-          slug: string
-          torque_nm?: number | null
-          transmission?: string | null
-          updated_at?: string | null
-          variant_name?: string | null
-          waiting_period_weeks?: number | null
-        }
-        Update: {
-          best_for?: string[] | null
-          body_type?: string | null
-          brand_id?: string | null
-          cons?: string[] | null
-          cover_image?: string | null
-          created_at?: string | null
-          engine_cc?: number | null
-          ex_showroom_price_max?: number | null
-          ex_showroom_price_min?: number | null
-          features?: Json | null
-          fuel_type?: string | null
-          gallery_images?: string[] | null
-          id?: string
-          is_ev?: boolean | null
-          is_new_launch?: boolean | null
-          is_trending?: boolean | null
-          meta_description?: string | null
-          meta_title?: string | null
-          mileage_city?: number | null
-          mileage_highway?: number | null
-          name?: string
-          on_road_price_jaipur_max?: number | null
-          on_road_price_jaipur_min?: number | null
-          power_bhp?: number | null
-          pros?: string[] | null
-          seating_capacity?: number | null
-          slug?: string
-          torque_nm?: number | null
-          transmission?: string | null
-          updated_at?: string | null
-          variant_name?: string | null
-          waiting_period_weeks?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "car_models_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "car_brands"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      car_ownership_stories: {
-        Row: {
-          city: string | null
-          cons: string[] | null
-          content: string
-          created_at: string | null
-          id: string
-          images: string[] | null
-          is_featured: boolean | null
-          is_verified: boolean | null
-          kms_driven: number | null
-          model_id: string | null
-          ownership_duration_months: number | null
-          pros: string[] | null
-          rating: number | null
-          status: string | null
-          title: string
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          city?: string | null
-          cons?: string[] | null
-          content: string
-          created_at?: string | null
-          id?: string
-          images?: string[] | null
-          is_featured?: boolean | null
-          is_verified?: boolean | null
-          kms_driven?: number | null
-          model_id?: string | null
-          ownership_duration_months?: number | null
-          pros?: string[] | null
-          rating?: number | null
-          status?: string | null
-          title: string
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          city?: string | null
-          cons?: string[] | null
-          content?: string
-          created_at?: string | null
-          id?: string
-          images?: string[] | null
-          is_featured?: boolean | null
-          is_verified?: boolean | null
-          kms_driven?: number | null
-          model_id?: string | null
-          ownership_duration_months?: number | null
-          pros?: string[] | null
-          rating?: number | null
-          status?: string | null
-          title?: string
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "car_ownership_stories_model_id_fkey"
-            columns: ["model_id"]
-            isOneToOne: false
-            referencedRelation: "car_models"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       categories: {
         Row: {
-          confidence_score: number | null
+          canonical_url: string | null
           created_at: string | null
           description: string | null
-          icon: string | null
-          id: number
-          is_active: boolean | null
-          level: number | null
+          h1_override: string | null
+          id: string
+          index_status: Database["public"]["Enums"]["index_status_enum"] | null
+          is_indexable: boolean | null
+          meta_description: string | null
+          meta_title: string | null
           name: string
-          parent_id: number | null
-          parent_slug: string | null
-          pillar_group: string | null
-          pillar_slug: string
-          schema_type: string | null
-          seo_description: string | null
-          seo_title: string | null
+          seo_blurb: string | null
+          seo_content: string | null
           slug: string
+          status: Database["public"]["Enums"]["status_enum"] | null
           updated_at: string | null
-          verification_status: string | null
         }
         Insert: {
-          confidence_score?: number | null
+          canonical_url?: string | null
           created_at?: string | null
           description?: string | null
-          icon?: string | null
-          id?: number
-          is_active?: boolean | null
-          level?: number | null
+          h1_override?: string | null
+          id?: string
+          index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          is_indexable?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
           name: string
-          parent_id?: number | null
-          parent_slug?: string | null
-          pillar_group?: string | null
-          pillar_slug: string
-          schema_type?: string | null
-          seo_description?: string | null
-          seo_title?: string | null
+          seo_blurb?: string | null
+          seo_content?: string | null
           slug: string
+          status?: Database["public"]["Enums"]["status_enum"] | null
           updated_at?: string | null
-          verification_status?: string | null
         }
         Update: {
-          confidence_score?: number | null
+          canonical_url?: string | null
           created_at?: string | null
           description?: string | null
-          icon?: string | null
-          id?: number
-          is_active?: boolean | null
-          level?: number | null
+          h1_override?: string | null
+          id?: string
+          index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          is_indexable?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
           name?: string
-          parent_id?: number | null
-          parent_slug?: string | null
-          pillar_group?: string | null
-          pillar_slug?: string
-          schema_type?: string | null
-          seo_description?: string | null
-          seo_title?: string | null
+          seo_blurb?: string | null
+          seo_content?: string | null
           slug?: string
+          status?: Database["public"]["Enums"]["status_enum"] | null
           updated_at?: string | null
-          verification_status?: string | null
+        }
+        Relationships: []
+      }
+      category_aliases: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          old_slug: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          old_slug?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          old_slug?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "categories_parent_id_fkey"
-            columns: ["parent_id"]
+            foreignKeyName: "category_aliases_category_id_fkey"
+            columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      category_locality_pages: {
-        Row: {
-          category_slug: string
-          created_at: string | null
-          id: number
-          is_enabled: boolean | null
-          locality_slug: string
-          seo_description: string | null
-          seo_title: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          category_slug: string
-          created_at?: string | null
-          id?: number
-          is_enabled?: boolean | null
-          locality_slug: string
-          seo_description?: string | null
-          seo_title?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          category_slug?: string
-          created_at?: string | null
-          id?: number
-          is_enabled?: boolean | null
-          locality_slug?: string
-          seo_description?: string | null
-          seo_title?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      challenge_participants: {
-        Row: {
-          challenge_id: string | null
-          completed_at: string | null
-          current_progress: number | null
-          id: string
-          is_completed: boolean | null
-          joined_at: string | null
-          reward_claimed: boolean | null
-          user_id: string | null
-        }
-        Insert: {
-          challenge_id?: string | null
-          completed_at?: string | null
-          current_progress?: number | null
-          id?: string
-          is_completed?: boolean | null
-          joined_at?: string | null
-          reward_claimed?: boolean | null
-          user_id?: string | null
-        }
-        Update: {
-          challenge_id?: string | null
-          completed_at?: string | null
-          current_progress?: number | null
-          id?: string
-          is_completed?: boolean | null
-          joined_at?: string | null
-          reward_claimed?: boolean | null
-          user_id?: string | null
-        }
-        Relationships: [
           {
-            foreignKeyName: "challenge_participants_challenge_id_fkey"
-            columns: ["challenge_id"]
+            foreignKeyName: "category_aliases_category_id_fkey"
+            columns: ["category_id"]
             isOneToOne: false
-            referencedRelation: "group_challenges"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      click_events: {
-        Row: {
-          created_at: string
-          element_class: string | null
-          element_id: string | null
-          element_text: string | null
-          element_type: string | null
-          id: string
-          page_url: string
-          session_id: string
-          target_url: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          element_class?: string | null
-          element_id?: string | null
-          element_text?: string | null
-          element_type?: string | null
-          id?: string
-          page_url: string
-          session_id: string
-          target_url?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          element_class?: string | null
-          element_id?: string | null
-          element_text?: string | null
-          element_type?: string | null
-          id?: string
-          page_url?: string
-          session_id?: string
-          target_url?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      community_posts: {
-        Row: {
-          content: string
-          created_at: string | null
-          deal_id: string | null
-          id: string
-          image_url: string | null
-          likes_count: number | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          content: string
-          created_at?: string | null
-          deal_id?: string | null
-          id?: string
-          image_url?: string | null
-          likes_count?: number | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          content?: string
-          created_at?: string | null
-          deal_id?: string | null
-          id?: string
-          image_url?: string | null
-          likes_count?: number | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      coupons: {
-        Row: {
-          coupon_code: string
-          coupon_type: string
-          created_at: string | null
-          deal_id: string
-          discount_amount: number
-          expires_at: string
-          id: string
-          merchant_id: string
-          min_order_value: number | null
-          payment_id: string | null
-          purchase_amount: number | null
-          purchased_at: string | null
-          qr_code: string | null
-          redeemed_at: string | null
-          redeemed_by: string | null
-          status: string | null
-          usage_terms: string | null
-          user_id: string
-        }
-        Insert: {
-          coupon_code: string
-          coupon_type: string
-          created_at?: string | null
-          deal_id: string
-          discount_amount: number
-          expires_at: string
-          id?: string
-          merchant_id: string
-          min_order_value?: number | null
-          payment_id?: string | null
-          purchase_amount?: number | null
-          purchased_at?: string | null
-          qr_code?: string | null
-          redeemed_at?: string | null
-          redeemed_by?: string | null
-          status?: string | null
-          usage_terms?: string | null
-          user_id: string
-        }
-        Update: {
-          coupon_code?: string
-          coupon_type?: string
-          created_at?: string | null
-          deal_id?: string
-          discount_amount?: number
-          expires_at?: string
-          id?: string
-          merchant_id?: string
-          min_order_value?: number | null
-          payment_id?: string | null
-          purchase_amount?: number | null
-          purchased_at?: string | null
-          qr_code?: string | null
-          redeemed_at?: string | null
-          redeemed_by?: string | null
-          status?: string | null
-          usage_terms?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "coupons_deal_id_fkey"
-            columns: ["deal_id"]
-            isOneToOne: false
-            referencedRelation: "deals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coupons_merchant_id_fkey"
-            columns: ["merchant_id"]
-            isOneToOne: false
-            referencedRelation: "merchants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      deal_redemptions: {
-        Row: {
-          created_at: string | null
-          deal_id: string | null
-          id: string
-          is_used: boolean | null
-          jaicoin_earned: number | null
-          merchant_id: string | null
-          redeemed_at: string | null
-          redemption_code: string | null
-          used_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          deal_id?: string | null
-          id?: string
-          is_used?: boolean | null
-          jaicoin_earned?: number | null
-          merchant_id?: string | null
-          redeemed_at?: string | null
-          redemption_code?: string | null
-          used_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          deal_id?: string | null
-          id?: string
-          is_used?: boolean | null
-          jaicoin_earned?: number | null
-          merchant_id?: string | null
-          redeemed_at?: string | null
-          redemption_code?: string | null
-          used_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "deal_redemptions_deal_id_fkey"
-            columns: ["deal_id"]
-            isOneToOne: false
-            referencedRelation: "deals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "deal_redemptions_merchant_id_fkey"
-            columns: ["merchant_id"]
-            isOneToOne: false
-            referencedRelation: "merchants"
-            referencedColumns: ["id"]
+            referencedRelation: "category_aliases_view"
+            referencedColumns: ["category_id"]
           },
         ]
       }
       deals: {
         Row: {
-          approval_status: string | null
-          approved_at: string | null
-          approved_by: string | null
-          category: string | null
-          coupon_type: string | null
-          created_at: string | null
+          canonical_url: string | null
+          cover_image_url: string | null
+          created_at: string
           created_by: string | null
-          current_redemptions: number | null
           deal_type: string | null
           description: string | null
-          discount_percentage: number | null
-          discounted_price: number | null
-          end_date: string | null
-          gallery_images: string[] | null
+          editorial_status: string | null
           id: string
           image_url: string | null
-          inventory_count: number | null
-          is_active: boolean | null
-          is_featured: boolean | null
-          is_product_sale: boolean | null
-          jaicoin_reward: number | null
-          location: string | null
-          max_redemptions: number | null
+          is_indexable: boolean | null
+          locality_id: string | null
           merchant_id: string | null
-          min_order_value: number | null
-          original_price: number | null
-          product_details: Json | null
-          product_id: string | null
-          purchase_price: number | null
-          rejection_reason: string | null
-          slug: string | null
-          start_date: string | null
-          subcategory: string | null
-          tags: string[] | null
-          terms_conditions: string | null
+          meta_description: string | null
+          meta_title: string | null
+          published_at: string | null
+          slug: string
+          source_label: string | null
+          source_url: string | null
+          status: string | null
           title: string
-          updated_at: string | null
-          usage_terms: string | null
-          validity_days: number | null
+          updated_at: string
+          updated_by: string | null
+          valid_until: string | null
         }
         Insert: {
-          approval_status?: string | null
-          approved_at?: string | null
-          approved_by?: string | null
-          category?: string | null
-          coupon_type?: string | null
-          created_at?: string | null
+          canonical_url?: string | null
+          cover_image_url?: string | null
+          created_at?: string
           created_by?: string | null
-          current_redemptions?: number | null
           deal_type?: string | null
           description?: string | null
-          discount_percentage?: number | null
-          discounted_price?: number | null
-          end_date?: string | null
-          gallery_images?: string[] | null
+          editorial_status?: string | null
           id?: string
           image_url?: string | null
-          inventory_count?: number | null
-          is_active?: boolean | null
-          is_featured?: boolean | null
-          is_product_sale?: boolean | null
-          jaicoin_reward?: number | null
-          location?: string | null
-          max_redemptions?: number | null
+          is_indexable?: boolean | null
+          locality_id?: string | null
           merchant_id?: string | null
-          min_order_value?: number | null
-          original_price?: number | null
-          product_details?: Json | null
-          product_id?: string | null
-          purchase_price?: number | null
-          rejection_reason?: string | null
-          slug?: string | null
-          start_date?: string | null
-          subcategory?: string | null
-          tags?: string[] | null
-          terms_conditions?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          slug: string
+          source_label?: string | null
+          source_url?: string | null
+          status?: string | null
           title: string
-          updated_at?: string | null
-          usage_terms?: string | null
-          validity_days?: number | null
+          updated_at?: string
+          updated_by?: string | null
+          valid_until?: string | null
         }
         Update: {
-          approval_status?: string | null
-          approved_at?: string | null
-          approved_by?: string | null
-          category?: string | null
-          coupon_type?: string | null
-          created_at?: string | null
+          canonical_url?: string | null
+          cover_image_url?: string | null
+          created_at?: string
           created_by?: string | null
-          current_redemptions?: number | null
           deal_type?: string | null
           description?: string | null
-          discount_percentage?: number | null
-          discounted_price?: number | null
-          end_date?: string | null
-          gallery_images?: string[] | null
+          editorial_status?: string | null
           id?: string
           image_url?: string | null
-          inventory_count?: number | null
-          is_active?: boolean | null
-          is_featured?: boolean | null
-          is_product_sale?: boolean | null
-          jaicoin_reward?: number | null
-          location?: string | null
-          max_redemptions?: number | null
+          is_indexable?: boolean | null
+          locality_id?: string | null
           merchant_id?: string | null
-          min_order_value?: number | null
-          original_price?: number | null
-          product_details?: Json | null
-          product_id?: string | null
-          purchase_price?: number | null
-          rejection_reason?: string | null
-          slug?: string | null
-          start_date?: string | null
-          subcategory?: string | null
-          tags?: string[] | null
-          terms_conditions?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          slug?: string
+          source_label?: string | null
+          source_url?: string | null
+          status?: string | null
           title?: string
-          updated_at?: string | null
-          usage_terms?: string | null
-          validity_days?: number | null
+          updated_at?: string
+          updated_by?: string | null
+          valid_until?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "deals_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
+          },
           {
             foreignKeyName: "deals_merchant_id_fkey"
             columns: ["merchant_id"]
@@ -921,237 +289,29 @@ export type Database = {
             referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "deals_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
         ]
-      }
-      entity_category_map: {
-        Row: {
-          category_id: number
-          confidence_score: number | null
-          created_at: string | null
-          entity_id: string
-          entity_type: string
-          id: string
-          relation_type: string | null
-        }
-        Insert: {
-          category_id: number
-          confidence_score?: number | null
-          created_at?: string | null
-          entity_id: string
-          entity_type: string
-          id?: string
-          relation_type?: string | null
-        }
-        Update: {
-          category_id?: number
-          confidence_score?: number | null
-          created_at?: string | null
-          entity_id?: string
-          entity_type?: string
-          id?: string
-          relation_type?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "entity_category_map_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      entity_locality_map: {
-        Row: {
-          confidence_score: number | null
-          created_at: string | null
-          entity_id: string
-          entity_type: string
-          id: string
-          is_primary: boolean | null
-          locality_id: number
-          relation_type: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          confidence_score?: number | null
-          created_at?: string | null
-          entity_id: string
-          entity_type: string
-          id?: string
-          is_primary?: boolean | null
-          locality_id: number
-          relation_type?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          confidence_score?: number | null
-          created_at?: string | null
-          entity_id?: string
-          entity_type?: string
-          id?: string
-          is_primary?: boolean | null
-          locality_id?: number
-          relation_type?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "entity_locality_map_locality_id_fkey"
-            columns: ["locality_id"]
-            isOneToOne: false
-            referencedRelation: "localities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      entity_relationships: {
-        Row: {
-          created_at: string | null
-          id: string
-          meta: Json | null
-          relationship_type: string
-          source_entity_id: string
-          source_entity_type: string
-          target_entity_id: string | null
-          target_entity_type: string | null
-          target_locality_id: number | null
-          weight: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          meta?: Json | null
-          relationship_type: string
-          source_entity_id: string
-          source_entity_type: string
-          target_entity_id?: string | null
-          target_entity_type?: string | null
-          target_locality_id?: number | null
-          weight?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          meta?: Json | null
-          relationship_type?: string
-          source_entity_id?: string
-          source_entity_type?: string
-          target_entity_id?: string | null
-          target_entity_type?: string | null
-          target_locality_id?: number | null
-          weight?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "entity_relationships_target_locality_id_fkey"
-            columns: ["target_locality_id"]
-            isOneToOne: false
-            referencedRelation: "localities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ev_charging_stations: {
-        Row: {
-          address: string | null
-          amenities: string[] | null
-          charger_types: string[] | null
-          city: string | null
-          cover_image: string | null
-          created_at: string | null
-          id: string
-          is_24x7: boolean | null
-          is_verified: boolean | null
-          latitude: number | null
-          locality: string | null
-          longitude: number | null
-          name: string
-          number_of_chargers: number | null
-          operator: string | null
-          phone: string | null
-          power_output_kw: number[] | null
-          pricing_info: string | null
-          slug: string
-          updated_at: string | null
-          working_hours: string | null
-        }
-        Insert: {
-          address?: string | null
-          amenities?: string[] | null
-          charger_types?: string[] | null
-          city?: string | null
-          cover_image?: string | null
-          created_at?: string | null
-          id?: string
-          is_24x7?: boolean | null
-          is_verified?: boolean | null
-          latitude?: number | null
-          locality?: string | null
-          longitude?: number | null
-          name: string
-          number_of_chargers?: number | null
-          operator?: string | null
-          phone?: string | null
-          power_output_kw?: number[] | null
-          pricing_info?: string | null
-          slug: string
-          updated_at?: string | null
-          working_hours?: string | null
-        }
-        Update: {
-          address?: string | null
-          amenities?: string[] | null
-          charger_types?: string[] | null
-          city?: string | null
-          cover_image?: string | null
-          created_at?: string | null
-          id?: string
-          is_24x7?: boolean | null
-          is_verified?: boolean | null
-          latitude?: number | null
-          locality?: string | null
-          longitude?: number | null
-          name?: string
-          number_of_chargers?: number | null
-          operator?: string | null
-          phone?: string | null
-          power_output_kw?: number[] | null
-          pricing_info?: string | null
-          slug?: string
-          updated_at?: string | null
-          working_hours?: string | null
-        }
-        Relationships: []
       }
       event_artists: {
         Row: {
           artist_id: string
-          created_at: string
+          created_at: string | null
           event_id: string
-          role: string
-          sort_order: number
+          id: string | null
+          role: string | null
         }
         Insert: {
           artist_id: string
-          created_at?: string
+          created_at?: string | null
           event_id: string
-          role?: string
-          sort_order?: number
+          id?: string | null
+          role?: string | null
         }
         Update: {
           artist_id?: string
-          created_at?: string
+          created_at?: string | null
           event_id?: string
-          role?: string
-          sort_order?: number
+          id?: string | null
+          role?: string | null
         }
         Relationships: [
           {
@@ -1165,96 +325,11 @@ export type Database = {
             foreignKeyName: "event_artists_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
+            referencedRelation: "event_slug_aliases_view"
+            referencedColumns: ["event_id"]
           },
-        ]
-      }
-      event_content_overrides: {
-        Row: {
-          audience_guide_md: string | null
-          event_id: string
-          faq_json: Json | null
-          faq_overrides: Json | null
-          hero_h1: string | null
-          internal_links: Json | null
-          internal_links_overrides: Json | null
-          intro_md: string | null
-          jsonld_overrides: Json | null
-          local_tips_md: string | null
-          locality_context_md: string | null
-          meta_description: string | null
-          meta_title: string | null
-          overview_md: string | null
-          slug: string | null
-          updated_at: string
-          venue_tips_md: string | null
-          why_attend_md: string | null
-        }
-        Insert: {
-          audience_guide_md?: string | null
-          event_id: string
-          faq_json?: Json | null
-          faq_overrides?: Json | null
-          hero_h1?: string | null
-          internal_links?: Json | null
-          internal_links_overrides?: Json | null
-          intro_md?: string | null
-          jsonld_overrides?: Json | null
-          local_tips_md?: string | null
-          locality_context_md?: string | null
-          meta_description?: string | null
-          meta_title?: string | null
-          overview_md?: string | null
-          slug?: string | null
-          updated_at?: string
-          venue_tips_md?: string | null
-          why_attend_md?: string | null
-        }
-        Update: {
-          audience_guide_md?: string | null
-          event_id?: string
-          faq_json?: Json | null
-          faq_overrides?: Json | null
-          hero_h1?: string | null
-          internal_links?: Json | null
-          internal_links_overrides?: Json | null
-          intro_md?: string | null
-          jsonld_overrides?: Json | null
-          local_tips_md?: string | null
-          locality_context_md?: string | null
-          meta_description?: string | null
-          meta_title?: string | null
-          overview_md?: string | null
-          slug?: string | null
-          updated_at?: string
-          venue_tips_md?: string | null
-          why_attend_md?: string | null
-        }
-        Relationships: []
-      }
-      event_interests: {
-        Row: {
-          created_at: string | null
-          event_id: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          event_id: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          event_id?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
           {
-            foreignKeyName: "event_interests_event_id_fkey"
+            foreignKeyName: "event_artists_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
@@ -1262,55 +337,85 @@ export type Database = {
           },
         ]
       }
-      event_registrations: {
+      event_categories: {
         Row: {
-          attended_at: string | null
-          cancelled_at: string | null
-          email: string
+          category_id: string
           event_id: string
-          id: string
-          name: string
-          phone: string | null
-          registered_at: string | null
-          registration_code: string
-          status: string | null
-          ticket_count: number | null
-          total_amount: number | null
-          user_id: string | null
         }
         Insert: {
-          attended_at?: string | null
-          cancelled_at?: string | null
-          email: string
+          category_id: string
           event_id: string
-          id?: string
-          name: string
-          phone?: string | null
-          registered_at?: string | null
-          registration_code: string
-          status?: string | null
-          ticket_count?: number | null
-          total_amount?: number | null
-          user_id?: string | null
         }
         Update: {
-          attended_at?: string | null
-          cancelled_at?: string | null
-          email?: string
+          category_id?: string
           event_id?: string
-          id?: string
-          name?: string
-          phone?: string | null
-          registered_at?: string | null
-          registration_code?: string
-          status?: string | null
-          ticket_count?: number | null
-          total_amount?: number | null
-          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "event_registrations_event_id_fkey"
+            foreignKeyName: "event_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "category_aliases_view"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "event_categories_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_slug_aliases_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "event_categories_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_slug_aliases: {
+        Row: {
+          created_at: string | null
+          event_id: string | null
+          id: string
+          notes: string | null
+          old_slug: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          notes?: string | null
+          old_slug?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          notes?: string | null
+          old_slug?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_slug_aliases_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_slug_aliases_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "event_slug_aliases_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
@@ -1320,332 +425,261 @@ export type Database = {
       }
       events: {
         Row: {
-          category: string
-          city: string | null
+          canonical_url: string | null
           cover_image: string | null
+          cover_image_url: string | null
           created_at: string | null
+          created_by: string | null
           description: string | null
+          editorial_status: string | null
           end_date: string | null
-          gallery_images: string[] | null
+          end_time: string | null
+          faq_json: Json | null
+          h1_override: string | null
           id: string
-          interested_count: number | null
-          is_all_day: boolean | null
-          is_featured: boolean | null
+          image_url: string | null
+          index_status: Database["public"]["Enums"]["index_status_enum"] | null
           is_free: boolean | null
+          is_indexable: boolean | null
           is_online: boolean | null
-          latitude: number | null
-          locality: string | null
-          longitude: number | null
-          max_tickets: number | null
+          locality_id: string | null
           meta_description: string | null
           meta_title: string | null
           online_url: string | null
-          organizer_email: string | null
-          organizer_id: string | null
-          organizer_name: string | null
-          organizer_phone: string | null
-          performer_name: string | null
-          performer_slug: string | null
+          price_max: number | null
+          price_min: number | null
           published_at: string | null
-          registration_deadline: string | null
-          registration_url: string | null
+          schema_json: Json | null
+          seo_blurb: string | null
+          seo_content: string | null
           short_description: string | null
           slug: string
-          start_date: string
-          status: string | null
-          tags: string[] | null
+          source_label: string | null
+          source_url: string | null
+          start_date: string | null
+          start_time: string | null
+          status: Database["public"]["Enums"]["status_enum"] | null
           ticket_price: number | null
-          tickets_sold: number | null
-          timezone: string | null
           title: string
           updated_at: string | null
-          venue_address: string | null
-          venue_name: string | null
-          view_count: number | null
+          updated_by: string | null
+          venue_id: string | null
         }
         Insert: {
-          category?: string
-          city?: string | null
+          canonical_url?: string | null
           cover_image?: string | null
+          cover_image_url?: string | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
+          editorial_status?: string | null
           end_date?: string | null
-          gallery_images?: string[] | null
+          end_time?: string | null
+          faq_json?: Json | null
+          h1_override?: string | null
           id?: string
-          interested_count?: number | null
-          is_all_day?: boolean | null
-          is_featured?: boolean | null
+          image_url?: string | null
+          index_status?: Database["public"]["Enums"]["index_status_enum"] | null
           is_free?: boolean | null
+          is_indexable?: boolean | null
           is_online?: boolean | null
-          latitude?: number | null
-          locality?: string | null
-          longitude?: number | null
-          max_tickets?: number | null
+          locality_id?: string | null
           meta_description?: string | null
           meta_title?: string | null
           online_url?: string | null
-          organizer_email?: string | null
-          organizer_id?: string | null
-          organizer_name?: string | null
-          organizer_phone?: string | null
-          performer_name?: string | null
-          performer_slug?: string | null
+          price_max?: number | null
+          price_min?: number | null
           published_at?: string | null
-          registration_deadline?: string | null
-          registration_url?: string | null
+          schema_json?: Json | null
+          seo_blurb?: string | null
+          seo_content?: string | null
           short_description?: string | null
           slug: string
-          start_date: string
-          status?: string | null
-          tags?: string[] | null
+          source_label?: string | null
+          source_url?: string | null
+          start_date?: string | null
+          start_time?: string | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
           ticket_price?: number | null
-          tickets_sold?: number | null
-          timezone?: string | null
           title: string
           updated_at?: string | null
-          venue_address?: string | null
-          venue_name?: string | null
-          view_count?: number | null
+          updated_by?: string | null
+          venue_id?: string | null
         }
         Update: {
-          category?: string
-          city?: string | null
+          canonical_url?: string | null
           cover_image?: string | null
+          cover_image_url?: string | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
+          editorial_status?: string | null
           end_date?: string | null
-          gallery_images?: string[] | null
+          end_time?: string | null
+          faq_json?: Json | null
+          h1_override?: string | null
           id?: string
-          interested_count?: number | null
-          is_all_day?: boolean | null
-          is_featured?: boolean | null
+          image_url?: string | null
+          index_status?: Database["public"]["Enums"]["index_status_enum"] | null
           is_free?: boolean | null
+          is_indexable?: boolean | null
           is_online?: boolean | null
-          latitude?: number | null
-          locality?: string | null
-          longitude?: number | null
-          max_tickets?: number | null
+          locality_id?: string | null
           meta_description?: string | null
           meta_title?: string | null
           online_url?: string | null
-          organizer_email?: string | null
-          organizer_id?: string | null
-          organizer_name?: string | null
-          organizer_phone?: string | null
-          performer_name?: string | null
-          performer_slug?: string | null
+          price_max?: number | null
+          price_min?: number | null
           published_at?: string | null
-          registration_deadline?: string | null
-          registration_url?: string | null
+          schema_json?: Json | null
+          seo_blurb?: string | null
+          seo_content?: string | null
           short_description?: string | null
           slug?: string
-          start_date?: string
-          status?: string | null
-          tags?: string[] | null
+          source_label?: string | null
+          source_url?: string | null
+          start_date?: string | null
+          start_time?: string | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
           ticket_price?: number | null
-          tickets_sold?: number | null
-          timezone?: string | null
           title?: string
           updated_at?: string | null
-          venue_address?: string | null
-          venue_name?: string | null
-          view_count?: number | null
+          updated_by?: string | null
+          venue_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "events_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
+          },
+          {
+            foreignKeyName: "events_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      group_challenges: {
+      legacy_routes: {
         Row: {
-          challenge_type: string
+          canonical_path: string | null
           created_at: string | null
-          created_by: string | null
-          current_participants: number | null
-          description: string | null
-          end_date: string
+          entity_type: string | null
           id: string
-          is_active: boolean | null
-          max_participants: number | null
-          reward_amount: number
-          reward_type: string | null
-          start_date: string | null
-          target_value: number
-          title: string
+          notes: string | null
+          old_path: string | null
+          redirect_type: number | null
           updated_at: string | null
         }
         Insert: {
-          challenge_type: string
+          canonical_path?: string | null
           created_at?: string | null
-          created_by?: string | null
-          current_participants?: number | null
-          description?: string | null
-          end_date: string
+          entity_type?: string | null
           id?: string
-          is_active?: boolean | null
-          max_participants?: number | null
-          reward_amount: number
-          reward_type?: string | null
-          start_date?: string | null
-          target_value: number
-          title: string
+          notes?: string | null
+          old_path?: string | null
+          redirect_type?: number | null
           updated_at?: string | null
         }
         Update: {
-          challenge_type?: string
+          canonical_path?: string | null
           created_at?: string | null
-          created_by?: string | null
-          current_participants?: number | null
-          description?: string | null
-          end_date?: string
+          entity_type?: string | null
           id?: string
-          is_active?: boolean | null
-          max_participants?: number | null
-          reward_amount?: number
-          reward_type?: string | null
-          start_date?: string | null
-          target_value?: number
-          title?: string
+          notes?: string | null
+          old_path?: string | null
+          redirect_type?: number | null
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      jaicoin_transactions: {
-        Row: {
-          amount: number
-          created_at: string | null
-          description: string | null
-          id: string
-          metadata: Json
-          source: string
-          type: string
-          user_id: string | null
-        }
-        Insert: {
-          amount: number
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          metadata?: Json
-          source: string
-          type: string
-          user_id?: string | null
-        }
-        Update: {
-          amount?: number
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          metadata?: Json
-          source?: string
-          type?: string
-          user_id?: string | null
         }
         Relationships: []
       }
       localities: {
         Row: {
-          access_note: string | null
-          adjacent_localities: string[] | null
-          assembly_constituency: string | null
-          best_for: string[] | null
-          confidence_score: number | null
-          connectivity: Json | null
+          canonical_url: string | null
           created_at: string | null
+          description: string | null
+          faq_json: Json | null
           geo_lat: number | null
           geo_lng: number | null
-          id: number
-          index_override: string | null
-          known_for: string | null
-          landmarks: string[] | null
-          major_landmarks: Json | null
-          meta: Json | null
-          micro_localities: string[] | null
-          municipality: string | null
+          h1_override: string | null
+          id: string
+          index_override: boolean | null
+          index_status: Database["public"]["Enums"]["index_status_enum"] | null
+          is_indexable: boolean | null
+          meta_description: string | null
+          meta_title: string | null
           name: string
-          nearby_localities: string[] | null
-          pin_codes: string[] | null
-          police_station: string | null
-          population_estimate: number | null
+          quality_score: number | null
+          schema_json: Json | null
           seo_blurb: string | null
-          should_index: boolean
+          seo_content: string | null
+          should_index: boolean | null
           slug: string
-          tags: string[] | null
+          status: Database["public"]["Enums"]["status_enum"] | null
           updated_at: string | null
-          venue_types: string[] | null
-          verification_status: string | null
-          vibe_tags: string[] | null
-          ward_name: string | null
-          ward_number: string | null
           zone: string | null
           zone_id: string | null
         }
         Insert: {
-          access_note?: string | null
-          adjacent_localities?: string[] | null
-          assembly_constituency?: string | null
-          best_for?: string[] | null
-          confidence_score?: number | null
-          connectivity?: Json | null
+          canonical_url?: string | null
           created_at?: string | null
+          description?: string | null
+          faq_json?: Json | null
           geo_lat?: number | null
           geo_lng?: number | null
-          id?: number
-          index_override?: string | null
-          known_for?: string | null
-          landmarks?: string[] | null
-          major_landmarks?: Json | null
-          meta?: Json | null
-          micro_localities?: string[] | null
-          municipality?: string | null
+          h1_override?: string | null
+          id?: string
+          index_override?: boolean | null
+          index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          is_indexable?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
           name: string
-          nearby_localities?: string[] | null
-          pin_codes?: string[] | null
-          police_station?: string | null
-          population_estimate?: number | null
+          quality_score?: number | null
+          schema_json?: Json | null
           seo_blurb?: string | null
-          should_index?: boolean
+          seo_content?: string | null
+          should_index?: boolean | null
           slug: string
-          tags?: string[] | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
           updated_at?: string | null
-          venue_types?: string[] | null
-          verification_status?: string | null
-          vibe_tags?: string[] | null
-          ward_name?: string | null
-          ward_number?: string | null
           zone?: string | null
           zone_id?: string | null
         }
         Update: {
-          access_note?: string | null
-          adjacent_localities?: string[] | null
-          assembly_constituency?: string | null
-          best_for?: string[] | null
-          confidence_score?: number | null
-          connectivity?: Json | null
+          canonical_url?: string | null
           created_at?: string | null
+          description?: string | null
+          faq_json?: Json | null
           geo_lat?: number | null
           geo_lng?: number | null
-          id?: number
-          index_override?: string | null
-          known_for?: string | null
-          landmarks?: string[] | null
-          major_landmarks?: Json | null
-          meta?: Json | null
-          micro_localities?: string[] | null
-          municipality?: string | null
+          h1_override?: string | null
+          id?: string
+          index_override?: boolean | null
+          index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          is_indexable?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
           name?: string
-          nearby_localities?: string[] | null
-          pin_codes?: string[] | null
-          police_station?: string | null
-          population_estimate?: number | null
+          quality_score?: number | null
+          schema_json?: Json | null
           seo_blurb?: string | null
-          should_index?: boolean
+          seo_content?: string | null
+          should_index?: boolean | null
           slug?: string
-          tags?: string[] | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
           updated_at?: string | null
-          venue_types?: string[] | null
-          verification_status?: string | null
-          vibe_tags?: string[] | null
-          ward_name?: string | null
-          ward_number?: string | null
           zone?: string | null
           zone_id?: string | null
         }
@@ -1659,202 +693,110 @@ export type Database = {
           },
         ]
       }
-      locality_civic_facts: {
+      locality_aliases: {
         Row: {
-          confidence: number | null
-          created_at: string
-          fact_key: string
-          fact_value: string
-          id: string
-          locality_id: string
-          source_label: string | null
-          source_url: string | null
-          updated_at: string
-          verified_at: string | null
-          visibility: string
-        }
-        Insert: {
-          confidence?: number | null
-          created_at?: string
-          fact_key: string
-          fact_value: string
-          id?: string
-          locality_id: string
-          source_label?: string | null
-          source_url?: string | null
-          updated_at?: string
-          verified_at?: string | null
-          visibility?: string
-        }
-        Update: {
-          confidence?: number | null
-          created_at?: string
-          fact_key?: string
-          fact_value?: string
-          id?: string
-          locality_id?: string
-          source_label?: string | null
-          source_url?: string | null
-          updated_at?: string
-          verified_at?: string | null
-          visibility?: string
-        }
-        Relationships: []
-      }
-      merchant_analytics: {
-        Row: {
-          average_rating: number | null
           created_at: string | null
-          date: string
-          deals_created: number | null
-          deals_redeemed: number | null
-          deals_viewed: number | null
           id: string
-          merchant_id: string | null
-          new_customers: number | null
-          reviews_received: number | null
-          total_revenue: number | null
+          locality_id: string | null
+          notes: string | null
+          old_slug: string | null
+          updated_at: string | null
         }
         Insert: {
-          average_rating?: number | null
           created_at?: string | null
-          date: string
-          deals_created?: number | null
-          deals_redeemed?: number | null
-          deals_viewed?: number | null
           id?: string
-          merchant_id?: string | null
-          new_customers?: number | null
-          reviews_received?: number | null
-          total_revenue?: number | null
+          locality_id?: string | null
+          notes?: string | null
+          old_slug?: string | null
+          updated_at?: string | null
         }
         Update: {
-          average_rating?: number | null
           created_at?: string | null
-          date?: string
-          deals_created?: number | null
-          deals_redeemed?: number | null
-          deals_viewed?: number | null
           id?: string
-          merchant_id?: string | null
-          new_customers?: number | null
-          reviews_received?: number | null
-          total_revenue?: number | null
+          locality_id?: string | null
+          notes?: string | null
+          old_slug?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "merchant_analytics_merchant_id_fkey"
-            columns: ["merchant_id"]
+            foreignKeyName: "locality_aliases_locality_id_fkey"
+            columns: ["locality_id"]
             isOneToOne: false
-            referencedRelation: "merchants"
+            referencedRelation: "localities"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locality_aliases_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
           },
         ]
       }
-      merchant_applications: {
+      merchant_categories: {
         Row: {
-          address: string
-          admin_notes: string | null
-          business_type: string
-          contact_email: string
-          contact_phone: string
-          created_at: string | null
-          deals_data: Json | null
+          created_at: string
           description: string | null
           id: string
-          location: string
-          merchant_name: string
-          photos: string[] | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          social_handles: Json | null
+          is_indexable: boolean | null
+          name: string
+          slug: string
           status: string | null
-          submitted_at: string | null
-          user_id: string
+          updated_at: string
         }
         Insert: {
-          address: string
-          admin_notes?: string | null
-          business_type: string
-          contact_email: string
-          contact_phone: string
-          created_at?: string | null
-          deals_data?: Json | null
+          created_at?: string
           description?: string | null
           id?: string
-          location: string
-          merchant_name: string
-          photos?: string[] | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          social_handles?: Json | null
+          is_indexable?: boolean | null
+          name: string
+          slug: string
           status?: string | null
-          submitted_at?: string | null
-          user_id: string
+          updated_at?: string
         }
         Update: {
-          address?: string
-          admin_notes?: string | null
-          business_type?: string
-          contact_email?: string
-          contact_phone?: string
-          created_at?: string | null
-          deals_data?: Json | null
+          created_at?: string
           description?: string | null
           id?: string
-          location?: string
-          merchant_name?: string
-          photos?: string[] | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          social_handles?: Json | null
+          is_indexable?: boolean | null
+          name?: string
+          slug?: string
           status?: string | null
-          submitted_at?: string | null
-          user_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
-      merchant_referral_rewards: {
+      merchant_category_links: {
         Row: {
-          amount: number
-          awarded_at: string | null
-          coupon_id: string | null
+          created_at: string
           id: string
+          merchant_category_id: string
           merchant_id: string
-          milestone_count: number | null
-          referrer_id: string
-          reward_type: string
         }
         Insert: {
-          amount: number
-          awarded_at?: string | null
-          coupon_id?: string | null
+          created_at?: string
           id?: string
+          merchant_category_id: string
           merchant_id: string
-          milestone_count?: number | null
-          referrer_id: string
-          reward_type: string
         }
         Update: {
-          amount?: number
-          awarded_at?: string | null
-          coupon_id?: string | null
+          created_at?: string
           id?: string
+          merchant_category_id?: string
           merchant_id?: string
-          milestone_count?: number | null
-          referrer_id?: string
-          reward_type?: string
         }
         Relationships: [
           {
-            foreignKeyName: "merchant_referral_rewards_coupon_id_fkey"
-            columns: ["coupon_id"]
+            foreignKeyName: "merchant_category_links_merchant_category_id_fkey"
+            columns: ["merchant_category_id"]
             isOneToOne: false
-            referencedRelation: "coupons"
+            referencedRelation: "merchant_categories"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "merchant_referral_rewards_merchant_id_fkey"
+            foreignKeyName: "merchant_category_links_merchant_id_fkey"
             columns: ["merchant_id"]
             isOneToOne: false
             referencedRelation: "merchants"
@@ -1864,2007 +806,380 @@ export type Database = {
       }
       merchants: {
         Row: {
-          address: string | null
-          approval_status: string | null
-          approved_at: string | null
-          approved_by: string | null
-          average_rating: number | null
-          business_name: string
-          business_type: string | null
-          created_at: string | null
+          canonical_url: string | null
+          cover_image_url: string | null
+          created_at: string
+          created_by: string | null
           description: string | null
-          email: string | null
+          editorial_status: string | null
           id: string
-          is_active: boolean | null
-          is_verified: boolean | null
-          listing_fee_paid: boolean | null
-          listing_payment_id: string | null
-          listing_tier: string | null
-          locality: string | null
-          locality_slug: string
-          logo_url: string | null
-          phone: string | null
-          photos: string[] | null
-          primary_locality_id: number | null
-          referred_by: string | null
+          image_url: string | null
+          is_indexable: boolean | null
+          locality_id: string | null
+          meta_description: string | null
+          meta_title: string | null
+          name: string
+          published_at: string | null
           slug: string
-          social_handles: Json | null
-          total_deals: number | null
-          total_reviews: number | null
-          updated_at: string | null
-          user_id: string | null
-          website: string | null
+          source_label: string | null
+          source_url: string | null
+          status: string | null
+          updated_at: string
+          updated_by: string | null
         }
         Insert: {
-          address?: string | null
-          approval_status?: string | null
-          approved_at?: string | null
-          approved_by?: string | null
-          average_rating?: number | null
-          business_name: string
-          business_type?: string | null
-          created_at?: string | null
+          canonical_url?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
           description?: string | null
-          email?: string | null
+          editorial_status?: string | null
           id?: string
-          is_active?: boolean | null
-          is_verified?: boolean | null
-          listing_fee_paid?: boolean | null
-          listing_payment_id?: string | null
-          listing_tier?: string | null
-          locality?: string | null
-          locality_slug: string
-          logo_url?: string | null
-          phone?: string | null
-          photos?: string[] | null
-          primary_locality_id?: number | null
-          referred_by?: string | null
+          image_url?: string | null
+          is_indexable?: boolean | null
+          locality_id?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          name: string
+          published_at?: string | null
           slug: string
-          social_handles?: Json | null
-          total_deals?: number | null
-          total_reviews?: number | null
-          updated_at?: string | null
-          user_id?: string | null
-          website?: string | null
+          source_label?: string | null
+          source_url?: string | null
+          status?: string | null
+          updated_at?: string
+          updated_by?: string | null
         }
         Update: {
-          address?: string | null
-          approval_status?: string | null
-          approved_at?: string | null
-          approved_by?: string | null
-          average_rating?: number | null
-          business_name?: string
-          business_type?: string | null
-          created_at?: string | null
+          canonical_url?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
           description?: string | null
-          email?: string | null
+          editorial_status?: string | null
           id?: string
-          is_active?: boolean | null
-          is_verified?: boolean | null
-          listing_fee_paid?: boolean | null
-          listing_payment_id?: string | null
-          listing_tier?: string | null
-          locality?: string | null
-          locality_slug?: string
-          logo_url?: string | null
-          phone?: string | null
-          photos?: string[] | null
-          primary_locality_id?: number | null
-          referred_by?: string | null
+          image_url?: string | null
+          is_indexable?: boolean | null
+          locality_id?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          name?: string
+          published_at?: string | null
           slug?: string
-          social_handles?: Json | null
-          total_deals?: number | null
-          total_reviews?: number | null
-          updated_at?: string | null
-          user_id?: string | null
-          website?: string | null
+          source_label?: string | null
+          source_url?: string | null
+          status?: string | null
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "merchants_primary_locality_id_fkey"
-            columns: ["primary_locality_id"]
+            foreignKeyName: "merchants_locality_id_fkey"
+            columns: ["locality_id"]
             isOneToOne: false
             referencedRelation: "localities"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      news_articles: {
-        Row: {
-          ai_prompt: string | null
-          author_id: string | null
-          body_html: string | null
-          canonical_url: string | null
-          category: Database["public"]["Enums"]["news_category"]
-          content: string
-          cover_image: string | null
-          created_at: string | null
-          excerpt: string | null
-          id: string
-          is_ai_generated: boolean | null
-          is_featured: boolean | null
-          like_count: number | null
-          locality: string | null
-          meta_description: string | null
-          meta_keywords: string[] | null
-          meta_title: string | null
-          og_image: string | null
-          published_at: string | null
-          reading_time_minutes: number | null
-          share_count: number | null
-          slug: string
-          status: Database["public"]["Enums"]["article_status"]
-          structured_data: Json | null
-          tags: string[] | null
-          title: string
-          updated_at: string | null
-          view_count: number | null
-          word_count: number | null
-        }
-        Insert: {
-          ai_prompt?: string | null
-          author_id?: string | null
-          body_html?: string | null
-          canonical_url?: string | null
-          category?: Database["public"]["Enums"]["news_category"]
-          content: string
-          cover_image?: string | null
-          created_at?: string | null
-          excerpt?: string | null
-          id?: string
-          is_ai_generated?: boolean | null
-          is_featured?: boolean | null
-          like_count?: number | null
-          locality?: string | null
-          meta_description?: string | null
-          meta_keywords?: string[] | null
-          meta_title?: string | null
-          og_image?: string | null
-          published_at?: string | null
-          reading_time_minutes?: number | null
-          share_count?: number | null
-          slug: string
-          status?: Database["public"]["Enums"]["article_status"]
-          structured_data?: Json | null
-          tags?: string[] | null
-          title: string
-          updated_at?: string | null
-          view_count?: number | null
-          word_count?: number | null
-        }
-        Update: {
-          ai_prompt?: string | null
-          author_id?: string | null
-          body_html?: string | null
-          canonical_url?: string | null
-          category?: Database["public"]["Enums"]["news_category"]
-          content?: string
-          cover_image?: string | null
-          created_at?: string | null
-          excerpt?: string | null
-          id?: string
-          is_ai_generated?: boolean | null
-          is_featured?: boolean | null
-          like_count?: number | null
-          locality?: string | null
-          meta_description?: string | null
-          meta_keywords?: string[] | null
-          meta_title?: string | null
-          og_image?: string | null
-          published_at?: string | null
-          reading_time_minutes?: number | null
-          share_count?: number | null
-          slug?: string
-          status?: Database["public"]["Enums"]["article_status"]
-          structured_data?: Json | null
-          tags?: string[] | null
-          title?: string
-          updated_at?: string | null
-          view_count?: number | null
-          word_count?: number | null
-        }
-        Relationships: []
-      }
-      news_likes: {
-        Row: {
-          article_id: string
-          created_at: string | null
-          id: string
-          user_id: string
-        }
-        Insert: {
-          article_id: string
-          created_at?: string | null
-          id?: string
-          user_id: string
-        }
-        Update: {
-          article_id?: string
-          created_at?: string | null
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
           {
-            foreignKeyName: "news_likes_article_id_fkey"
-            columns: ["article_id"]
+            foreignKeyName: "merchants_locality_id_fkey"
+            columns: ["locality_id"]
             isOneToOne: false
-            referencedRelation: "news_articles"
-            referencedColumns: ["id"]
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
           },
         ]
       }
-      order_items: {
-        Row: {
-          created_at: string | null
-          deal_id: string | null
-          discount_applied: number | null
-          id: string
-          item_type: string
-          jaicoin_used: number | null
-          order_id: string
-          product_id: string | null
-          quantity: number
-          total_price: number
-          unit_price: number
-        }
-        Insert: {
-          created_at?: string | null
-          deal_id?: string | null
-          discount_applied?: number | null
-          id?: string
-          item_type: string
-          jaicoin_used?: number | null
-          order_id: string
-          product_id?: string | null
-          quantity?: number
-          total_price: number
-          unit_price: number
-        }
-        Update: {
-          created_at?: string | null
-          deal_id?: string | null
-          discount_applied?: number | null
-          id?: string
-          item_type?: string
-          jaicoin_used?: number | null
-          order_id?: string
-          product_id?: string | null
-          quantity?: number
-          total_price?: number
-          unit_price?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "order_items_deal_id_fkey"
-            columns: ["deal_id"]
-            isOneToOne: false
-            referencedRelation: "deals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "order_items_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "order_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      orders: {
-        Row: {
-          created_at: string | null
-          customer_name: string | null
-          customer_phone: string | null
-          deal_id: string | null
-          delivery_address: string | null
-          id: string
-          jaicoin_used: number | null
-          merchant_id: string | null
-          order_code: string | null
-          order_notes: string | null
-          payment_method: string | null
-          quantity: number
-          status: string | null
-          total_amount: number
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          customer_name?: string | null
-          customer_phone?: string | null
-          deal_id?: string | null
-          delivery_address?: string | null
-          id?: string
-          jaicoin_used?: number | null
-          merchant_id?: string | null
-          order_code?: string | null
-          order_notes?: string | null
-          payment_method?: string | null
-          quantity?: number
-          status?: string | null
-          total_amount?: number
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          customer_name?: string | null
-          customer_phone?: string | null
-          deal_id?: string | null
-          delivery_address?: string | null
-          id?: string
-          jaicoin_used?: number | null
-          merchant_id?: string | null
-          order_code?: string | null
-          order_notes?: string | null
-          payment_method?: string | null
-          quantity?: number
-          status?: string | null
-          total_amount?: number
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "orders_deal_id_fkey"
-            columns: ["deal_id"]
-            isOneToOne: false
-            referencedRelation: "deals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "orders_merchant_id_fkey"
-            columns: ["merchant_id"]
-            isOneToOne: false
-            referencedRelation: "merchants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      page_registry: {
-        Row: {
-          canonical_url: string
-          created_at: string
-          entity_id: string | null
-          entity_key: string | null
-          entity_table: string | null
-          id: string
-          index_state: string
-          last_published_at: string | null
-          page_type: string
-          quality_score: number | null
-          reasons: Json | null
-          slug: string | null
-          uniqueness_score: number | null
-          updated_at: string
-          url_path: string
-        }
-        Insert: {
-          canonical_url: string
-          created_at?: string
-          entity_id?: string | null
-          entity_key?: string | null
-          entity_table?: string | null
-          id?: string
-          index_state?: string
-          last_published_at?: string | null
-          page_type?: string
-          quality_score?: number | null
-          reasons?: Json | null
-          slug?: string | null
-          uniqueness_score?: number | null
-          updated_at?: string
-          url_path: string
-        }
-        Update: {
-          canonical_url?: string
-          created_at?: string
-          entity_id?: string | null
-          entity_key?: string | null
-          entity_table?: string | null
-          id?: string
-          index_state?: string
-          last_published_at?: string | null
-          page_type?: string
-          quality_score?: number | null
-          reasons?: Json | null
-          slug?: string | null
-          uniqueness_score?: number | null
-          updated_at?: string
-          url_path?: string
-        }
-        Relationships: []
-      }
-      page_seo: {
+      testing: {
         Row: {
           created_at: string
-          description: string | null
-          entities: Json | null
-          faq: Json | null
-          fingerprint_hash: string | null
-          generated_at: string | null
-          generation_version: string | null
-          h1: string | null
-          is_published: boolean
-          keywords: string[] | null
-          page_id: string
-          published_at: string | null
-          schema_jsonld: Json | null
-          semantic_signature: Json | null
-          title: string | null
-          updated_at: string
+          id: number
         }
         Insert: {
           created_at?: string
-          description?: string | null
-          entities?: Json | null
-          faq?: Json | null
-          fingerprint_hash?: string | null
-          generated_at?: string | null
-          generation_version?: string | null
-          h1?: string | null
-          is_published?: boolean
-          keywords?: string[] | null
-          page_id: string
-          published_at?: string | null
-          schema_jsonld?: Json | null
-          semantic_signature?: Json | null
-          title?: string | null
-          updated_at?: string
+          id?: number
         }
         Update: {
           created_at?: string
-          description?: string | null
-          entities?: Json | null
-          faq?: Json | null
-          fingerprint_hash?: string | null
-          generated_at?: string | null
-          generation_version?: string | null
-          h1?: string | null
-          is_published?: boolean
-          keywords?: string[] | null
-          page_id?: string
-          published_at?: string | null
-          schema_jsonld?: Json | null
-          semantic_signature?: Json | null
-          title?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "page_seo_page_id_fkey"
-            columns: ["page_id"]
-            isOneToOne: true
-            referencedRelation: "page_registry"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      page_views: {
-        Row: {
-          created_at: string
-          id: string
-          page_title: string | null
-          page_url: string
-          referrer_url: string | null
-          scroll_depth: number | null
-          session_id: string
-          time_on_page: number | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          page_title?: string | null
-          page_url: string
-          referrer_url?: string | null
-          scroll_depth?: number | null
-          session_id: string
-          time_on_page?: number | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          page_title?: string | null
-          page_url?: string
-          referrer_url?: string | null
-          scroll_depth?: number | null
-          session_id?: string
-          time_on_page?: number | null
-          user_id?: string | null
+          id?: number
         }
         Relationships: []
       }
-      performers: {
-        Row: {
-          created_at: string
-          display_name: string
-          slug: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          display_name: string
-          slug: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          display_name?: string
-          slug?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      post_likes: {
-        Row: {
-          created_at: string | null
-          id: string
-          post_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          post_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          post_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "post_likes_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "community_posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      product_reviews: {
-        Row: {
-          created_at: string | null
-          helpful_votes: number | null
-          id: string
-          images: string[] | null
-          jaicoin_rewarded: boolean | null
-          merchant_id: string
-          product_id: string
-          rating: number
-          review_text: string | null
-          review_title: string | null
-          user_id: string | null
-          verified_purchase: boolean | null
-        }
-        Insert: {
-          created_at?: string | null
-          helpful_votes?: number | null
-          id?: string
-          images?: string[] | null
-          jaicoin_rewarded?: boolean | null
-          merchant_id: string
-          product_id: string
-          rating: number
-          review_text?: string | null
-          review_title?: string | null
-          user_id?: string | null
-          verified_purchase?: boolean | null
-        }
-        Update: {
-          created_at?: string | null
-          helpful_votes?: number | null
-          id?: string
-          images?: string[] | null
-          jaicoin_rewarded?: boolean | null
-          merchant_id?: string
-          product_id?: string
-          rating?: number
-          review_text?: string | null
-          review_title?: string | null
-          user_id?: string | null
-          verified_purchase?: boolean | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_reviews_merchant_id_fkey"
-            columns: ["merchant_id"]
-            isOneToOne: false
-            referencedRelation: "merchants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_reviews_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      products: {
-        Row: {
-          average_rating: number | null
-          brand: string | null
-          category: string
-          created_at: string | null
-          description: string | null
-          dimensions: Json | null
-          discount_percentage: number | null
-          discounted_price: number | null
-          id: string
-          images: string[] | null
-          inventory_count: number | null
-          is_active: boolean | null
-          is_featured: boolean | null
-          jaicoin_reward: number | null
-          max_order_quantity: number | null
-          merchant_id: string
-          min_order_quantity: number | null
-          model: string | null
-          name: string
-          original_price: number
-          return_policy: string | null
-          shipping_required: boolean | null
-          shipping_weight: number | null
-          sku: string | null
-          specifications: Json | null
-          subcategory: string | null
-          tags: string[] | null
-          total_reviews: number | null
-          total_sales: number | null
-          updated_at: string | null
-          warranty_period: string | null
-          weight: number | null
-        }
-        Insert: {
-          average_rating?: number | null
-          brand?: string | null
-          category: string
-          created_at?: string | null
-          description?: string | null
-          dimensions?: Json | null
-          discount_percentage?: number | null
-          discounted_price?: number | null
-          id?: string
-          images?: string[] | null
-          inventory_count?: number | null
-          is_active?: boolean | null
-          is_featured?: boolean | null
-          jaicoin_reward?: number | null
-          max_order_quantity?: number | null
-          merchant_id: string
-          min_order_quantity?: number | null
-          model?: string | null
-          name: string
-          original_price: number
-          return_policy?: string | null
-          shipping_required?: boolean | null
-          shipping_weight?: number | null
-          sku?: string | null
-          specifications?: Json | null
-          subcategory?: string | null
-          tags?: string[] | null
-          total_reviews?: number | null
-          total_sales?: number | null
-          updated_at?: string | null
-          warranty_period?: string | null
-          weight?: number | null
-        }
-        Update: {
-          average_rating?: number | null
-          brand?: string | null
-          category?: string
-          created_at?: string | null
-          description?: string | null
-          dimensions?: Json | null
-          discount_percentage?: number | null
-          discounted_price?: number | null
-          id?: string
-          images?: string[] | null
-          inventory_count?: number | null
-          is_active?: boolean | null
-          is_featured?: boolean | null
-          jaicoin_reward?: number | null
-          max_order_quantity?: number | null
-          merchant_id?: string
-          min_order_quantity?: number | null
-          model?: string | null
-          name?: string
-          original_price?: number
-          return_policy?: string | null
-          shipping_required?: boolean | null
-          shipping_weight?: number | null
-          sku?: string | null
-          specifications?: Json | null
-          subcategory?: string | null
-          tags?: string[] | null
-          total_reviews?: number | null
-          total_sales?: number | null
-          updated_at?: string | null
-          warranty_period?: string | null
-          weight?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "products_merchant_id_fkey"
-            columns: ["merchant_id"]
-            isOneToOne: false
-            referencedRelation: "merchants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          bio: string | null
-          city: string | null
-          created_at: string | null
-          email: string | null
-          full_name: string | null
-          id: string
-          is_pro: boolean | null
-          locality: string | null
-          phone: string | null
-          pro_expires_at: string | null
-          pro_tier: string | null
-          rank: string | null
-          referral_code: string | null
-          referred_by: string | null
-          subscription_status: string | null
-          total_referrals: number | null
-          updated_at: string | null
-          user_id_code: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          city?: string | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
-          id: string
-          is_pro?: boolean | null
-          locality?: string | null
-          phone?: string | null
-          pro_expires_at?: string | null
-          pro_tier?: string | null
-          rank?: string | null
-          referral_code?: string | null
-          referred_by?: string | null
-          subscription_status?: string | null
-          total_referrals?: number | null
-          updated_at?: string | null
-          user_id_code?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          city?: string | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          is_pro?: boolean | null
-          locality?: string | null
-          phone?: string | null
-          pro_expires_at?: string | null
-          pro_tier?: string | null
-          rank?: string | null
-          referral_code?: string | null
-          referred_by?: string | null
-          subscription_status?: string | null
-          total_referrals?: number | null
-          updated_at?: string | null
-          user_id_code?: string | null
-        }
-        Relationships: []
-      }
-      properties: {
+      venues: {
         Row: {
           address: string | null
-          amenities: string[] | null
-          balconies: number | null
-          bathrooms: number | null
-          bedrooms: number | null
-          built_up_area: number | null
-          carpet_area: number | null
-          city: string | null
-          contact_email: string | null
-          contact_name: string | null
-          contact_phone: string | null
-          cover_image: string | null
+          canonical_url: string | null
+          cover_image_url: string | null
           created_at: string | null
+          created_by: string | null
           description: string | null
-          facing: string | null
-          floor_number: number | null
-          furnishing: string | null
-          gallery_images: string[] | null
-          id: string
-          is_featured: boolean | null
-          is_negotiable: boolean | null
-          is_premium: boolean | null
-          is_verified: boolean | null
-          latitude: number | null
-          listing_type: string
-          locality: string
-          locality_slug: string | null
-          longitude: number | null
-          maintenance_monthly: number | null
-          meta_description: string | null
-          meta_title: string | null
-          owner_type: string | null
-          pincode: string | null
-          plot_area: number | null
-          price: number
-          price_per_sqft: number | null
-          property_age: string | null
-          property_type: string
-          published_at: string | null
-          security_deposit: number | null
-          slug: string
-          status: string | null
-          title: string
-          total_floors: number | null
-          updated_at: string | null
-          user_id: string | null
-          view_count: number | null
-        }
-        Insert: {
-          address?: string | null
-          amenities?: string[] | null
-          balconies?: number | null
-          bathrooms?: number | null
-          bedrooms?: number | null
-          built_up_area?: number | null
-          carpet_area?: number | null
-          city?: string | null
-          contact_email?: string | null
-          contact_name?: string | null
-          contact_phone?: string | null
-          cover_image?: string | null
-          created_at?: string | null
-          description?: string | null
-          facing?: string | null
-          floor_number?: number | null
-          furnishing?: string | null
-          gallery_images?: string[] | null
-          id?: string
-          is_featured?: boolean | null
-          is_negotiable?: boolean | null
-          is_premium?: boolean | null
-          is_verified?: boolean | null
-          latitude?: number | null
-          listing_type?: string
-          locality: string
-          locality_slug?: string | null
-          longitude?: number | null
-          maintenance_monthly?: number | null
-          meta_description?: string | null
-          meta_title?: string | null
-          owner_type?: string | null
-          pincode?: string | null
-          plot_area?: number | null
-          price: number
-          price_per_sqft?: number | null
-          property_age?: string | null
-          property_type?: string
-          published_at?: string | null
-          security_deposit?: number | null
-          slug: string
-          status?: string | null
-          title: string
-          total_floors?: number | null
-          updated_at?: string | null
-          user_id?: string | null
-          view_count?: number | null
-        }
-        Update: {
-          address?: string | null
-          amenities?: string[] | null
-          balconies?: number | null
-          bathrooms?: number | null
-          bedrooms?: number | null
-          built_up_area?: number | null
-          carpet_area?: number | null
-          city?: string | null
-          contact_email?: string | null
-          contact_name?: string | null
-          contact_phone?: string | null
-          cover_image?: string | null
-          created_at?: string | null
-          description?: string | null
-          facing?: string | null
-          floor_number?: number | null
-          furnishing?: string | null
-          gallery_images?: string[] | null
-          id?: string
-          is_featured?: boolean | null
-          is_negotiable?: boolean | null
-          is_premium?: boolean | null
-          is_verified?: boolean | null
-          latitude?: number | null
-          listing_type?: string
-          locality?: string
-          locality_slug?: string | null
-          longitude?: number | null
-          maintenance_monthly?: number | null
-          meta_description?: string | null
-          meta_title?: string | null
-          owner_type?: string | null
-          pincode?: string | null
-          plot_area?: number | null
-          price?: number
-          price_per_sqft?: number | null
-          property_age?: string | null
-          property_type?: string
-          published_at?: string | null
-          security_deposit?: number | null
-          slug?: string
-          status?: string | null
-          title?: string
-          total_floors?: number | null
-          updated_at?: string | null
-          user_id?: string | null
-          view_count?: number | null
-        }
-        Relationships: []
-      }
-      property_inquiries: {
-        Row: {
-          created_at: string | null
-          email: string | null
-          id: string
-          inquiry_type: string | null
-          message: string | null
-          name: string
-          phone: string
-          property_id: string | null
-          status: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          inquiry_type?: string | null
-          message?: string | null
-          name: string
-          phone: string
-          property_id?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          inquiry_type?: string | null
-          message?: string | null
-          name?: string
-          phone?: string
-          property_id?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "property_inquiries_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      real_estate_categories: {
-        Row: {
-          created_at: string | null
-          id: number
-          is_active: boolean | null
-          name: string
-          pillar_slug: string | null
-          property_type: string | null
-          slug: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: number
-          is_active?: boolean | null
-          name: string
-          pillar_slug?: string | null
-          property_type?: string | null
-          slug: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: number
-          is_active?: boolean | null
-          name?: string
-          pillar_slug?: string | null
-          property_type?: string | null
-          slug?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      referral_earnings: {
-        Row: {
-          created_at: string | null
-          earnings: number
-          id: string
-          level: number
-          referred_id: string | null
-          referrer_id: string | null
-          source: string
-        }
-        Insert: {
-          created_at?: string | null
-          earnings: number
-          id?: string
-          level: number
-          referred_id?: string | null
-          referrer_id?: string | null
-          source: string
-        }
-        Update: {
-          created_at?: string | null
-          earnings?: number
-          id?: string
-          level?: number
-          referred_id?: string | null
-          referrer_id?: string | null
-          source?: string
-        }
-        Relationships: []
-      }
-      referral_tracking: {
-        Row: {
-          clicked_at: string
-          coupon_purchased: boolean
-          coupon_redeemed: boolean
-          id: string
-          purchased_at: string | null
-          redeemed_at: string | null
-          share_token: string | null
-          user_id: string | null
-        }
-        Insert: {
-          clicked_at?: string
-          coupon_purchased?: boolean
-          coupon_redeemed?: boolean
-          id?: string
-          purchased_at?: string | null
-          redeemed_at?: string | null
-          share_token?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          clicked_at?: string
-          coupon_purchased?: boolean
-          coupon_redeemed?: boolean
-          id?: string
-          purchased_at?: string | null
-          redeemed_at?: string | null
-          share_token?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "referral_tracking_share_token_fkey"
-            columns: ["share_token"]
-            isOneToOne: false
-            referencedRelation: "shared_deal_links"
-            referencedColumns: ["token"]
-          },
-        ]
-      }
-      reviews: {
-        Row: {
-          created_at: string | null
-          deal_id: string | null
+          editorial_status: string | null
+          geo_lat: number | null
+          geo_lng: number | null
+          h1_override: string | null
           id: string
           image_url: string | null
-          jaicoin_rewarded: boolean | null
-          merchant_name: string
-          rating: number
-          review_text: string | null
-          user_id: string | null
+          index_status: Database["public"]["Enums"]["index_status_enum"] | null
+          is_indexable: boolean | null
+          locality_id: string | null
+          meta_description: string | null
+          meta_title: string | null
+          name: string
+          published_at: string | null
+          schema_json: Json | null
+          seo_blurb: string | null
+          seo_content: string | null
+          slug: string
+          source_label: string | null
+          source_url: string | null
+          status: Database["public"]["Enums"]["status_enum"] | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          address?: string | null
+          canonical_url?: string | null
+          cover_image_url?: string | null
           created_at?: string | null
-          deal_id?: string | null
+          created_by?: string | null
+          description?: string | null
+          editorial_status?: string | null
+          geo_lat?: number | null
+          geo_lng?: number | null
+          h1_override?: string | null
           id?: string
           image_url?: string | null
-          jaicoin_rewarded?: boolean | null
-          merchant_name: string
-          rating: number
-          review_text?: string | null
-          user_id?: string | null
+          index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          is_indexable?: boolean | null
+          locality_id?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          name: string
+          published_at?: string | null
+          schema_json?: Json | null
+          seo_blurb?: string | null
+          seo_content?: string | null
+          slug: string
+          source_label?: string | null
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          address?: string | null
+          canonical_url?: string | null
+          cover_image_url?: string | null
           created_at?: string | null
-          deal_id?: string | null
+          created_by?: string | null
+          description?: string | null
+          editorial_status?: string | null
+          geo_lat?: number | null
+          geo_lng?: number | null
+          h1_override?: string | null
           id?: string
           image_url?: string | null
-          jaicoin_rewarded?: boolean | null
-          merchant_name?: string
-          rating?: number
-          review_text?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      search_queries: {
-        Row: {
-          clicked_result_id: string | null
-          clicked_result_type: string | null
-          created_at: string
-          id: string
-          results_count: number | null
-          search_query: string
-          search_type: string | null
-          session_id: string
-          user_id: string | null
-        }
-        Insert: {
-          clicked_result_id?: string | null
-          clicked_result_type?: string | null
-          created_at?: string
-          id?: string
-          results_count?: number | null
-          search_query: string
-          search_type?: string | null
-          session_id: string
-          user_id?: string | null
-        }
-        Update: {
-          clicked_result_id?: string | null
-          clicked_result_type?: string | null
-          created_at?: string
-          id?: string
-          results_count?: number | null
-          search_query?: string
-          search_type?: string | null
-          session_id?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      shared_deal_links: {
-        Row: {
-          created_at: string
-          deal_id: string
-          id: string
-          link_clicks: number
-          token: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          deal_id: string
-          id?: string
-          link_clicks?: number
-          token: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          deal_id?: string
-          id?: string
-          link_clicks?: number
-          token?: string
-          user_id?: string
+          index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          is_indexable?: boolean | null
+          locality_id?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          name?: string
+          published_at?: string | null
+          schema_json?: Json | null
+          seo_blurb?: string | null
+          seo_content?: string | null
+          slug?: string
+          source_label?: string | null
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "shared_deal_links_deal_id_fkey"
-            columns: ["deal_id"]
+            foreignKeyName: "venues_locality_id_fkey"
+            columns: ["locality_id"]
             isOneToOne: false
-            referencedRelation: "deals"
+            referencedRelation: "localities"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "venues_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
+          },
         ]
-      }
-      soft_registrations: {
-        Row: {
-          browser: string | null
-          city: string | null
-          completed_user_id: string | null
-          created_at: string
-          device_type: string | null
-          email: string | null
-          fields_filled: string[] | null
-          form_started_at: string
-          full_name: string | null
-          id: string
-          ip_address: string | null
-          is_completed: boolean | null
-          last_interaction_at: string
-          locality: string | null
-          phone: string | null
-          session_id: string
-          state: string | null
-          updated_at: string
-        }
-        Insert: {
-          browser?: string | null
-          city?: string | null
-          completed_user_id?: string | null
-          created_at?: string
-          device_type?: string | null
-          email?: string | null
-          fields_filled?: string[] | null
-          form_started_at?: string
-          full_name?: string | null
-          id?: string
-          ip_address?: string | null
-          is_completed?: boolean | null
-          last_interaction_at?: string
-          locality?: string | null
-          phone?: string | null
-          session_id: string
-          state?: string | null
-          updated_at?: string
-        }
-        Update: {
-          browser?: string | null
-          city?: string | null
-          completed_user_id?: string | null
-          created_at?: string
-          device_type?: string | null
-          email?: string | null
-          fields_filled?: string[] | null
-          form_started_at?: string
-          full_name?: string | null
-          id?: string
-          ip_address?: string | null
-          is_completed?: boolean | null
-          last_interaction_at?: string
-          locality?: string | null
-          phone?: string | null
-          session_id?: string
-          state?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      spin_attempts: {
-        Row: {
-          created_at: string | null
-          id: string
-          reward_amount: number
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          reward_amount: number
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          reward_amount?: number
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      stories: {
-        Row: {
-          content: string
-          content_html: string | null
-          cover_image: string | null
-          cover_image_url: string | null
-          excerpt: string | null
-          id: string
-          meta_description: string | null
-          meta_title: string | null
-          published_at: string | null
-          related_category_slug: string | null
-          related_locality_slug: string | null
-          slug: string
-          status: string | null
-          tags: string[] | null
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          content: string
-          content_html?: string | null
-          cover_image?: string | null
-          cover_image_url?: string | null
-          excerpt?: string | null
-          id?: string
-          meta_description?: string | null
-          meta_title?: string | null
-          published_at?: string | null
-          related_category_slug?: string | null
-          related_locality_slug?: string | null
-          slug: string
-          status?: string | null
-          tags?: string[] | null
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          content?: string
-          content_html?: string | null
-          cover_image?: string | null
-          cover_image_url?: string | null
-          excerpt?: string | null
-          id?: string
-          meta_description?: string | null
-          meta_title?: string | null
-          published_at?: string | null
-          related_category_slug?: string | null
-          related_locality_slug?: string | null
-          slug?: string
-          status?: string | null
-          tags?: string[] | null
-          title?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      tag_taxonomy: {
-        Row: {
-          tag: string
-          tag_type: string
-          updated_at: string
-        }
-        Insert: {
-          tag: string
-          tag_type: string
-          updated_at?: string
-        }
-        Update: {
-          tag?: string
-          tag_type?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      test: {
-        Row: {
-          created_at: string
-          id: number
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-        }
-        Update: {
-          created_at?: string
-          id?: number
-        }
-        Relationships: []
-      }
-      user_analytics: {
-        Row: {
-          created_at: string | null
-          date: string
-          deals_redeemed: number | null
-          deals_saved: number | null
-          deals_viewed: number | null
-          id: string
-          jaicoin_earned: number | null
-          jaicoin_spent: number | null
-          posts_created: number | null
-          referrals_made: number | null
-          reviews_written: number | null
-          spin_attempts: number | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          date: string
-          deals_redeemed?: number | null
-          deals_saved?: number | null
-          deals_viewed?: number | null
-          id?: string
-          jaicoin_earned?: number | null
-          jaicoin_spent?: number | null
-          posts_created?: number | null
-          referrals_made?: number | null
-          reviews_written?: number | null
-          spin_attempts?: number | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          date?: string
-          deals_redeemed?: number | null
-          deals_saved?: number | null
-          deals_viewed?: number | null
-          id?: string
-          jaicoin_earned?: number | null
-          jaicoin_spent?: number | null
-          posts_created?: number | null
-          referrals_made?: number | null
-          reviews_written?: number | null
-          spin_attempts?: number | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      user_badges: {
-        Row: {
-          badge_description: string | null
-          badge_name: string
-          badge_type: string
-          earned_at: string | null
-          id: string
-          metadata: Json | null
-          user_id: string | null
-        }
-        Insert: {
-          badge_description?: string | null
-          badge_name: string
-          badge_type: string
-          earned_at?: string | null
-          id?: string
-          metadata?: Json | null
-          user_id?: string | null
-        }
-        Update: {
-          badge_description?: string | null
-          badge_name?: string
-          badge_type?: string
-          earned_at?: string | null
-          id?: string
-          metadata?: Json | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          assigned_at: string | null
-          assigned_by: string | null
-          created_at: string | null
-          id: string
-          is_active: boolean | null
-          metadata: Json | null
-          role: Database["public"]["Enums"]["app_role"]
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          assigned_at?: string | null
-          assigned_by?: string | null
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          metadata?: Json | null
-          role: Database["public"]["Enums"]["app_role"]
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          assigned_at?: string | null
-          assigned_by?: string | null
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          metadata?: Json | null
-          role?: Database["public"]["Enums"]["app_role"]
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      vendor_applications: {
-        Row: {
-          address: string | null
-          admin_notes: string | null
-          business_name: string
-          business_type: string | null
-          city: string | null
-          contact_email: string
-          contact_phone: string
-          created_at: string | null
-          description: string | null
-          documents: Json | null
-          id: string
-          locality: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          social_handles: Json | null
-          status: string | null
-          updated_at: string | null
-          user_id: string
-          vendor_type: string
-        }
-        Insert: {
-          address?: string | null
-          admin_notes?: string | null
-          business_name: string
-          business_type?: string | null
-          city?: string | null
-          contact_email: string
-          contact_phone: string
-          created_at?: string | null
-          description?: string | null
-          documents?: Json | null
-          id?: string
-          locality?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          social_handles?: Json | null
-          status?: string | null
-          updated_at?: string | null
-          user_id: string
-          vendor_type: string
-        }
-        Update: {
-          address?: string | null
-          admin_notes?: string | null
-          business_name?: string
-          business_type?: string | null
-          city?: string | null
-          contact_email?: string
-          contact_phone?: string
-          created_at?: string | null
-          description?: string | null
-          documents?: Json | null
-          id?: string
-          locality?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          social_handles?: Json | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string
-          vendor_type?: string
-        }
-        Relationships: []
-      }
-      visitor_sessions: {
-        Row: {
-          browser: string | null
-          browser_version: string | null
-          city: string | null
-          country: string | null
-          created_at: string
-          device_type: string | null
-          first_visit_at: string
-          id: string
-          ip_address: string | null
-          is_converted: boolean | null
-          landing_page: string | null
-          last_activity_at: string
-          latitude: number | null
-          longitude: number | null
-          os: string | null
-          os_version: string | null
-          referrer: string | null
-          screen_height: number | null
-          screen_width: number | null
-          session_id: string
-          state: string | null
-          total_clicks: number | null
-          total_page_views: number | null
-          user_agent: string | null
-          user_id: string | null
-          utm_campaign: string | null
-          utm_content: string | null
-          utm_medium: string | null
-          utm_source: string | null
-          utm_term: string | null
-        }
-        Insert: {
-          browser?: string | null
-          browser_version?: string | null
-          city?: string | null
-          country?: string | null
-          created_at?: string
-          device_type?: string | null
-          first_visit_at?: string
-          id?: string
-          ip_address?: string | null
-          is_converted?: boolean | null
-          landing_page?: string | null
-          last_activity_at?: string
-          latitude?: number | null
-          longitude?: number | null
-          os?: string | null
-          os_version?: string | null
-          referrer?: string | null
-          screen_height?: number | null
-          screen_width?: number | null
-          session_id: string
-          state?: string | null
-          total_clicks?: number | null
-          total_page_views?: number | null
-          user_agent?: string | null
-          user_id?: string | null
-          utm_campaign?: string | null
-          utm_content?: string | null
-          utm_medium?: string | null
-          utm_source?: string | null
-          utm_term?: string | null
-        }
-        Update: {
-          browser?: string | null
-          browser_version?: string | null
-          city?: string | null
-          country?: string | null
-          created_at?: string
-          device_type?: string | null
-          first_visit_at?: string
-          id?: string
-          ip_address?: string | null
-          is_converted?: boolean | null
-          landing_page?: string | null
-          last_activity_at?: string
-          latitude?: number | null
-          longitude?: number | null
-          os?: string | null
-          os_version?: string | null
-          referrer?: string | null
-          screen_height?: number | null
-          screen_width?: number | null
-          session_id?: string
-          state?: string | null
-          total_clicks?: number | null
-          total_page_views?: number | null
-          user_agent?: string | null
-          user_id?: string | null
-          utm_campaign?: string | null
-          utm_content?: string | null
-          utm_medium?: string | null
-          utm_source?: string | null
-          utm_term?: string | null
-        }
-        Relationships: []
       }
       zones: {
         Row: {
-          confidence_score: number | null
           created_at: string | null
-          description: string | null
-          geo_center_lat: number | null
-          geo_center_lng: number | null
           id: string
-          locality_count: number | null
-          meta: Json | null
           name: string
           slug: string
-          updated_at: string | null
-          verification_status: string | null
         }
         Insert: {
-          confidence_score?: number | null
           created_at?: string | null
-          description?: string | null
-          geo_center_lat?: number | null
-          geo_center_lng?: number | null
           id?: string
-          locality_count?: number | null
-          meta?: Json | null
           name: string
           slug: string
-          updated_at?: string | null
-          verification_status?: string | null
         }
         Update: {
-          confidence_score?: number | null
           created_at?: string | null
-          description?: string | null
-          geo_center_lat?: number | null
-          geo_center_lng?: number | null
           id?: string
-          locality_count?: number | null
-          meta?: Json | null
           name?: string
           slug?: string
-          updated_at?: string | null
-          verification_status?: string | null
         }
         Relationships: []
       }
     }
     Views: {
-      locality_indexability: {
+      category_aliases_view: {
         Row: {
-          published_events: number | null
-          should_index: boolean | null
-          slug: string | null
-        }
-        Relationships: []
-      }
-      locality_indexability_v2: {
-        Row: {
-          name: string | null
-          should_index: boolean | null
-          slug: string | null
-        }
-        Insert: {
-          name?: string | null
-          should_index?: never
-          slug?: string | null
-        }
-        Update: {
-          name?: string | null
-          should_index?: never
-          slug?: string | null
-        }
-        Relationships: []
-      }
-      v_registry_should_noindex: {
-        Row: {
-          exists_in_table: boolean | null
+          category_id: string | null
+          category_name: string | null
+          category_slug: string | null
+          created_at: string | null
           id: string | null
-          kind: string | null
-          slug: string | null
-          url_path: string | null
+          notes: string | null
+          old_slug: string | null
+          updated_at: string | null
         }
         Relationships: []
       }
-      v_sitemap_deals: {
+      event_artists_view: {
         Row: {
-          lastmod: string | null
-          loc: string | null
+          artist_id: string | null
+          artist_image_url: string | null
+          artist_meta_description: string | null
+          artist_meta_title: string | null
+          artist_name: string | null
+          artist_slug: string | null
+          event_id: string | null
+          id: string | null
+          role: string | null
         }
-        Insert: {
-          lastmod?: string | null
-          loc?: string | null
-        }
-        Update: {
-          lastmod?: string | null
-          loc?: string | null
+        Relationships: [
+          {
+            foreignKeyName: "event_artists_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_artists_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_slug_aliases_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "event_artists_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_slug_aliases_view: {
+        Row: {
+          created_at: string | null
+          event_id: string | null
+          event_slug: string | null
+          event_title: string | null
+          id: string | null
+          notes: string | null
+          old_slug: string | null
+          updated_at: string | null
         }
         Relationships: []
       }
-      v_sitemap_events: {
+      locality_aliases_view: {
         Row: {
-          lastmod: string | null
-          loc: string | null
-        }
-        Insert: {
-          lastmod?: string | null
-          loc?: string | null
-        }
-        Update: {
-          lastmod?: string | null
-          loc?: string | null
-        }
-        Relationships: []
-      }
-      v_sitemap_localities: {
-        Row: {
-          lastmod: string | null
-          loc: string | null
-        }
-        Insert: {
-          lastmod?: string | null
-          loc?: string | null
-        }
-        Update: {
-          lastmod?: string | null
-          loc?: string | null
+          created_at: string | null
+          id: string | null
+          locality_id: string | null
+          locality_name: string | null
+          locality_slug: string | null
+          notes: string | null
+          old_slug: string | null
+          updated_at: string | null
         }
         Relationships: []
       }
     }
     Functions: {
-      _clean_performer_name: { Args: { p: string }; Returns: string }
-      award_badge: {
+      compute_indexability: {
         Args: {
-          badge_description: string
-          badge_name: string
-          badge_type: string
-          user_uuid: string
-        }
-        Returns: undefined
-      }
-      award_referral_reward: {
-        Args: {
-          coupon_uuid?: string
-          merchant_uuid: string
-          milestone_count_param?: number
-          referrer_uuid: string
-          reward_amount: number
-          reward_type_param: string
-        }
-        Returns: undefined
-      }
-      clean_performer_name_v2: { Args: { p: string }; Returns: string }
-      clean_performer_name_v3: { Args: { p: string }; Returns: string }
-      compute_locality_should_index: {
-        Args: {
-          p_confidence_score: number
-          p_index_override: string
-          p_known_for: string
-          p_seo_blurb: string
-          p_verification_status: string
+          meta_title: string
+          override: boolean
+          quality_score: number
+          seo_blurb: string
         }
         Returns: boolean
       }
-      ensure_unique_merchant_slug: {
-        Args: {
-          p_base_slug: string
-          p_locality_slug: string
-          p_merchant_id: string
-        }
+      generate_meta_description: {
+        Args: { entity_type: string; name: string }
         Returns: string
       }
-      extract_performer_name_from_title: {
-        Args: { p_title: string }
+      generate_meta_title: {
+        Args: { entity_type: string; name: string }
         Returns: string
       }
-      extract_performer_name_from_title_v2: {
-        Args: { p_title: string }
+      generate_unique_slug: {
+        Args: { base_slug: string; column_name: string; table_name: string }
         Returns: string
       }
-      extract_performer_name_from_title_v3: {
-        Args: { p_title: string }
+      get_canonical_url: {
+        Args: { entity_type: string; slug: string }
         Returns: string
       }
-      extract_performer_name_from_title_v4: {
-        Args: { p_title: string }
-        Returns: string
+      get_category_page:
+        | { Args: { p_slug: string }; Returns: Json }
+        | { Args: { params: Json }; Returns: Json }
+      get_event_page: { Args: { p_slug: string }; Returns: Json }
+      get_events_by_category_locality: {
+        Args: { p_category_slug: string; p_locality_slug: string }
+        Returns: Json
       }
-      extract_performer_name_from_title_v5: {
-        Args: { p_title: string }
-        Returns: string
-      }
-      generate_coupon_code: { Args: never; Returns: string }
-      generate_deal_slug: {
-        Args: { deal_id: string; title: string }
-        Returns: string
-      }
-      generate_event_slug: { Args: { title: string }; Returns: string }
-      generate_news_slug: { Args: { title: string }; Returns: string }
-      generate_redemption_code: { Args: never; Returns: string }
-      generate_referral_code: { Args: never; Returns: string }
-      generate_registration_code: { Args: never; Returns: string }
-      get_artists_with_events: {
-        Args: never
-        Returns: {
-          last_event_updated_at: string
-          slug: string
-        }[]
-      }
-      get_event_overrides_by_slug: { Args: { p_slug: string }; Returns: Json }
-      get_event_public: {
-        Args: { p_slug: string }
-        Returns: {
-          category: string
-          city: string
-          event_date: string
-          event_time: string
-          locality_name: string
-          locality_slug: string
-          price_from: string
-          slug: string
-          title: string
-          updated_at: string
-          venue: string
-        }[]
-      }
-      get_order_details: {
-        Args: { order_uuid: string }
-        Returns: {
-          customer_name: string
-          deal_discounted_price: number
-          deal_is_product_sale: boolean
-          deal_jaicoin_reward: number
-          deal_title: string
-          id: string
-          jaicoin_used: number
-          merchant_address: string
-          merchant_business_name: string
-          order_code: string
-          payment_method: string
-          quantity: number
-          status: string
-          total_amount: number
-        }[]
-      }
-      get_user_balance: { Args: { user_uuid: string }; Returns: number }
-      get_user_roles: {
-        Args: { _user_id: string }
-        Returns: {
-          assigned_at: string
-          metadata: Json
-          role: Database["public"]["Enums"]["app_role"]
-        }[]
-      }
-      has_any_role: {
-        Args: {
-          _roles: Database["public"]["Enums"]["app_role"][]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      increment_article_views: {
-        Args: { article_id: string }
-        Returns: undefined
-      }
-      increment_event_views: { Args: { event_id: string }; Returns: undefined }
-      is_pro_member: { Args: { user_uuid: string }; Returns: boolean }
-      jc_slugify: { Args: { input: string }; Returns: string }
-      jc_to_slug: { Args: { p_text: string }; Returns: string }
-      show_limit: { Args: never; Returns: number }
-      show_trgm: { Args: { "": string }; Returns: string[] }
-      sitemap_events: {
+      get_locality_page: { Args: { p_slug: string }; Returns: Json }
+      get_sitemap_categories: {
         Args: never
         Returns: {
           lastmod: string
-          path: string
+          loc: string
         }[]
       }
-      sitemap_index_list: {
+      get_sitemap_events: {
         Args: never
         Returns: {
-          sitemap_path: string
+          lastmod: string
+          loc: string
         }[]
       }
-      slugify: { Args: { p_text: string }; Returns: string }
-      slugify_performer: { Args: { p: string }; Returns: string }
-      slugify_simple: { Args: { p: string }; Returns: string }
-      touch_visitor_session: {
-        Args: { p_session_id: string }
-        Returns: undefined
+      get_sitemap_index: { Args: never; Returns: Json }
+      get_sitemap_localities: {
+        Args: never
+        Returns: {
+          lastmod: string
+          loc: string
+        }[]
       }
-      upgrade_to_pro_user: { Args: { _user_id: string }; Returns: undefined }
-      upsert_page_registry: {
-        Args: {
-          p_canonical_url?: string
-          p_index_state?: string
-          p_page_type: string
-          p_url_path: string
-        }
-        Returns: undefined
-      }
+      get_venue_page: { Args: { p_slug: string }; Returns: Json }
+      slugify: { Args: { input: string }; Returns: string }
     }
     Enums: {
-      app_role:
-        | "user"
-        | "pro_user"
-        | "merchant"
-        | "listing_agent"
-        | "listing_supervisor"
-        | "admin"
-        | "real_estate_broker"
-        | "event_organizer"
-      article_status: "draft" | "published" | "archived"
-      news_category:
-        | "city"
-        | "events"
-        | "food"
-        | "culture"
-        | "business"
-        | "sports"
-      story_status: "draft" | "published"
+      index_status_enum: "index" | "noindex"
+      status_enum:
+        | "draft"
+        | "published"
+        | "archived"
+        | "upcoming"
+        | "ongoing"
+        | "past"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3992,26 +1307,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: [
-        "user",
-        "pro_user",
-        "merchant",
-        "listing_agent",
-        "listing_supervisor",
-        "admin",
-        "real_estate_broker",
-        "event_organizer",
+      index_status_enum: ["index", "noindex"],
+      status_enum: [
+        "draft",
+        "published",
+        "archived",
+        "upcoming",
+        "ongoing",
+        "past",
+        "cancelled",
       ],
-      article_status: ["draft", "published", "archived"],
-      news_category: [
-        "city",
-        "events",
-        "food",
-        "culture",
-        "business",
-        "sports",
-      ],
-      story_status: ["draft", "published"],
     },
   },
 } as const
