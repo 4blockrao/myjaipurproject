@@ -888,6 +888,154 @@ export type Database = {
           },
         ]
       }
+      order_items: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          order_id: string
+          price_snapshot: number | null
+          qty: number | null
+          title_snapshot: string | null
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          order_id: string
+          price_snapshot?: number | null
+          qty?: number | null
+          title_snapshot?: string | null
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          order_id?: string
+          price_snapshot?: number | null
+          qty?: number | null
+          title_snapshot?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          amount: number | null
+          created_at: string
+          currency: string | null
+          deal_id: string | null
+          id: string
+          merchant_id: string | null
+          notes: string | null
+          order_type: string | null
+          payment_status: string | null
+          status: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          deal_id?: string | null
+          id?: string
+          merchant_id?: string | null
+          notes?: string | null
+          order_type?: string | null
+          payment_status?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          deal_id?: string | null
+          id?: string
+          merchant_id?: string | null
+          notes?: string | null
+          order_type?: string | null
+          payment_status?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number | null
+          created_at: string
+          currency: string | null
+          gateway: string | null
+          gateway_ref: string | null
+          id: string
+          order_id: string | null
+          payload: Json | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          gateway?: string | null
+          gateway_ref?: string | null
+          id?: string
+          order_id?: string | null
+          payload?: Json | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          gateway?: string | null
+          gateway_ref?: string | null
+          id?: string
+          order_id?: string | null
+          payload?: Json | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       testing: {
         Row: {
           created_at: string
