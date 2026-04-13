@@ -14,6 +14,7 @@ import {
   Download,
   Globe,
   Pencil,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,30 +62,36 @@ type AdminEvent = {
   id: string;
   title: string;
   slug?: string | null;
-  start_date: string;
+  short_description?: string | null;
+  description?: string | null;
+  start_date?: string | null;
   end_date?: string | null;
   status?: "upcoming" | "ongoing" | "past" | "cancelled" | string | null;
   editorial_status?: "draft" | "published" | "archived" | string | null;
   is_indexable?: boolean | null;
   published_at?: string | null;
   updated_at?: string | null;
-  locality_id?: string | null;
-  venue_id?: string | null;
-  image_url?: string | null;
-  cover_image_url?: string | null;
-  source_url?: string | null;
-  source_label?: string | null;
-  cover_image?: string | null;
-  category?: string | null;
-  locality?: string | null;
   venue_name?: string | null;
+  venue_address?: string | null;
+  locality?: string | null;
+  category?: string | null;
   ticket_price?: number | null;
   is_free?: boolean | null;
   is_featured?: boolean | null;
+  registration_url?: string | null;
+  organizer_name?: string | null;
+  image_url?: string | null;
+  cover_image_url?: string | null;
+  cover_image?: string | null;
+  source_url?: string | null;
+  source_label?: string | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
+  tags?: string[] | null;
 };
 
 const getEditorialStatus = (event: AdminEvent) =>
-  (event.editorial_status || "published").toLowerCase();
+  (event.editorial_status || "draft").toLowerCase();
 
 const getLifecycleStatus = (event: AdminEvent) =>
   (event.status || "upcoming").toLowerCase();
@@ -120,7 +127,8 @@ const EventsManagement = () => {
   const [search, setSearch] = useState("");
   const [editorialFilter, setEditorialFilter] = useState("all");
   const [lifecycleFilter, setLifecycleFilter] = useState("all");
-  const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [editingEvent, setEditingEvent] = useState<AdminEvent | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const { data: events, isLoading } = useQuery({
     queryKey: ["admin-events"],
@@ -145,7 +153,7 @@ const EventsManagement = () => {
       if (error) throw error;
 
       const counts: Record<string, number> = {};
-      data.forEach((r) => {
+      (data || []).forEach((r) => {
         counts[r.event_id] = (counts[r.event_id] || 0) + (r.ticket_count || 1);
       });
       return counts;
@@ -176,7 +184,7 @@ const EventsManagement = () => {
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("events")
-        .update({ editorial_status: "archived" })
+        .update({ editorial_status: "archived", updated_at: new Date().toISOString() })
         .eq("id", id);
 
       if (error) throw error;
@@ -196,17 +204,20 @@ const EventsManagement = () => {
     const editorialStatus = getEditorialStatus(event);
     const lifecycleStatus = getLifecycleStatus(event);
 
-    const matchesSearch =
-      !search ||
-      event.title?.toLowerCase().includes(search.toLowerCase()) ||
-      event.slug?.toLowerCase().includes(search.toLowerCase()) ||
-      event.category?.toLowerCase().includes(search.toLowerCase()) ||
-      event.venue_name?.toLowerCase().includes(search.toLowerCase()) ||
-      event.locality?.toLowerCase().includes(search.toLowerCase());
+    const haystack = [
+      event.title,
+      event.slug,
+      event.category,
+      event.venue_name,
+      event.locality,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
 
+    const matchesSearch = !search || haystack.includes(search.toLowerCase());
     const matchesEditorial =
       editorialFilter === "all" || editorialStatus === editorialFilter;
-
     const matchesLifecycle =
       lifecycleFilter === "all" || lifecycleStatus === lifecycleFilter;
 
@@ -272,296 +283,273 @@ const EventsManagement = () => {
   }
 
   return (
-    <Tabs defaultValue="manage" className="space-y-6">
-      <TabsList>
-        <TabsTrigger value="manage" className="gap-2">
-          <Calendar className="w-4 h-4" />
-          Manage Events
-        </TabsTrigger>
-        <TabsTrigger value="scraper" className="gap-2">
-          <Globe className="w-4 h-4" />
-          Import from Web
-        </TabsTrigger>
-      </TabsList>
+    <>
+      <Tabs defaultValue="manage" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="manage" className="gap-2">
+            <Calendar className="w-4 h-4" />
+            Manage Events
+          </TabsTrigger>
+          <TabsTrigger value="scraper" className="gap-2">
+            <Globe className="w-4 h-4" />
+            Import from Web
+          </TabsTrigger>
+        </TabsList>
 
-      <TabsContent value="manage" className="space-y-6">
-        <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
+        <TabsContent value="manage" className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Total</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.total}</div>
+              </CardContent>
+            </Card>
+
+            <Card className={editorialFilter === "published" ? "ring-2 ring-primary" : ""}>
+              <CardHeader className="pb-2">
+                <CardTitle
+                  className="text-sm font-medium cursor-pointer"
+                  onClick={() => setEditorialFilter("published")}
+                >
+                  Published
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-primary">{stats.published}</div>
+              </CardContent>
+            </Card>
+
+            <Card className={editorialFilter === "draft" ? "ring-2 ring-primary" : ""}>
+              <CardHeader className="pb-2">
+                <CardTitle
+                  className="text-sm font-medium cursor-pointer"
+                  onClick={() => setEditorialFilter("draft")}
+                >
+                  Drafts
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-muted-foreground">{stats.draft}</div>
+              </CardContent>
+            </Card>
+
+            <Card className={editorialFilter === "archived" ? "ring-2 ring-primary" : ""}>
+              <CardHeader className="pb-2">
+                <CardTitle
+                  className="text-sm font-medium cursor-pointer"
+                  onClick={() => setEditorialFilter("archived")}
+                >
+                  Archived
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.archived}</div>
+              </CardContent>
+            </Card>
+
+            <Card className={lifecycleFilter === "upcoming" ? "ring-2 ring-primary" : ""}>
+              <CardHeader className="pb-2">
+                <CardTitle
+                  className="text-sm font-medium cursor-pointer"
+                  onClick={() => setLifecycleFilter("upcoming")}
+                >
+                  Upcoming
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">{stats.upcoming}</div>
+              </CardContent>
+            </Card>
+
+            <Card className={lifecycleFilter === "past" ? "ring-2 ring-primary" : ""}>
+              <CardHeader className="pb-2">
+                <CardTitle
+                  className="text-sm font-medium cursor-pointer"
+                  onClick={() => setLifecycleFilter("past")}
+                >
+                  Past
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-muted-foreground">{stats.past}</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Featured</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-primary">{stats.featured}</div>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
-            </CardContent>
-          </Card>
+            <CardHeader>
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="w-5 h-5" />
+                    Events Management
+                  </CardTitle>
+                  <CardDescription>
+                    Create, edit, publish, archive, and manage events.
+                  </CardDescription>
+                </div>
 
-          <Card
-            className={editorialFilter === "published" ? "ring-2 ring-primary" : ""}
-          >
-            <CardHeader className="pb-2">
-              <CardTitle
-                className="text-sm font-medium cursor-pointer"
-                onClick={() => setEditorialFilter("published")}
-              >
-                Published
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">{stats.published}</div>
-            </CardContent>
-          </Card>
-
-          <Card className={editorialFilter === "draft" ? "ring-2 ring-primary" : ""}>
-            <CardHeader className="pb-2">
-              <CardTitle
-                className="text-sm font-medium cursor-pointer"
-                onClick={() => setEditorialFilter("draft")}
-              >
-                Drafts
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-muted-foreground">
-                {stats.draft}
+                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  Create Event
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className={editorialFilter === "archived" ? "ring-2 ring-primary" : ""}
-          >
-            <CardHeader className="pb-2">
-              <CardTitle
-                className="text-sm font-medium cursor-pointer"
-                onClick={() => setEditorialFilter("archived")}
-              >
-                Archived
-              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.archived}</div>
-            </CardContent>
-          </Card>
 
-          <Card
-            className={lifecycleFilter === "upcoming" ? "ring-2 ring-primary" : ""}
-          >
-            <CardHeader className="pb-2">
-              <CardTitle
-                className="text-sm font-medium cursor-pointer"
-                onClick={() => setLifecycleFilter("upcoming")}
-              >
-                Upcoming
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {stats.upcoming}
-              </div>
-            </CardContent>
-          </Card>
+            <CardContent className="space-y-4">
+              <div className="flex gap-4 flex-wrap">
+                <div className="relative flex-1 min-w-[220px]">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by title, slug, venue, locality, category..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
 
-          <Card className={lifecycleFilter === "past" ? "ring-2 ring-primary" : ""}>
-            <CardHeader className="pb-2">
-              <CardTitle
-                className="text-sm font-medium cursor-pointer"
-                onClick={() => setLifecycleFilter("past")}
-              >
-                Past
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-muted-foreground">
-                {stats.past}
+                <Select value={editorialFilter} onValueChange={setEditorialFilter}>
+                  <SelectTrigger className="w-44">
+                    <SelectValue placeholder="Editorial Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Editorial</SelectItem>
+                    <SelectItem value="published">Published</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={lifecycleFilter} onValueChange={setLifecycleFilter}>
+                  <SelectTrigger className="w-44">
+                    <SelectValue placeholder="Lifecycle Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Lifecycle</SelectItem>
+                    <SelectItem value="upcoming">Upcoming</SelectItem>
+                    <SelectItem value="ongoing">Ongoing</SelectItem>
+                    <SelectItem value="past">Past</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Button variant="outline" onClick={exportEvents} className="gap-2">
+                  <Download className="w-4 h-4" />
+                  Export
+                </Button>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Featured</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">{stats.featured}</div>
-            </CardContent>
-          </Card>
-        </div>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Event</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Registrations</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Events Management
-            </CardTitle>
-            <CardDescription>
-              Manage events, publishing status, lifecycle, featured state, and public visibility.
-            </CardDescription>
-          </CardHeader>
+                  <TableBody>
+                    {filteredEvents.map((event) => {
+                      const editorialStatus = getEditorialStatus(event);
+                      const lifecycleStatus = getLifecycleStatus(event);
+                      const eventImage = getEventImage(event);
 
-          <CardContent className="space-y-4">
-            <div className="flex gap-4 flex-wrap">
-              <div className="relative flex-1 min-w-[220px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by title, slug, venue, locality, category..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+                      return (
+                        <TableRow key={event.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              {eventImage ? (
+                                <img
+                                  src={eventImage}
+                                  alt=""
+                                  className="w-12 h-8 object-cover rounded"
+                                />
+                              ) : null}
 
-              <Select value={editorialFilter} onValueChange={setEditorialFilter}>
-                <SelectTrigger className="w-44">
-                  <SelectValue placeholder="Editorial Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Editorial</SelectItem>
-                  <SelectItem value="published">Published</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={lifecycleFilter} onValueChange={setLifecycleFilter}>
-                <SelectTrigger className="w-44">
-                  <SelectValue placeholder="Lifecycle Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Lifecycle</SelectItem>
-                  <SelectItem value="upcoming">Upcoming</SelectItem>
-                  <SelectItem value="ongoing">Ongoing</SelectItem>
-                  <SelectItem value="past">Past</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Button variant="outline" onClick={exportEvents} className="gap-2">
-                <Download className="w-4 h-4" />
-                Export
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Event</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Registrations</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody>
-                  {filteredEvents.map((event) => {
-                    const editorialStatus = getEditorialStatus(event);
-                    const lifecycleStatus = getLifecycleStatus(event);
-                    const eventImage = getEventImage(event);
-
-                    return (
-                      <TableRow key={event.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            {eventImage ? (
-                              <img
-                                src={eventImage}
-                                alt=""
-                                className="w-12 h-8 object-cover rounded"
-                              />
-                            ) : null}
-
-                            <div>
-                              <div className="font-medium flex items-center gap-2">
-                                {event.title}
-                                {event.is_featured ? (
-                                  <Star className="w-4 h-4 text-primary fill-primary" />
+                              <div>
+                                <div className="font-medium flex items-center gap-2">
+                                  {event.title}
+                                  {event.is_featured ? (
+                                    <Star className="w-4 h-4 text-primary fill-primary" />
+                                  ) : null}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {event.venue_name || "Venue not set"}
+                                </div>
+                                {event.locality ? (
+                                  <div className="text-xs text-muted-foreground">
+                                    {event.locality}
+                                  </div>
                                 ) : null}
                               </div>
-                              <div className="text-sm text-muted-foreground">
-                                {event.venue_name || "Venue not set"}
-                              </div>
-                              {event.locality ? (
-                                <div className="text-xs text-muted-foreground">
-                                  {event.locality}
-                                </div>
-                              ) : null}
                             </div>
-                          </div>
-                        </TableCell>
+                          </TableCell>
 
-                        <TableCell>{formatEventDate(event.start_date)}</TableCell>
+                          <TableCell>{formatEventDate(event.start_date)}</TableCell>
 
-                        <TableCell>
-                          <Badge variant="outline" className="capitalize">
-                            {event.category || "uncategorized"}
-                          </Badge>
-                        </TableCell>
-
-                        <TableCell>{registrationCounts?.[event.id] || 0}</TableCell>
-
-                        <TableCell>
-                          {event.is_free ? (
-                            <Badge variant="secondary">Free</Badge>
-                          ) : event.ticket_price ? (
-                            `₹${event.ticket_price}`
-                          ) : (
-                            "—"
-                          )}
-                        </TableCell>
-
-                        <TableCell>
-                          <div className="flex flex-col gap-1">
-                            <Badge variant={editorialBadgeVariant(editorialStatus)}>
-                              {editorialStatus}
+                          <TableCell>
+                            <Badge variant="outline" className="capitalize">
+                              {event.category || "uncategorized"}
                             </Badge>
-                            <Badge
-                              variant="outline"
-                              className={`capitalize ${lifecycleBadgeClass(
-                                lifecycleStatus
-                              )}`}
-                            >
-                              {lifecycleStatus}
-                            </Badge>
-                          </div>
-                        </TableCell>
+                          </TableCell>
 
-                        <TableCell>
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setEditingEvent(event)}
-                              title="Edit"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </Button>
+                          <TableCell>{registrationCounts?.[event.id] || 0}</TableCell>
 
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                updateEventMutation.mutate({
-                                  id: event.id,
-                                  updates: { is_featured: !event.is_featured },
-                                })
-                              }
-                              title={event.is_featured ? "Unfeature" : "Feature"}
-                            >
-                              {event.is_featured ? (
-                                <StarOff className="w-4 h-4" />
-                              ) : (
-                                <Star className="w-4 h-4" />
-                              )}
-                            </Button>
+                          <TableCell>
+                            {event.is_free ? (
+                              <Badge variant="secondary">Free</Badge>
+                            ) : event.ticket_price ? (
+                              `₹${event.ticket_price}`
+                            ) : (
+                              "—"
+                            )}
+                          </TableCell>
 
-                            {editorialStatus !== "published" ? (
+                          <TableCell>
+                            <div className="flex flex-col gap-1">
+                              <Badge variant={editorialBadgeVariant(editorialStatus)}>
+                                {editorialStatus}
+                              </Badge>
+                              <Badge
+                                variant="outline"
+                                className={`capitalize ${lifecycleBadgeClass(lifecycleStatus)}`}
+                              >
+                                {lifecycleStatus}
+                              </Badge>
+                            </div>
+                          </TableCell>
+
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingEvent(event)}
+                                title="Edit"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -569,92 +557,121 @@ const EventsManagement = () => {
                                   updateEventMutation.mutate({
                                     id: event.id,
                                     updates: {
-                                      editorial_status: "published",
-                                      published_at:
-                                        event.published_at || new Date().toISOString(),
+                                      is_featured: !event.is_featured,
+                                      updated_at: new Date().toISOString(),
                                     },
                                   })
                                 }
-                                title="Publish"
+                                title={event.is_featured ? "Unfeature" : "Feature"}
                               >
-                                <CheckCircle className="w-4 h-4 text-primary" />
+                                {event.is_featured ? (
+                                  <StarOff className="w-4 h-4" />
+                                ) : (
+                                  <Star className="w-4 h-4" />
+                                )}
                               </Button>
-                            ) : (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  updateEventMutation.mutate({
-                                    id: event.id,
-                                    updates: { editorial_status: "draft" },
-                                  })
-                                }
-                                title="Move to Draft"
-                              >
-                                <FileEdit className="w-4 h-4 text-muted-foreground" />
-                              </Button>
-                            )}
 
-                            <a
-                              href={`/events/${event.slug}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <Button variant="ghost" size="sm" title="Preview">
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                            </a>
-
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="sm" title="Archive">
-                                  <Archive className="w-4 h-4 text-destructive" />
+                              {editorialStatus !== "published" ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    updateEventMutation.mutate({
+                                      id: event.id,
+                                      updates: {
+                                        editorial_status: "published",
+                                        published_at:
+                                          event.published_at || new Date().toISOString(),
+                                        updated_at: new Date().toISOString(),
+                                      },
+                                    })
+                                  }
+                                  title="Publish"
+                                >
+                                  <CheckCircle className="w-4 h-4 text-primary" />
                                 </Button>
-                              </AlertDialogTrigger>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    updateEventMutation.mutate({
+                                      id: event.id,
+                                      updates: {
+                                        editorial_status: "draft",
+                                        updated_at: new Date().toISOString(),
+                                      },
+                                    })
+                                  }
+                                  title="Move to Draft"
+                                >
+                                  <FileEdit className="w-4 h-4 text-muted-foreground" />
+                                </Button>
+                              )}
 
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Archive Event?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This will archive "{event.title}" instead of permanently deleting it.
-                                    You can still recover it later if needed.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
+                              {event.slug ? (
+                                <a
+                                  href={`/events/${event.slug}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <Button variant="ghost" size="sm" title="Preview">
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                </a>
+                              ) : null}
 
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => archiveEventMutation.mutate(event.id)}
-                                    className="bg-destructive text-destructive-foreground"
-                                  >
-                                    Archive
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="sm" title="Archive">
+                                    <Archive className="w-4 h-4 text-destructive" />
+                                  </Button>
+                                </AlertDialogTrigger>
+
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Archive Event?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will archive "{event.title}" instead of permanently deleting it.
+                                      You can still recover it later if needed.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => archiveEventMutation.mutate(event.id)}
+                                      className="bg-destructive text-destructive-foreground"
+                                    >
+                                      Archive
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+
+                    {filteredEvents.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                          No events found for the current filters.
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
+                    ) : null}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-                  {filteredEvents.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                        No events found for the current filters.
-                      </TableCell>
-                    </TableRow>
-                  ) : null}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="scraper">
-        <EventScraper />
-      </TabsContent>
+        <TabsContent value="scraper">
+          <EventScraper />
+        </TabsContent>
+      </Tabs>
 
       {editingEvent ? (
         <EventEditor
@@ -663,7 +680,15 @@ const EventsManagement = () => {
           onClose={() => setEditingEvent(null)}
         />
       ) : null}
-    </Tabs>
+
+      {isCreateOpen ? (
+        <EventEditor
+          event={null}
+          open={isCreateOpen}
+          onClose={() => setIsCreateOpen(false)}
+        />
+      ) : null}
+    </>
   );
 };
 
