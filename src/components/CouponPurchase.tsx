@@ -47,27 +47,28 @@ const CouponPurchase = ({ dealId }: { dealId: string }) => {
 
   const fetchDeal = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('deals')
         .select(`
           *,
           merchants!inner(
             id,
-            business_name,
-            is_verified
+            name,
+            status
           )
         `)
         .eq('id', dealId)
-        .eq('is_active', true)
+        .eq('status', 'published')
         .single();
 
       if (error) throw error;
       
+      const merchant = Array.isArray(data.merchants) ? data.merchants[0] : data.merchants;
       const formattedDeal: Deal = {
         id: data.id,
         title: data.title,
         description: data.description || '',
-        coupon_type: data.coupon_type as 'free' | 'paid_discount' | 'full_value',
+        coupon_type: data.coupon_type || 'free',
         purchase_price: data.purchase_price || 0,
         original_price: data.original_price || 0,
         discounted_price: data.discounted_price || 0,
@@ -77,9 +78,9 @@ const CouponPurchase = ({ dealId }: { dealId: string }) => {
         jaicoin_reward: data.jaicoin_reward || 0,
         location: data.location || '',
         merchants: {
-          id: data.merchants.id,
-          business_name: data.merchants.business_name,
-          is_verified: data.merchants.is_verified
+          id: merchant?.id || '',
+          business_name: merchant?.name || '',
+          is_verified: merchant?.status === 'published'
         }
       };
       
@@ -116,7 +117,7 @@ const CouponPurchase = ({ dealId }: { dealId: string }) => {
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + deal.validity_days);
 
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('coupons')
           .insert({
             deal_id: deal.id,
@@ -134,7 +135,7 @@ const CouponPurchase = ({ dealId }: { dealId: string }) => {
         if (error) throw error;
 
         // Award JaiCoins for free coupon claim
-        await supabase
+        await (supabase as any)
           .from('jaicoin_transactions')
           .insert({
             user_id: user.id,

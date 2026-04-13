@@ -23,7 +23,7 @@ const AdvancedAnalytics = () => {
       if (!user) return;
 
       // Fetch user analytics
-      const { data: analyticsData } = await supabase
+      const { data: analyticsData } = await (supabase as any)
         .from('user_analytics')
         .select('*')
         .eq('user_id', user.id)
@@ -33,7 +33,7 @@ const AdvancedAnalytics = () => {
       setUserAnalytics(analyticsData || []);
 
       // Fetch user badges
-      const { data: badgesData } = await supabase
+      const { data: badgesData } = await (supabase as any)
         .from('user_badges')
         .select('*')
         .eq('user_id', user.id)
