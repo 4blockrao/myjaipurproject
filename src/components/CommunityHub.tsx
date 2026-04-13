@@ -29,14 +29,14 @@ const CommunityHub = () => {
       const { data } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', authUser.id)
+        .eq('user_id', authUser.id)
         .single();
       setUser({ ...authUser, profile: data });
     }
   };
 
   const fetchPosts = async () => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from('community_posts')
       .select(`
         *,
@@ -47,7 +47,7 @@ const CommunityHub = () => {
   };
 
   const fetchReviews = async () => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from('reviews')
       .select(`
         *,
@@ -60,7 +60,7 @@ const CommunityHub = () => {
   const createPost = async () => {
     if (!newPost.trim() || !user) return;
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('community_posts')
       .insert({
         user_id: user.id,
@@ -86,7 +86,7 @@ const CommunityHub = () => {
   const likePost = async (postId: string) => {
     if (!user) return;
 
-    const { data: existingLike } = await supabase
+    const { data: existingLike } = await (supabase as any)
       .from('post_likes')
       .select('id')
       .eq('user_id', user.id)
@@ -95,14 +95,14 @@ const CommunityHub = () => {
 
     if (existingLike) {
       // Unlike
-      await supabase
+      await (supabase as any)
         .from('post_likes')
         .delete()
         .eq('user_id', user.id)
         .eq('post_id', postId);
     } else {
       // Like
-      await supabase
+      await (supabase as any)
         .from('post_likes')
         .insert({
           user_id: user.id,

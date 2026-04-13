@@ -1036,6 +1036,39 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       testing: {
         Row: {
           created_at: string
@@ -1048,6 +1081,33 @@ export type Database = {
         Update: {
           created_at?: string
           id?: number
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          id: string
+          metadata: Json | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          metadata?: Json | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          metadata?: Json | null
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -1315,10 +1375,34 @@ export type Database = {
           loc: string
         }[]
       }
+      get_user_roles: {
+        Args: { _user_id: string }
+        Returns: {
+          assigned_at: string
+          metadata: Json
+          role: Database["public"]["Enums"]["app_role"]
+        }[]
+      }
       get_venue_page: { Args: { p_slug: string }; Returns: Json }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       slugify: { Args: { input: string }; Returns: string }
     }
     Enums: {
+      app_role:
+        | "user"
+        | "pro_user"
+        | "merchant"
+        | "listing_agent"
+        | "listing_supervisor"
+        | "admin"
+        | "real_estate_broker"
+        | "event_organizer"
       index_status_enum: "index" | "noindex"
       status_enum:
         | "draft"
@@ -1455,6 +1539,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: [
+        "user",
+        "pro_user",
+        "merchant",
+        "listing_agent",
+        "listing_supervisor",
+        "admin",
+        "real_estate_broker",
+        "event_organizer",
+      ],
       index_status_enum: ["index", "noindex"],
       status_enum: [
         "draft",
