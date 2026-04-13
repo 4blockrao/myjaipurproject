@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { Calendar, Upload, Link2, MapPin, Tag } from "lucide-react";
 
 interface EventEditorProps {
-  event: any;
+  event: any | null;
   open: boolean;
   onClose: () => void;
 }
@@ -56,215 +56,101 @@ const slugify = (value: string) =>
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
 
+const getInitialFormData = () => ({
+  title: "",
+  slug: "",
+  short_description: "",
+  description: "",
+  start_date: "",
+  end_date: "",
+  venue_name: "",
+  venue_address: "",
+  locality: "",
+  category: "other",
+  ticket_price: "",
+  is_free: false,
+  image_url: "",
+  cover_image_url: "",
+  cover_image: "",
+  registration_url: "",
+  organizer_name: "",
+  status: "upcoming",
+  editorial_status: "draft",
+  is_featured: false,
+  is_indexable: true,
+  source_url: "",
+  source_label: "",
+  meta_title: "",
+  meta_description: "",
+  tags: "",
+});
+
 export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
   const queryClient = useQueryClient();
-  const [formData, setFormData] = useState({
-    title: "",
-    slug: "",
-    short_description: "",
-    description: "",
-    start_date: "",
-    end_date: "",
-    venue_name: "",
-    venue_address: "",
-    locality: "",
-    category: "other",
-    locality_id: "",
-    venue_id: "",
-    ticket_price: "",
-    is_free: false,
-    image_url: "",
-    cover_image_url: "",
-    cover_image: "",
-    registration_url: "",
-    organizer_name: "",
-    status: "upcoming",
-    editorial_status: "draft",
-    is_featured: false,
-    is_indexable: true,
-    source_url: "",
-    source_label: "",
-    meta_title: "",
-    meta_description: "",
-    tags: "",
-  });
-
+  const [formData, setFormData] = useState(getInitialFormData());
   const [uploading, setUploading] = useState(false);
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
-  const [selectedArtistIds, setSelectedArtistIds] = useState<string[]>([]);
-
-  const { data: localities = [] } = useQuery({
-    queryKey: ["event-editor-localities"],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("localities")
-        .select("id, name, slug")
-        .order("name", { ascending: true });
-
-      if (error) {
-        console.warn("Localities load failed:", error.message);
-        return [];
-      }
-
-      return data || [];
-    },
-  });
-
-  const { data: venues = [] } = useQuery({
-    queryKey: ["event-editor-venues"],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("venues")
-        .select("id, name, slug, locality_id")
-        .order("name", { ascending: true });
-
-      if (error) {
-        console.warn("Venues load failed:", error.message);
-        return [];
-      }
-
-      return data || [];
-    },
-  });
-
-  const { data: categories = [] } = useQuery({
-    queryKey: ["event-editor-categories"],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("categories")
-        .select("id, name, slug")
-        .order("name", { ascending: true });
-
-      if (error) {
-        console.warn("Categories load failed:", error.message);
-        return [];
-      }
-
-      return data || [];
-    },
-  });
-
-  const { data: artists = [] } = useQuery({
-    queryKey: ["event-editor-artists"],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("artists")
-        .select("id, name, slug")
-        .order("name", { ascending: true });
-
-      if (error) {
-        console.warn("Artists load failed:", error.message);
-        return [];
-      }
-
-      return data || [];
-    },
-  });
 
   useEffect(() => {
-    if (!event) return;
+    if (!open) return;
 
-    const nextTitle = event.title || "";
+    if (event) {
+      setFormData({
+        title: event.title || "",
+        slug: event.slug || slugify(event.title || ""),
+        short_description: event.short_description || "",
+        description: event.description || "",
+        start_date: event.start_date
+          ? new Date(event.start_date).toISOString().slice(0, 16)
+          : "",
+        end_date: event.end_date
+          ? new Date(event.end_date).toISOString().slice(0, 16)
+          : "",
+        venue_name: event.venue_name || "",
+        venue_address: event.venue_address || "",
+        locality: event.locality || "",
+        category: event.category || "other",
+        ticket_price: event.ticket_price?.toString() || "",
+        is_free: !!event.is_free,
+        image_url: event.image_url || "",
+        cover_image_url: event.cover_image_url || event.cover_image || "",
+        cover_image: event.cover_image || event.cover_image_url || "",
+        registration_url: event.registration_url || "",
+        organizer_name: event.organizer_name || "",
+        status: event.status || "upcoming",
+        editorial_status: event.editorial_status || "draft",
+        is_featured: !!event.is_featured,
+        is_indexable:
+          typeof event.is_indexable === "boolean" ? event.is_indexable : true,
+        source_url: event.source_url || "",
+        source_label: event.source_label || "",
+        meta_title: event.meta_title || "",
+        meta_description: event.meta_description || "",
+        tags: Array.isArray(event.tags) ? event.tags.join(", ") : "",
+      });
+    } else {
+      setFormData(getInitialFormData());
+    }
+  }, [event, open]);
 
-    setFormData({
-      title: nextTitle,
-      slug: event.slug || slugify(nextTitle),
-      short_description: event.short_description || "",
-      description: event.description || "",
-      start_date: event.start_date
-        ? new Date(event.start_date).toISOString().slice(0, 16)
-        : "",
-      end_date: event.end_date
-        ? new Date(event.end_date).toISOString().slice(0, 16)
-        : "",
-      venue_name: event.venue_name || "",
-      venue_address: event.venue_address || "",
-      locality: event.locality || "",
-      category: event.category || "other",
-      locality_id: event.locality_id || "",
-      venue_id: event.venue_id || "",
-      ticket_price: event.ticket_price?.toString() || "",
-      is_free: event.is_free || false,
-      image_url: event.image_url || "",
-      cover_image_url: event.cover_image_url || event.cover_image || "",
-      cover_image: event.cover_image || event.cover_image_url || "",
-      registration_url: event.registration_url || "",
-      organizer_name: event.organizer_name || "",
-      status: event.status || "upcoming",
-      editorial_status: event.editorial_status || "draft",
-      is_featured: event.is_featured || false,
-      is_indexable:
-        typeof event.is_indexable === "boolean" ? event.is_indexable : true,
-      source_url: event.source_url || "",
-      source_label: event.source_label || "",
-      meta_title: event.meta_title || "",
-      meta_description: event.meta_description || "",
-      tags: Array.isArray(event.tags) ? event.tags.join(", ") : "",
-    });
-  }, [event]);
-
-  useEffect(() => {
-    const loadRelations = async () => {
-      if (!event?.id) return;
-
-      try {
-        const { data: eventCategoryRows } = await (supabase as any)
-          .from("event_categories")
-          .select("category_id")
-          .eq("event_id", event.id);
-
-        setSelectedCategoryIds(
-          (eventCategoryRows || []).map((row: any) => row.category_id).filter(Boolean)
-        );
-      } catch (err) {
-        console.warn("Event categories load skipped");
-      }
-
-      try {
-        const { data: eventArtistRows } = await (supabase as any)
-          .from("event_artists")
-          .select("artist_id")
-          .eq("event_id", event.id);
-
-        setSelectedArtistIds(
-          (eventArtistRows || []).map((row: any) => row.artist_id).filter(Boolean)
-        );
-      } catch (err) {
-        console.warn("Event artists load skipped");
-      }
-    };
-
-    loadRelations();
-  }, [event?.id]);
-
-  const updateMutation = useMutation({
+  const saveMutation = useMutation({
     mutationFn: async () => {
-      const selectedLocality =
-        localities.find((item: any) => item.id === formData.locality_id) || null;
+      const slug = formData.slug?.trim() || slugify(formData.title);
 
-      const selectedVenue =
-        venues.find((item: any) => item.id === formData.venue_id) || null;
-
-      const selectedCategoryObjects = categories.filter((item: any) =>
-        selectedCategoryIds.includes(item.id)
-      );
-
-      const updates: Record<string, any> = {
-        title: formData.title,
-        slug: formData.slug || slugify(formData.title),
-        short_description: formData.short_description,
-        description: formData.description,
+      const payload: Record<string, any> = {
+        title: formData.title.trim(),
+        slug,
+        short_description: formData.short_description || null,
+        description: formData.description || null,
         start_date: formData.start_date
           ? new Date(formData.start_date).toISOString()
           : null,
-        end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null,
-        venue_name: selectedVenue?.name || formData.venue_name || null,
+        end_date: formData.end_date
+          ? new Date(formData.end_date).toISOString()
+          : null,
+        venue_name: formData.venue_name || null,
         venue_address: formData.venue_address || null,
-        locality: selectedLocality?.slug || formData.locality || null,
-        category:
-          selectedCategoryObjects[0]?.slug || formData.category || EVENT_CATEGORIES[0],
-        locality_id: formData.locality_id || null,
-        venue_id: formData.venue_id || null,
+        locality: formData.locality || null,
+        category: formData.category || "other",
         ticket_price:
           formData.is_free || !formData.ticket_price
             ? null
@@ -290,61 +176,37 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
         updated_at: new Date().toISOString(),
       };
 
-      if (formData.editorial_status === "published" && !event?.published_at) {
-        updates.published_at = new Date().toISOString();
+      if (formData.editorial_status === "published") {
+        payload.published_at = event?.published_at || new Date().toISOString();
       }
 
-      const { error } = await supabase.from("events").update(updates).eq("id", event.id);
-      if (error) throw error;
-
-      try {
-        await (supabase as any).from("event_categories").delete().eq("event_id", event.id);
-
-        if (selectedCategoryIds.length > 0) {
-          const rows = selectedCategoryIds.map((categoryId) => ({
-            event_id: event.id,
-            category_id: categoryId,
-          }));
-
-          await (supabase as any).from("event_categories").insert(rows);
-        }
-      } catch (err) {
-        console.warn("Event categories sync skipped");
-      }
-
-      try {
-        await (supabase as any).from("event_artists").delete().eq("event_id", event.id);
-
-        if (selectedArtistIds.length > 0) {
-          const rows = selectedArtistIds.map((artistId) => ({
-            event_id: event.id,
-            artist_id: artistId,
-          }));
-
-          await (supabase as any).from("event_artists").insert(rows);
-        }
-      } catch (err) {
-        console.warn("Event artists sync skipped");
+      if (event?.id) {
+        const { error } = await supabase.from("events").update(payload).eq("id", event.id);
+        if (error) throw error;
+      } else {
+        payload.created_at = new Date().toISOString();
+        const { error } = await supabase.from("events").insert(payload);
+        if (error) throw error;
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-events"] });
-      toast.success("Event updated successfully");
+      toast.success(event?.id ? "Event updated successfully" : "Event created successfully");
       onClose();
     },
     onError: (error: any) => {
-      toast.error("Failed to update event: " + error.message);
+      toast.error(error?.message || "Failed to save event");
     },
   });
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !event?.id) return;
+    if (!file) return;
 
     setUploading(true);
     try {
       const fileExt = file.name.split(".").pop();
-      const fileName = `event-${event.id}-${Date.now()}.${fileExt}`;
+      const fileName = `event-${event?.id || "new"}-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("event-images")
@@ -374,66 +236,44 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
     }
   };
 
-  const toggleCategory = (categoryId: string) => {
-    setSelectedCategoryIds((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
-    );
-  };
-
-  const toggleArtist = (artistId: string) => {
-    setSelectedArtistIds((prev) =>
-      prev.includes(artistId)
-        ? prev.filter((id) => id !== artistId)
-        : [...prev, artistId]
-    );
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.slug.trim()) {
-      setFormData((prev) => ({ ...prev, slug: slugify(prev.title) }));
+    if (!formData.title.trim()) {
+      toast.error("Event title is required");
+      return;
     }
 
-    updateMutation.mutate();
+    if (!formData.start_date) {
+      toast.error("Start date is required");
+      return;
+    }
+
+    saveMutation.mutate();
   };
-
-  const selectedLocality = localities.find(
-    (item: any) => item.id === formData.locality_id
-  );
-
-  const localityScopedVenues =
-    formData.locality_id && venues.length > 0
-      ? venues.filter(
-          (item: any) =>
-            !item.locality_id || item.locality_id === formData.locality_id
-        )
-      : venues;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="w-5 h-5" />
-            Edit Event
+            {event?.id ? "Edit Event" : "Create Event"}
           </DialogTitle>
           <DialogDescription>
-            Update publishing, lifecycle, location, classification, SEO, and source details.
+            Fill the required fields, save as draft or publish when ready.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Info */}
+          {/* Basic Information */}
           <div className="space-y-4">
             <h3 className="font-semibold text-sm text-muted-foreground">
               Basic Information
             </h3>
 
             <div className="space-y-2">
-              <Label htmlFor="title">Event Title</Label>
+              <Label htmlFor="title">Event Title *</Label>
               <Input
                 id="title"
                 value={formData.title}
@@ -449,7 +289,7 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="slug">Slug</Label>
+              <Label htmlFor="slug">Slug *</Label>
               <Input
                 id="slug"
                 value={formData.slug}
@@ -487,20 +327,18 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
             </div>
           </div>
 
-          {/* Status & Publishing */}
+          {/* Publishing & Lifecycle */}
           <div className="space-y-4">
             <h3 className="font-semibold text-sm text-muted-foreground">
-              Lifecycle & Publishing
+              Publishing & Lifecycle
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="status">Lifecycle Status</Label>
+                <Label>Lifecycle Status *</Label>
                 <Select
                   value={formData.status}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, status: value })
-                  }
+                  onValueChange={(value) => setFormData({ ...formData, status: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -516,7 +354,7 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="editorial_status">Editorial Status</Label>
+                <Label>Editorial Status *</Label>
                 <Select
                   value={formData.editorial_status}
                   onValueChange={(value) =>
@@ -535,29 +373,29 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
 
-              <div className="flex items-end gap-6 pb-2">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="is_featured"
-                    checked={formData.is_featured}
-                    onCheckedChange={(checked) =>
-                      setFormData({ ...formData, is_featured: checked })
-                    }
-                  />
-                  <Label htmlFor="is_featured">Featured</Label>
-                </div>
+            <div className="flex items-center gap-6 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="is_featured"
+                  checked={formData.is_featured}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, is_featured: checked })
+                  }
+                />
+                <Label htmlFor="is_featured">Featured</Label>
+              </div>
 
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="is_indexable"
-                    checked={formData.is_indexable}
-                    onCheckedChange={(checked) =>
-                      setFormData({ ...formData, is_indexable: checked })
-                    }
-                  />
-                  <Label htmlFor="is_indexable">Indexable</Label>
-                </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="is_indexable"
+                  checked={formData.is_indexable}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, is_indexable: checked })
+                  }
+                />
+                <Label htmlFor="is_indexable">Indexable</Label>
               </div>
             </div>
           </div>
@@ -570,7 +408,7 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="start_date">Start Date & Time</Label>
+                <Label htmlFor="start_date">Start Date & Time *</Label>
                 <Input
                   id="start_date"
                   type="datetime-local"
@@ -596,89 +434,36 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
             </div>
           </div>
 
-          {/* Location */}
+          {/* Venue & Location */}
           <div className="space-y-4">
             <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
               <MapPin className="w-4 h-4" />
-              Location
+              Venue & Location
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Locality</Label>
-                <Select
-                  value={formData.locality_id || "none"}
-                  onValueChange={(value) =>
-                    setFormData({
-                      ...formData,
-                      locality_id: value === "none" ? "" : value,
-                      locality:
-                        value === "none"
-                          ? ""
-                          : localities.find((item: any) => item.id === value)?.slug || "",
-                    })
+                <Label htmlFor="venue_name">Venue Name</Label>
+                <Input
+                  id="venue_name"
+                  value={formData.venue_name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, venue_name: e.target.value })
                   }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select locality" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No locality</SelectItem>
-                    {localities.map((item: any) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {!formData.locality_id ? (
-                  <Input
-                    value={formData.locality}
-                    onChange={(e) =>
-                      setFormData({ ...formData, locality: e.target.value })
-                    }
-                    placeholder="Fallback locality slug/text"
-                  />
-                ) : null}
+                  placeholder="e.g., Jawahar Kala Kendra"
+                />
               </div>
 
               <div className="space-y-2">
-                <Label>Venue</Label>
-                <Select
-                  value={formData.venue_id || "none"}
-                  onValueChange={(value) => {
-                    const nextVenue =
-                      localityScopedVenues.find((item: any) => item.id === value) || null;
-
-                    setFormData({
-                      ...formData,
-                      venue_id: value === "none" ? "" : value,
-                      venue_name:
-                        value === "none" ? formData.venue_name : nextVenue?.name || "",
-                    });
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select venue" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No venue</SelectItem>
-                    {localityScopedVenues.map((item: any) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {!formData.venue_id ? (
-                  <Input
-                    value={formData.venue_name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, venue_name: e.target.value })
-                    }
-                    placeholder="Fallback venue name"
-                  />
-                ) : null}
+                <Label htmlFor="locality">Locality</Label>
+                <Input
+                  id="locality"
+                  value={formData.locality}
+                  onChange={(e) =>
+                    setFormData({ ...formData, locality: e.target.value })
+                  }
+                  placeholder="e.g., c-scheme"
+                />
               </div>
             </div>
 
@@ -705,27 +490,19 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
                 placeholder="Event organizer"
               />
             </div>
-
-            {selectedLocality ? (
-              <p className="text-xs text-muted-foreground">
-                Selected locality: {selectedLocality.name}
-              </p>
-            ) : null}
           </div>
 
-          {/* Classification */}
+          {/* Category & Pricing */}
           <div className="space-y-4">
             <h3 className="font-semibold text-sm text-muted-foreground">
-              Classification
+              Category & Pricing
             </h3>
 
             <div className="space-y-2">
-              <Label>Primary Category (legacy compatibility)</Label>
+              <Label>Category</Label>
               <Select
                 value={formData.category}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, category: value })
-                }
+                onValueChange={(value) => setFormData({ ...formData, category: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -739,57 +516,6 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
                 </SelectContent>
               </Select>
             </div>
-
-            {categories.length > 0 ? (
-              <div className="space-y-2">
-                <Label>Category Relations</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {categories.map((cat: any) => {
-                    const checked = selectedCategoryIds.includes(cat.id);
-                    return (
-                      <Button
-                        key={cat.id}
-                        type="button"
-                        variant={checked ? "default" : "outline"}
-                        className="justify-start"
-                        onClick={() => toggleCategory(cat.id)}
-                      >
-                        {cat.name}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : null}
-
-            {artists.length > 0 ? (
-              <div className="space-y-2">
-                <Label>Artists</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {artists.map((artist: any) => {
-                    const checked = selectedArtistIds.includes(artist.id);
-                    return (
-                      <Button
-                        key={artist.id}
-                        type="button"
-                        variant={checked ? "default" : "outline"}
-                        className="justify-start"
-                        onClick={() => toggleArtist(artist.id)}
-                      >
-                        {artist.name}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : null}
-          </div>
-
-          {/* Tickets & Pricing */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-sm text-muted-foreground">
-              Tickets & Pricing
-            </h3>
 
             <div className="flex items-center gap-6 flex-wrap">
               <div className="flex items-center gap-2">
@@ -840,14 +566,14 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
             </div>
           </div>
 
-          {/* Source & Media */}
+          {/* Source & Images */}
           <div className="space-y-4">
             <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
               <Upload className="w-4 h-4" />
               Source & Images
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="source_url">Source URL</Label>
                 <Input
@@ -869,7 +595,7 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
                   onChange={(e) =>
                     setFormData({ ...formData, source_label: e.target.value })
                   }
-                  placeholder="BookMyShow / Insider / Manual"
+                  placeholder="BookMyShow / Manual / Insider"
                 />
               </div>
             </div>
@@ -946,7 +672,7 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
                     meta_title: e.target.value.slice(0, 60),
                   })
                 }
-                placeholder="SEO-optimized title for search engines"
+                placeholder="SEO-optimized title"
                 maxLength={60}
               />
               <p className="text-xs text-muted-foreground">
@@ -955,9 +681,7 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="meta_description">
-                Meta Description (max 160 chars)
-              </Label>
+              <Label htmlFor="meta_description">Meta Description (max 160 chars)</Label>
               <Textarea
                 id="meta_description"
                 value={formData.meta_description}
@@ -967,7 +691,7 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
                     meta_description: e.target.value.slice(0, 160),
                   })
                 }
-                placeholder="SEO-optimized description for search results"
+                placeholder="SEO-optimized description"
                 rows={2}
                 maxLength={160}
               />
@@ -981,10 +705,8 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
               <Input
                 id="tags"
                 value={formData.tags}
-                onChange={(e) =>
-                  setFormData({ ...formData, tags: e.target.value })
-                }
-                placeholder="jaipur, event, comedy, live-show"
+                onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                placeholder="comedy, jaipur, live-show"
               />
             </div>
           </div>
@@ -994,8 +716,14 @@ export const EventEditor = ({ event, open, onClose }: EventEditorProps) => {
               Cancel
             </Button>
 
-            <Button type="submit" disabled={updateMutation.isPending}>
-              {updateMutation.isPending ? "Saving..." : "Save Changes"}
+            <Button type="submit" disabled={saveMutation.isPending}>
+              {saveMutation.isPending
+                ? event?.id
+                  ? "Saving..."
+                  : "Creating..."
+                : event?.id
+                ? "Save Changes"
+                : "Create Event"}
             </Button>
           </DialogFooter>
         </form>
