@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase as supabaseTyped } from '@/integrations/supabase/client';
+const supabase: any = supabaseTyped;
 import { useToast } from '@/hooks/use-toast';
 import { Database, AlertTriangle, Trash2, CheckCircle, XCircle, Users, Coins } from 'lucide-react';
 
