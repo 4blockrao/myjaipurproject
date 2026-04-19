@@ -1,0 +1,1 @@
+UPDATE public.events SET editorial_status='published', status='published', published_at=COALESCE(published_at, now()) WHERE editorial_status='draft';
