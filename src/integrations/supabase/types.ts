@@ -100,6 +100,7 @@ export type Database = {
           canonical_url: string | null
           created_at: string | null
           description: string | null
+          editorial_status: string | null
           h1_override: string | null
           id: string
           index_status: Database["public"]["Enums"]["index_status_enum"] | null
@@ -107,6 +108,8 @@ export type Database = {
           meta_description: string | null
           meta_title: string | null
           name: string
+          parent_slug: string | null
+          published_at: string | null
           seo_blurb: string | null
           seo_content: string | null
           slug: string
@@ -117,6 +120,7 @@ export type Database = {
           canonical_url?: string | null
           created_at?: string | null
           description?: string | null
+          editorial_status?: string | null
           h1_override?: string | null
           id?: string
           index_status?: Database["public"]["Enums"]["index_status_enum"] | null
@@ -124,6 +128,8 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           name: string
+          parent_slug?: string | null
+          published_at?: string | null
           seo_blurb?: string | null
           seo_content?: string | null
           slug: string
@@ -134,6 +140,7 @@ export type Database = {
           canonical_url?: string | null
           created_at?: string | null
           description?: string | null
+          editorial_status?: string | null
           h1_override?: string | null
           id?: string
           index_status?: Database["public"]["Enums"]["index_status_enum"] | null
@@ -141,6 +148,8 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           name?: string
+          parent_slug?: string | null
+          published_at?: string | null
           seo_blurb?: string | null
           seo_content?: string | null
           slug?: string
@@ -322,6 +331,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "event_artists_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "event_artist_match_candidates"
+            referencedColumns: ["artist_id"]
+          },
+          {
+            foreignKeyName: "event_artists_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_artist_match_candidates"
+            referencedColumns: ["event_id"]
+          },
+          {
             foreignKeyName: "event_artists_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
@@ -333,6 +356,41 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_artists_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_artist_coverage_audit"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_artists_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_graph_health"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_artists_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_integrity_audit"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_artists_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_quality_score"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_artists_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_venue_tba_audit"
             referencedColumns: ["id"]
           },
         ]
@@ -369,6 +427,13 @@ export type Database = {
             foreignKeyName: "event_categories_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_artist_match_candidates"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "event_categories_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "event_slug_aliases_view"
             referencedColumns: ["event_id"]
           },
@@ -377,6 +442,41 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_categories_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_artist_coverage_audit"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_categories_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_graph_health"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_categories_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_integrity_audit"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_categories_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_quality_score"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_categories_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_venue_tba_audit"
             referencedColumns: ["id"]
           },
         ]
@@ -411,6 +511,13 @@ export type Database = {
             foreignKeyName: "event_slug_aliases_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_artist_match_candidates"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "event_slug_aliases_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "event_slug_aliases_view"
             referencedColumns: ["event_id"]
           },
@@ -421,12 +528,51 @@ export type Database = {
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "event_slug_aliases_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_artist_coverage_audit"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_slug_aliases_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_graph_health"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_slug_aliases_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_integrity_audit"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_slug_aliases_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_quality_score"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_slug_aliases_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_venue_tba_audit"
+            referencedColumns: ["id"]
+          },
         ]
       }
       events: {
         Row: {
+          archive_status: string | null
+          archive_summary: string | null
+          audience_tags: string[] | null
           canonical_url: string | null
           category: string | null
+          confidence_score: number | null
           cover_image: string | null
           cover_image_url: string | null
           created_at: string | null
@@ -435,28 +581,39 @@ export type Database = {
           editorial_status: string | null
           end_date: string | null
           end_time: string | null
+          event_format: string | null
           faq_json: Json | null
+          freshness_score: number | null
           h1_override: string | null
           id: string
           image_url: string | null
           index_status: Database["public"]["Enums"]["index_status_enum"] | null
+          interested_count: number | null
           is_featured: boolean | null
           is_free: boolean | null
           is_indexable: boolean | null
           is_online: boolean | null
+          last_verified_at: string | null
           locality: string | null
           locality_id: string | null
           meta_description: string | null
           meta_title: string | null
+          next_edition_id: string | null
           online_url: string | null
           organizer_name: string | null
+          photo_count: number | null
+          price_band: string | null
           price_max: number | null
           price_min: number | null
           published_at: string | null
+          recap_summary: string | null
           registration_url: string | null
+          review_count: number | null
+          saved_count: number | null
           schema_json: Json | null
           seo_blurb: string | null
           seo_content: string | null
+          series_key: string | null
           short_description: string | null
           slug: string
           source_label: string | null
@@ -474,8 +631,12 @@ export type Database = {
           venue_name: string | null
         }
         Insert: {
+          archive_status?: string | null
+          archive_summary?: string | null
+          audience_tags?: string[] | null
           canonical_url?: string | null
           category?: string | null
+          confidence_score?: number | null
           cover_image?: string | null
           cover_image_url?: string | null
           created_at?: string | null
@@ -484,28 +645,39 @@ export type Database = {
           editorial_status?: string | null
           end_date?: string | null
           end_time?: string | null
+          event_format?: string | null
           faq_json?: Json | null
+          freshness_score?: number | null
           h1_override?: string | null
           id?: string
           image_url?: string | null
           index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          interested_count?: number | null
           is_featured?: boolean | null
           is_free?: boolean | null
           is_indexable?: boolean | null
           is_online?: boolean | null
+          last_verified_at?: string | null
           locality?: string | null
           locality_id?: string | null
           meta_description?: string | null
           meta_title?: string | null
+          next_edition_id?: string | null
           online_url?: string | null
           organizer_name?: string | null
+          photo_count?: number | null
+          price_band?: string | null
           price_max?: number | null
           price_min?: number | null
           published_at?: string | null
+          recap_summary?: string | null
           registration_url?: string | null
+          review_count?: number | null
+          saved_count?: number | null
           schema_json?: Json | null
           seo_blurb?: string | null
           seo_content?: string | null
+          series_key?: string | null
           short_description?: string | null
           slug: string
           source_label?: string | null
@@ -523,8 +695,12 @@ export type Database = {
           venue_name?: string | null
         }
         Update: {
+          archive_status?: string | null
+          archive_summary?: string | null
+          audience_tags?: string[] | null
           canonical_url?: string | null
           category?: string | null
+          confidence_score?: number | null
           cover_image?: string | null
           cover_image_url?: string | null
           created_at?: string | null
@@ -533,28 +709,39 @@ export type Database = {
           editorial_status?: string | null
           end_date?: string | null
           end_time?: string | null
+          event_format?: string | null
           faq_json?: Json | null
+          freshness_score?: number | null
           h1_override?: string | null
           id?: string
           image_url?: string | null
           index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          interested_count?: number | null
           is_featured?: boolean | null
           is_free?: boolean | null
           is_indexable?: boolean | null
           is_online?: boolean | null
+          last_verified_at?: string | null
           locality?: string | null
           locality_id?: string | null
           meta_description?: string | null
           meta_title?: string | null
+          next_edition_id?: string | null
           online_url?: string | null
           organizer_name?: string | null
+          photo_count?: number | null
+          price_band?: string | null
           price_max?: number | null
           price_min?: number | null
           published_at?: string | null
+          recap_summary?: string | null
           registration_url?: string | null
+          review_count?: number | null
+          saved_count?: number | null
           schema_json?: Json | null
           seo_blurb?: string | null
           seo_content?: string | null
+          series_key?: string | null
           short_description?: string | null
           slug?: string
           source_label?: string | null
@@ -573,6 +760,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "events_locality_fk"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_locality_fk"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
+          },
+          {
             foreignKeyName: "events_locality_id_fkey"
             columns: ["locality_id"]
             isOneToOne: false
@@ -587,6 +788,62 @@ export type Database = {
             referencedColumns: ["locality_id"]
           },
           {
+            foreignKeyName: "events_next_edition_id_fkey"
+            columns: ["next_edition_id"]
+            isOneToOne: false
+            referencedRelation: "event_artist_match_candidates"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "events_next_edition_id_fkey"
+            columns: ["next_edition_id"]
+            isOneToOne: false
+            referencedRelation: "event_slug_aliases_view"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "events_next_edition_id_fkey"
+            columns: ["next_edition_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_next_edition_id_fkey"
+            columns: ["next_edition_id"]
+            isOneToOne: false
+            referencedRelation: "events_artist_coverage_audit"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_next_edition_id_fkey"
+            columns: ["next_edition_id"]
+            isOneToOne: false
+            referencedRelation: "events_graph_health"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_next_edition_id_fkey"
+            columns: ["next_edition_id"]
+            isOneToOne: false
+            referencedRelation: "events_integrity_audit"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_next_edition_id_fkey"
+            columns: ["next_edition_id"]
+            isOneToOne: false
+            referencedRelation: "events_quality_score"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_next_edition_id_fkey"
+            columns: ["next_edition_id"]
+            isOneToOne: false
+            referencedRelation: "events_venue_tba_audit"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "events_venue_id_fkey"
             columns: ["venue_id"]
             isOneToOne: false
@@ -594,6 +851,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      legacy_redirect_review: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          entity_type: string | null
+          old_path: string
+          old_slug: string | null
+          reason: string | null
+          reviewed: boolean
+          suggested_new_path: string | null
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          entity_type?: string | null
+          old_path: string
+          old_slug?: string | null
+          reason?: string | null
+          reviewed?: boolean
+          suggested_new_path?: string | null
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          entity_type?: string | null
+          old_path?: string
+          old_slug?: string | null
+          reason?: string | null
+          reviewed?: boolean
+          suggested_new_path?: string | null
+        }
+        Relationships: []
+      }
+      legacy_redirects: {
+        Row: {
+          created_at: string
+          id: number
+          is_active: boolean
+          new_path: string
+          old_path: string
+          reason: string | null
+          status_code: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          is_active?: boolean
+          new_path: string
+          old_path: string
+          reason?: string | null
+          status_code?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          is_active?: boolean
+          new_path?: string
+          old_path?: string
+          reason?: string | null
+          status_code?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       legacy_routes: {
         Row: {
@@ -628,8 +951,24 @@ export type Database = {
         }
         Relationships: []
       }
+      legacy_url_import: {
+        Row: {
+          created_at: string
+          raw_url: string
+        }
+        Insert: {
+          created_at?: string
+          raw_url: string
+        }
+        Update: {
+          created_at?: string
+          raw_url?: string
+        }
+        Relationships: []
+      }
       localities: {
         Row: {
+          best_for: string[] | null
           canonical_url: string | null
           created_at: string | null
           description: string | null
@@ -641,21 +980,34 @@ export type Database = {
           index_override: boolean | null
           index_status: Database["public"]["Enums"]["index_status_enum"] | null
           is_indexable: boolean | null
+          is_placeholder: boolean
+          known_for: string[] | null
+          locality_type: string | null
           meta_description: string | null
           meta_title: string | null
+          municipality: string | null
           name: string
+          name_hi: string | null
+          nearby_localities: string[] | null
+          parent_locality_slug: string | null
+          pincode: string | null
+          police_station: string | null
           quality_score: number | null
+          related_localities: string[] | null
           schema_json: Json | null
           seo_blurb: string | null
           seo_content: string | null
           should_index: boolean | null
           slug: string
+          source_label: string | null
           status: Database["public"]["Enums"]["status_enum"] | null
           updated_at: string | null
+          vibe_tags: string[] | null
           zone: string | null
           zone_id: string | null
         }
         Insert: {
+          best_for?: string[] | null
           canonical_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -667,21 +1019,34 @@ export type Database = {
           index_override?: boolean | null
           index_status?: Database["public"]["Enums"]["index_status_enum"] | null
           is_indexable?: boolean | null
+          is_placeholder?: boolean
+          known_for?: string[] | null
+          locality_type?: string | null
           meta_description?: string | null
           meta_title?: string | null
+          municipality?: string | null
           name: string
+          name_hi?: string | null
+          nearby_localities?: string[] | null
+          parent_locality_slug?: string | null
+          pincode?: string | null
+          police_station?: string | null
           quality_score?: number | null
+          related_localities?: string[] | null
           schema_json?: Json | null
           seo_blurb?: string | null
           seo_content?: string | null
           should_index?: boolean | null
           slug: string
+          source_label?: string | null
           status?: Database["public"]["Enums"]["status_enum"] | null
           updated_at?: string | null
+          vibe_tags?: string[] | null
           zone?: string | null
           zone_id?: string | null
         }
         Update: {
+          best_for?: string[] | null
           canonical_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -693,17 +1058,29 @@ export type Database = {
           index_override?: boolean | null
           index_status?: Database["public"]["Enums"]["index_status_enum"] | null
           is_indexable?: boolean | null
+          is_placeholder?: boolean
+          known_for?: string[] | null
+          locality_type?: string | null
           meta_description?: string | null
           meta_title?: string | null
+          municipality?: string | null
           name?: string
+          name_hi?: string | null
+          nearby_localities?: string[] | null
+          parent_locality_slug?: string | null
+          pincode?: string | null
+          police_station?: string | null
           quality_score?: number | null
+          related_localities?: string[] | null
           schema_json?: Json | null
           seo_blurb?: string | null
           seo_content?: string | null
           should_index?: boolean | null
           slug?: string
+          source_label?: string | null
           status?: Database["public"]["Enums"]["status_enum"] | null
           updated_at?: string | null
+          vibe_tags?: string[] | null
           zone?: string | null
           zone_id?: string | null
         }
@@ -719,30 +1096,53 @@ export type Database = {
       }
       locality_aliases: {
         Row: {
+          alias: string | null
+          alias_slug: string | null
           created_at: string | null
           id: string
           locality_id: string | null
+          locality_slug: string | null
           notes: string | null
           old_slug: string | null
           updated_at: string | null
         }
         Insert: {
+          alias?: string | null
+          alias_slug?: string | null
           created_at?: string | null
           id?: string
           locality_id?: string | null
+          locality_slug?: string | null
           notes?: string | null
           old_slug?: string | null
           updated_at?: string | null
         }
         Update: {
+          alias?: string | null
+          alias_slug?: string | null
           created_at?: string | null
           id?: string
           locality_id?: string | null
+          locality_slug?: string | null
           notes?: string | null
           old_slug?: string | null
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_locality_aliases_locality_slug"
+            columns: ["locality_slug"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["slug"]
+          },
+          {
+            foreignKeyName: "fk_locality_aliases_locality_slug"
+            columns: ["locality_slug"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_slug"]
+          },
           {
             foreignKeyName: "locality_aliases_locality_id_fkey"
             columns: ["locality_id"]
@@ -752,6 +1152,98 @@ export type Database = {
           },
           {
             foreignKeyName: "locality_aliases_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
+          },
+        ]
+      }
+      locality_category_pages: {
+        Row: {
+          canonical_url: string | null
+          category_id: string
+          created_at: string | null
+          description: string | null
+          editorial_status: string | null
+          id: string
+          index_override: boolean | null
+          index_status: Database["public"]["Enums"]["index_status_enum"] | null
+          is_indexable: boolean | null
+          locality_id: string
+          meta_description: string | null
+          meta_title: string | null
+          published_at: string | null
+          should_index: boolean | null
+          slug: string | null
+          status: Database["public"]["Enums"]["status_enum"] | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          canonical_url?: string | null
+          category_id: string
+          created_at?: string | null
+          description?: string | null
+          editorial_status?: string | null
+          id?: string
+          index_override?: boolean | null
+          index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          is_indexable?: boolean | null
+          locality_id: string
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          should_index?: boolean | null
+          slug?: string | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          canonical_url?: string | null
+          category_id?: string
+          created_at?: string | null
+          description?: string | null
+          editorial_status?: string | null
+          id?: string
+          index_override?: boolean | null
+          index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          is_indexable?: boolean | null
+          locality_id?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          should_index?: boolean | null
+          slug?: string | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locality_category_pages_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locality_category_pages_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "category_aliases_view"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "locality_category_pages_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locality_category_pages_locality_id_fkey"
             columns: ["locality_id"]
             isOneToOne: false
             referencedRelation: "locality_aliases_view"
@@ -1279,6 +1771,20 @@ export type Database = {
         }
         Relationships: []
       }
+      event_artist_match_candidates: {
+        Row: {
+          artist_id: string | null
+          artist_name: string | null
+          artist_slug: string | null
+          category: string | null
+          event_id: string | null
+          match_type: string | null
+          slug: string | null
+          start_date: string | null
+          title: string | null
+        }
+        Relationships: []
+      }
       event_artists_view: {
         Row: {
           artist_id: string | null
@@ -1300,6 +1806,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "event_artists_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "event_artist_match_candidates"
+            referencedColumns: ["artist_id"]
+          },
+          {
+            foreignKeyName: "event_artists_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_artist_match_candidates"
+            referencedColumns: ["event_id"]
+          },
+          {
             foreignKeyName: "event_artists_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
@@ -1311,6 +1831,41 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_artists_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_artist_coverage_audit"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_artists_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_graph_health"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_artists_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_integrity_audit"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_artists_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_quality_score"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_artists_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events_venue_tba_audit"
             referencedColumns: ["id"]
           },
         ]
@@ -1327,6 +1882,371 @@ export type Database = {
           updated_at: string | null
         }
         Relationships: []
+      }
+      events_artist_coverage_audit: {
+        Row: {
+          category: string | null
+          has_artist_link: boolean | null
+          id: string | null
+          likely_performer_led_title: boolean | null
+          locality: string | null
+          slug: string | null
+          start_date: string | null
+          title: string | null
+          venue_name: string | null
+        }
+        Insert: {
+          category?: string | null
+          has_artist_link?: never
+          id?: string | null
+          likely_performer_led_title?: never
+          locality?: string | null
+          slug?: string | null
+          start_date?: string | null
+          title?: string | null
+          venue_name?: string | null
+        }
+        Update: {
+          category?: string | null
+          has_artist_link?: never
+          id?: string | null
+          likely_performer_led_title?: never
+          locality?: string | null
+          slug?: string | null
+          start_date?: string | null
+          title?: string | null
+          venue_name?: string | null
+        }
+        Relationships: []
+      }
+      events_graph_health: {
+        Row: {
+          editorial_status: string | null
+          id: string | null
+          index_status: Database["public"]["Enums"]["index_status_enum"] | null
+          locality: string | null
+          locality_id: string | null
+          missing_locality_link: boolean | null
+          missing_venue_link: boolean | null
+          slug: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["status_enum"] | null
+          title: string | null
+          venue_id: string | null
+          venue_name: string | null
+        }
+        Insert: {
+          editorial_status?: string | null
+          id?: string | null
+          index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          locality?: string | null
+          locality_id?: string | null
+          missing_locality_link?: never
+          missing_venue_link?: never
+          slug?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
+          title?: string | null
+          venue_id?: string | null
+          venue_name?: string | null
+        }
+        Update: {
+          editorial_status?: string | null
+          id?: string | null
+          index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          locality?: string | null
+          locality_id?: string | null
+          missing_locality_link?: never
+          missing_venue_link?: never
+          slug?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
+          title?: string | null
+          venue_id?: string | null
+          venue_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_locality_fk"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_locality_fk"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
+          },
+          {
+            foreignKeyName: "events_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
+          },
+          {
+            foreignKeyName: "events_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events_integrity_audit: {
+        Row: {
+          category: string | null
+          editorial_status: string | null
+          generic_city_level_locality: boolean | null
+          has_core_graph_links: boolean | null
+          id: string | null
+          index_status: Database["public"]["Enums"]["index_status_enum"] | null
+          locality: string | null
+          locality_id: string | null
+          missing_locality_link: boolean | null
+          missing_slug: boolean | null
+          missing_venue_link: boolean | null
+          organizer_name: string | null
+          slug: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["status_enum"] | null
+          title: string | null
+          venue_id: string | null
+          venue_name: string | null
+          venue_tba_row: boolean | null
+        }
+        Insert: {
+          category?: string | null
+          editorial_status?: string | null
+          generic_city_level_locality?: never
+          has_core_graph_links?: never
+          id?: string | null
+          index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          locality?: string | null
+          locality_id?: string | null
+          missing_locality_link?: never
+          missing_slug?: never
+          missing_venue_link?: never
+          organizer_name?: string | null
+          slug?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
+          title?: string | null
+          venue_id?: string | null
+          venue_name?: string | null
+          venue_tba_row?: never
+        }
+        Update: {
+          category?: string | null
+          editorial_status?: string | null
+          generic_city_level_locality?: never
+          has_core_graph_links?: never
+          id?: string | null
+          index_status?: Database["public"]["Enums"]["index_status_enum"] | null
+          locality?: string | null
+          locality_id?: string | null
+          missing_locality_link?: never
+          missing_slug?: never
+          missing_venue_link?: never
+          organizer_name?: string | null
+          slug?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
+          title?: string | null
+          venue_id?: string | null
+          venue_name?: string | null
+          venue_tba_row?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_locality_fk"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_locality_fk"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
+          },
+          {
+            foreignKeyName: "events_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
+          },
+          {
+            foreignKeyName: "events_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events_quality_score: {
+        Row: {
+          category: string | null
+          id: string | null
+          locality_id: string | null
+          quality_score: number | null
+          slug: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["status_enum"] | null
+          title: string | null
+          venue_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          id?: string | null
+          locality_id?: string | null
+          quality_score?: never
+          slug?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
+          title?: string | null
+          venue_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          id?: string | null
+          locality_id?: string | null
+          quality_score?: never
+          slug?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
+          title?: string | null
+          venue_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_locality_fk"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_locality_fk"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
+          },
+          {
+            foreignKeyName: "events_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
+          },
+          {
+            foreignKeyName: "events_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events_venue_tba_audit: {
+        Row: {
+          category: string | null
+          has_artist_link: boolean | null
+          id: string | null
+          lifecycle_bucket: string | null
+          locality: string | null
+          locality_id: string | null
+          organizer_name: string | null
+          slug: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["status_enum"] | null
+          title: string | null
+        }
+        Insert: {
+          category?: string | null
+          has_artist_link?: never
+          id?: string | null
+          lifecycle_bucket?: never
+          locality?: string | null
+          locality_id?: string | null
+          organizer_name?: string | null
+          slug?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
+          title?: string | null
+        }
+        Update: {
+          category?: string | null
+          has_artist_link?: never
+          id?: string | null
+          lifecycle_bucket?: never
+          locality?: string | null
+          locality_id?: string | null
+          organizer_name?: string | null
+          slug?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["status_enum"] | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_locality_fk"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_locality_fk"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
+          },
+          {
+            foreignKeyName: "events_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
+          },
+        ]
       }
       locality_aliases_view: {
         Row: {
@@ -1372,11 +2292,63 @@ export type Database = {
         | { Args: { p_slug: string }; Returns: Json }
         | { Args: { params: Json }; Returns: Json }
       get_event_page: { Args: { p_slug: string }; Returns: Json }
+      get_event_series_context: {
+        Args: { p_event_id: string; p_limit?: number }
+        Returns: {
+          id: string
+          locality: string
+          relation_type: string
+          slug: string
+          start_date: string
+          title: string
+          venue_name: string
+        }[]
+      }
       get_events_by_category_locality: {
         Args: { p_category_slug: string; p_locality_slug: string }
         Returns: Json
       }
       get_locality_page: { Args: { p_slug: string }; Returns: Json }
+      get_nearby_locality_ids: {
+        Args: { p_limit?: number; p_locality_id: string }
+        Returns: {
+          distance_km: number
+          locality_id: string
+          locality_name: string
+          locality_slug: string
+        }[]
+      }
+      get_nearest_locality: {
+        Args: { p_lat: number; p_lng: number; p_max_km?: number }
+        Returns: {
+          distance_km: number
+          locality_id: string
+          locality_name: string
+          locality_slug: string
+        }[]
+      }
+      get_similar_upcoming_events: {
+        Args: { p_event_id: string; p_limit?: number }
+        Returns: {
+          category: string
+          cover_image_url: string
+          end_date: string
+          id: string
+          image_url: string
+          is_free: boolean
+          locality: string
+          organizer_name: string
+          price_max: number
+          price_min: number
+          short_description: string
+          similarity_score: number
+          slug: string
+          start_date: string
+          status: string
+          title: string
+          venue_name: string
+        }[]
+      }
       get_sitemap_categories: {
         Args: never
         Returns: {
@@ -1414,6 +2386,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      normalize_event_locality_ids: {
+        Args: never
+        Returns: {
+          remaining_null: number
+          updated_from_alias: number
+          updated_from_slug: number
+          updated_from_venue: number
+        }[]
       }
       slugify: { Args: { input: string }; Returns: string }
     }
