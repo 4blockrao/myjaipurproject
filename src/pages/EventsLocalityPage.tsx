@@ -132,13 +132,13 @@ const EventsLocalityPage = () => {
   const connectivity = localityData?.connectivity ? parseConnectivity(localityData.connectivity) : null;
   
   // Calculate category breakdown
-  const categoryBreakdown = upcomingEvents.reduce((acc, event) => {
+  const categoryBreakdown = upcomingEvents.reduce((acc: Record<string, number>, event: any) => {
     const cat = event.category || 'Other';
     acc[cat] = (acc[cat] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
-  const topCategories = Object.entries(categoryBreakdown)
+  const topCategories = (Object.entries(categoryBreakdown) as [string, number][])
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
 

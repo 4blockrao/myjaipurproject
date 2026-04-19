@@ -75,17 +75,17 @@ export default function ZonePage() {
     );
   }
 
-  const zoneData = {
+  const zoneData: any = {
     name: zoneName,
     slug: zoneSlug,
     localities: localities,
     totalLocalities: localities.length,
-    totalPopulation: localities.reduce((sum, l) => sum + (l.population_estimate || 0), 0),
-    uniqueWards: [...new Set(localities.map(l => l.ward_number).filter(Boolean))],
-    uniqueMunicipalities: [...new Set(localities.map(l => l.municipality).filter(Boolean))],
-    uniquePoliceStations: [...new Set(localities.map(l => l.police_station).filter(Boolean))],
-    allPinCodes: [...new Set(localities.flatMap(l => l.pin_codes || []))],
-    allTags: [...new Set(localities.flatMap(l => l.tags || []))],
+    totalPopulation: localities.reduce((sum: number, l: any) => sum + (l.population_estimate || 0), 0),
+    uniqueWards: [...new Set(localities.map((l: any) => l.ward_number).filter(Boolean))] as string[],
+    uniqueMunicipalities: [...new Set(localities.map((l: any) => l.municipality).filter(Boolean))] as string[],
+    uniquePoliceStations: [...new Set(localities.map((l: any) => l.police_station).filter(Boolean))] as string[],
+    allPinCodes: [...new Set(localities.flatMap((l: any) => l.pin_codes || []))] as string[],
+    allTags: [...new Set(localities.flatMap((l: any) => l.tags || []))] as string[],
   };
 
   return (
