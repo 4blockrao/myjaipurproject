@@ -82,17 +82,17 @@ const LocalitiesIndexPage = () => {
 
         {/* Zone Filter */}
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {zones.slice(0, 8).map((zone) => (
+          {(zones as any[]).slice(0, 8).map((zone: any) => (
             <button
-              key={zone}
-              onClick={() => setSelectedZone(zone)}
+              key={String(zone)}
+              onClick={() => setSelectedZone(String(zone))}
               className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
                 selectedZone === zone
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted hover:bg-muted/80'
               }`}
             >
-              {zone === 'all' ? 'All Zones' : zone}
+              {zone === 'all' ? 'All Zones' : String(zone)}
             </button>
           ))}
         </div>

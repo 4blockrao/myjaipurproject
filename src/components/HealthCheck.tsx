@@ -72,7 +72,7 @@ export const HealthCheck = () => {
   };
 
   // Only show in development
-  if (process.env.NODE_ENV !== 'development') {
+  if (!import.meta.env.DEV) {
     return null;
   }
 

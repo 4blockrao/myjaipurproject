@@ -185,7 +185,7 @@ const EventsThisWeekPage = () => {
                   {day}
                 </h2>
                 <div className="grid gap-3">
-                  {dayEvents.map(event => (
+                  {(dayEvents as any[]).map((event: any) => (
                     <Link key={event.id} to={`/events/${event.slug}`}>
                       <Card className="overflow-hidden hover:shadow-md transition-shadow">
                         <CardContent className="p-0 flex">

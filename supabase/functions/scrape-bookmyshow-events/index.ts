@@ -25,7 +25,6 @@ interface ProcessedEvent {
   end_date?: string;
   venue_name: string;
   venue_address: string;
-  city: string;
   locality: string | null;
   category: string;
   ticket_price: number | null;
@@ -33,7 +32,7 @@ interface ProcessedEvent {
   cover_image: string;
   registration_url: string;
   organizer_name: string;
-  status: string;
+  editorial_status: string;
   tags: string[];
   slug: string;
   meta_title: string;
@@ -591,7 +590,6 @@ Deno.serve(async (req) => {
             start_date: startDate,
             venue_name: event.venue.replace(/:\s*Jaipur$/i, '').trim(),
             venue_address: `${event.venue}, Jaipur, Rajasthan 302001`,
-            city: 'Jaipur',
             locality,
             category,
             ticket_price: price,
@@ -599,7 +597,7 @@ Deno.serve(async (req) => {
             cover_image: event.imageUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200',
             registration_url: event.eventUrl,
             organizer_name: 'BookMyShow',
-            status: 'draft',
+            editorial_status: 'draft',
             tags,
             slug,
             meta_title: metaTitle,
@@ -721,7 +719,6 @@ Deno.serve(async (req) => {
               start_date: startDate,
               venue_name: event.venue.replace(/:\s*Jaipur$/i, '').trim(),
               venue_address: `${event.venue}, Jaipur, Rajasthan 302001`,
-              city: 'Jaipur',
               locality,
               category,
               ticket_price: price,
@@ -729,7 +726,7 @@ Deno.serve(async (req) => {
               cover_image: event.imageUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200',
               registration_url: event.eventUrl,
               organizer_name: 'BookMyShow',
-              status: 'draft',
+              editorial_status: 'draft',
               tags,
               slug,
               meta_title: metaTitle,
