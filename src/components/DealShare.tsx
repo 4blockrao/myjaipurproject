@@ -17,7 +17,8 @@ import {
   Users,
   Target
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase as supabaseTyped } from "@/integrations/supabase/client";
+const supabase: any = supabaseTyped;
 import { useToast } from "@/hooks/use-toast";
 
 interface Deal {
