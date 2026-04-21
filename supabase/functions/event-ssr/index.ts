@@ -1,5 +1,5 @@
 // supabase/functions/event-ssr/index.ts
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// Enhanced version with full SEO, caching, and bot detection
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
@@ -12,23 +12,41 @@ const corsHeaders = {
 
 const BASE_URL = (Deno.env.get("SITE_ORIGIN") ?? "https://www.jaipurcircle.com").replace(/\/+$/, "");
 const SITE_NAME = "JaipurCircle";
-const DEFAULT_IMAGE =
-  "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&h=630&fit=crop";
+const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&h=630&fit=crop";
 
-const SUPABASE_URL =
-  Deno.env.get("SUPABASE_URL") ||
-  Deno.env.get("SUPABASE_ANON_URL") ||
-  Deno.env.get("NEXT_PUBLIC_SUPABASE_URL") ||
-  "";
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || Deno.env.get("NEXT_PUBLIC_SUPABASE_URL") || "";
+const SUPABASE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("NEXT_PUBLIC_SUPABASE_ANON_KEY") || "";
 
-const SUPABASE_KEY =
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
-  Deno.env.get("SUPABASE_ANON_KEY") ||
-  Deno.env.get("NEXT_PUBLIC_SUPABASE_ANON_KEY") ||
-  "";
+// Cache for SPA shell
+let cachedIndexHtml: { html: string; fetchedAt: number } | null = null;
 
-function esc(str: string): string {
-  return String(str ?? "")
+// Bot detection - user agents that need full SSR
+const BOT_PATTERNS = [
+  /Googlebot/i,
+  /bingbot/i,
+  /Baiduspider/i,
+  /YandexBot/i,
+  /DuckDuckBot/i,
+  /Slurp/i,
+  /facebookexternalhit/i,
+  /WhatsApp/i,
+  /Twitterbot/i,
+  /LinkedInBot/i,
+  /Pinterest/i,
+  /TelegramBot/i,
+  /GPTBot/i,
+  /CCBot/i,
+];
+
+function isBot(userAgent: string): boolean {
+  if (!userAgent) return false;
+  return BOT_PATTERNS.some(pattern => pattern.test(userAgent));
+}
+
+// Helper functions
+function escapeHtml(str: string): string {
+  if (!str) return "";
+  return String(str)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -36,12 +54,9 @@ function esc(str: string): string {
     .replaceAll("'", "&#039;");
 }
 
-function escJson(obj: unknown): string {
-  return JSON.stringify(obj).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
-}
-
-function fmtDate(d: string): string {
-  return new Date(d).toLocaleDateString("en-IN", {
+function formatDate(dateStr: string): string {
+  if (!dateStr) return "TBA";
+  return new Date(dateStr).toLocaleDateString("en-IN", {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -49,339 +64,473 @@ function fmtDate(d: string): string {
   });
 }
 
-function fmtTime(d: string): string {
-  return new Date(d).toLocaleTimeString("en-IN", {
+function formatTime(dateStr: string): string {
+  if (!dateStr) return "TBA";
+  return new Date(dateStr).toLocaleTimeString("en-IN", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
   });
 }
 
-function eventType(cat: string): string {
-  const c = (cat || "").toLowerCase();
-  if (c.includes("music") || c.includes("concert")) return "MusicEvent";
-  if (c.includes("comedy") || c.includes("standup")) return "ComedyEvent";
-  if (c.includes("dance")) return "DanceEvent";
-  if (c.includes("theatre") || c.includes("theater")) return "TheaterEvent";
-  if (c.includes("festival")) return "Festival";
-  if (c.includes("sports")) return "SportsEvent";
-  if (c.includes("workshop")) return "EducationEvent";
-  if (c.includes("food")) return "FoodEvent";
+function getEventType(category: string): string {
+  const cat = (category || "").toLowerCase();
+  if (cat.includes("music") || cat.includes("concert")) return "MusicEvent";
+  if (cat.includes("comedy")) return "ComedyEvent";
+  if (cat.includes("dance")) return "DanceEvent";
+  if (cat.includes("theatre")) return "TheaterEvent";
+  if (cat.includes("festival")) return "Festival";
+  if (cat.includes("sports")) return "SportsEvent";
+  if (cat.includes("workshop")) return "EducationEvent";
   return "Event";
 }
-
-// ---- index.html cache (preserve hashed asset refs) ----
-let cachedIndexHtml: { html: string; fetchedAt: number } | null = null;
 
 async function getSpaShellHtml(): Promise<string> {
   const now = Date.now();
   const ttlMs = 5 * 60 * 1000; // 5 minutes
-  if (cachedIndexHtml && now - cachedIndexHtml.fetchedAt < ttlMs) return cachedIndexHtml.html;
+  
+  if (cachedIndexHtml && now - cachedIndexHtml.fetchedAt < ttlMs) {
+    return cachedIndexHtml.html;
+  }
 
-  const cb = Math.floor(now / 1000);
-  const url = `${BASE_URL}/index.html?cb=${cb}`;
+  try {
+    const res = await fetch(`${BASE_URL}/index.html?cb=${Math.floor(now / 1000)}`, {
+      headers: {
+        "user-agent": "jaipurcircle-event-ssr/1.0",
+        accept: "text/html",
+      },
+    });
 
-  const res = await fetch(url, {
-    headers: {
-      "user-agent": "jaipurcircle-event-ssr/1.0",
-      accept: "text/html,*/*",
-    },
+    if (!res.ok) {
+      throw new Error(`Failed to fetch index.html: ${res.status}`);
+    }
+
+    const html = await res.text();
+    cachedIndexHtml = { html, fetchedAt: now };
+    return html;
+  } catch (err) {
+    console.error("Failed to fetch SPA shell:", err);
+    // Fallback minimal HTML
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${SITE_NAME}</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script>console.error("Failed to load application shell");</script>
+</body>
+</html>`;
+  }
+}
+
+async function fetchEventData(slug: string) {
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { "x-ssr": "event-ssr" } },
   });
 
-  if (!res.ok) {
-    // fallback minimal shell (still HTML)
-    const minimal =
-      `<!doctype html><html lang="en"><head>` +
-      `<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">` +
-      `<title>${SITE_NAME}</title></head><body><div id="root"></div></body></html>`;
-    cachedIndexHtml = { html: minimal, fetchedAt: now };
-    return minimal;
+  const { data: event, error } = await supabase
+    .from("events")
+    .select(`
+      *,
+      venue:venues (
+        name,
+        address,
+        locality
+      )
+    `)
+    .eq("slug", slug)
+    .single();
+
+  if (error || !event) {
+    console.error("Event fetch error:", error);
+    return null;
   }
 
-  const html = await res.text();
-  cachedIndexHtml = { html, fetchedAt: now };
-  return html;
+  // Fetch related events in same locality (for internal linking)
+  let relatedEvents = [];
+  if (event.locality_slug) {
+    const { data: related } = await supabase
+      .from("events")
+      .select("title, slug, start_date")
+      .eq("locality_slug", event.locality_slug)
+      .neq("slug", slug)
+      .gte("start_date", new Date().toISOString())
+      .order("start_date", { ascending: true })
+      .limit(5);
+    relatedEvents = related || [];
+  }
+
+  return { event, relatedEvents };
 }
 
-function injectHeadAndRoot(indexHtml: string, headHtml: string, rootHtml: string): string {
-  let out = indexHtml;
+function generateEventSchema(event: any, canonical: string, isPast: boolean) {
+  const venueName = event.venue?.name || event.venue_name || "TBA";
+  const localityName = event.venue?.locality || event.locality || "Jaipur";
+  
+  const schema: any = {
+    "@context": "https://schema.org",
+    "@type": getEventType(event.category),
+    name: event.title,
+    description: (event.description || event.short_description || "").substring(0, 500),
+    url: canonical,
+    startDate: new Date(event.start_date).toISOString(),
+    endDate: event.end_date ? new Date(event.end_date).toISOString() : new Date(new Date(event.start_date).getTime() + 3 * 60 * 60 * 1000).toISOString(),
+    eventStatus: isPast ? "https://schema.org/EventCompleted" : "https://schema.org/EventScheduled",
+    eventAttendanceMode: event.is_online 
+      ? "https://schema.org/OnlineEventAttendanceMode" 
+      : "https://schema.org/OfflineEventAttendanceMode",
+    location: event.is_online 
+      ? { "@type": "VirtualLocation", url: event.online_url || canonical }
+      : {
+          "@type": "Place",
+          name: venueName,
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: event.venue_address || venueName,
+            addressLocality: localityName,
+            addressRegion: "Rajasthan",
+            addressCountry: "IN",
+          },
+        },
+    image: event.cover_image || DEFAULT_IMAGE,
+    offers: {
+      "@type": "Offer",
+      url: canonical,
+      priceCurrency: "INR",
+      ...(event.is_free 
+        ? { price: "0", priceCurrency: "INR" } 
+        : event.ticket_price ? { price: String(event.ticket_price) } : {}),
+      availability: isPast ? "https://schema.org/SoldOut" : "https://schema.org/InStock",
+    },
+    organizer: {
+      "@type": "Organization",
+      name: event.organizer_name || SITE_NAME,
+      url: BASE_URL,
+    },
+    isAccessibleForFree: !!event.is_free,
+  };
 
-  // Inject head tags
-  if (out.toLowerCase().includes("</head>")) {
-    out = out.replace(/<\/head>/i, `${headHtml}\n</head>`);
-  } else {
-    out = `${headHtml}\n${out}`;
-  }
-
-  // Replace root container
-  const rootRegex = /<div\s+id=["']root["'][^>]*>([\s\S]*?)<\/div>/i;
-  if (rootRegex.test(out)) {
-    out = out.replace(rootRegex, `<div id="root">${rootHtml}</div>`);
-  } else {
-    out = out.replace(/<div\s+id=["']root["'][^>]*>\s*<\/div>/i, `<div id="root">${rootHtml}</div>`);
-  }
-
-  return out;
+  return schema;
 }
 
-function ssrHeaders(args: { cacheControl: string }) {
-  // We explicitly set Content-Type for ALL paths, including 404,
-  // to avoid “text/plain + nosniff” on HTML.
+function generateBreadcrumbSchema(event: any, canonical: string) {
   return {
-    ...corsHeaders,
-    "content-type": "text/html; charset=utf-8",
-    "cache-control": args.cacheControl,
-
-    // Avoid platform default “default-src 'none'; sandbox” for 404s
-    // while still being reasonably safe.
-    "content-security-policy":
-      "default-src 'self' https: data: blob:; " +
-      "script-src 'self' https: 'unsafe-inline'; " +
-      "style-src 'self' https: 'unsafe-inline'; " +
-      "img-src * data: blob:; " +
-      "connect-src * https:; " +
-      "frame-src *; " +
-      "base-uri 'self';",
-    "x-ssr-module": "event-ssr",
-    "x-site-origin": BASE_URL,
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
+      { "@type": "ListItem", position: 2, name: "Events", item: `${BASE_URL}/events` },
+      { "@type": "ListItem", position: 3, name: event.category || "Events", item: `${BASE_URL}/events?category=${encodeURIComponent(event.category || "")}` },
+      { "@type": "ListItem", position: 4, name: event.title, item: canonical },
+    ],
   };
 }
 
-function renderNotFound(slug: string) {
-  const canonical = `${BASE_URL}/events`;
-  const html = `<!doctype html><html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Event not found — ${SITE_NAME}</title>
-  <meta name="robots" content="noindex, nofollow" />
-  <link rel="canonical" href="${esc(canonical)}" />
-</head>
-<body style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;max-width:860px;margin:40px auto;padding:0 16px">
-  <h1>Event not found</h1>
-  <p>We couldn’t find an event for slug: <code>${esc(slug)}</code>.</p>
-  <p><a href="${esc(canonical)}">Browse events</a></p>
-</body>
-</html>`;
+function generateFAQSchema(event: any) {
+  const city = event.city || "Jaipur";
+  const venue = event.venue?.name || event.venue_name || "TBA";
+  
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: `When is ${event.title} in ${city}?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `${event.title} takes place on ${formatDate(event.start_date)} at ${formatTime(event.start_date)} in ${city}.`,
+        },
+      },
+      {
+        "@type": "Question",
+        name: `Where is ${event.title} happening?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `The event is at ${venue}${event.locality ? `, ${event.locality}` : ""}, ${city}.`,
+        },
+      },
+      {
+        "@type": "Question",
+        name: `How to book tickets for ${event.title}?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: event.booking_url 
+            ? `Book tickets at: ${event.booking_url}` 
+            : `Visit ${SITE_NAME} for booking information and updates about ${event.title}.`,
+        },
+      },
+    ],
+  };
+}
+
+function buildSSRMarkup(event: any, relatedEvents: any[], canonical: string, isPast: boolean) {
+  const venueName = event.venue?.name || event.venue_name || "TBA";
+  const priceText = event.is_free ? "Free Entry" : event.ticket_price ? `₹${event.ticket_price}` : "Contact Organizer";
+  const description = event.description || event.short_description || `Join us for ${event.title} in ${event.city || "Jaipur"}.`;
+  const category = event.category || "Event";
+  
+  const relatedEventsHtml = relatedEvents.length > 0 ? `
+    <section style="margin-top: 48px; padding-top: 32px; border-top: 1px solid #e5e7eb">
+      <h3 style="font-size: 20px; margin-bottom: 16px">More events nearby</h3>
+      <div style="display: grid; gap: 12px">
+        ${relatedEvents.map((rel: any) => `
+          <div>
+            <a href="${BASE_URL}/events/${rel.slug}" style="color: #1f2937; text-decoration: none; font-weight: 500">
+              ${escapeHtml(rel.title)}
+            </a>
+            <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280">
+              ${formatDate(rel.start_date)}
+            </p>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+  ` : '';
+
+  return `
+<div class="ssr-prerender" data-ssr="event" style="max-width: 900px; margin: 0 auto; padding: 24px 16px; font-family: system-ui, -apple-system, sans-serif">
+  
+  <nav aria-label="Breadcrumb" style="font-size: 13px; color: #6b7280; margin-bottom: 24px">
+    <a href="/" style="color: #6b7280; text-decoration: none">Home</a> › 
+    <a href="/events" style="color: #6b7280; text-decoration: none">Events</a> › 
+    <a href="/events?category=${encodeURIComponent(category)}" style="color: #6b7280; text-decoration: none">${escapeHtml(category)}</a> › 
+    <span style="color: #1f2937">${escapeHtml(event.title)}</span>
+  </nav>
+
+  <h1 style="font-size: 32px; margin: 0 0 16px 0">${escapeHtml(event.title)}</h1>
+  
+  ${event.cover_image ? `
+    <img src="${escapeHtml(event.cover_image)}" alt="${escapeHtml(event.title)}" 
+         style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 12px; margin-bottom: 24px" />
+  ` : ''}
+
+  <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 32px">
+    <div style="display: grid; gap: 12px">
+      <div>
+        <strong style="color: #4b5563">📅 Date:</strong> 
+        <span>${formatDate(event.start_date)}</span>
+        ${event.end_date && new Date(event.end_date).toDateString() !== new Date(event.start_date).toDateString() ? 
+          ` – ${formatDate(event.end_date)}` : ''}
+      </div>
+      <div>
+        <strong style="color: #4b5563">⏰ Time:</strong> 
+        <span>${formatTime(event.start_date)}${event.end_date ? ` – ${formatTime(event.end_date)}` : ''}</span>
+      </div>
+      <div>
+        <strong style="color: #4b5563">📍 Venue:</strong> 
+        <span>${escapeHtml(venueName)}${event.venue_address ? `, ${escapeHtml(event.venue_address)}` : ''}</span>
+      </div>
+      <div>
+        <strong style="color: #4b5563">💰 Price:</strong> 
+        <span style="font-weight: 600">${escapeHtml(priceText)}</span>
+      </div>
+      ${event.category ? `
+        <div>
+          <strong style="color: #4b5563">🏷️ Category:</strong> 
+          <span>${escapeHtml(event.category)}</span>
+        </div>
+      ` : ''}
+    </div>
+  </div>
+
+  <div style="margin-bottom: 32px">
+    <h2 style="font-size: 24px; margin-bottom: 16px">About this event</h2>
+    <div style="line-height: 1.7; color: #374151">
+      <p>${escapeHtml(description.substring(0, 1500))}</p>
+    </div>
+  </div>
+
+  ${!isPast && event.booking_url ? `
+    <div style="margin: 32px 0; text-align: center">
+      <a href="${escapeHtml(event.booking_url)}" target="_blank" rel="noopener noreferrer"
+         style="display: inline-block; background: #3b82f6; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600">
+        Book Tickets →
+      </a>
+    </div>
+  ` : ''}
+
+  ${relatedEventsHtml}
+
+  <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #9ca3af; text-align: center">
+    <p>© ${SITE_NAME} — Discover events, venues, and local experiences in Jaipur</p>
+    <p style="margin-top: 8px">
+      <a href="${canonical}" style="color: #9ca3af">Event page</a>
+    </p>
+  </div>
+</div>
+  `;
+}
+
+function injectIntoRoot(html: string, content: string): string {
+  const rootRegex = /<div\s+id=["']root["'][^>]*>([\s\S]*?)<\/div>/i;
+  if (rootRegex.test(html)) {
+    return html.replace(rootRegex, `<div id="root">${content}</div>`);
+  }
   return html;
 }
 
 serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  const startTime = Date.now();
+  const url = new URL(req.url);
+  const userAgent = req.headers.get("user-agent") || "";
+  const isSearchBot = isBot(userAgent);
 
   try {
-    const url = new URL(req.url);
-    const slug = (url.searchParams.get("slug") || "").trim();
-
+    // Get slug from query parameter (your Lovable app will call with ?slug=event-name)
+    const slug = url.searchParams.get("slug")?.trim();
+    
     if (!slug) {
-      const html = renderNotFound("(missing slug)");
-      return new Response(html, {
+      // If no slug, return a helpful error or redirect to events listing
+      return new Response(JSON.stringify({ error: "Missing slug parameter" }), {
         status: 400,
-        headers: ssrHeaders({ cacheControl: "no-store" }),
+        headers: { ...corsHeaders, "content-type": "application/json" },
       });
     }
 
     if (!SUPABASE_URL || !SUPABASE_KEY) {
-      const html = `<!doctype html><html><head><meta charset="utf-8"><title>${SITE_NAME}</title></head><body>
-      <h1>Server misconfigured</h1><p>Missing SUPABASE_URL / SUPABASE_*_KEY.</p></body></html>`;
-      return new Response(html, {
-        status: 500,
-        headers: ssrHeaders({ cacheControl: "no-store" }),
-      });
+      console.error("Missing Supabase configuration");
+      return new Response("Server configuration error", { status: 500 });
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false },
-      global: { headers: { "x-ssr": "event-ssr" } },
-    });
-
-    const { data: event, error } = await supabase.from("events").select("*").eq("slug", slug).maybeSingle();
-
-    if (error || !event) {
-      const html = renderNotFound(slug);
-      return new Response(html, {
+    // Fetch event data
+    const data = await fetchEventData(slug);
+    
+    if (!data || !data.event) {
+      // Event not found - return 404
+      const notFoundHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Event Not Found | ${SITE_NAME}</title>
+  <meta name="robots" content="noindex, nofollow">
+</head>
+<body style="font-family: system-ui; max-width: 600px; margin: 40px auto; padding: 20px">
+  <h1>Event Not Found</h1>
+  <p>We couldn't find an event with slug: ${escapeHtml(slug)}</p>
+  <a href="/events">Browse all events →</a>
+</body>
+</html>`;
+      return new Response(notFoundHtml, {
         status: 404,
-        headers: ssrHeaders({ cacheControl: "no-store" }),
+        headers: { "content-type": "text/html; charset=utf-8" },
       });
     }
 
-    const indexHtml = await getSpaShellHtml();
-
-    const city = (event.city || "Jaipur").trim();
-    const yr = new Date(event.start_date).getFullYear();
-    const venue = (event.venue_name || "TBA").trim();
+    const { event, relatedEvents } = data;
     const isPast = new Date(event.start_date) < new Date();
-    const canonical = `${BASE_URL}/events/${encodeURIComponent(event.slug)}`;
-    const img = event.cover_image || DEFAULT_IMAGE;
-    const priceText = event.is_free ? "Free Entry" : `₹${event.ticket_price || "TBA"}`;
-    const desc =
-      event.description ||
-      event.short_description ||
-      `${event.title} in ${city}. Get details on ${SITE_NAME}.`;
+    const canonical = `${BASE_URL}/events/${event.slug}`;
+    
+    // Generate meta data
+    const title = event.meta_title || `${event.title} | ${event.city || "Jaipur"} | ${formatDate(event.start_date)} | ${SITE_NAME}`;
+    const description = event.meta_description || event.short_description || 
+      `Book tickets for ${event.title} in ${event.city || "Jaipur"}. ${formatDate(event.start_date)} at ${event.venue_name || "TBA"}. ${event.is_free ? "Free entry" : `Tickets from ₹${event.ticket_price || "contact organizer"}`}.`;
+    const image = event.cover_image || DEFAULT_IMAGE;
 
-    const title =
-      event.meta_title ||
-      `${event.title} ${city} ${yr} — Date, ${venue !== "TBA" ? venue + ", " : ""}Ticket Price & Booking`;
+    // Get SPA shell
+    let indexHtml = await getSpaShellHtml();
 
-    const metaDesc =
-      event.meta_description ||
-      `Book ${event.title} tickets in ${city} — ${fmtDate(event.start_date)}${
-        venue !== "TBA" ? ` at ${venue}` : ""
-      }. ${priceText}. Timings, entry rules & booking.`;
-
-    // JSON-LD schemas
-    const schema = {
-      "@context": "https://schema.org",
-      "@type": eventType(event.category || ""),
-      "@id": canonical,
-      name: event.title,
-      description: String(desc).substring(0, 500),
-      url: canonical,
-      startDate: new Date(event.start_date).toISOString(),
-      endDate: event.end_date
-        ? new Date(event.end_date).toISOString()
-        : new Date(new Date(event.start_date).getTime() + 3 * 3600000).toISOString(),
-      eventStatus: isPast ? "https://schema.org/EventCompleted" : "https://schema.org/EventScheduled",
-      eventAttendanceMode: event.is_online
-        ? "https://schema.org/OnlineEventAttendanceMode"
-        : "https://schema.org/OfflineEventAttendanceMode",
-      location: event.is_online
-        ? { "@type": "VirtualLocation", url: event.online_url || canonical }
-        : {
-            "@type": "Place",
-            name: venue,
-            address: {
-              "@type": "PostalAddress",
-              streetAddress: event.venue_address || venue,
-              addressLocality: event.locality || "Jaipur",
-              addressRegion: "Rajasthan",
-              addressCountry: "IN",
-            },
-          },
-      image: [img],
-      offers: {
-        "@type": "Offer",
-        url: canonical,
-        priceCurrency: "INR",
-        ...(event.is_free ? { price: "0" } : event.ticket_price ? { price: String(event.ticket_price) } : {}),
-        availability: isPast ? "https://schema.org/SoldOut" : "https://schema.org/InStock",
-      },
-      organizer: { "@type": "Organization", name: event.organizer_name || SITE_NAME, url: BASE_URL },
-      ...(event.organizer_name ? { performer: { "@type": "Person", name: event.organizer_name } } : {}),
-      isAccessibleForFree: !!event.is_free,
-      inLanguage: "en-IN",
-    };
-
-    const breadcrumb = {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-        { "@type": "ListItem", position: 2, name: "Events", item: `${BASE_URL}/events` },
-        { "@type": "ListItem", position: 3, name: String(event.category || "Events"), item: `${BASE_URL}/events` },
-        { "@type": "ListItem", position: 4, name: String(event.title || "Event"), item: canonical },
-      ],
-    };
-
-    const faqSchema = {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: `When is ${event.title} in ${city}?`,
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: `${event.title} is on ${fmtDate(event.start_date)} at ${fmtTime(event.start_date)} in ${city}.`,
-          },
-        },
-        {
-          "@type": "Question",
-          name: `Where is ${event.title} happening?`,
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: `${event.title} is at ${venue}${event.locality ? `, ${event.locality}` : ""}, ${city}.`,
-          },
-        },
-        {
-          "@type": "Question",
-          name: `What is the ticket price for ${event.title}?`,
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: event.is_free ? "This is a free event. Registration may be required." : `Tickets start from ₹${event.ticket_price || "TBA"}.`,
-          },
-        },
-        {
-          "@type": "Question",
-          name: `How to book tickets for ${event.title}?`,
-          acceptedAnswer: { "@type": "Answer", text: `You can view booking details on ${SITE_NAME} at ${canonical}.` },
-        },
-      ],
-    };
-
-    // Head tags (we do not try to remove old ones; we append near end of head)
+    // Generate head HTML with all meta tags (always include for crawlers)
     const headHtml = `
-<title>${esc(title)}</title>
-<meta name="description" content="${esc(metaDesc)}" />
-<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
-<link rel="canonical" href="${esc(canonical)}" />
+<title>${escapeHtml(title)}</title>
+<meta name="description" content="${escapeHtml(description)}" />
+<meta name="robots" content="${isPast ? 'noindex, follow' : 'index, follow, max-image-preview:large'}" />
+<link rel="canonical" href="${escapeHtml(canonical)}" />
+
+<!-- Open Graph -->
 <meta property="og:type" content="event" />
-<meta property="og:url" content="${esc(canonical)}" />
-<meta property="og:site_name" content="${esc(SITE_NAME)}" />
-<meta property="og:title" content="${esc(String(event.title || title))}" />
-<meta property="og:description" content="${esc(metaDesc)}" />
-<meta property="og:image" content="${esc(img)}" />
+<meta property="og:url" content="${escapeHtml(canonical)}" />
+<meta property="og:site_name" content="${SITE_NAME}" />
+<meta property="og:title" content="${escapeHtml(event.title)}" />
+<meta property="og:description" content="${escapeHtml(description)}" />
+<meta property="og:image" content="${escapeHtml(image)}" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+
+<!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="${esc(String(event.title || title))}" />
-<meta name="twitter:description" content="${esc(metaDesc)}" />
-<meta name="twitter:image" content="${esc(img)}" />
-<script type="application/ld+json">${escJson(schema)}</script>
-<script type="application/ld+json">${escJson(breadcrumb)}</script>
-<script type="application/ld+json">${escJson(faqSchema)}</script>
-`.trim();
+<meta name="twitter:title" content="${escapeHtml(event.title)}" />
+<meta name="twitter:description" content="${escapeHtml(description)}" />
+<meta name="twitter:image" content="${escapeHtml(image)}" />
 
-    // SSR block (simple + crawlable)
-    const preContent = `
-<div class="ssr-prerender" data-ssr="event" style="max-width:820px;margin:0 auto;padding:20px;font-family:system-ui,sans-serif">
-  <nav aria-label="Breadcrumb" style="font-size:13px;color:#374151">
-    <a href="/">Home</a> › <a href="/events">Events</a> › ${esc(String(event.category || "Events"))} › ${esc(String(event.title || "Event"))}
-  </nav>
-  <h1 style="margin-top:12px">${esc(String(event.title || "Event"))} ${esc(city)} ${yr} — Date, Venue, Ticket Price, Timing &amp; Booking Info</h1>
+<!-- Structured Data -->
+<script type="application/ld+json">${JSON.stringify(generateEventSchema(event, canonical, isPast))}</script>
+<script type="application/ld+json">${JSON.stringify(generateBreadcrumbSchema(event, canonical))}</script>
+<script type="application/ld+json">${JSON.stringify(generateFAQSchema(event))}</script>
+`;
 
-  <div style="margin:16px 0">
-    <table style="width:100%;border-collapse:collapse"><tbody>
-      <tr><th style="text-align:left;padding:8px;border-bottom:1px solid #eee;width:140px;color:#666">Venue</th><td style="padding:8px;border-bottom:1px solid #eee">${esc(venue)}</td></tr>
-      ${event.locality ? `<tr><th style="text-align:left;padding:8px;border-bottom:1px solid #eee;width:140px;color:#666">Locality</th><td style="padding:8px;border-bottom:1px solid #eee">${esc(String(event.locality))}</td></tr>` : ""}
-      <tr><th style="text-align:left;padding:8px;border-bottom:1px solid #eee;width:140px;color:#666">Date</th><td style="padding:8px;border-bottom:1px solid #eee"><time datetime="${new Date(event.start_date).toISOString()}">${esc(fmtDate(event.start_date))}</time></td></tr>
-      <tr><th style="text-align:left;padding:8px;border-bottom:1px solid #eee;width:140px;color:#666">Time</th><td style="padding:8px;border-bottom:1px solid #eee">${esc(fmtTime(event.start_date))}${event.end_date ? ` – ${esc(fmtTime(event.end_date))}` : ""}</td></tr>
-      <tr><th style="text-align:left;padding:8px;border-bottom:1px solid #eee;width:140px;color:#666">Price</th><td style="padding:8px;border-bottom:1px solid #eee"><strong>${esc(priceText)}</strong></td></tr>
-    </tbody></table>
-  </div>
+    // Inject head tags
+    if (indexHtml.includes("</head>")) {
+      indexHtml = indexHtml.replace(/<\/head>/i, `${headHtml}\n</head>`);
+    }
 
-  <section>
-    <h2>About ${esc(String(event.title || "this event"))}</h2>
-    <p>${esc(String(desc).substring(0, 1500))}</p>
-  </section>
-</div>
-`.trim();
+    // For search bots: inject full SSR content
+    // For regular users: inject minimal SSR or let SPA handle it
+    if (isSearchBot) {
+      const ssrContent = buildSSRMarkup(event, relatedEvents, canonical, isPast);
+      const finalHtml = injectIntoRoot(indexHtml, ssrContent);
+      
+      console.log(`[event-ssr] Bot served: ${slug} in ${Date.now() - startTime}ms`);
+      
+      return new Response(finalHtml, {
+        status: 200,
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          "cache-control": isPast 
+            ? "public, max-age=0, s-maxage=86400"  // Past events cache longer
+            : "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",  // Upcoming: 1 hour
+          "x-ssr-module": "event-ssr",
+          "x-ssr-bot": "true",
+          "x-render-time-ms": String(Date.now() - startTime),
+        },
+      });
+    }
 
-    const finalHtml = injectHeadAndRoot(indexHtml, headHtml, preContent);
-
+    // For regular users: return minimal HTML with meta tags only
+    // Let the SPA handle the actual rendering
+    const finalHtml = injectIntoRoot(indexHtml, `<div data-ssr-placeholder="event-${event.slug}"></div>`);
+    
+    console.log(`[event-ssr] User served (SPA mode): ${slug} in ${Date.now() - startTime}ms`);
+    
     return new Response(finalHtml, {
       status: 200,
-      headers: ssrHeaders({
-        cacheControl: "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
-      }),
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
+        "x-ssr-module": "event-ssr",
+        "x-ssr-bot": "false",
+        "x-render-time-ms": String(Date.now() - startTime),
+      },
     });
+
   } catch (err) {
-    console.error("event-ssr fatal:", err);
-    const html = `<!doctype html><html lang="en"><head><meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>${SITE_NAME} — Events</title><meta name="robots" content="noindex, follow" />
-    </head><body><h1>Events</h1><p>Temporarily unavailable.</p></body></html>`;
-    return new Response(html, {
-      status: 200,
-      headers: ssrHeaders({ cacheControl: "public, max-age=0, s-maxage=60" }),
+    console.error("Event SSR fatal error:", err);
+    
+    // Fallback HTML
+    const errorHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>${SITE_NAME} | Events in Jaipur</title>
+</head>
+<body>
+  <div id="root"></div>
+  <p style="display:none">Temporarily unavailable. Please try again.</p>
+</body>
+</html>`;
+    
+    return new Response(errorHtml, {
+      status: 200, // Return 200 to avoid breaking the SPA
+      headers: { "content-type": "text/html; charset=utf-8" },
     });
   }
 });
