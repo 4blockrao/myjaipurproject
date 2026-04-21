@@ -16,29 +16,22 @@
       "src": "^/api/functions/v1/(.*)$",
       "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/$1"
     },
-
-    {
-      "src": "^/events/([^/]+)/([^/]+)/?$",
-      "dest": "/api/functions/v1/events-list-ssr?category=$1&locality=$2"
-    },
     {
       "src": "^/events/([^/]+)/?$",
       "dest": "/api/functions/v1/event-ssr?slug=$1"
     },
     {
+      "src": "^/jaipur/([^/]+)/?$",
+      "dest": "/api/functions/v1/locality-ssr?slug=$1"
+    },
+    {
       "src": "^/events/?$",
       "dest": "/api/functions/v1/events-list-ssr"
     },
-
     {
       "src": "^/artists/([^/]+)/?$",
       "dest": "/api/functions/v1/artist-ssr?slug=$1"
     },
-    {
-      "src": "^/jaipur/([^/]+)/?$",
-      "dest": "/api/functions/v1/locality-ssr?slug=$1"
-    },
-
     {
       "src": "^/sitemap\\.xml$",
       "dest": "/api/functions/v1/sitemap-index"
@@ -63,9 +56,6 @@
       "src": "^/sitemap-artists\\.xml$",
       "dest": "/api/functions/v1/sitemap-artists"
     },
-
-    { "handle": "filesystem" },
-
     {
       "src": "^/localities/([^/]+)/?$",
       "status": 308,
@@ -76,7 +66,9 @@
       "status": 308,
       "headers": { "Location": "/jaipur" }
     },
-
+    {
+      "handle": "filesystem"
+    },
     {
       "src": "^(.*)$",
       "dest": "/index.html"
