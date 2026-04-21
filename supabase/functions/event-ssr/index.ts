@@ -132,44 +132,58 @@ async function fetchEventData(slug: string) {
     global: { headers: { "x-ssr": "event-ssr" } },
   });
 
+  // Fetch event without venue join first (fixes the column error)
   const { data: event, error } = await supabase
     .from("events")
-    .select(`
-      *,
-      venue:venues (
-        name,
-        address,
-        locality
-      )
-    `)
+    .select("*")
     .eq("slug", slug)
-    .single();
+    .maybeSingle();
 
   if (error || !event) {
     console.error("Event fetch error:", error);
     return null;
   }
 
+  // Try to fetch venue separately if venue_id exists, but don't fail if it doesn't
+  let venue = null;
+  if (event.venue_id) {
+    try {
+      const { data: venueData } = await supabase
+        .from("venues")
+        .select("name, address")
+        .eq("id", event.venue_id)
+        .maybeSingle();
+      venue = venueData;
+    } catch (venueError) {
+      console.error("Venue fetch error (non-critical):", venueError);
+      // Continue without venue data
+    }
+  }
+
   // Fetch related events in same locality (for internal linking)
   let relatedEvents = [];
   if (event.locality_slug) {
-    const { data: related } = await supabase
-      .from("events")
-      .select("title, slug, start_date")
-      .eq("locality_slug", event.locality_slug)
-      .neq("slug", slug)
-      .gte("start_date", new Date().toISOString())
-      .order("start_date", { ascending: true })
-      .limit(5);
-    relatedEvents = related || [];
+    try {
+      const { data: related } = await supabase
+        .from("events")
+        .select("title, slug, start_date")
+        .eq("locality_slug", event.locality_slug)
+        .neq("slug", slug)
+        .gte("start_date", new Date().toISOString())
+        .order("start_date", { ascending: true })
+        .limit(5);
+      relatedEvents = related || [];
+    } catch (relatedError) {
+      console.error("Related events fetch error (non-critical):", relatedError);
+    }
   }
 
-  return { event, relatedEvents };
+  return { event, relatedEvents, venue };
 }
 
-function generateEventSchema(event: any, canonical: string, isPast: boolean) {
-  const venueName = event.venue?.name || event.venue_name || "TBA";
-  const localityName = event.venue?.locality || event.locality || "Jaipur";
+function generateEventSchema(event: any, venue: any, canonical: string, isPast: boolean) {
+  const venueName = venue?.name || event.venue_name || "TBA";
+  const localityName = event.locality || "Jaipur";
   
   const schema: any = {
     "@context": "https://schema.org",
@@ -230,9 +244,9 @@ function generateBreadcrumbSchema(event: any, canonical: string) {
   };
 }
 
-function generateFAQSchema(event: any) {
+function generateFAQSchema(event: any, venue: any) {
   const city = event.city || "Jaipur";
-  const venue = event.venue?.name || event.venue_name || "TBA";
+  const venueName = venue?.name || event.venue_name || "TBA";
   
   return {
     "@context": "https://schema.org",
@@ -251,7 +265,7 @@ function generateFAQSchema(event: any) {
         name: `Where is ${event.title} happening?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `The event is at ${venue}${event.locality ? `, ${event.locality}` : ""}, ${city}.`,
+          text: `The event is at ${venueName}${event.locality ? `, ${event.locality}` : ""}, ${city}.`,
         },
       },
       {
@@ -268,8 +282,8 @@ function generateFAQSchema(event: any) {
   };
 }
 
-function buildSSRMarkup(event: any, relatedEvents: any[], canonical: string, isPast: boolean) {
-  const venueName = event.venue?.name || event.venue_name || "TBA";
+function buildSSRMarkup(event: any, venue: any, relatedEvents: any[], canonical: string, isPast: boolean) {
+  const venueName = venue?.name || event.venue_name || "TBA";
   const priceText = event.is_free ? "Free Entry" : event.ticket_price ? `₹${event.ticket_price}` : "Contact Organizer";
   const description = event.description || event.short_description || `Join us for ${event.title} in ${event.city || "Jaipur"}.`;
   const category = event.category || "Event";
@@ -386,11 +400,10 @@ serve(async (req: Request) => {
   const isSearchBot = isBot(userAgent);
 
   try {
-    // Get slug from query parameter (your Lovable app will call with ?slug=event-name)
+    // Get slug from query parameter
     const slug = url.searchParams.get("slug")?.trim();
     
     if (!slug) {
-      // If no slug, return a helpful error or redirect to events listing
       return new Response(JSON.stringify({ error: "Missing slug parameter" }), {
         status: 400,
         headers: { ...corsHeaders, "content-type": "application/json" },
@@ -426,7 +439,7 @@ serve(async (req: Request) => {
       });
     }
 
-    const { event, relatedEvents } = data;
+    const { event, relatedEvents, venue } = data;
     const isPast = new Date(event.start_date) < new Date();
     const canonical = `${BASE_URL}/events/${event.slug}`;
     
@@ -439,7 +452,7 @@ serve(async (req: Request) => {
     // Get SPA shell
     let indexHtml = await getSpaShellHtml();
 
-    // Generate head HTML with all meta tags (always include for crawlers)
+    // Generate head HTML with all meta tags
     const headHtml = `
 <title>${escapeHtml(title)}</title>
 <meta name="description" content="${escapeHtml(description)}" />
@@ -463,9 +476,9 @@ serve(async (req: Request) => {
 <meta name="twitter:image" content="${escapeHtml(image)}" />
 
 <!-- Structured Data -->
-<script type="application/ld+json">${JSON.stringify(generateEventSchema(event, canonical, isPast))}</script>
+<script type="application/ld+json">${JSON.stringify(generateEventSchema(event, venue, canonical, isPast))}</script>
 <script type="application/ld+json">${JSON.stringify(generateBreadcrumbSchema(event, canonical))}</script>
-<script type="application/ld+json">${JSON.stringify(generateFAQSchema(event))}</script>
+<script type="application/ld+json">${JSON.stringify(generateFAQSchema(event, venue))}</script>
 `;
 
     // Inject head tags
@@ -474,9 +487,8 @@ serve(async (req: Request) => {
     }
 
     // For search bots: inject full SSR content
-    // For regular users: inject minimal SSR or let SPA handle it
     if (isSearchBot) {
-      const ssrContent = buildSSRMarkup(event, relatedEvents, canonical, isPast);
+      const ssrContent = buildSSRMarkup(event, venue, relatedEvents, canonical, isPast);
       const finalHtml = injectIntoRoot(indexHtml, ssrContent);
       
       console.log(`[event-ssr] Bot served: ${slug} in ${Date.now() - startTime}ms`);
@@ -486,8 +498,8 @@ serve(async (req: Request) => {
         headers: {
           "content-type": "text/html; charset=utf-8",
           "cache-control": isPast 
-            ? "public, max-age=0, s-maxage=86400"  // Past events cache longer
-            : "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",  // Upcoming: 1 hour
+            ? "public, max-age=0, s-maxage=86400"
+            : "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
           "x-ssr-module": "event-ssr",
           "x-ssr-bot": "true",
           "x-render-time-ms": String(Date.now() - startTime),
@@ -496,7 +508,6 @@ serve(async (req: Request) => {
     }
 
     // For regular users: return minimal HTML with meta tags only
-    // Let the SPA handle the actual rendering
     const finalHtml = injectIntoRoot(indexHtml, `<div data-ssr-placeholder="event-${event.slug}"></div>`);
     
     console.log(`[event-ssr] User served (SPA mode): ${slug} in ${Date.now() - startTime}ms`);
@@ -515,7 +526,6 @@ serve(async (req: Request) => {
   } catch (err) {
     console.error("Event SSR fatal error:", err);
     
-    // Fallback HTML
     const errorHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -529,7 +539,7 @@ serve(async (req: Request) => {
 </html>`;
     
     return new Response(errorHtml, {
-      status: 200, // Return 200 to avoid breaking the SPA
+      status: 200,
       headers: { "content-type": "text/html; charset=utf-8" },
     });
   }
