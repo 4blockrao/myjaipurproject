@@ -982,6 +982,7 @@ export type Database = {
           is_indexable: boolean | null
           is_placeholder: boolean
           known_for: string[] | null
+          landmarks: string[] | null
           locality_type: string | null
           meta_description: string | null
           meta_title: string | null
@@ -1021,6 +1022,7 @@ export type Database = {
           is_indexable?: boolean | null
           is_placeholder?: boolean
           known_for?: string[] | null
+          landmarks?: string[] | null
           locality_type?: string | null
           meta_description?: string | null
           meta_title?: string | null
@@ -1060,6 +1062,7 @@ export type Database = {
           is_indexable?: boolean | null
           is_placeholder?: boolean
           known_for?: string[] | null
+          landmarks?: string[] | null
           locality_type?: string | null
           meta_description?: string | null
           meta_title?: string | null
