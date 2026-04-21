@@ -18,11 +18,11 @@
     },
     {
       "src": "^/events/([^/]+)/?$",
-      "dest": "/api/functions/v1/event-ssr?slug=$1"
+      "dest": "https://yxhpmvxnvzdyhftqyhin.supabase.co/functions/v1/event-ssr?slug=$1"
     },
     {
       "src": "^/jaipur/([^/]+)/?$",
-      "dest": "/api/functions/v1/locality-ssr?slug=$1"
+      "dest": "https://yxhpmvxnvzdyhftqyhin.supabase.co/functions/v1/locality-ssr?slug=$1"
     },
     {
       "src": "^/events/?$",
