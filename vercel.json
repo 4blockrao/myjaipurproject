@@ -2,27 +2,27 @@
   "routes": [
     {
       "src": "^/api/rest/v1/(.*)$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/rest/v1/$1"
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/rest/v1/$1"
     },
     {
       "src": "^/api/auth/v1/(.*)$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/auth/v1/$1"
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/auth/v1/$1"
     },
     {
       "src": "^/api/storage/v1/(.*)$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/storage/v1/$1"
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/storage/v1/$1"
     },
     {
       "src": "^/api/functions/v1/(.*)$",
-      "dest": "https://buwhgxyutfwadazjswio.supabase.co/functions/v1/$1"
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/$1"
     },
     {
       "src": "^/events/([^/]+)/?$",
-      "dest": "https://yxhpmvxnvzdyhftqyhin.supabase.co/functions/v1/event-ssr?slug=$1"
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/event-ssr?slug=$1"
     },
     {
       "src": "^/jaipur/([^/]+)/?$",
-      "dest": "https://yxhpmvxnvzdyhftqyhin.supabase.co/functions/v1/locality-ssr?slug=$1"
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/locality-ssr?slug=$1"
     },
     {
       "src": "^/events/?$",
