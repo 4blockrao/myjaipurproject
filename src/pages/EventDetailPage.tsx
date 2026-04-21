@@ -46,8 +46,39 @@ import EventScheduleSection from "@/components/events/EventScheduleSection";
 import EventEntryRules from "@/components/events/EventEntryRules";
 import EventPastBanner from "@/components/events/EventPastBanner";
 
+// ===== SSR SUPPORT: Import bot detection utilities =====
+import { isBot, fetchSSRContent } from "@/utils/ssr";
+
 const EventDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
+  
+  // ===== SSR SUPPORT: State for bot-rendered content =====
+  const [ssrHtml, setSsrHtml] = useState<string | null>(null);
+  const [isBotUser, setIsBotUser] = useState(false);
+  
+  // ===== SSR SUPPORT: Check for bots and fetch SSR content =====
+  useEffect(() => {
+    // Check if this is a bot/crawler
+    const userAgent = navigator.userAgent;
+    const botDetected = isBot(userAgent);
+    setIsBotUser(botDetected);
+    
+    if (botDetected && slug) {
+      // For bots: fetch pre-rendered HTML from Edge Function
+      fetchSSRContent('event-ssr', slug).then(html => {
+        if (html) {
+          setSsrHtml(html);
+        }
+      });
+    }
+  }, [slug]);
+
+  // ===== SSR SUPPORT: If SSR content is available for bot, render it directly =====
+  if (ssrHtml) {
+    return <div dangerouslySetInnerHTML={{ __html: ssrHtml }} />;
+  }
+
+  // ===== NORMAL CLIENT-SIDE RENDERING FOR HUMAN USERS =====
   const queryClient = useQueryClient();
   const [user, setUser] = useState<any>(null);
   const [isInterested, setIsInterested] = useState(false);
@@ -74,7 +105,7 @@ const EventDetailPage = () => {
 
       return data;
     },
-    enabled: !!slug,
+    enabled: !!slug && !isBotUser, // Disable for bots (they get SSR)
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
     retry: 2, // Retry failed requests twice
@@ -95,7 +126,7 @@ const EventDetailPage = () => {
       setIsInterested(!!data);
       return data;
     },
-    enabled: !!user && !!event?.id,
+    enabled: !!user && !!event?.id && !isBotUser,
     staleTime: 1000 * 60 * 2,
   });
 
