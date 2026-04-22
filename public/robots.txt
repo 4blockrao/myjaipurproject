@@ -1,6 +1,6 @@
 # robots.txt for JaipurCircle
 # https://www.jaipurcircle.com
-# Last updated: 2025-12-25
+# Last updated: 2026-04-22
 
 # Google
 User-agent: Googlebot
@@ -137,9 +137,6 @@ Disallow: /*?*gclid=
 
 # Main sitemap index (dynamically generated, always up-to-date)
 Sitemap: https://www.jaipurcircle.com/sitemap.xml
-
-# Static pages sitemap
-Sitemap: https://www.jaipurcircle.com/sitemap-pages.xml
 
 # Host directive
 Host: https://www.jaipurcircle.com
