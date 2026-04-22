@@ -8,7 +8,6 @@ interface Guide {
   id: string;
   slug: string;
   title: string;
-  excerpt: string | null;
   category: string;
   article_type: string;
   published_at: string | null;
@@ -21,12 +20,13 @@ export default function GuidesPage() {
   useEffect(() => {
     async function fetchGuides() {
       try {
+        // REMOVED 'excerpt' from select
         const { data, error } = await supabase
           .from('articles')
-          .select('id, slug, title, excerpt, category, article_type, published_at')
+          .select('id, slug, title, category, article_type, published_at')
           .in('article_type', ['pillar', 'cluster'])
           .eq('status', 'published')
-          .order('created_at', { ascending: false });
+          .order('updated_at', { ascending: false });
 
         if (!error && data) {
           setGuides(data);
@@ -93,11 +93,6 @@ export default function GuidesPage() {
                   <h2 className="text-xl font-bold mb-2 line-clamp-2 text-gray-800">
                     {guide.title}
                   </h2>
-                  {guide.excerpt && (
-                    <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-                      {guide.excerpt}
-                    </p>
-                  )}
                   <div className="text-xs text-gray-400 mt-2 pt-2 border-t border-gray-100">
                     {guide.published_at 
                       ? new Date(guide.published_at).toLocaleDateString('en-IN')
