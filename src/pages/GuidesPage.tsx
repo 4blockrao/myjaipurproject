@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-// FIXED: Use the correct import path - change this to match your working pages
 import AppLayout from '@/components/layout/AppLayout';
 import GlobalSEO from '@/components/seo/GlobalSEO';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,6 +30,8 @@ export default function GuidesPage() {
 
         if (!error && data) {
           setGuides(data);
+        } else {
+          console.error('Supabase error:', error);
         }
       } catch (err) {
         console.error('Fetch error:', err);
