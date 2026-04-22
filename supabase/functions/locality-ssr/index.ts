@@ -103,7 +103,6 @@ async function fetchCompleteLocalityData(slug: string) {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  // Fetch locality with all fields
   const { data: locality, error } = await supabase
     .from("localities")
     .select("*")
@@ -115,7 +114,6 @@ async function fetchCompleteLocalityData(slug: string) {
     return null;
   }
 
-  // Fetch upcoming events (next 90 days)
   const { data: events } = await supabase
     .from("events")
     .select("title, slug, start_date, venue_name, cover_image, ticket_price, is_free, category")
@@ -125,7 +123,6 @@ async function fetchCompleteLocalityData(slug: string) {
     .order("start_date", { ascending: true })
     .limit(12);
 
-  // Fetch popular venues in this locality
   const { data: venues } = await supabase
     .from("venues")
     .select("name, slug, category, rating, image")
@@ -133,7 +130,6 @@ async function fetchCompleteLocalityData(slug: string) {
     .order("rating", { ascending: false, nullsLast: true })
     .limit(8);
 
-  // Fetch nearby localities
   let nearby: any[] = [];
   if (locality.geo_lat && locality.geo_lng) {
     const { data: nearbyData } = await supabase
@@ -166,7 +162,7 @@ async function fetchCompleteLocalityData(slug: string) {
 }
 
 // ============================================
-// GENERATE ALL SCHEMAS (GOLD STANDARD)
+// GENERATE ALL SCHEMAS (FIXED - Safe array handling)
 // ============================================
 function generateAllSchemas(locality: any, events: any[], venues: any[], canonical: string) {
   const schemas = [];
@@ -198,7 +194,6 @@ function generateAllSchemas(locality: any, events: any[], venues: any[], canonic
     }
   };
 
-  // Add geo coordinates if available
   if (locality.geo_lat && locality.geo_lng) {
     placeSchema.geo = {
       "@type": "GeoCoordinates",
@@ -207,12 +202,11 @@ function generateAllSchemas(locality: any, events: any[], venues: any[], canonic
     };
   }
 
-  // Add known_for as additional property
+  // SAFE: Check if known_for is an array before using
   if (locality.known_for && Array.isArray(locality.known_for) && locality.known_for.length > 0) {
     placeSchema.knownFor = locality.known_for;
   }
 
-  // Add aggregate rating if available
   if (locality.avg_rating && locality.review_count) {
     placeSchema.aggregateRating = {
       "@type": "AggregateRating",
@@ -223,14 +217,13 @@ function generateAllSchemas(locality: any, events: any[], venues: any[], canonic
     };
   }
 
-  // Add number of upcoming events
   if (events.length > 0) {
     placeSchema.numberOfUpcomingEvents = events.length;
   }
 
   schemas.push(placeSchema);
 
-  // 3. Event Schemas for each upcoming event (max 5)
+  // 3. Event Schemas
   events.slice(0, 5).forEach(event => {
     schemas.push({
       "@context": "https://schema.org",
@@ -279,13 +272,30 @@ function generateAllSchemas(locality: any, events: any[], venues: any[], canonic
     });
   }
 
-  // 5. Enhanced FAQ Schema (FIXED: text as string, not array)
+  // 5. FAQ Schema - SAFE: Build knownForText safely
+  let knownForText = "";
+  if (locality.known_for && Array.isArray(locality.known_for) && locality.known_for.length > 0) {
+    knownForText = locality.known_for.slice(0, 3).join(", ");
+  } else if (typeof locality.known_for === 'string') {
+    knownForText = locality.known_for;
+  } else {
+    knownForText = "local attractions, shopping areas, and dining options";
+  }
+
+  let popularVenuesText = "";
+  if (locality.popular_venues && Array.isArray(locality.popular_venues) && locality.popular_venues.length > 0) {
+    popularVenuesText = locality.popular_venues.slice(0, 3).join(", ");
+  }
+
+  let popularEateriesText = "";
+  if (locality.popular_eateries && Array.isArray(locality.popular_eateries) && locality.popular_eateries.length > 0) {
+    popularEateriesText = locality.popular_eateries.slice(0, 5).join(", ");
+  }
+
   const faqQuestions = [
     {
       name: `What are the best places to visit in ${locality.name}, Jaipur?`,
-      text: locality.known_for?.length 
-        ? `${locality.name} is known for ${locality.known_for.slice(0, 3).join(", ")}. ${locality.popular_venues?.length ? `Popular venues include ${locality.popular_venues.slice(0, 3).join(", ")}.` : ""} Check JaipurCircle for upcoming events and local experiences.`
-        : `${locality.name} offers a mix of local attractions, shopping areas, and dining options. Explore the locality guide for more details.`
+      text: `${locality.name} is known for ${knownForText}.${popularVenuesText ? ` Popular venues include ${popularVenuesText}.` : ""} Check JaipurCircle for upcoming events and local experiences.`
     },
     {
       name: `Upcoming events in ${locality.name}`,
@@ -295,17 +305,17 @@ function generateAllSchemas(locality: any, events: any[], venues: any[], canonic
     },
     {
       name: `How to reach ${locality.name} in Jaipur?`,
-      text: `${locality.name} is well-connected within Jaipur. You can reach by metro (${locality.nearest_metro || "check local metro station"}), local bus, auto-rickshaw, or app-based cabs like Uber and Ola. ${locality.geo_lat && locality.geo_lng ? `Coordinates: ${locality.geo_lat}°N, ${locality.geo_lng}°E.` : ""}`
+      text: `${locality.name} is well-connected within Jaipur. You can reach by metro (${locality.nearest_metro || "check local metro station"}), local bus, auto-rickshaw, or app-based cabs like Uber and Ola.${locality.geo_lat && locality.geo_lng ? ` Coordinates: ${locality.geo_lat}°N, ${locality.geo_lng}°E.` : ""}`
     },
     {
       name: `What are the best restaurants and cafes in ${locality.name}?`,
-      text: locality.popular_eateries?.length 
-        ? `Popular dining spots in ${locality.name} include ${locality.popular_eateries.slice(0, 5).join(", ")}. Cuisines range from local Rajasthani to international.`
+      text: popularEateriesText 
+        ? `Popular dining spots in ${locality.name} include ${popularEateriesText}. Cuisines range from local Rajasthani to international.`
         : `${locality.name} has several dining options ranging from street food to fine dining. Use JaipurCircle to discover rated restaurants in this area.`
     },
     {
       name: `Is ${locality.name} a good place for shopping?`,
-      text: locality.shopping_options || `${locality.name} offers various shopping experiences from local markets to branded outlets. ${locality.known_for?.includes("Shopping") ? "The area is particularly known for its shopping scene." : ""}`
+      text: locality.shopping_options || `${locality.name} offers various shopping experiences from local markets to branded outlets.`
     },
     {
       name: `What is the best time to visit ${locality.name}?`,
@@ -321,7 +331,7 @@ function generateAllSchemas(locality: any, events: any[], venues: any[], canonic
       "name": q.name,
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": q.text  // ← FIXED: string, not array
+        "text": q.text
       }
     }))
   });
@@ -330,11 +340,12 @@ function generateAllSchemas(locality: any, events: any[], venues: any[], canonic
 }
 
 // ============================================
-// BUILD SSR HTML FOR BOTS
+// BUILD SSR HTML FOR BOTS (FIXED - Safe array handling)
 // ============================================
 function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[], eventCount: number) {
-  // Known For badges
-  const knownForHtml = locality.known_for?.length ? `
+  // SAFE: Known For badges
+  const hasKnownFor = locality.known_for && Array.isArray(locality.known_for) && locality.known_for.length > 0;
+  const knownForHtml = hasKnownFor ? `
     <div class="section known-for">
       <h3>✨ Known For</h3>
       <div class="badge-group">
@@ -343,7 +354,7 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
     </div>
   ` : '';
 
-  // Popular Venues grid
+  // SAFE: Popular Venues grid
   const venuesHtml = venues?.length ? `
     <div class="section venues">
       <h3>🏛️ Popular Venues in ${escapeHtml(locality.name)}</h3>
@@ -391,8 +402,9 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
     </div>
   `;
 
-  // Popular Eateries
-  const eateriesHtml = locality.popular_eateries?.length ? `
+  // SAFE: Popular Eateries
+  const hasEateries = locality.popular_eateries && Array.isArray(locality.popular_eateries) && locality.popular_eateries.length > 0;
+  const eateriesHtml = hasEateries ? `
     <div class="section eateries">
       <h3>🍽️ Popular Eateries</h3>
       <div class="badge-group">
@@ -401,7 +413,7 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
     </div>
   ` : '';
 
-  // Info cards (Metro, Best Time, Shopping)
+  // Info cards
   const infoCardsHtml = `
     <div class="info-cards">
       ${locality.nearest_metro ? `
@@ -588,11 +600,9 @@ serve(async (req: Request) => {
 <meta name="robots" content="index, follow, max-image-preview:large" />
 <link rel="canonical" href="${escapeHtml(canonical)}" />
 
-<!-- Preloads & Preconnects -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-<!-- Open Graph -->
 <meta property="og:type" content="website" />
 <meta property="og:url" content="${escapeHtml(canonical)}" />
 <meta property="og:site_name" content="${SITE_NAME}" />
@@ -602,13 +612,11 @@ serve(async (req: Request) => {
 <meta property="og:image:alt" content="${escapeHtml(locality.name)} - Locality guide with ${eventCount} upcoming events" />
 <meta property="og:locale" content="en_IN" />
 
-<!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${escapeHtml(title)}" />
 <meta name="twitter:description" content="${escapeHtml(description)}" />
 <meta name="twitter:image" content="${escapeHtml(image)}" />
 
-<!-- Structured Data -->
 ${schemas.map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`).join('')}
 `;
 
@@ -616,7 +624,6 @@ ${schemas.map(schema => `<script type="application/ld+json">${JSON.stringify(sch
       indexHtml = indexHtml.replace(/<\/head>/i, `${headHtml}\n</head>`);
     }
 
-    // For crawlers: return FULL SSR content
     if (isCrawler) {
       const ssrContent = buildSSRHTML(locality, events, venues, nearby, eventCount);
       const finalHtml = indexHtml.replace('<div id="root"></div>', `<div id="root">${ssrContent}</div>`);
@@ -637,7 +644,6 @@ ${schemas.map(schema => `<script type="application/ld+json">${JSON.stringify(sch
       });
     }
     
-    // For normal users: Return SPA shell with EMPTY root div
     console.log(`[locality-ssr] User served: ${slug} in ${Date.now() - startTime}ms`);
     
     return new Response(indexHtml, {
