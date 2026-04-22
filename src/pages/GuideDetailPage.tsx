@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, User } from 'lucide-react';
-// FIXED: Use the correct import path - change this to match your working pages
 import AppLayout from '@/components/layout/AppLayout';
 import GlobalSEO from '@/components/seo/GlobalSEO';
 import { supabase } from '@/integrations/supabase/client';
