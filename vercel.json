@@ -2,42 +2,26 @@
   "routes": [
     {
       "src": "^/api/rest/v1/(.*)$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/rest/v1/$1"
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/rest/v1/$1"
     },
     {
       "src": "^/api/auth/v1/(.*)$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/auth/v1/$1"
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/auth/v1/$1"
     },
     {
       "src": "^/api/storage/v1/(.*)$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/storage/v1/$1"
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/storage/v1/$1"
     },
     {
       "src": "^/api/functions/v1/(.*)$",
       "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/$1"
     },
     {
-      "src": "^/events/([^/]+)/?$",
-      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/event-ssr?slug=$1"
-    },
-    {
-      "src": "^/jaipur/([^/]+)/?$",
-      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/locality-ssr?slug=$1"
-    },
-    {
-      "src": "^/events/?$",
-      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/events-list-ssr"
-    },
-    {
-      "src": "^/artists/([^/]+)/?$",
-      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/artist-ssr?slug=$1"
-    },
-    {
       "src": "^/sitemap\\.xml$",
       "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/sitemap/sitemap"
     },
     {
-      "src": "^/sitemaps/(.*)\\.xml$",
+      "src": "^/sitemaps/([^/]+)\\.xml$",
       "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/sitemap/sitemaps/$1.xml"
     },
     {
@@ -59,6 +43,22 @@
     {
       "src": "^/sitemap-artists\\.xml$",
       "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/sitemap-artists"
+    },
+    {
+      "src": "^/events/([^/]+)/?$",
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/event-ssr?slug=$1"
+    },
+    {
+      "src": "^/jaipur/([^/]+)/?$",
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/locality-ssr?slug=$1"
+    },
+    {
+      "src": "^/events/?$",
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/events-list-ssr"
+    },
+    {
+      "src": "^/artists/([^/]+)/?$",
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/artist-ssr?slug=$1"
     },
     {
       "src": "^/localities/([^/]+)/?$",
