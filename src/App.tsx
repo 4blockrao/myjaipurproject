@@ -35,6 +35,10 @@ import NewsArticlePage from "./pages/NewsArticlePage";
 import NewsCategoryPage from "./pages/NewsCategoryPage";
 import CreateNewsPage from "./pages/CreateNewsPage";
 
+// NEW: Guides imports
+import GuidesPage from "./pages/GuidesPage";
+import GuideDetailPage from "./pages/GuideDetailPage";
+
 import EventsPage from "./pages/EventsPage";
 import EventDetailPage from "./pages/EventDetailPage";
 import CreateEventPage from "./pages/CreateEventPage";
@@ -162,6 +166,10 @@ function App() {
                     <Route path="/news/create" element={<CreateNewsPage />} />
                     <Route path="/news/:category" element={<NewsCategoryPage />} />
                     <Route path="/news/:category/:slug" element={<NewsArticlePage />} />
+
+                    {/* Guides - NEW ROUTES */}
+                    <Route path="/guides" element={<GuidesPage />} />
+                    <Route path="/guide/:slug" element={<GuideDetailPage />} />
 
                     {/* Events */}
                     <Route path="/events" element={<EventsPage />} />
