@@ -1,5 +1,5 @@
 // supabase/functions/events-list-ssr/index.ts
-// JaipurCircle — Events Hub + Scoped Listings SSR (Authority layer + Semantic locality block + Smart fallback matching)
+// GOLD STANDARD - Events Hub with Date Filters, Categories, and Smart Routing
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
@@ -9,8 +9,7 @@ type EventRow = {
   title: string | null;
   slug: string | null;
   start_date: string | null;
-  start_time?: string | null;
-  end_time?: string | null;
+  end_date?: string | null;
   cover_image?: string | null;
   is_free?: boolean | null;
   ticket_price?: number | null;
@@ -18,706 +17,587 @@ type EventRow = {
   locality?: string | null;
   venue_name?: string | null;
   venue_slug?: string | null;
-};
-
-type LocalityRow = {
-  name: string | null;
-  slug: string | null;
-  seo_blurb?: string | null;
-  zone?: string | null;
+  performer_name?: string | null;
 };
 
 const BASE_URL = "https://www.jaipurcircle.com";
 const SITE_NAME = "JaipurCircle";
 
-const ALLOWED_QUERY_KEYS = new Set([
-  "category",
-  "locality",
-  "cb",
-  "gclid",
-  "fbclid",
-  "msclkid",
-]);
+// ============================================
+// ROUTE PATTERNS
+// ============================================
+type RoutePattern = 
+  | { type: "hub" }
+  | { type: "today" }
+  | { type: "tomorrow" }
+  | { type: "weekend" }
+  | { type: "this-week" }
+  | { type: "next-month" }
+  | { type: "category"; category: string }
+  | { type: "category-locality"; category: string; locality: string }
+  | { type: "near-me" };
 
-const LOCALITY_ALIASES: Record<string, string> = {
-  // normalize common variants → canonical slugs
-  "c scheme": "c-scheme",
-  "c-scheme": "c-scheme",
-  "raja park": "raja-park",
-  "raja-park": "raja-park",
-  sitapura: "sitapura",
-  "jln marg": "jln-marg",
-  "jln-marg": "jln-marg",
-  "vaishali nagar": "vaishali-nagar",
-  "vaishali-nagar": "vaishali-nagar",
-  "bani park": "bani-park",
-  "bani-park": "bani-park",
-  mansarovar: "mansarovar",
-  "malviya nagar": "malviya-nagar",
-  "malviya-nagar": "malviya-nagar",
-};
-
-function nowIsoDateOnlyIST(): string {
-  // Date-only, but we want “today” in IST; do a simple offset calc (UTC+5:30)
+// ============================================
+// DATE UTILITIES (IST)
+// ============================================
+function getTodayIST(): Date {
   const now = new Date();
-  const istMs = now.getTime() + 5.5 * 60 * 60 * 1000;
-  const ist = new Date(istMs);
-  const y = ist.getUTCFullYear();
-  const m = String(ist.getUTCMonth() + 1).padStart(2, "0");
-  const d = String(ist.getUTCDate()).padStart(2, "0");
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  return new Date(now.getTime() + istOffset);
+}
+
+function formatDateForFilter(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
 
-function formatHumanDateIST(isoDate: string): string {
-  // isoDate: YYYY-MM-DD
-  const [y, m, d] = isoDate.split("-").map((x) => Number(x));
-  const dt = new Date(Date.UTC(y, (m || 1) - 1, d || 1));
-  return dt.toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" });
+function getDateRanges() {
+  const today = getTodayIST();
+  const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+  
+  // Weekend: Friday to Sunday
+  const currentDay = today.getDay();
+  const daysUntilFriday = (5 - currentDay + 7) % 7;
+  const weekendStart = new Date(today.getTime() + daysUntilFriday * 24 * 60 * 60 * 1000);
+  const weekendEnd = new Date(weekendStart.getTime() + 2 * 24 * 60 * 60 * 1000);
+  
+  // This week: next 7 days
+  const weekEnd = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+  
+  // Next month: 30-60 days out
+  const nextMonthStart = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const nextMonthEnd = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000);
+  
+  return {
+    today: formatDateForFilter(today),
+    tomorrow: formatDateForFilter(tomorrow),
+    weekendStart: formatDateForFilter(weekendStart),
+    weekendEnd: formatDateForFilter(weekendEnd),
+    weekEnd: formatDateForFilter(weekEnd),
+    nextMonthStart: formatDateForFilter(nextMonthStart),
+    nextMonthEnd: formatDateForFilter(nextMonthEnd),
+  };
 }
 
-function escapeHtml(input: string): string {
-  return input
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+function formatHumanDate(isoDate: string): string {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  return date.toLocaleDateString("en-IN", { 
+    weekday: "long", 
+    year: "numeric", 
+    month: "long", 
+    day: "numeric" 
+  });
 }
 
-function titleCaseFromSlug(slug: string): string {
-  return slug
-    .split("-")
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
+function formatShortDate(isoDate: string): string {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  return date.toLocaleDateString("en-IN", { 
+    month: "short", 
+    day: "numeric" 
+  });
+}
+
+// ============================================
+// ROUTE PARSING
+// ============================================
+function parseRoute(pathname: string): RoutePattern {
+  // Remove leading/trailing slashes
+  const clean = pathname.replace(/^\/|\/$/g, '');
+  const parts = clean.split('/').filter(Boolean);
+  
+  // /events
+  if (parts.length === 1 && parts[0] === 'events') {
+    return { type: "hub" };
+  }
+  
+  // /events/today
+  if (parts.length === 2 && parts[0] === 'events' && parts[1] === 'today') {
+    return { type: "today" };
+  }
+  
+  // /events/tomorrow
+  if (parts.length === 2 && parts[0] === 'events' && parts[1] === 'tomorrow') {
+    return { type: "tomorrow" };
+  }
+  
+  // /events/this-weekend
+  if (parts.length === 2 && parts[0] === 'events' && parts[1] === 'this-weekend') {
+    return { type: "weekend" };
+  }
+  
+  // /events/this-week
+  if (parts.length === 2 && parts[0] === 'events' && parts[1] === 'this-week') {
+    return { type: "this-week" };
+  }
+  
+  // /events/next-month
+  if (parts.length === 2 && parts[0] === 'events' && parts[1] === 'next-month') {
+    return { type: "next-month" };
+  }
+  
+  // /events/near-me
+  if (parts.length === 2 && parts[0] === 'events' && parts[1] === 'near-me') {
+    return { type: "near-me" };
+  }
+  
+  // /events/category/[category]
+  if (parts.length === 3 && parts[0] === 'events' && parts[1] === 'category') {
+    return { type: "category", category: parts[2] };
+  }
+  
+  // /events/[category]/[locality]
+  if (parts.length === 3 && parts[0] === 'events') {
+    return { type: "category-locality", category: parts[1], locality: parts[2] };
+  }
+  
+  // /events/[category]
+  if (parts.length === 2 && parts[0] === 'events') {
+    return { type: "category", category: parts[1] };
+  }
+  
+  return { type: "hub" };
 }
 
 function slugify(input: string): string {
   return input
     .trim()
     .toLowerCase()
-    .replaceAll("&", "and")
-    .replaceAll(/[^a-z0-9\s-]/g, "")
-    .replaceAll(/\s+/g, "-")
-    .replaceAll(/-+/g, "-")
-    .replaceAll(/^-|-$/g, "");
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
-function safeUrl(path: string): string {
-  if (!path.startsWith("/")) return `${BASE_URL}/${path}`;
-  return `${BASE_URL}${path}`;
+function titleCase(str: string): string {
+  return str
+    .split('-')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
 }
 
-function buildBreadcrumbJsonLd(items: Array<{ name: string; item: string }>) {
+// ============================================
+// DATABASE QUERIES
+// ============================================
+async function fetchEventsByDateRange(
+  supabase: any,
+  startDate: string,
+  endDate: string,
+  limit: number = 50
+): Promise<EventRow[]> {
+  const { data } = await supabase
+    .from("events")
+    .select("id,title,slug,start_date,end_date,cover_image,is_free,ticket_price,category,locality,venue_name,venue_slug,performer_name")
+    .eq("status", "published")
+    .gte("start_date", startDate)
+    .lte("start_date", endDate)
+    .order("start_date", { ascending: true })
+    .limit(limit);
+  
+  return data || [];
+}
+
+async function fetchEventsByCategory(
+  supabase: any,
+  category: string,
+  limit: number = 50
+): Promise<EventRow[]> {
+  const today = getDateRanges().today;
+  const { data } = await supabase
+    .from("events")
+    .select("id,title,slug,start_date,end_date,cover_image,is_free,ticket_price,category,locality,venue_name,venue_slug,performer_name")
+    .eq("status", "published")
+    .eq("category", category)
+    .gte("start_date", today)
+    .order("start_date", { ascending: true })
+    .limit(limit);
+  
+  return data || [];
+}
+
+async function fetchEventsByCategoryAndLocality(
+  supabase: any,
+  category: string,
+  locality: string,
+  limit: number = 50
+): Promise<EventRow[]> {
+  const today = getDateRanges().today;
+  const { data } = await supabase
+    .from("events")
+    .select("id,title,slug,start_date,end_date,cover_image,is_free,ticket_price,category,locality,venue_name,venue_slug,performer_name")
+    .eq("status", "published")
+    .eq("category", category)
+    .eq("locality", locality)
+    .gte("start_date", today)
+    .order("start_date", { ascending: true })
+    .limit(limit);
+  
+  return data || [];
+}
+
+async function fetchUpcomingEvents(
+  supabase: any,
+  limit: number = 50
+): Promise<EventRow[]> {
+  const today = getDateRanges().today;
+  const { data } = await supabase
+    .from("events")
+    .select("id,title,slug,start_date,end_date,cover_image,is_free,ticket_price,category,locality,venue_name,venue_slug,performer_name")
+    .eq("status", "published")
+    .gte("start_date", today)
+    .order("start_date", { ascending: true })
+    .limit(limit);
+  
+  return data || [];
+}
+
+// ============================================
+// SCHEMA GENERATION
+// ============================================
+function generateBreadcrumbSchema(items: Array<{ name: string; url: string }>) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: items.map((x, i) => ({
+    "itemListElement": items.map((item, index) => ({
       "@type": "ListItem",
-      position: i + 1,
-      name: x.name,
-      item: x.item,
+      "position": index + 1,
+      "name": item.name,
+      "item": item.url,
     })),
   };
 }
 
-function buildCollectionPageJsonLd(args: {
-  name: string;
-  description: string;
-  url: string;
-}) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    name: args.name,
-    description: args.description,
-    url: args.url,
-    inLanguage: "en-IN",
-    isPartOf: {
-      "@type": "WebSite",
-      name: SITE_NAME,
-      url: BASE_URL,
-    },
-  };
-}
-
-function buildItemListJsonLd(events: EventRow[], canonicalBase: string) {
-  const list = events.slice(0, 10).map((e, idx) => {
-    const slug = (e.slug || "").trim();
-    const url = slug ? `${canonicalBase}/events/${slug}` : canonicalBase;
-    return {
-      "@type": "ListItem",
-      position: idx + 1,
-      url,
-      name: e.title || "Event",
-    };
-  });
-
+function generateItemListSchema(events: EventRow[], title: string, canonicalUrl: string) {
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    itemListOrder: "https://schema.org/ItemListOrderAscending",
-    numberOfItems: list.length,
-    itemListElement: list,
+    "name": title,
+    "itemListOrder": "https://schema.org/ItemListOrderAscending",
+    "numberOfItems": events.length,
+    "itemListElement": events.slice(0, 20).map((event, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "url": `${BASE_URL}/events/${event.slug}`,
+      "name": event.title,
+    })),
   };
 }
 
-function buildPlaceJsonLd(localityName: string) {
+function generateEventSearchActionSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": "Place",
-    name: `${localityName}, Jaipur`,
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: "Jaipur",
-      addressRegion: "Rajasthan",
-      addressCountry: "IN",
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": `${BASE_URL}/events?q={search_term_string}`,
     },
-    containedInPlace: {
-      "@type": "Place",
-      name: "Jaipur, Rajasthan, India",
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Jaipur",
-        addressRegion: "Rajasthan",
-        addressCountry: "IN",
-      },
-    },
+    "query-input": "required name=search_term_string",
   };
 }
 
-function htmlScriptJsonLd(obj: unknown): string {
-  return `<script type="application/ld+json">${JSON.stringify(obj)}</script>`;
+// ============================================
+// HTML RENDERING
+// ============================================
+function escapeHtml(str: string): string {
+  if (!str) return "";
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
-function metaTag(name: string, content: string) {
-  return `<meta name="${escapeHtml(name)}" content="${escapeHtml(content)}">`;
-}
-
-function linkCanonical(href: string) {
-  return `<link rel="canonical" href="${escapeHtml(href)}">`;
-}
-
-function setOrInsertHead(html: string, injection: string): string {
-  const marker = "<!--ssr-prerender-head-->";
-  if (html.includes(marker)) return html.replace(marker, injection);
-  const idx = html.toLowerCase().indexOf("</head>");
-  if (idx >= 0) return html.slice(0, idx) + injection + "\n" + html.slice(idx);
-  return injection + "\n" + html;
-}
-
-function setOrInsertBody(html: string, injection: string): string {
-  const marker = "<!--ssr-prerender-body-->";
-  if (html.includes(marker)) return html.replace(marker, injection);
-  const idx = html.toLowerCase().indexOf("</body>");
-  if (idx >= 0) return html.slice(0, idx) + injection + "\n" + html.slice(idx);
-  return html + "\n" + injection;
-}
-
-async function fetchSpaShell(): Promise<string> {
-  // Pull the live SPA index.html so SSR is always in sync with the deployed UI bundle.
-  const res = await fetch(`${BASE_URL}/index.html`, {
-    headers: {
-      "user-agent": "jaipurcircle-events-ssr/1.0",
-      accept: "text/html",
-    },
-  });
-
-  if (!res.ok) {
-    // Last resort: minimal HTML
-    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${SITE_NAME}</title></head><body><div id="root"></div></body></html>`;
-  }
-
-  return await res.text();
-}
-
-function hasNoisyParams(url: URL): boolean {
-  for (const k of url.searchParams.keys()) {
-    const key = String(k || "").toLowerCase();
-    if (ALLOWED_QUERY_KEYS.has(key)) continue;
-    if (key.startsWith("utm_")) continue;
-    return true;
-  }
-  return false;
-}
-
-function normalizedCategory(raw: string | null): string | null {
-  if (!raw) return null;
-  const s = slugify(raw);
-  return s.length ? s : null;
-}
-
-function normalizedLocality(raw: string | null): string | null {
-  if (!raw) return null;
-  const s = slugify(raw);
-  if (!s) return null;
-  return LOCALITY_ALIASES[s] || s;
-}
-
-async function queryUpcomingEvents(args: {
-  supabase: ReturnType<typeof createClient>;
-  category?: string | null;
-  locality?: string | null;
-  limit?: number;
-}): Promise<{ rows: EventRow[]; count: number }> {
-  const today = nowIsoDateOnlyIST();
-
-  // Query with count (head: true gives count without rows, but we need rows anyway)
-  let q = args.supabase
-    .from("events")
-    .select(
-      "id,title,slug,start_date,start_time,end_time,cover_image,is_free,ticket_price,category,locality,venue_name,venue_slug",
-      { count: "exact" },
-    )
-    .eq("status", "published")
-    .gte("start_date", today)
-    .order("start_date", { ascending: true })
-    .limit(args.limit ?? 20);
-
-  if (args.category) q = q.eq("category", args.category);
-  if (args.locality) q = q.eq("locality", args.locality);
-
-  const { data, error, count } = await q;
-
-  if (error) {
-    // Fail-safe: return empty set
-    return { rows: [], count: 0 };
-  }
-
-  return { rows: (data as EventRow[]) || [], count: count || 0 };
-}
-
-async function queryUpcomingEventsSmartFallback(args: {
-  supabase: ReturnType<typeof createClient>;
-  category?: string | null;
-  locality?: string | null;
-  limit?: number;
-}): Promise<{
-  rows: EventRow[];
-  count: number;
-  usedFallback: boolean;
-  matchMode: "exact" | "ilike" | "alias" | "hub";
-}> {
-  const { supabase, category, locality } = args;
-
-  // 1) Exact normalized match
-  if (category && locality) {
-    const exact = await queryUpcomingEvents({ supabase, category, locality, limit: args.limit ?? 20 });
-    if (exact.rows.length > 0) return { ...exact, usedFallback: false, matchMode: "exact" };
-
-    // 2) ILIKE match (case-insensitive exact; no wildcards)
-    // Use a new query to avoid chaining issues
-    const today = nowIsoDateOnlyIST();
-    const q2 = supabase
-      .from("events")
-      .select(
-        "id,title,slug,start_date,start_time,end_time,cover_image,is_free,ticket_price,category,locality,venue_name,venue_slug",
-        { count: "exact" },
-      )
-      .eq("status", "published")
-      .gte("start_date", today)
-      .ilike("category", category)
-      .ilike("locality", locality)
-      .order("start_date", { ascending: true })
-      .limit(args.limit ?? 20);
-
-    const { data: d2, count: c2 } = await q2;
-    const rows2 = (d2 as EventRow[]) || [];
-    if (rows2.length > 0) return { rows: rows2, count: c2 || rows2.length, usedFallback: true, matchMode: "ilike" };
-
-    // 3) Alias map fallback (if alias differs)
-    const aliasLoc = normalizedLocality(locality);
-    if (aliasLoc && aliasLoc !== locality) {
-      const alias = await queryUpcomingEvents({ supabase, category, locality: aliasLoc, limit: args.limit ?? 20 });
-      if (alias.rows.length > 0) return { ...alias, usedFallback: true, matchMode: "alias" };
-    }
-
-    // 4) Hub fallback (Jaipur-wide) if empty — returns hub rows but caller keeps scoped canonical
-    const hub = await queryUpcomingEvents({ supabase, category: null, locality: null, limit: args.limit ?? 20 });
-    return { ...hub, usedFallback: true, matchMode: "hub" };
-  }
-
-  // Hub page
-  const hub = await queryUpcomingEvents({ supabase, category: null, locality: null, limit: args.limit ?? 20 });
-  return { ...hub, usedFallback: false, matchMode: "exact" };
-}
-
-async function queryLocalityEntity(args: {
-  supabase: ReturnType<typeof createClient>;
-  localitySlug: string;
-}): Promise<LocalityRow | null> {
-  const { data } = await args.supabase
-    .from("localities")
-    .select("name,slug,seo_blurb,zone")
-    .eq("slug", args.localitySlug)
-    .maybeSingle();
-
-  return (data as LocalityRow) || null;
-}
-
-async function queryTopCombos(args: {
-  supabase: ReturnType<typeof createClient>;
-}): Promise<Array<{ category: string; locality: string; count: number }>> {
-  // Pull a bounded set of upcoming events; compute counts in JS (fast enough for SEO list)
-  const today = nowIsoDateOnlyIST();
-  const { data } = await args.supabase
-    .from("events")
-    .select("category,locality")
-    .eq("status", "published")
-    .gte("start_date", today)
-    .limit(2000);
-
-  const rows = (data as Array<{ category: string | null; locality: string | null }>) || [];
-  const counts = new Map<string, number>();
-
-  for (const r of rows) {
-    const c = normalizedCategory(r.category || "") || "";
-    const l = normalizedLocality(r.locality || "") || "";
-    if (!c || !l) continue;
-    const key = `${c}||${l}`;
-    counts.set(key, (counts.get(key) || 0) + 1);
-  }
-
-  const list = [...counts.entries()]
-    .map(([key, count]) => {
-      const [category, locality] = key.split("||");
-      return { category, locality, count };
-    })
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 8);
-
-  return list;
-}
-
-function renderAuthorityBlock(args: {
-  updatedDateHuman: string;
-  upcomingCount: number;
-  isScoped: boolean;
-  scopeLabel: string;
-}) {
-  const headline = args.isScoped ? `Trust & freshness for ${escapeHtml(args.scopeLabel)}` : "Trust & freshness";
+function renderEventCard(event: EventRow): string {
+  const date = event.start_date ? formatShortDate(event.start_date) : "Date TBA";
+  const price = event.is_free 
+    ? '<span class="price-free">FREE</span>' 
+    : event.ticket_price 
+      ? `<span class="price-paid">₹${event.ticket_price}</span>` 
+      : '<span class="price-tba">Price TBA</span>';
+  
+  const performerHtml = event.performer_name 
+    ? `<div class="event-performer">🎤 ${escapeHtml(event.performer_name)}</div>` 
+    : '';
+  
   return `
-<section aria-label="Authority and freshness" style="margin-top:14px; padding:14px; border:1px solid #e5e7eb; border-radius:14px; background:#fff;">
-  <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-    <strong style="font-size:14px;">${headline}</strong>
-    <span style="font-size:12px; color:#6b7280;">Last updated: ${escapeHtml(args.updatedDateHuman)}</span>
-    <span style="font-size:12px; color:#6b7280;">Upcoming events tracked: ${args.upcomingCount}</span>
-  </div>
-  <ul style="margin:10px 0 0 18px; padding:0; font-size:13px; color:#374151; line-height:1.45;">
-    <li>Listings include timings, venue and ticket info when available.</li>
-    <li>We compile from public sources and community submissions; updates roll in daily.</li>
-    <li>See something inaccurate? <a href="/help" style="text-decoration:underline;">Report it</a>.</li>
-  </ul>
-</section>
-`.trim();
+    <a href="/events/${escapeHtml(event.slug || '')}" class="event-card">
+      ${event.cover_image 
+        ? `<img src="${escapeHtml(event.cover_image)}" alt="${escapeHtml(event.title || 'Event')}" loading="lazy" class="event-image">` 
+        : '<div class="event-image-placeholder">🎉</div>'}
+      <div class="event-details">
+        <h3 class="event-title">${escapeHtml(event.title || 'Untitled Event')}</h3>
+        ${performerHtml}
+        <div class="event-meta">
+          <span class="event-date">📅 ${date}</span>
+          <span class="event-location">📍 ${escapeHtml(event.venue_name || event.locality || 'Jaipur')}</span>
+        </div>
+        <div class="event-price">${price}</div>
+      </div>
+    </a>
+  `;
 }
 
-function renderSemanticLocalityBlock(args: {
-  localityName: string;
-  localitySlug: string;
-  seoBlurb?: string | null;
-  zone?: string | null;
-  nearbyLinks: Array<{ name: string; slug: string }>;
-}) {
-  const blurb = (args.seoBlurb || "").trim();
-  const fallbackBlurb = `${args.localityName} is a neighborhood in Jaipur. Explore events, venues, and local happenings around ${args.localityName} — updated regularly.`;
-  const text = blurb.length >= 60 ? blurb : fallbackBlurb;
-
-  const nearby = args.nearbyLinks
-    .slice(0, 6)
-    .map((n) => `<a href="/events/in/${escapeHtml(n.slug)}" style="display:inline-block; margin:6px 8px 0 0; padding:6px 10px; border:1px solid #e5e7eb; border-radius:999px; font-size:12px; color:#111827; background:#fff; text-decoration:none;">${escapeHtml(n.name)}</a>`)
-    .join("");
-
-  const zoneLine = args.zone ? `<div style="margin-top:6px; font-size:12px; color:#6b7280;">Zone: ${escapeHtml(args.zone)}</div>` : "";
-
+function renderCategoryFilter(currentCategory?: string) {
+  const categories = [
+    { slug: "comedy", name: "Comedy Shows", icon: "😂" },
+    { slug: "music", name: "Concerts & Music", icon: "🎵" },
+    { slug: "workshop", name: "Workshops", icon: "🔧" },
+    { slug: "theatre", name: "Theatre & Plays", icon: "🎭" },
+    { slug: "festival", name: "Festivals", icon: "🎪" },
+    { slug: "free", name: "Free Events", icon: "🎟️" },
+  ];
+  
   return `
-<section aria-label="About this locality" style="margin-top:14px; padding:14px; border:1px solid #e5e7eb; border-radius:14px; background:#fff;">
-  <h2 style="margin:0; font-size:16px;">About ${escapeHtml(args.localityName)} (Jaipur)</h2>
-  ${zoneLine}
-  <p style="margin:10px 0 0 0; font-size:13px; color:#374151; line-height:1.55;">
-    ${escapeHtml(text)}
-  </p>
-
-  <div style="margin-top:12px;">
-    <div style="font-size:12px; color:#6b7280;">Explore nearby areas:</div>
-    <div style="margin-top:6px;">${nearby || `<span style="font-size:12px; color:#6b7280;">More localities coming soon.</span>`}</div>
-  </div>
-</section>
-`.trim();
+    <div class="category-filters">
+      <a href="/events" class="category-pill ${!currentCategory ? 'active' : ''}">All Events</a>
+      ${categories.map(cat => `
+        <a href="/events/category/${cat.slug}" class="category-pill ${currentCategory === cat.slug ? 'active' : ''}">
+          ${cat.icon} ${cat.name}
+        </a>
+      `).join('')}
+    </div>
+  `;
 }
 
-function renderTopCombosBlock(combos: Array<{ category: string; locality: string; count: number }>) {
-  if (!combos.length) return "";
-  const links = combos
-    .map((x) => {
-      const catName = titleCaseFromSlug(x.category);
-      const locName = titleCaseFromSlug(x.locality);
-      const href = `/events/${x.category}/${x.locality}`;
-      return `<a href="${escapeHtml(href)}" style="display:inline-block; margin:6px 8px 0 0; padding:6px 10px; border:1px solid #e5e7eb; border-radius:999px; font-size:12px; color:#111827; background:#fff; text-decoration:none;">${escapeHtml(catName)} · ${escapeHtml(locName)} <span style="color:#6b7280">(${x.count})</span></a>`;
-    })
-    .join("");
-
+function renderTimeFilters(routeType: string) {
+  const filters = [
+    { type: "today", label: "Today", icon: "☀️" },
+    { type: "tomorrow", label: "Tomorrow", icon: "🌅" },
+    { type: "weekend", label: "This Weekend", icon: "🎉" },
+    { type: "this-week", label: "This Week", icon: "📅" },
+    { type: "next-month", label: "Next Month", icon: "📆" },
+  ];
+  
   return `
-<section aria-label="Popular event combinations" style="margin-top:14px; padding:14px; border:1px solid #e5e7eb; border-radius:14px; background:#fff;">
-  <h2 style="margin:0; font-size:16px;">Popular searches in Jaipur</h2>
-  <p style="margin:8px 0 0 0; font-size:13px; color:#374151; line-height:1.55;">
-    Browse high-demand categories by locality — helps you discover what people are planning this week.
-  </p>
-  <div style="margin-top:8px;">${links}</div>
-</section>
-`.trim();
+    <div class="time-filters">
+      ${filters.map(filter => `
+        <a href="/events/${filter.type}" class="time-pill ${routeType === filter.type ? 'active' : ''}">
+          ${filter.icon} ${filter.label}
+        </a>
+      `).join('')}
+    </div>
+  `;
 }
 
-function renderEventListSnippet(events: EventRow[], canonicalBase: string) {
-  const items = events.slice(0, 10).map((e) => {
-    const title = escapeHtml((e.title || "Event").trim());
-    const slug = (e.slug || "").trim();
-    const href = slug ? `/events/${escapeHtml(slug)}` : "/events";
-    const date = e.start_date ? escapeHtml(e.start_date) : "";
-    const isFree = !!e.is_free;
-    const price = typeof e.ticket_price === "number" && e.ticket_price > 0 ? `₹${Math.round(e.ticket_price)}` : "";
-    const badge = isFree ? "Free" : price ? price : "";
-    const badgeHtml = badge ? `<span style="margin-left:8px; font-size:12px; color:#047857;">${escapeHtml(badge)}</span>` : "";
-    return `<li style="margin:8px 0; font-size:13px; color:#111827;">
-      <a href="${href}" style="text-decoration:underline; color:#111827;">${title}</a>
-      ${date ? `<span style="margin-left:8px; font-size:12px; color:#6b7280;">${date}</span>` : ""}
-      ${badgeHtml}
-    </li>`;
-  });
-
+function buildSSRHTML(
+  route: RoutePattern,
+  events: EventRow[],
+  title: string,
+  description: string,
+  canonicalUrl: string
+): string {
+  const dateRanges = getDateRanges();
+  
+  // Determine if this is a time-filtered page
+  let dateBadge = "";
+  if (route.type === "today") dateBadge = `<div class="date-badge">🔥 Happening Today - ${formatHumanDate(dateRanges.today)}</div>`;
+  if (route.type === "tomorrow") dateBadge = `<div class="date-badge">🌅 Tomorrow - ${formatHumanDate(dateRanges.tomorrow)}</div>`;
+  if (route.type === "weekend") dateBadge = `<div class="date-badge">🎉 This Weekend - ${formatShortDate(dateRanges.weekendStart)} to ${formatShortDate(dateRanges.weekendEnd)}</div>`;
+  if (route.type === "this-week") dateBadge = `<div class="date-badge">📅 Next 7 Days</div>`;
+  if (route.type === "next-month") dateBadge = `<div class="date-badge">📆 Coming Next Month</div>`;
+  
+  const eventsHtml = events.length > 0 
+    ? `<div class="events-grid">${events.map(renderEventCard).join('')}</div>`
+    : `<div class="no-events">
+        <div class="no-events-icon">🎫</div>
+        <h3>No events found</h3>
+        <p>Check back soon for new events in this category.</p>
+        <a href="/events" class="browse-link">Browse all events →</a>
+       </div>`;
+  
+  const categoryFilter = renderCategoryFilter(
+    route.type === "category" ? route.category : undefined
+  );
+  
+  const timeFilter = renderTimeFilters(route.type);
+  
+  const criticalCSS = `
+    <style>
+      *{margin:0;padding:0;box-sizing:border-box}
+      body{font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:#f8fafc;line-height:1.5}
+      .events-page{max-width:1200px;margin:0 auto}
+      .hero{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:clamp(2rem,5vw,3rem);text-align:center}
+      .hero h1{font-size:clamp(1.8rem,6vw,2.5rem);margin-bottom:0.5rem}
+      .hero p{font-size:1.125rem;opacity:0.95;max-width:600px;margin:0 auto}
+      .filters-section{background:white;padding:1rem;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:100}
+      .category-filters,.time-filters{display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem}
+      .category-pill,.time-pill{background:#f3f4f6;padding:0.5rem 1rem;border-radius:24px;text-decoration:none;color:#1f2937;font-size:0.875rem;transition:all 0.2s}
+      .category-pill:hover,.time-pill:hover{background:#e5e7eb;transform:translateY(-1px)}
+      .category-pill.active,.time-pill.active{background:#667eea;color:white}
+      .date-badge{background:#fef3c7;color:#92400e;padding:0.5rem 1rem;border-radius:8px;margin-bottom:1rem;text-align:center;font-weight:500}
+      .events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.5rem;padding:1.5rem}
+      .event-card{background:white;border-radius:16px;overflow:hidden;text-decoration:none;color:inherit;transition:transform 0.2s,box-shadow 0.2s;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+      .event-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.12)}
+      .event-image{width:100%;height:160px;object-fit:cover}
+      .event-image-placeholder{width:100%;height:160px;background:linear-gradient(135deg,#667eea20 0%,#764ba220 100%);display:flex;align-items:center;justify-content:center;font-size:3rem}
+      .event-details{padding:1rem}
+      .event-title{font-size:1rem;font-weight:600;margin-bottom:0.25rem;line-height:1.4}
+      .event-performer{font-size:0.75rem;color:#8b5cf6;margin-bottom:0.5rem}
+      .event-meta{display:flex;gap:0.75rem;font-size:0.75rem;color:#6b7280;margin:0.5rem 0;flex-wrap:wrap}
+      .event-price{margin-top:0.5rem;font-weight:700}
+      .price-free{color:#10b981}
+      .price-paid{color:#3b82f6}
+      .price-tba{color:#6b7280}
+      .no-events{text-align:center;padding:3rem;background:white;border-radius:16px;margin:1.5rem}
+      .browse-link{display:inline-block;margin-top:1rem;color:#667eea;text-decoration:none}
+      .stats-bar{background:#f9fafb;padding:0.75rem 1.5rem;text-align:center;font-size:0.875rem;color:#6b7280;border-bottom:1px solid #e5e7eb}
+      @media (max-width:640px){.events-grid{grid-template-columns:1fr;padding:1rem}}
+    </style>
+  `;
+  
   return `
-<section aria-label="Upcoming events preview" style="margin-top:14px; padding:14px; border:1px solid #e5e7eb; border-radius:14px; background:#fff;">
-  <h2 style="margin:0; font-size:16px;">Upcoming events (preview)</h2>
-  <p style="margin:8px 0 0 0; font-size:13px; color:#374151; line-height:1.55;">
-    Explore the newest listings. For full filters and booking info, open the events page.
-  </p>
-  <ul style="margin:10px 0 0 18px; padding:0;">${items.join("")}</ul>
-</section>
-`.trim();
+    ${criticalCSS}
+    <div class="events-page">
+      <div class="hero">
+        <h1>${escapeHtml(title)}</h1>
+        <p>${escapeHtml(description)}</p>
+      </div>
+      <div class="filters-section">
+        ${categoryFilter}
+        ${timeFilter}
+      </div>
+      <div class="stats-bar">
+        📍 ${events.length} events found • Updated daily
+      </div>
+      ${dateBadge}
+      ${eventsHtml}
+    </div>
+  `;
 }
 
+// ============================================
+// MAIN SERVE FUNCTION
+// ============================================
 serve(async (req: Request) => {
   try {
     const url = new URL(req.url);
-
-    // 1) Redirect away noisy params (but allow cb, utm_*, gclid, fbclid)
-    if (hasNoisyParams(url)) {
-      // Preserve only allowed keys (+ utm_ stripped)
-      const clean = new URL(url.toString());
-      for (const k of [...clean.searchParams.keys()]) {
-        const key = String(k || "").toLowerCase();
-        if (ALLOWED_QUERY_KEYS.has(key)) continue;
-        if (key.startsWith("utm_")) {
-          clean.searchParams.delete(k);
-          continue;
-        }
-        clean.searchParams.delete(k);
-      }
-      // If still different, redirect
-      if (clean.toString() !== url.toString()) {
-        return new Response(null, {
-          status: 308,
-          headers: {
-            location: clean.toString(),
-            "cache-control": "public, max-age=300",
-          },
-        });
-      }
-    }
-
-    const rawCategory = url.searchParams.get("category");
-    const rawLocality = url.searchParams.get("locality");
-
-    const category = normalizedCategory(rawCategory);
-    const locality = normalizedLocality(rawLocality);
-
-    const isScoped = !!(category && locality);
-
-    // Canonical URL must be clean (no cb / tracking params)
-    const canonicalUrl = isScoped
-      ? safeUrl(`/events/${category}/${locality}`)
-      : safeUrl(`/events`);
-
-    // Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || Deno.env.get("SUPABASE_ANON_URL") || Deno.env.get("NEXT_PUBLIC_SUPABASE_URL") || "";
-    const supabaseKey =
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
-      Deno.env.get("SUPABASE_ANON_KEY") ||
-      Deno.env.get("NEXT_PUBLIC_SUPABASE_ANON_KEY") ||
-      "";
-
+    const pathname = url.pathname;
+    const route = parseRoute(pathname);
+    
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
     const supabase = createClient(supabaseUrl, supabaseKey, {
       auth: { persistSession: false },
-      global: { headers: { "x-client-info": "jaipurcircle-events-list-ssr" } },
     });
-
-    // Data
-    const topCombos = await queryTopCombos({ supabase });
-
-    // Smart fallback matching rules (Option B)
-    const { rows: eventsRows, count: eventsCount, usedFallback, matchMode } = await queryUpcomingEventsSmartFallback({
-      supabase,
-      category,
-      locality,
-      limit: 20,
-    });
-
-    // Locality entity
-    let localityEntity: LocalityRow | null = null;
-    if (isScoped && locality) {
-      localityEntity = await queryLocalityEntity({ supabase, localitySlug: locality });
+    
+    const dateRanges = getDateRanges();
+    let events: EventRow[] = [];
+    let title = "";
+    let description = "";
+    let canonicalUrl = `${BASE_URL}${pathname}`;
+    
+    // Route handling
+    switch (route.type) {
+      case "today":
+        events = await fetchEventsByDateRange(supabase, dateRanges.today, dateRanges.today, 50);
+        title = "Events in Jaipur Today - Live Now (Updated Hourly) | JaipurCircle";
+        description = "Find live events, concerts, comedy shows, and cultural programs happening today in Jaipur. Updated hourly with real-time listings.";
+        break;
+        
+      case "tomorrow":
+        events = await fetchEventsByDateRange(supabase, dateRanges.tomorrow, dateRanges.tomorrow, 50);
+        title = "Events in Jaipur Tomorrow - Plan Your Day | JaipurCircle";
+        description = "Discover events happening tomorrow in Jaipur. Concerts, workshops, shows, and more. Book tickets in advance.";
+        break;
+        
+      case "weekend":
+        events = await fetchEventsByDateRange(supabase, dateRanges.weekendStart, dateRanges.weekendEnd, 50);
+        title = "Weekend Events in Jaipur - Friday to Sunday | JaipurCircle";
+        description = "Plan your weekend with the best events, parties, and shows in Jaipur. Friday through Sunday listings with ticket info.";
+        break;
+        
+      case "this-week":
+        events = await fetchEventsByDateRange(supabase, dateRanges.today, dateRanges.weekEnd, 50);
+        title = "Events in Jaipur This Week - Next 7 Days | JaipurCircle";
+        description = "Browse all events happening in Jaipur over the next 7 days. Concerts, comedy, workshops, and cultural events.";
+        break;
+        
+      case "next-month":
+        events = await fetchEventsByDateRange(supabase, dateRanges.nextMonthStart, dateRanges.nextMonthEnd, 50);
+        title = "Events in Jaipur Next Month - Plan Ahead | JaipurCircle";
+        description = "Discover upcoming events in Jaipur for next month. Book tickets early for concerts, festivals, and shows.";
+        break;
+        
+      case "category":
+        const categoryName = titleCase(route.category);
+        events = await fetchEventsByCategory(supabase, route.category, 50);
+        title = `${categoryName} Events in Jaipur - Shows, Tickets & Dates | JaipurCircle`;
+        description = `Find upcoming ${categoryName.toLowerCase()} events in Jaipur. Live shows, performances, and entertainment. Book tickets online.`;
+        canonicalUrl = `${BASE_URL}/events/category/${route.category}`;
+        break;
+        
+      case "category-locality":
+        const catName = titleCase(route.category);
+        const locName = titleCase(route.locality);
+        events = await fetchEventsByCategoryAndLocality(supabase, route.category, route.locality, 50);
+        title = `${catName} Events in ${locName}, Jaipur - Tickets & Dates | JaipurCircle`;
+        description = `Browse ${catName.toLowerCase()} events happening in ${locName}, Jaipur. Find dates, venues, and ticket prices for upcoming shows.`;
+        canonicalUrl = `${BASE_URL}/events/${route.category}/${route.locality}`;
+        break;
+        
+      case "near-me":
+        // For now, fallback to all Jaipur events
+        events = await fetchUpcomingEvents(supabase, 50);
+        title = "Events Near Me in Jaipur - Local Events in Your Area | JaipurCircle";
+        description = "Discover events happening near your location in Jaipur. Concerts, comedy shows, and cultural events nearby.";
+        break;
+        
+      default:
+        events = await fetchUpcomingEvents(supabase, 50);
+        title = "Jaipur Events Calendar 2026 - Concerts, Comedy, Workshops & Festivals | JaipurCircle";
+        description = "Discover upcoming events in Jaipur: concerts, comedy shows, workshops, festivals and more. Browse by category, date, and locality. Book tickets online.";
+        break;
     }
-
-    const todayIso = nowIsoDateOnlyIST();
-    const updatedHuman = formatHumanDateIST(todayIso);
-
-    // ✅ UPDATED Robots rules:
-    // - Hub: always index
-    // - Scoped: index if params are normalized (category+locality exist)
-    //   Even when 0 results or fallback/hub mode, we keep it indexable because we render:
-    //   authority + locality + popular combos + preview (not thin).
-    const robots = !isScoped
-      ? "index, follow, max-image-preview:large, max-snippet:-1"
-      : "index, follow, max-image-preview:large, max-snippet:-1";
-
-    // Page meta
-    let title = "Jaipur Events Calendar — Upcoming Events, Concerts, Comedy, Workshops | JaipurCircle";
-    let description =
-      "Discover upcoming events in Jaipur: concerts, comedy shows, workshops, festivals and more. Browse by category and locality, see dates, venues and ticket prices.";
-
-    let h1 = "Events in Jaipur — Concerts, Shows, Festivals & Things to Do";
-    let scopeLabel = "Jaipur";
-
-    if (isScoped && category && locality) {
-      const catName = titleCaseFromSlug(category);
-      const locName = (localityEntity?.name || titleCaseFromSlug(locality)).trim();
-      scopeLabel = `${catName} in ${locName}`;
-      title = `${catName} Events in ${locName}, Jaipur — Dates, Venues, Tickets | JaipurCircle`;
-      description = `Explore upcoming ${catName.toLowerCase()} events in ${locName}, Jaipur — dates, timings, venues and tickets. Updated regularly with new listings.`;
-      h1 = `${catName} Events in ${locName}, Jaipur`;
-    }
-
-    const breadcrumb = buildBreadcrumbJsonLd(
-      isScoped
-        ? [
-            { name: "Home", item: BASE_URL },
-            { name: "Events", item: safeUrl("/events") },
-            { name: scopeLabel, item: canonicalUrl },
-          ]
-        : [
-            { name: "Home", item: BASE_URL },
-            { name: "Events", item: canonicalUrl },
-          ],
-    );
-
-    const collection = buildCollectionPageJsonLd({
-      name: title,
-      description,
-      url: canonicalUrl,
-    });
-
-    const itemList = buildItemListJsonLd(eventsRows, BASE_URL);
-
-    // SSR body blocks (authority + locality + top combos + preview list)
-    const authorityBlock = renderAuthorityBlock({
-      updatedDateHuman: updatedHuman,
-      upcomingCount: Math.max(eventsCount || 0, eventsRows.length),
-      isScoped,
-      scopeLabel,
-    });
-
-    // Semantic locality block first (scoped pages)
-    let localityBlock = "";
-    if (isScoped && locality) {
-      const locName = (localityEntity?.name || titleCaseFromSlug(locality)).trim();
-      // Nearby localities (simple heuristic: use aliases list order; can replace later with zones)
-      const nearby = Object.values(LOCALITY_ALIASES)
-        .filter((x) => x !== locality)
-        .slice(0, 6)
-        .map((slug) => ({ slug, name: titleCaseFromSlug(slug) }));
-
-      localityBlock = renderSemanticLocalityBlock({
-        localityName: locName,
-        localitySlug: locality,
-        seoBlurb: localityEntity?.seo_blurb || null,
-        zone: localityEntity?.zone || null,
-        nearbyLinks: nearby,
-      });
-    }
-
-    const combosBlock = renderTopCombosBlock(topCombos);
-
-    const previewList = renderEventListSnippet(eventsRows, BASE_URL);
-
-    const fallbackBanner =
-      isScoped && usedFallback
-        ? `<div style="margin-top:14px; padding:12px 14px; border:1px dashed #d1d5db; border-radius:14px; background:#fafafa; font-size:13px; color:#374151;">
-            <strong>Heads up:</strong> inventory for this exact filter is limited right now.
-            ${matchMode === "hub" ? " Showing Jaipur-wide upcoming events to help you plan." : " Showing closest matches."}
-           </div>`
-        : "";
-
-    const ssrBody = `
-<div id="ssr-prerender" style="max-width:980px; margin:0 auto; padding:18px 16px; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;">
-  <header>
-    <h1 style="margin:0; font-size:26px; line-height:1.15; color:#111827;">${escapeHtml(h1)}</h1>
-    <p style="margin:10px 0 0 0; font-size:14px; color:#374151; line-height:1.55;">
-      ${escapeHtml(description)}
-    </p>
-  </header>
-
-  ${authorityBlock}
-  ${localityBlock}
-  ${fallbackBanner}
-  ${combosBlock}
-  ${previewList}
-
-  <footer style="margin-top:16px; font-size:12px; color:#6b7280;">
-    Prefer the full interactive experience? <a href="${isScoped ? `/events/${category}/${locality}` : "/events"}" style="text-decoration:underline;">Open Events</a>.
-  </footer>
-</div>
-`.trim();
-
-    // Head injection (robots + canonical + basic SEO + JSON-LD)
-    const headInjection = `
-${metaTag("robots", robots)}
-${linkCanonical(canonicalUrl)}
-<title>${escapeHtml(title)}</title>
-${metaTag("description", description)}
-${metaTag("og:site_name", SITE_NAME)}
-${metaTag("og:title", title)}
-${metaTag("og:description", description)}
-${metaTag("og:url", canonicalUrl)}
-${htmlScriptJsonLd(breadcrumb)}
-${htmlScriptJsonLd(collection)}
-${htmlScriptJsonLd(itemList)}
-${isScoped && locality
-  ? htmlScriptJsonLd(buildPlaceJsonLd((localityEntity?.name || titleCaseFromSlug(locality)).trim()))
-  : ""}
-`.trim();
-
-    // Load SPA shell and inject
-    let html = await fetchSpaShell();
-    html = setOrInsertHead(html, `\n${headInjection}\n`);
-    html = setOrInsertBody(html, `\n${ssrBody}\n`);
-
-    // Cache policy
-    // Keep low TTL so “events freshness” stays current, but allow CDN caching.
-    const headers = new Headers();
-    headers.set("content-type", "text/html; charset=utf-8");
-    headers.set("cache-control", "public, max-age=0, s-maxage=900, stale-while-revalidate=86400");
-    headers.set("access-control-allow-origin", "*");
-
-    return new Response(html, { status: 200, headers });
-  } catch (_err) {
-    // Fail-safe: never return JSON 404 for the hub.
-    const fallback = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${SITE_NAME} — Events</title><meta name="robots" content="noindex, follow"></head><body><h1>Events</h1><p>Temporarily unavailable.</p></body></html>`;
-    return new Response(fallback, {
+    
+    // Generate schemas
+    const breadcrumbSchema = generateBreadcrumbSchema([
+      { name: "Home", url: BASE_URL },
+      { name: "Events", url: `${BASE_URL}/events` },
+    ]);
+    const itemListSchema = generateItemListSchema(events, title, canonicalUrl);
+    const searchActionSchema = generateEventSearchActionSchema();
+    
+    // Build HTML
+    const ssrContent = buildSSRHTML(route, events, title, description, canonicalUrl);
+    
+    const fullHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>${escapeHtml(title)}</title>
+  <meta name="description" content="${escapeHtml(description)}" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <link rel="canonical" href="${escapeHtml(canonicalUrl)}" />
+  <meta property="og:title" content="${escapeHtml(title)}" />
+  <meta property="og:description" content="${escapeHtml(description)}" />
+  <meta property="og:url" content="${escapeHtml(canonicalUrl)}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="${SITE_NAME}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <script type="application/ld+json">${JSON.stringify(breadcrumbSchema)}</script>
+  <script type="application/ld+json">${JSON.stringify(itemListSchema)}</script>
+  <script type="application/ld+json">${JSON.stringify(searchActionSchema)}</script>
+</head>
+<body>
+  <div id="root">${ssrContent}</div>
+</body>
+</html>`;
+    
+    return new Response(fullHtml, {
       status: 200,
       headers: {
         "content-type": "text/html; charset=utf-8",
-        "cache-control": "public, max-age=0, s-maxage=60",
+        "cache-control": "public, max-age=0, s-maxage=900, stale-while-revalidate=86400",
       },
     });
+    
+  } catch (error) {
+    console.error("Events SSR error:", error);
+    return new Response("Service temporarily unavailable", { status: 500 });
   }
 });
