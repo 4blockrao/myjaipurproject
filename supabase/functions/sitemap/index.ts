@@ -1,5 +1,4 @@
 // supabase/functions/sitemap/index.ts
-// Enterprise Sitemap Generator - Covers All Entities
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
@@ -8,9 +7,6 @@ const BASE_URL = "https://www.jaipurcircle.com";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SUPABASE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 
-// ============================================
-// STATIC URLS (Always included)
-// ============================================
 const STATIC_URLS = [
   { loc: "/", priority: 1.0, changefreq: "daily" },
   { loc: "/about", priority: 0.6, changefreq: "monthly" },
@@ -25,10 +21,6 @@ const STATIC_URLS = [
   { loc: "/leaderboard", priority: 0.5, changefreq: "daily" },
   { loc: "/pro", priority: 0.5, changefreq: "weekly" },
 ];
-
-// ============================================
-// DYNAMIC URL GENERATORS
-// ============================================
 
 async function getEventUrls(supabase: any) {
   const urls: Array<{ loc: string; priority: number; changefreq: string; lastmod?: string }> = [];
@@ -222,9 +214,6 @@ async function getCategoryUrls(supabase: any) {
   return urls;
 }
 
-// ============================================
-// SITEMAP XML GENERATION
-// ============================================
 function generateSitemapXml(urls: Array<{ loc: string; priority: number; changefreq: string; lastmod?: string }>): string {
   const urlElements = urls.map(url => {
     const lastmodTag = url.lastmod ? `<lastmod>${url.lastmod}</lastmod>` : '';
@@ -280,20 +269,19 @@ function generateSitemapIndex(): string {
 </sitemapindex>`;
 }
 
-// ============================================
-// MAIN SERVE FUNCTION
-// ============================================
 serve(async (req: Request) => {
   try {
     const url = new URL(req.url);
     const pathname = url.pathname;
     
-    // ============================================
-    // IMPORTANT: Check for index FIRST (before any other matching)
-    // ============================================
+    console.log(`[sitemap] Request path: ${pathname}`);
+    
+    // Check for index FIRST
     if (pathname === "/sitemap-index.xml" || pathname === "/sitemap.xml" || pathname === "/sitemap" || pathname === "/" || pathname === "") {
       const sitemapIndex = generateSitemapIndex();
+      console.log(`[sitemap] Returning sitemap index`);
       return new Response(sitemapIndex, {
+        status: 200,
         headers: { 
           "content-type": "application/xml", 
           "cache-control": "public, max-age=3600"
@@ -301,14 +289,12 @@ serve(async (req: Request) => {
       });
     }
     
-    // Initialize Supabase client for dynamic sitemaps
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
       auth: { persistSession: false }
     });
     
     let urls: Array<{ loc: string; priority: number; changefreq: string; lastmod?: string }> = [];
     
-    // Route to specific sitemaps (check after index)
     if (pathname.includes("/sitemaps/static.xml") || pathname === "/static.xml") {
       urls = STATIC_URLS;
     } 
@@ -331,13 +317,22 @@ serve(async (req: Request) => {
       urls = await getCategoryUrls(supabase);
     }
     else {
-      // Default to static sitemap
-      urls = STATIC_URLS;
+      // Default to sitemap index for unknown paths
+      const sitemapIndex = generateSitemapIndex();
+      return new Response(sitemapIndex, {
+        status: 200,
+        headers: { 
+          "content-type": "application/xml", 
+          "cache-control": "public, max-age=3600"
+        }
+      });
     }
     
     const xml = generateSitemapXml(urls);
+    console.log(`[sitemap] Returning ${urls.length} URLs`);
     
     return new Response(xml, {
+      status: 200,
       headers: {
         "content-type": "application/xml",
         "cache-control": "public, max-age=3600, s-maxage=86400"
@@ -346,6 +341,20 @@ serve(async (req: Request) => {
     
   } catch (error) {
     console.error("Sitemap error:", error);
-    return new Response("Error generating sitemap", { status: 500 });
+    
+    // Return a proper XML error response, not HTML
+    const errorXml = `<?xml version="1.0" encoding="UTF-8"?>
+<error>
+  <message>Failed to generate sitemap</message>
+  <detail>${error.message}</detail>
+</error>`;
+    
+    return new Response(errorXml, {
+      status: 500,
+      headers: { 
+        "content-type": "application/xml",
+        "cache-control": "no-cache"
+      }
+    });
   }
 });
