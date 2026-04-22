@@ -139,6 +139,7 @@ async function fetchCompleteEventData(slug: string) {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
+  // Removed 'city' from venue select - your venues table doesn't have this column
   const { data: event, error } = await supabase
     .from("events")
     .select(`
@@ -148,7 +149,7 @@ async function fetchCompleteEventData(slug: string) {
         social_links, follower_count, rating, genre, website
       ),
       venue:venue_id(
-        id, name, address, city, latitude, longitude, 
+        id, name, address, latitude, longitude, 
         phone, website, rating, image, capacity
       )
     `)
