@@ -1,5 +1,5 @@
 // supabase/functions/locality-ssr/index.ts
-// GOLD STANDARD version - BookMyShow quality for locality pages
+// GOLD STANDARD 100% - Complete Locality Page with Events, Venues, and Rich Schema
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
@@ -14,25 +14,33 @@ const BASE_URL = (Deno.env.get("SITE_ORIGIN") ?? "https://www.jaipurcircle.com")
 const SITE_NAME = "JaipurCircle";
 const DEFAULT_IMAGE = "https://www.jaipurcircle.com/og-default.jpg";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || Deno.env.get("NEXT_PUBLIC_SUPABASE_URL") || "";
-const SUPABASE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("NEXT_PUBLIC_SUPABASE_ANON_KEY") || "";
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
+const SUPABASE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 
-// Cache for SPA shell with TTL
 let cachedIndexHtml: { html: string; fetchedAt: number } | null = null;
 
-// Enhanced bot detection (includes more crawlers)
+// ============================================
+// ENHANCED BOT DETECTION
+// ============================================
 const BOT_PATTERNS = [
   /Googlebot/i, /bingbot/i, /Baiduspider/i, /YandexBot/i, /DuckDuckBot/i,
-  /Slurp/i, /facebookexternalhit/i, /WhatsApp/i, /Twitterbot/i, /LinkedInBot/i,
-  /Pinterest/i, /TelegramBot/i, /GPTBot/i, /CCBot/i, /Applebot/i, /Amazonbot/i,
+  /Slurp/i, /GPTBot/i, /CCBot/i, /Applebot/i, /Amazonbot/i,
   /SemrushBot/i, /AhrefsBot/i, /MJ12bot/i, /rogerbot/i, /DotBot/i,
+  /facebookexternalhit/i, /Facebot/i, /WhatsApp/i, /Twitterbot/i, 
+  /LinkedInBot/i, /Pinterest/i, /TelegramBot/i, /Discordbot/i, 
+  /Slackbot/i, /SkypeUriPreview/i, /RedditBot/i, /Tumblr/i,
+  /spider/i, /crawler/i
 ];
 
 function isBot(userAgent: string): boolean {
   if (!userAgent) return false;
+  if (userAgent.trim() === "") return true;
   return BOT_PATTERNS.some(pattern => pattern.test(userAgent));
 }
 
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
 function escapeHtml(str: string): string {
   if (!str) return "";
   return String(str)
@@ -46,28 +54,20 @@ function escapeHtml(str: string): string {
 function truncate(str: string, max: number): string {
   if (!str) return "";
   if (str.length <= max) return str;
-  return str.slice(0, max - 1) + "…";
+  return str.slice(0, max - 3) + "...";
 }
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return "TBA";
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-IN", {
-    weekday: "short",
-    year: "numeric",
-    month: "long",
+  return new Date(dateStr).toLocaleDateString("en-IN", {
+    month: "short",
     day: "numeric",
   });
 }
 
-function formatTime(dateStr: string): string {
-  if (!dateStr) return "";
-  return new Date(dateStr).toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
+// ============================================
+// FETCH SPA SHELL
+// ============================================
 async function getSpaShellHtml(): Promise<string> {
   const now = Date.now();
   const ttlMs = 5 * 60 * 1000;
@@ -78,26 +78,29 @@ async function getSpaShellHtml(): Promise<string> {
 
   try {
     const res = await fetch(`${BASE_URL}/index.html?cb=${Math.floor(now / 1000)}`, {
-      headers: { "user-agent": "jaipurcircle-locality-ssr/1.0", accept: "text/html" },
+      headers: { "user-agent": "jaipurcircle-locality-ssr/2.0", accept: "text/html" },
     });
 
     if (!res.ok) throw new Error(`Failed to fetch index.html: ${res.status}`);
 
-    const html = await res.text();
-    const cleanedHtml = html.replace(/<title>.*?<\/title>/, '');
-    cachedIndexHtml = { html: cleanedHtml, fetchedAt: now };
-    return cleanedHtml;
+    let html = await res.text();
+    html = html.replace(/<title>.*?<\/title>/, '');
+    html = html.replace(/<div\s+id=["']root["'][^>]*>.*?<\/div>/si, '<div id="root"></div>');
+    
+    cachedIndexHtml = { html, fetchedAt: now };
+    return html;
   } catch (err) {
     console.error("Failed to fetch SPA shell:", err);
-    return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${SITE_NAME}</title></head><body><div id="root"></div></body></html>`;
+    return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${SITE_NAME}</title></head><body><div id="root"></div><script src="/assets/index.js"></script></body></html>`;
   }
 }
 
-// ENHANCED: Fetches more comprehensive locality data
-async function fetchLocalityData(slug: string) {
+// ============================================
+// FETCH COMPLETE LOCALITY DATA
+// ============================================
+async function fetchCompleteLocalityData(slug: string) {
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
-    global: { headers: { "x-ssr": "locality-ssr" } },
   });
 
   // Fetch locality with all fields
@@ -112,424 +115,416 @@ async function fetchLocalityData(slug: string) {
     return null;
   }
 
-  // ENHANCED: Fetch events with more details and pricing tiers
-  let events: any[] = [];
-  try {
-    const { data: eventsData } = await supabase
-      .from("events")
-      .select(`
-        title, 
-        slug, 
-        start_date, 
-        end_date,
-        venue_name, 
-        venue_address,
-        cover_image, 
-        ticket_price, 
-        is_free, 
-        category,
-        description,
-        performer_name,
-        ticket_tiers
-      `)
-      .eq("locality_slug", slug)
-      .gte("start_date", new Date().toISOString())
-      .lte("start_date", new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString())
-      .order("start_date", { ascending: true })
-      .limit(20);
-    
-    events = eventsData?.map(event => ({
-      ...event,
-      ticket_tiers: event.ticket_tiers || (event.ticket_price ? [{ name: "General", price: event.ticket_price }] : [])
-    })) || [];
-  } catch (eventsError) {
-    console.error("Events fetch error (non-critical):", eventsError);
-  }
+  // Fetch upcoming events (next 90 days)
+  const { data: events } = await supabase
+    .from("events")
+    .select("title, slug, start_date, venue_name, cover_image, ticket_price, is_free, category")
+    .eq("locality_slug", slug)
+    .gte("start_date", new Date().toISOString())
+    .lte("start_date", new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString())
+    .order("start_date", { ascending: true })
+    .limit(12);
 
-  // ENHANCED: Fetch popular venues in this locality
-  let venues: any[] = [];
-  try {
-    const { data: venuesData } = await supabase
-      .from("venues")
-      .select("name, slug, category, rating, image")
-      .eq("locality_slug", slug)
-      .order("rating", { ascending: false })
-      .limit(8);
-    venues = venuesData || [];
-  } catch (venuesError) {
-    console.error("Venues fetch error (non-critical):", venuesError);
-  }
+  // Fetch popular venues in this locality
+  const { data: venues } = await supabase
+    .from("venues")
+    .select("name, slug, category, rating, image")
+    .eq("locality_slug", slug)
+    .order("rating", { ascending: false, nullsLast: true })
+    .limit(8);
 
-  // Fetch nearby localities with distance
-  let nearbyLocalities: any[] = [];
-  try {
-    let query = supabase.from("localities").select("name, slug, known_for");
-    
-    if (locality.geo_lat && locality.geo_lng) {
-      // Use PostGIS if available, otherwise simple nearby
-      query = supabase.rpc('nearby_localities', {
+  // Fetch nearby localities
+  let nearby: any[] = [];
+  if (locality.geo_lat && locality.geo_lng) {
+    const { data: nearbyData } = await supabase
+      .rpc('nearby_localities_simple', {
         lat: locality.geo_lat,
         lng: locality.geo_lng,
-        exclude_slug: slug
+        exclude_slug: slug,
+        max_distance_km: 5,
+        limit_count: 8
       });
-    } else {
-      query = query.neq("slug", slug).limit(6);
-    }
-    
-    const { data: nearby } = await query;
-    nearbyLocalities = nearby || [];
-  } catch (nearbyError) {
-    console.error("Nearby localities fetch error:", nearbyError);
-    // Fallback: just get any localities
-    const { data: fallback } = await supabase.from("localities").select("name, slug").neq("slug", slug).limit(6);
-    nearbyLocalities = fallback || [];
+    nearby = nearbyData || [];
+  } else {
+    const { data: fallback } = await supabase
+      .from("localities")
+      .select("name, slug")
+      .neq("slug", slug)
+      .limit(8);
+    nearby = fallback || [];
   }
 
-  // Fetch event statistics
-  let eventStats = { total: 0, thisWeek: 0, thisMonth: 0, free: 0 };
-  try {
-    const now = new Date();
-    const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-    
-    const { count: total } = await supabase.from("events").select("*", { count: "exact", head: true }).eq("locality_slug", slug).gte("start_date", now.toISOString());
-    const { count: thisWeek } = await supabase.from("events").select("*", { count: "exact", head: true }).eq("locality_slug", slug).gte("start_date", now.toISOString()).lte("start_date", nextWeek.toISOString());
-    const { count: free } = await supabase.from("events").select("*", { count: "exact", head: true }).eq("locality_slug", slug).eq("is_free", true).gte("start_date", now.toISOString());
-    
-    eventStats = {
-      total: total || 0,
-      thisWeek: thisWeek || 0,
-      thisMonth: 0, // Could calculate if needed
-      free: free || 0,
-    };
-  } catch (statsError) {
-    console.error("Event stats error:", statsError);
-  }
+  const eventCount = events?.length || 0;
 
-  return { locality, events, venues, nearbyLocalities, eventStats };
+  return { 
+    locality, 
+    events: events || [], 
+    venues: venues || [], 
+    nearby, 
+    eventCount 
+  };
 }
 
-// ENHANCED: Comprehensive Event Schema (BookMyShow style)
-function generateEventSchemas(events: any[], localityName: string, localityUrl: string): string {
-  if (!events.length) return '';
-  
-  const eventSchemas = events.slice(0, 10).map(event => {
-    const eventSchema: any = {
-      "@context": "https://schema.org",
-      "@type": "Event",
-      name: event.title,
-      description: truncate(event.description || `Join us for ${event.title} in ${localityName}.`, 500),
-      startDate: event.start_date,
-      eventStatus: "https://schema.org/EventScheduled",
-      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-      location: {
-        "@type": "Place",
-        name: event.venue_name || localityName,
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: "Jaipur",
-          addressRegion: "Rajasthan",
-          addressCountry: "IN",
-          streetAddress: event.venue_address || undefined,
-        },
-      },
-      image: event.cover_image || DEFAULT_IMAGE,
-      url: `${BASE_URL}/events/${event.slug}`,
-    };
+// ============================================
+// GENERATE ALL SCHEMAS (GOLD STANDARD)
+// ============================================
+function generateAllSchemas(locality: any, events: any[], venues: any[], canonical: string) {
+  const schemas = [];
 
-    // Add performer if available
-    if (event.performer_name) {
-      eventSchema.performer = {
-        "@type": "Person",
-        name: event.performer_name,
-      };
-    }
-
-    // Add ticket offers (critical for events)
-    if (event.is_free) {
-      eventSchema.offers = {
-        "@type": "Offer",
-        price: 0,
-        priceCurrency: "INR",
-        availability: "https://schema.org/InStock",
-        validFrom: new Date().toISOString(),
-      };
-    } else if (event.ticket_tiers?.length) {
-      eventSchema.offers = event.ticket_tiers.map((tier: any) => ({
-        "@type": "Offer",
-        name: tier.name,
-        price: tier.price,
-        priceCurrency: "INR",
-        availability: "https://schema.org/InStock",
-        validFrom: new Date().toISOString(),
-      }));
-    } else if (event.ticket_price) {
-      eventSchema.offers = {
-        "@type": "Offer",
-        price: event.ticket_price,
-        priceCurrency: "INR",
-        availability: "https://schema.org/InStock",
-      };
-    }
-
-    return eventSchema;
-  });
-
-  return eventSchemas.map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`).join('');
-}
-
-// ENHANCED: Breadcrumb Schema
-function generateBreadcrumbSchema(locality: any, canonical: string) {
-  return {
+  // 1. Breadcrumb Schema
+  schemas.push({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-      { "@type": "ListItem", position: 2, name: "Jaipur", item: `${BASE_URL}/jaipur` },
-      { "@type": "ListItem", position: 3, name: "Localities", item: `${BASE_URL}/jaipur/localities` },
-      { "@type": "ListItem", position: 4, name: locality.name, item: canonical },
-    ],
-  };
-}
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": BASE_URL },
+      { "@type": "ListItem", "position": 2, "name": "Jaipur", "item": `${BASE_URL}/jaipur` },
+      { "@type": "ListItem", "position": 3, "name": "Localities", "item": `${BASE_URL}/jaipur/localities` },
+      { "@type": "ListItem", "position": 4, "name": locality.name, "item": canonical }
+    ]
+  });
 
-// ENHANCED: Place Schema with more details
-function generatePlaceSchema(locality: any, canonical: string, eventStats: any) {
-  const schema: any = {
+  // 2. Enhanced Place Schema
+  const placeSchema: any = {
     "@context": "https://schema.org",
     "@type": "Place",
-    name: `${locality.name}, Jaipur`,
-    url: canonical,
-    description: truncate(locality.seo_blurb || locality.description || `Explore ${locality.name} in Jaipur.`, 500),
-    address: {
+    "name": `${locality.name}, Jaipur`,
+    "url": canonical,
+    "description": truncate(locality.seo_blurb || locality.description || `Complete guide to ${locality.name} in Jaipur with events, venues, and local experiences.`, 500),
+    "address": {
       "@type": "PostalAddress",
-      addressLocality: "Jaipur",
-      addressRegion: "Rajasthan",
-      addressCountry: "IN",
-    },
+      "addressLocality": "Jaipur",
+      "addressRegion": "Rajasthan",
+      "addressCountry": "IN"
+    }
   };
 
+  // Add geo coordinates if available
   if (locality.geo_lat && locality.geo_lng) {
-    schema.geo = {
+    placeSchema.geo = {
       "@type": "GeoCoordinates",
-      latitude: locality.geo_lat,
-      longitude: locality.geo_lng,
+      "latitude": locality.geo_lat,
+      "longitude": locality.geo_lng
     };
+  }
+
+  // Add known_for as additional property
+  if (locality.known_for && Array.isArray(locality.known_for) && locality.known_for.length > 0) {
+    placeSchema.knownFor = locality.known_for;
   }
 
   // Add aggregate rating if available
   if (locality.avg_rating && locality.review_count) {
-    schema.aggregateRating = {
+    placeSchema.aggregateRating = {
       "@type": "AggregateRating",
-      ratingValue: locality.avg_rating,
-      reviewCount: locality.review_count,
+      "ratingValue": locality.avg_rating,
+      "reviewCount": locality.review_count,
+      "bestRating": "5",
+      "worstRating": "1"
     };
   }
 
-  return schema;
-}
+  // Add number of upcoming events
+  if (events.length > 0) {
+    placeSchema.numberOfUpcomingEvents = events.length;
+  }
 
-// ENHANCED: FAQ Schema with locality-specific answers
-function generateFAQSchema(locality: any, eventCount: number) {
-  const questions = [
+  schemas.push(placeSchema);
+
+  // 3. Event Schemas for each upcoming event (max 5)
+  events.slice(0, 5).forEach(event => {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "Event",
+      "name": event.title,
+      "startDate": event.start_date,
+      "location": {
+        "@type": "Place",
+        "name": event.venue_name || locality.name,
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Jaipur",
+          "addressRegion": "Rajasthan",
+          "addressCountry": "IN"
+        }
+      },
+      "image": event.cover_image,
+      "url": `${BASE_URL}/events/${event.slug}`,
+      "offers": event.is_free ? {
+        "@type": "Offer",
+        "price": 0,
+        "priceCurrency": "INR"
+      } : event.ticket_price ? {
+        "@type": "Offer",
+        "price": event.ticket_price,
+        "priceCurrency": "INR"
+      } : undefined
+    });
+  });
+
+  // 4. ItemList Schema for venues
+  if (venues.length > 0) {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": `Popular Venues in ${locality.name}`,
+      "description": `Recommended venues and attractions in ${locality.name}, Jaipur`,
+      "numberOfItems": venues.length,
+      "itemListElement": venues.map((venue, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "name": venue.name,
+        "url": `${BASE_URL}/venues/${venue.slug}`,
+        "description": `${venue.name} is a popular ${venue.category || "venue"} in ${locality.name}.`
+      }))
+    });
+  }
+
+  // 5. Enhanced FAQ Schema (FIXED: text as string, not array)
+  const faqQuestions = [
     {
       name: `What are the best places to visit in ${locality.name}, Jaipur?`,
-      text: locality.known_for || `${locality.name} offers a mix of ${locality.venue_categories?.join(', ') || 'local markets, cultural venues, and dining experiences'}. Popular spots include ${locality.popular_venues?.slice(0,3).join(', ') || 'various local attractions'}. Check JaipurCircle for the latest events and happenings.`,
+      text: locality.known_for?.length 
+        ? `${locality.name} is known for ${locality.known_for.slice(0, 3).join(", ")}. ${locality.popular_venues?.length ? `Popular venues include ${locality.popular_venues.slice(0, 3).join(", ")}.` : ""} Check JaipurCircle for upcoming events and local experiences.`
+        : `${locality.name} offers a mix of local attractions, shopping areas, and dining options. Explore the locality guide for more details.`
     },
     {
       name: `Upcoming events in ${locality.name}`,
-      text: eventCount > 0 
-        ? `There are currently ${eventCount} upcoming events in ${locality.name}. Browse concerts, workshops, cultural programs, and more on JaipurCircle. Book tickets directly through our platform.`
-        : `Stay tuned for upcoming events in ${locality.name}. Follow this locality on JaipurCircle to get notified when new events are announced.`,
+      text: events.length > 0 
+        ? `There are currently ${events.length} upcoming events in ${locality.name}. Browse concerts, workshops, cultural programs, and more on JaipurCircle. Book tickets directly through our platform.`
+        : `Stay tuned for upcoming events in ${locality.name}. Follow this locality on JaipurCircle to get notified when new events are announced.`
     },
     {
       name: `How to reach ${locality.name} in Jaipur?`,
-      text: `${locality.name} is well-connected within Jaipur. You can reach by metro (${locality.nearest_metro || 'check local metro station'}), local bus, auto-rickshaw, or app-based cabs like Uber and Ola. The locality is accessible from major city landmarks.`,
+      text: `${locality.name} is well-connected within Jaipur. You can reach by metro (${locality.nearest_metro || "check local metro station"}), local bus, auto-rickshaw, or app-based cabs like Uber and Ola. ${locality.geo_lat && locality.geo_lng ? `Coordinates: ${locality.geo_lat}°N, ${locality.geo_lng}°E.` : ""}`
     },
     {
       name: `What are the best restaurants and cafes in ${locality.name}?`,
       text: locality.popular_eateries?.length 
-        ? `Popular dining spots in ${locality.name} include ${locality.popular_eateries.slice(0,5).join(', ')}. Cuisines range from local Rajasthani to international.`
-        : `${locality.name} has several dining options ranging from street food to fine dining. Use JaipurCircle to discover rated restaurants in this area.`,
+        ? `Popular dining spots in ${locality.name} include ${locality.popular_eateries.slice(0, 5).join(", ")}. Cuisines range from local Rajasthani to international.`
+        : `${locality.name} has several dining options ranging from street food to fine dining. Use JaipurCircle to discover rated restaurants in this area.`
     },
     {
       name: `Is ${locality.name} a good place for shopping?`,
-      text: locality.shopping_options || `${locality.name} offers various shopping experiences from local markets to branded outlets. The area is known for ${locality.known_for?.toLowerCase().includes('shopping') ? 'its shopping scene' : 'local products and daily essentials'}.`,
+      text: locality.shopping_options || `${locality.name} offers various shopping experiences from local markets to branded outlets. ${locality.known_for?.includes("Shopping") ? "The area is particularly known for its shopping scene." : ""}`
     },
+    {
+      name: `What is the best time to visit ${locality.name}?`,
+      text: locality.best_time_to_visit || "October to March is generally the best time to visit Jaipur, with pleasant weather ideal for exploring the city and its localities."
+    }
   ];
 
-  return {
+  schemas.push({
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: questions.map(q => ({
+    "mainEntity": faqQuestions.map(q => ({
       "@type": "Question",
-      name: q.name,
-      acceptedAnswer: { "@type": "Answer", text: q.text },
-    })),
-  };
+      "name": q.name,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": q.text  // ← FIXED: string, not array
+      }
+    }))
+  });
+
+  return schemas;
 }
 
-// ENHANCED: Rich SSR HTML with better styling and structure
-function buildSSRMarkup(locality: any, events: any[], venues: any[], nearby: any[], eventStats: any, canonical: string) {
-  const hasEvents = events.length > 0;
-  
-  // Hero section with stats
-  const heroHtml = `
-    <div class="locality-hero" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: clamp(2rem, 5vw, 3rem); border-radius: 0 0 24px 24px; margin-bottom: 2rem">
-      <div style="max-width: 1200px; margin: 0 auto">
-        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; font-size: 0.875rem">
-          ${eventStats.total > 0 ? `<span>🎉 ${eventStats.total} upcoming events</span>` : ''}
-          ${eventStats.thisWeek > 0 ? `<span>📅 ${eventStats.thisWeek} this week</span>` : ''}
-          ${eventStats.free > 0 ? `<span>🎟️ ${eventStats.free} free events</span>` : ''}
-          ${venues.length > 0 ? `<span>🏢 ${venues.length}+ venues</span>` : ''}
-        </div>
-        <h1 style="font-size: clamp(1.8rem, 6vw, 2.5rem); margin: 0.5rem 0">${escapeHtml(locality.name)}, Jaipur</h1>
-        <p style="font-size: 1.125rem; opacity: 0.95; max-width: 800px; margin: 1rem 0 0 0">
-          ${escapeHtml(truncate(locality.seo_blurb || locality.description || `Complete guide to ${locality.name} with events, venues, and local experiences.`, 200))}
-        </p>
+// ============================================
+// BUILD SSR HTML FOR BOTS
+// ============================================
+function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[], eventCount: number) {
+  // Known For badges
+  const knownForHtml = locality.known_for?.length ? `
+    <div class="section known-for">
+      <h3>✨ Known For</h3>
+      <div class="badge-group">
+        ${locality.known_for.map((item: string) => `<span class="badge badge-yellow">${escapeHtml(item)}</span>`).join('')}
       </div>
     </div>
-  `;
+  ` : '';
 
-  // Enhanced events section with ticket info
-  const eventsHtml = hasEvents ? `
-    <section style="margin-bottom: 3rem">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem">
-        <h2 style="font-size: 1.5rem; margin: 0">🎪 Upcoming Events in ${escapeHtml(locality.name)}</h2>
-        <a href="${BASE_URL}/jaipur/${escapeHtml(locality.slug)}/events" style="color: #667eea; text-decoration: none">View all ${eventStats.total}+ →</a>
-      </div>
-      <div style="display: grid; gap: 1rem">
-        ${events.slice(0, 8).map(event => `
-          <article style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-wrap: wrap; cursor: pointer">
-            ${event.cover_image ? `<img src="${escapeHtml(event.cover_image)}" alt="${escapeHtml(event.title)}" style="width: 120px; height: 120px; object-fit: cover" loading="lazy">` : ''}
-            <div style="flex: 1; padding: 1rem">
-              <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: start; gap: 0.5rem; margin-bottom: 0.5rem">
-                <h3 style="margin: 0; font-size: 1.125rem">
-                  <a href="${BASE_URL}/events/${escapeHtml(event.slug)}" style="color: #1f2937; text-decoration: none">${escapeHtml(event.title)}</a>
-                </h3>
-                ${event.is_free 
-                  ? '<span style="background: #10b981; color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600">FREE</span>'
-                  : `<span style="background: #f59e0b; color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600">₹${event.ticket_price || 'TBA'}</span>`
-                }
-              </div>
-              <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.5rem; font-size: 0.875rem; color: #6b7280">
-                <span>📍 ${escapeHtml(event.venue_name || 'Venue TBA')}</span>
-                <span>📅 ${formatDate(event.start_date)}${event.end_date ? ` – ${formatDate(event.end_date)}` : ''}</span>
-                ${event.start_date ? `<span>⏰ ${formatTime(event.start_date)}</span>` : ''}
-              </div>
-              ${event.performer_name ? `<div style="font-size: 0.875rem; color: #8b5cf6">🎤 ${escapeHtml(event.performer_name)}</div>` : ''}
-              ${event.ticket_tiers?.length > 1 ? `<div style="margin-top: 0.5rem; font-size: 0.75rem; color: #6b7280">${event.ticket_tiers.map((t: any) => `${t.name}: ₹${t.price}`).join(' • ')}</div>` : ''}
-            </div>
-          </article>
-        `).join('')}
-      </div>
-    </section>
-  ` : `
-    <section style="margin-bottom: 3rem; background: linear-gradient(135deg, #f5f7fa 0%, #f3f4f6 100%); border-radius: 16px; padding: 3rem 2rem; text-align: center">
-      <div style="font-size: 3rem; margin-bottom: 1rem">🎉</div>
-      <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem">No Upcoming Events Yet</h2>
-      <p style="color: #6b7280; margin-bottom: 1.5rem">Be the first to know when events are announced in ${escapeHtml(locality.name)}</p>
-      <button onclick="alert('Follow this locality feature coming soon!')" style="background: #667eea; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 1rem; cursor: pointer">🔔 Follow this locality</button>
-    </section>
-  `;
-
-  // Venues section
-  const venuesHtml = venues.length > 0 ? `
-    <section style="margin-bottom: 3rem">
-      <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem">🏛️ Popular Venues in ${escapeHtml(locality.name)}</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem">
-        ${venues.map(venue => `
-          <a href="${BASE_URL}/venues/${escapeHtml(venue.slug)}" style="text-decoration: none; background: white; border-radius: 12px; padding: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s; display: block">
-            ${venue.image ? `<img src="${escapeHtml(venue.image)}" alt="${escapeHtml(venue.name)}" style="width: 100%; height: 140px; object-fit: cover; border-radius: 8px; margin-bottom: 0.75rem" loading="lazy">` : ''}
-            <h3 style="margin: 0 0 0.25rem 0; font-size: 1rem; color: #1f2937">${escapeHtml(venue.name)}</h3>
-            ${venue.category ? `<span style="font-size: 0.75rem; color: #6b7280">${escapeHtml(venue.category)}</span>` : ''}
-            ${venue.rating ? `<span style="font-size: 0.75rem; color: #f59e0b">⭐ ${venue.rating}</span>` : ''}
+  // Popular Venues grid
+  const venuesHtml = venues?.length ? `
+    <div class="section venues">
+      <h3>🏛️ Popular Venues in ${escapeHtml(locality.name)}</h3>
+      <div class="venue-grid">
+        ${venues.map((venue: any) => `
+          <a href="${BASE_URL}/venues/${venue.slug}" class="venue-card">
+            ${venue.image ? `<img src="${escapeHtml(venue.image)}" alt="${escapeHtml(venue.name)}" loading="lazy">` : '<div class="venue-placeholder">🏢</div>'}
+            <h4>${escapeHtml(venue.name)}</h4>
+            ${venue.rating ? `<span class="rating">⭐ ${venue.rating}</span>` : ''}
+            ${venue.category ? `<span class="category">${escapeHtml(venue.category)}</span>` : ''}
           </a>
         `).join('')}
       </div>
-    </section>
+    </div>
   ` : '';
 
-  // About section with rich content
-  const aboutHtml = `
-    <section style="margin-bottom: 3rem; background: #f9fafb; border-radius: 16px; padding: 1.5rem">
-      <h2 style="font-size: 1.25rem; margin-bottom: 1rem">📍 About ${escapeHtml(locality.name)}</h2>
-      <div style="color: #374151; line-height: 1.6">
-        <p>${escapeHtml(locality.seo_blurb || locality.description || `Explore ${locality.name}, a vibrant locality in Jaipur.`)}</p>
-        ${locality.known_for ? `<p style="margin-top: 1rem"><strong>✨ Known for:</strong> ${escapeHtml(locality.known_for)}</p>` : ''}
-        ${locality.best_time_to_visit ? `<p><strong>📅 Best time to visit:</strong> ${escapeHtml(locality.best_time_to_visit)}</p>` : ''}
+  // Events section
+  const eventsHtml = events.length > 0 ? `
+    <div class="section events">
+      <div class="section-header">
+        <h3>🎪 Upcoming Events in ${escapeHtml(locality.name)}</h3>
+        <a href="${BASE_URL}/jaipur/${locality.slug}/events" class="view-all">View all ${eventCount} →</a>
       </div>
-    </section>
+      <div class="event-list">
+        ${events.slice(0, 6).map((event: any) => `
+          <a href="${BASE_URL}/events/${event.slug}" class="event-card">
+            ${event.cover_image ? `<img src="${escapeHtml(event.cover_image)}" alt="${escapeHtml(event.title)}" loading="lazy">` : '<div class="event-placeholder">🎉</div>'}
+            <div class="event-info">
+              <h4>${escapeHtml(event.title)}</h4>
+              <div class="event-meta">
+                <span>📅 ${formatDate(event.start_date)}</span>
+                <span>📍 ${escapeHtml(event.venue_name || 'TBA')}</span>
+              </div>
+              <div class="event-price">${event.is_free ? 'FREE' : event.ticket_price ? `₹${event.ticket_price}` : 'TBA'}</div>
+            </div>
+          </a>
+        `).join('')}
+      </div>
+    </div>
+  ` : `
+    <div class="section events-empty">
+      <h3>🎪 No Upcoming Events Yet</h3>
+      <p>Be the first to know when events are announced in ${escapeHtml(locality.name)}</p>
+      <button class="follow-btn" data-locality="${locality.slug}">🔔 Follow this locality</button>
+    </div>
+  `;
+
+  // Popular Eateries
+  const eateriesHtml = locality.popular_eateries?.length ? `
+    <div class="section eateries">
+      <h3>🍽️ Popular Eateries</h3>
+      <div class="badge-group">
+        ${locality.popular_eateries.map((item: string) => `<span class="badge badge-green">${escapeHtml(item)}</span>`).join('')}
+      </div>
+    </div>
+  ` : '';
+
+  // Info cards (Metro, Best Time, Shopping)
+  const infoCardsHtml = `
+    <div class="info-cards">
+      ${locality.nearest_metro ? `
+        <div class="info-card">
+          <span class="info-icon">🚇</span>
+          <div>
+            <strong>Nearest Metro</strong>
+            <span>${escapeHtml(locality.nearest_metro)}</span>
+          </div>
+        </div>
+      ` : ''}
+      ${locality.best_time_to_visit ? `
+        <div class="info-card">
+          <span class="info-icon">📅</span>
+          <div>
+            <strong>Best Time to Visit</strong>
+            <span>${escapeHtml(locality.best_time_to_visit)}</span>
+          </div>
+        </div>
+      ` : ''}
+      ${locality.shopping_options ? `
+        <div class="info-card">
+          <span class="info-icon">🛍️</span>
+          <div>
+            <strong>Shopping</strong>
+            <span>${escapeHtml(truncate(locality.shopping_options, 100))}</span>
+          </div>
+        </div>
+      ` : ''}
+    </div>
   `;
 
   // Nearby localities
   const nearbyHtml = nearby.length > 0 ? `
-    <section style="margin-bottom: 3rem">
-      <h2 style="font-size: 1.25rem; margin-bottom: 1rem">📍 Nearby Localities</h2>
-      <div style="display: flex; flex-wrap: wrap; gap: 0.75rem">
-        ${nearby.map(loc => `
-          <a href="${BASE_URL}/jaipur/${escapeHtml(loc.slug)}" style="background: #f3f4f6; padding: 0.5rem 1rem; border-radius: 24px; color: #1f2937; text-decoration: none; font-size: 0.875rem; transition: background 0.2s">
-            ${escapeHtml(loc.name)}${loc.known_for ? ` ✨` : ''}
+    <div class="section nearby">
+      <h3>📍 Nearby Localities</h3>
+      <div class="nearby-list">
+        ${nearby.map((loc: any) => `
+          <a href="${BASE_URL}/jaipur/${loc.slug}" class="nearby-item">
+            ${escapeHtml(loc.name)}
+            ${loc.distance_km ? `<span class="distance">${loc.distance_km.toFixed(1)} km</span>` : ''}
           </a>
         `).join('')}
       </div>
-    </section>
+    </div>
   ` : '';
 
-  // Critical CSS inline for performance
   const criticalCSS = `
     <style>
       *{margin:0;padding:0;box-sizing:border-box}
-      body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.5;background:#f8fafc}
-      .ssr-prerender{max-width:1200px;margin:0 auto}
-      @media (max-width:768px){.ssr-prerender{padding:0 1rem 2rem}}
-      article:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.12)}
-      a{transition:all 0.2s}
-      @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-      .ssr-prerender{animation:fadeIn 0.3s ease-out}
+      body{font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:#f8fafc;line-height:1.5}
+      .locality-page{max-width:1200px;margin:0 auto}
+      .hero{background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);color:white;padding:clamp(2rem,5vw,3rem);border-radius:0 0 32px 32px}
+      .hero h1{font-size:clamp(1.8rem,6vw,2.5rem);margin:0.5rem 0}
+      .hero-stats{display:flex;gap:1rem;flex-wrap:wrap;margin:1rem 0;font-size:0.875rem}
+      .hero-stat{background:rgba(255,255,255,0.2);padding:0.25rem 0.75rem;border-radius:20px}
+      .container{padding:2rem 1rem}
+      .section{background:white;border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+      .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap}
+      .badge-group{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem}
+      .badge{padding:0.5rem 1rem;border-radius:24px;font-size:0.875rem}
+      .badge-yellow{background:#fef3c7;color:#92400e}
+      .badge-green{background:#dcfce7;color:#166534}
+      .venue-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem}
+      .venue-card{text-decoration:none;color:inherit;background:#f9fafb;border-radius:12px;padding:1rem;transition:transform 0.2s;display:block}
+      .venue-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+      .venue-card img{width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:0.5rem}
+      .venue-placeholder{width:100%;height:120px;background:#e5e7eb;border-radius:8px;margin-bottom:0.5rem;display:flex;align-items:center;justify-content:center;font-size:2rem}
+      .event-list{display:flex;flex-direction:column;gap:0.75rem}
+      .event-card{display:flex;gap:1rem;text-decoration:none;color:inherit;background:#f9fafb;border-radius:12px;overflow:hidden;transition:transform 0.2s}
+      .event-card:hover{transform:translateX(4px);background:#f3f4f6}
+      .event-card img{width:100px;height:100px;object-fit:cover}
+      .event-placeholder{width:100px;height:100px;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:2rem}
+      .event-info{flex:1;padding:0.75rem 0.75rem 0.75rem 0}
+      .event-meta{display:flex;gap:1rem;font-size:0.75rem;color:#6b7280;margin:0.25rem 0}
+      .event-price{font-weight:700;color:#3b82f6;margin-top:0.25rem}
+      .info-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin-bottom:1.5rem}
+      .info-card{background:#f0fdf4;padding:1rem;border-radius:12px;display:flex;gap:0.75rem;border-left:4px solid #10b981}
+      .info-icon{font-size:1.5rem}
+      .nearby-list{display:flex;flex-wrap:wrap;gap:0.75rem}
+      .nearby-item{background:#f3f4f6;padding:0.5rem 1rem;border-radius:24px;text-decoration:none;color:#1f2937;font-size:0.875rem;transition:background 0.2s}
+      .nearby-item:hover{background:#e5e7eb}
+      .distance{font-size:0.7rem;color:#6b7280;margin-left:0.5rem}
+      .follow-btn{background:#667eea;color:white;border:none;padding:0.75rem 1.5rem;border-radius:8px;cursor:pointer;font-size:1rem;margin-top:1rem}
+      @media (max-width:640px){.event-card{flex-direction:column}.event-card img,.event-placeholder{width:100%;height:120px}.event-info{padding:0.75rem}}
     </style>
   `;
 
   return `
     ${criticalCSS}
-    <div class="ssr-prerender" data-ssr="locality" data-locality-slug="${escapeHtml(locality.slug)}" data-event-count="${eventStats.total}">
-      ${heroHtml}
-      <div style="padding: 0 1rem 2rem">
+    <div class="locality-page" data-locality="${locality.slug}" data-events="${eventCount}">
+      <div class="hero">
+        <div class="hero-stats">
+          <span class="hero-stat">📍 ${escapeHtml(locality.name)}</span>
+          ${eventCount > 0 ? `<span class="hero-stat">🎉 ${eventCount} Upcoming Events</span>` : ''}
+          ${venues?.length ? `<span class="hero-stat">🏛️ ${venues.length} Venues</span>` : ''}
+          ${locality.avg_rating ? `<span class="hero-stat">⭐ ${locality.avg_rating} (${locality.review_count || 0} reviews)</span>` : ''}
+        </div>
+        <h1>${escapeHtml(locality.name)}, Jaipur</h1>
+        <p>${escapeHtml(truncate(locality.seo_blurb || locality.description || `Complete guide to ${locality.name} with events, venues, and local experiences.`, 200))}</p>
+      </div>
+      
+      <div class="container">
+        ${knownForHtml}
+        ${infoCardsHtml}
         ${eventsHtml}
         ${venuesHtml}
-        ${aboutHtml}
+        ${eateriesHtml}
+        
+        <div class="section">
+          <h3>ℹ️ About ${escapeHtml(locality.name)}</h3>
+          <p>${escapeHtml(locality.description || locality.seo_blurb || `Explore ${locality.name}, a vibrant locality in Jaipur.`)}</p>
+        </div>
+        
         ${nearbyHtml}
       </div>
     </div>
   `;
 }
 
-// Enhanced injection with proper root handling
-function injectIntoRoot(html: string, content: string): string {
-  const rootRegex = /<div\s+id=["']root["'][^>]*>([\s\S]*?)<\/div>/i;
-  if (rootRegex.test(html)) {
-    return html.replace(rootRegex, `<div id="root">${content}</div>`);
-  }
-  return html.replace('</body>', `<div id="root">${content}</div></body>`);
-}
-
-// Generate critical preload links
-function generatePreloadLinks(locality: any): string {
-  const links = [];
-  
-  // Preconnect to important origins
-  links.push('<link rel="preconnect" href="https://fonts.googleapis.com">');
-  links.push('<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>');
-  links.push('<link rel="preconnect" href="https://cdn.jaipurcircle.com">');
-  links.push('<link rel="dns-prefetch" href="https://www.google-analytics.com">');
-  
-  // Preload hero image if available
-  if (locality.hero_image) {
-    links.push(`<link rel="preload" as="image" href="${escapeHtml(locality.hero_image)}">`);
-  }
-  
-  return links.join('\n');
-}
-
+// ============================================
+// MAIN SERVE FUNCTION
+// ============================================
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -538,7 +533,10 @@ serve(async (req: Request) => {
   const startTime = Date.now();
   const url = new URL(req.url);
   const userAgent = req.headers.get("user-agent") || "";
-  const isSearchBot = isBot(userAgent);
+  const isCrawler = isBot(userAgent);
+  
+  console.log(`[locality-ssr] User-Agent: ${userAgent.substring(0, 100)}`);
+  console.log(`[locality-ssr] IsCrawler: ${isCrawler}`);
 
   try {
     const slug = url.searchParams.get("slug")?.trim().toLowerCase();
@@ -555,7 +553,7 @@ serve(async (req: Request) => {
       return new Response("Server configuration error", { status: 500 });
     }
 
-    const data = await fetchLocalityData(slug);
+    const data = await fetchCompleteLocalityData(slug);
     
     if (!data || !data.locality) {
       const notFoundHtml = `<!DOCTYPE html>
@@ -573,24 +571,15 @@ serve(async (req: Request) => {
       });
     }
 
-    const { locality, events, venues, nearbyLocalities, eventStats } = data;
+    const { locality, events, venues, nearby, eventCount } = data;
     const canonical = `${BASE_URL}/jaipur/${locality.slug}`;
-    const title = `${locality.name}, Jaipur — ${eventStats.total > 0 ? `${eventStats.total} Upcoming Events, ` : ''}Places & Local Guide | ${SITE_NAME}`;
-    const description = truncate(
-      locality.seo_blurb || 
-      `Complete guide to ${locality.name} in Jaipur. ${eventStats.total > 0 ? `Find ${eventStats.total} upcoming events, ` : ''}discover popular venues, dining spots, and local experiences in this vibrant locality. Updated ${new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}.`,
-      160
-    );
+    
+    const title = locality.meta_title || `${locality.name}, Jaipur — ${eventCount > 0 ? `${eventCount} Upcoming Events, ` : ''}Places & Local Guide | ${SITE_NAME}`;
+    const description = locality.meta_description || `Complete guide to ${locality.name} in Jaipur. ${eventCount > 0 ? `Find ${eventCount} upcoming events, ` : ''}discover popular venues, dining spots, and local experiences.`;
     const image = locality.featured_image || DEFAULT_IMAGE;
 
     let indexHtml = await getSpaShellHtml();
-
-    // Generate all schemas
-    const breadcrumbSchema = generateBreadcrumbSchema(locality, canonical);
-    const placeSchema = generatePlaceSchema(locality, canonical, eventStats);
-    const faqSchema = generateFAQSchema(locality, eventStats.total);
-    const eventSchemas = generateEventSchemas(events, locality.name, canonical);
-    const preloadLinks = generatePreloadLinks(locality);
+    const schemas = generateAllSchemas(locality, events, venues, canonical);
 
     const headHtml = `
 <title>${escapeHtml(title)}</title>
@@ -600,7 +589,8 @@ serve(async (req: Request) => {
 <link rel="canonical" href="${escapeHtml(canonical)}" />
 
 <!-- Preloads & Preconnects -->
-${preloadLinks}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <!-- Open Graph -->
 <meta property="og:type" content="website" />
@@ -609,7 +599,7 @@ ${preloadLinks}
 <meta property="og:title" content="${escapeHtml(title)}" />
 <meta property="og:description" content="${escapeHtml(description)}" />
 <meta property="og:image" content="${escapeHtml(image)}" />
-<meta property="og:image:alt" content="${escapeHtml(locality.name)} - Locality guide with ${eventStats.total} upcoming events" />
+<meta property="og:image:alt" content="${escapeHtml(locality.name)} - Locality guide with ${eventCount} upcoming events" />
 <meta property="og:locale" content="en_IN" />
 
 <!-- Twitter -->
@@ -619,47 +609,43 @@ ${preloadLinks}
 <meta name="twitter:image" content="${escapeHtml(image)}" />
 
 <!-- Structured Data -->
-<script type="application/ld+json">${JSON.stringify(breadcrumbSchema)}</script>
-<script type="application/ld+json">${JSON.stringify(placeSchema)}</script>
-<script type="application/ld+json">${JSON.stringify(faqSchema)}</script>
-${eventSchemas}
+${schemas.map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`).join('')}
 `;
 
     if (indexHtml.includes("</head>")) {
       indexHtml = indexHtml.replace(/<\/head>/i, `${headHtml}\n</head>`);
     }
 
-    // For bots: serve fully populated SSR content
-    if (isSearchBot) {
-      const ssrContent = buildSSRMarkup(locality, events, venues, nearbyLocalities, eventStats, canonical);
-      const finalHtml = injectIntoRoot(indexHtml, ssrContent);
+    // For crawlers: return FULL SSR content
+    if (isCrawler) {
+      const ssrContent = buildSSRHTML(locality, events, venues, nearby, eventCount);
+      const finalHtml = indexHtml.replace('<div id="root"></div>', `<div id="root">${ssrContent}</div>`);
       
-      console.log(`[locality-ssr] Bot served: ${slug} (${events.length} events, ${venues.length} venues) in ${Date.now() - startTime}ms`);
+      console.log(`[locality-ssr] Crawler served: ${slug} (${events.length} events, ${venues.length} venues) in ${Date.now() - startTime}ms`);
       
       return new Response(finalHtml, {
         status: 200,
         headers: {
           "content-type": "text/html; charset=utf-8",
           "cache-control": "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800",
-          "x-ssr-module": "locality-ssr-v2",
+          "vary": "User-Agent",
           "x-ssr-bot": "true",
           "x-events-count": String(events.length),
+          "x-venues-count": String(venues.length),
           "x-render-time-ms": String(Date.now() - startTime),
         },
       });
     }
-
-    // For regular users: lightweight shell with placeholder
-    const finalHtml = injectIntoRoot(indexHtml, `<div data-ssr-placeholder="locality-${locality.slug}" data-event-count="${eventStats.total}"></div>`);
     
-    console.log(`[locality-ssr] User served (SPA mode): ${slug} in ${Date.now() - startTime}ms`);
+    // For normal users: Return SPA shell with EMPTY root div
+    console.log(`[locality-ssr] User served: ${slug} in ${Date.now() - startTime}ms`);
     
-    return new Response(finalHtml, {
+    return new Response(indexHtml, {
       status: 200,
       headers: {
         "content-type": "text/html; charset=utf-8",
-        "cache-control": "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800",
-        "x-ssr-module": "locality-ssr-v2",
+        "cache-control": "public, max-age=3600",
+        "vary": "User-Agent",
         "x-ssr-bot": "false",
         "x-render-time-ms": String(Date.now() - startTime),
       },
@@ -670,8 +656,8 @@ ${eventSchemas}
     
     const errorHtml = `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="utf-8"><title>${SITE_NAME} | Localities in Jaipur</title></head>
-<body><div id="root"></div><script>console.error("SSR Error, falling back to SPA");</script></body>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${SITE_NAME} | Localities in Jaipur</title></head>
+<body><div id="root"></div><script src="/assets/index.js"></script></body>
 </html>`;
     
     return new Response(errorHtml, {
