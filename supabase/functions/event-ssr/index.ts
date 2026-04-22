@@ -1,6 +1,5 @@
 // supabase/functions/event-ssr/index.ts
-// GOLD STANDARD EVENT SSR - Exceeds BookMyShow
-// This is the ONLY file you need for serving event pages
+// GOLD STANDARD+++ - Fixes raw HTML issue for external links
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
@@ -21,18 +20,28 @@ const SUPABASE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 let cachedIndexHtml: { html: string; fetchedAt: number } | null = null;
 
 // ============================================
-// BOT DETECTION
+// ENHANCED BOT DETECTION - Includes social media crawlers
 // ============================================
 const BOT_PATTERNS = [
+  // Search engines
   /Googlebot/i, /bingbot/i, /Baiduspider/i, /YandexBot/i, /DuckDuckBot/i,
-  /Slurp/i, /facebookexternalhit/i, /WhatsApp/i, /Twitterbot/i, /LinkedInBot/i,
-  /Pinterest/i, /TelegramBot/i, /GPTBot/i, /CCBot/i, /Applebot/i, /Amazonbot/i,
-  /SemrushBot/i, /AhrefsBot/i, /MJ12bot/i, /rogerbot/i, /DotBot/i, /Barkrowler/i,
-  /DataForSeoBot/i, /MozBot/i, /BLEXBot/i, /Qwantify/i, /Discordbot/i
+  /Slurp/i, /GPTBot/i, /CCBot/i, /Applebot/i, /Amazonbot/i,
+  /SemrushBot/i, /AhrefsBot/i, /MJ12bot/i, /rogerbot/i, /DotBot/i,
+  
+  // Social media crawlers (CRITICAL for external links)
+  /facebookexternalhit/i, /Facebot/i, /WhatsApp/i, /Twitterbot/i, 
+  /LinkedInBot/i, /Pinterest/i, /TelegramBot/i, /Discordbot/i, 
+  /Slackbot/i, /SkypeUriPreview/i, /RedditBot/i, /Tumblr/i,
+  
+  // Other bots
+  /DataForSeoBot/i, /MozBot/i, /BLEXBot/i, /Qwantify/i, /ZoomInfoBot/i,
+  /PetalBot/i, /SeekportBot/i, /Exabot/i, /spider/i, /crawler/i
 ];
 
 function isBot(userAgent: string): boolean {
   if (!userAgent) return false;
+  // Also treat empty user agent as bot (some crawlers do this)
+  if (userAgent.trim() === "") return true;
   return BOT_PATTERNS.some(pattern => pattern.test(userAgent));
 }
 
@@ -80,11 +89,11 @@ function getEventType(category: string): string {
   const cat = (category || "").toLowerCase();
   if (cat.includes("comedy")) return "ComedyEvent";
   if (cat.includes("music")) return "MusicEvent";
-  if (cat.includes("theatre")) return "TheaterEvent";
+  if (cat.includes("theatre") || cat.includes("play")) return "TheaterEvent";
   if (cat.includes("dance")) return "DanceEvent";
   if (cat.includes("festival")) return "Festival";
   if (cat.includes("sports")) return "SportsEvent";
-  if (cat.includes("workshop")) return "EducationEvent";
+  if (cat.includes("workshop") || cat.includes("seminar")) return "EducationEvent";
   return "Event";
 }
 
@@ -95,7 +104,7 @@ function truncate(str: string, max: number): string {
 }
 
 // ============================================
-// FETCH SPA SHELL
+// FETCH SPA SHELL WITH CACHING
 // ============================================
 async function getSpaShellHtml(): Promise<string> {
   const now = Date.now();
@@ -107,20 +116,44 @@ async function getSpaShellHtml(): Promise<string> {
 
   try {
     const res = await fetch(`${BASE_URL}/index.html?cb=${Math.floor(now / 1000)}`, {
-      headers: { "user-agent": "jaipurcircle-event-ssr/2.0", accept: "text/html" },
+      headers: {
+        "user-agent": "jaipurcircle-event-ssr/2.0",
+        accept: "text/html",
+      },
     });
 
-    if (!res.ok) throw new Error(`Failed to fetch index.html: ${res.status}`);
+    if (!res.ok) {
+      throw new Error(`Failed to fetch index.html: ${res.status}`);
+    }
 
     let html = await res.text();
+    
+    // Remove existing title to avoid duplicates
     html = html.replace(/<title>.*?<\/title>/, '');
-    html = html.replace(/<div\s+id=["']root["'][^>]*>.*?<\/div>/i, '<div id="root"></div>');
+    
+    // CRITICAL: Ensure root div is EMPTY for React hydration
+    // This prevents double-rendering and raw HTML display
+    html = html.replace(
+      /<div\s+id=["']root["'][^>]*>.*?<\/div>/si,
+      '<div id="root"></div>'
+    );
     
     cachedIndexHtml = { html, fetchedAt: now };
     return html;
   } catch (err) {
     console.error("Failed to fetch SPA shell:", err);
-    return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${SITE_NAME}</title></head><body><div id="root"></div></body></html>`;
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${SITE_NAME}</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="/assets/index.js"></script>
+</body>
+</html>`;
   }
 }
 
@@ -132,60 +165,58 @@ async function fetchCompleteEventData(slug: string) {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  // Fetch event
+  // Fetch event with artist and venue data
   const { data: event, error } = await supabase
     .from("events")
-    .select("*")
+    .select(`
+      *,
+      artist:artist_id(
+        id, name, slug, bio, image_url, cover_image, 
+        social_links, follower_count, rating, genre, website
+      ),
+      venue:venue_id(
+        id, name, address, city, latitude, longitude, 
+        phone, website, rating, image, capacity
+      )
+    `)
     .eq("slug", slug)
     .maybeSingle();
 
-  if (error || !event) return null;
-
-  // Fetch venue
-  let venue = null;
-  if (event.venue_id) {
-    const { data: venueData } = await supabase
-      .from("venues")
-      .select("name, address, city, latitude, longitude, rating")
-      .eq("id", event.venue_id)
-      .maybeSingle();
-    venue = venueData;
+  if (error || !event) {
+    console.error("Event fetch error:", error);
+    return null;
   }
 
-  // Fetch performer
-  let performer = null;
-  if (event.performer_id) {
-    const { data: performerData } = await supabase
-      .from("performers")
-      .select("name, bio, image, social_links, follower_count")
-      .eq("id", event.performer_id)
-      .maybeSingle();
-    performer = performerData;
-  }
-
-  // Fetch locality
-  let locality = null;
-  if (event.locality_slug) {
-    const { data: localityData } = await supabase
-      .from("localities")
-      .select("name, slug, known_for")
-      .eq("slug", event.locality_slug)
-      .maybeSingle();
-    locality = localityData;
-  }
-
-  // Fetch related events
+  // Fetch related events (same locality or same category)
   let relatedEvents: any[] = [];
+  
   if (event.locality_slug) {
     const { data: related } = await supabase
       .from("events")
-      .select("title, slug, start_date, cover_image, ticket_price, is_free, venue_name")
+      .select("title, slug, start_date, cover_image, ticket_price, is_free, venue_name, category")
       .eq("locality_slug", event.locality_slug)
       .neq("slug", slug)
       .gte("start_date", new Date().toISOString())
       .order("start_date", { ascending: true })
       .limit(6);
     relatedEvents = related || [];
+  }
+
+  // If not enough, get same category events
+  if (relatedEvents.length < 4 && event.category) {
+    const { data: categoryEvents } = await supabase
+      .from("events")
+      .select("title, slug, start_date, cover_image, ticket_price, is_free, venue_name, category")
+      .eq("category", event.category)
+      .neq("slug", slug)
+      .neq("locality_slug", event.locality_slug || "")
+      .gte("start_date", new Date().toISOString())
+      .order("start_date", { ascending: true })
+      .limit(4);
+    
+    if (categoryEvents?.length) {
+      relatedEvents = [...relatedEvents, ...categoryEvents];
+    }
   }
 
   // Prepare ticket tiers
@@ -195,25 +226,24 @@ async function fetchCompleteEventData(slug: string) {
 
   return { 
     event: { ...event, ticket_tiers: ticketTiers }, 
-    venue, 
-    performer, 
-    locality,
+    artist: event.artist, 
+    venue: event.venue,
     relatedEvents 
   };
 }
 
 // ============================================
-// GENERATE ALL SCHEMAS
+// GENERATE ALL SCHEMAS (100% Complete)
 // ============================================
-function generateAllSchemas(event: any, venue: any, performer: any, locality: any, canonical: string, isPast: boolean) {
+function generateAllSchemas(event: any, artist: any, venue: any, canonical: string, isPast: boolean) {
   const schemas = [];
 
-  // Main Event Schema
-  schemas.push({
+  // 1. Main Event Schema with Artist
+  const eventSchema: any = {
     "@context": "https://schema.org",
     "@type": getEventType(event.category),
     "name": event.title,
-    "description": truncate(event.description || event.short_description || "", 500),
+    "description": truncate(event.description || event.short_description || `Join us for ${event.title} in Jaipur.`, 500),
     "startDate": new Date(event.start_date).toISOString(),
     "eventStatus": isPast ? "https://schema.org/EventCompleted" : "https://schema.org/EventScheduled",
     "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
@@ -222,30 +252,85 @@ function generateAllSchemas(event: any, venue: any, performer: any, locality: an
       "name": venue?.name || event.venue_name || "TBA",
       "address": {
         "@type": "PostalAddress",
-        "addressLocality": locality?.name || event.locality || "Jaipur",
+        "addressLocality": event.locality || "Jaipur",
         "addressRegion": "Rajasthan",
         "addressCountry": "IN"
       }
     },
     "image": event.cover_image || DEFAULT_IMAGE,
     "url": canonical,
-    "offers": event.is_free ? {
+    "isAccessibleForFree": !!event.is_free,
+  };
+
+  // Add artist as performer (using your artists table)
+  if (artist) {
+    eventSchema.performer = {
+      "@type": "Person",
+      "name": artist.name,
+      "description": truncate(artist.bio, 300),
+      "image": artist.image_url,
+      "sameAs": artist.social_links ? Object.values(artist.social_links) : undefined
+    };
+  } else if (event.artist_name) {
+    eventSchema.performer = { "@type": "Person", "name": event.artist_name };
+  }
+
+  // Add venue geo coordinates
+  if (venue?.latitude && venue?.longitude) {
+    eventSchema.location.geo = {
+      "@type": "GeoCoordinates",
+      "latitude": venue.latitude,
+      "longitude": venue.longitude
+    };
+  }
+
+  // Add ticket offers with tiers
+  if (event.is_free) {
+    eventSchema.offers = {
       "@type": "Offer",
       "price": 0,
-      "priceCurrency": "INR"
-    } : event.ticket_tiers?.length ? event.ticket_tiers.map((tier: any) => ({
+      "priceCurrency": "INR",
+      "availability": "https://schema.org/InStock"
+    };
+  } else if (event.ticket_tiers?.length > 0) {
+    eventSchema.offers = event.ticket_tiers.map((tier: any) => ({
       "@type": "Offer",
       "name": tier.name,
       "price": tier.price,
-      "priceCurrency": "INR"
-    })) : event.ticket_price ? {
+      "priceCurrency": "INR",
+      "availability": tier.available !== false ? "https://schema.org/InStock" : "https://schema.org/LimitedAvailability"
+    }));
+  } else if (event.ticket_price) {
+    eventSchema.offers = {
       "@type": "Offer",
       "price": event.ticket_price,
-      "priceCurrency": "INR"
-    } : undefined
-  });
+      "priceCurrency": "INR",
+      "availability": "https://schema.org/InStock"
+    };
+  }
 
-  // Breadcrumb Schema
+  // Add organizer
+  if (event.organizer_name) {
+    eventSchema.organizer = {
+      "@type": "Organization",
+      "name": event.organizer_name,
+      "url": event.organizer_website
+    };
+  }
+
+  // Add age restriction
+  if (event.age_restriction) {
+    eventSchema.typicalAgeRange = event.age_restriction;
+  }
+
+  // Add door time
+  if (event.door_time) {
+    eventSchema.doorTime = new Date(event.door_time).toISOString();
+  }
+
+  schemas.push(eventSchema);
+
+  // 2. Breadcrumb Schema
   schemas.push({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -256,7 +341,7 @@ function generateAllSchemas(event: any, venue: any, performer: any, locality: an
     ]
   });
 
-  // FAQ Schema
+  // 3. FAQ Schema
   schemas.push({
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -274,7 +359,12 @@ function generateAllSchemas(event: any, venue: any, performer: any, locality: an
       {
         "@type": "Question",
         "name": `Where is ${event.title} taking place?`,
-        "acceptedAnswer": { "@type": "Answer", "text": `At ${venue?.name || event.venue_name || "TBA"} in ${locality?.name || event.locality || "Jaipur"}.` }
+        "acceptedAnswer": { "@type": "Answer", "text": `At ${venue?.name || event.venue_name || "TBA"} in ${event.locality || "Jaipur"}.` }
+      },
+      {
+        "@type": "Question",
+        "name": `What is the age requirement for ${event.title}?`,
+        "acceptedAnswer": { "@type": "Answer", "text": event.age_restriction || "All ages are welcome. Please check event page for details." }
       }
     ]
   });
@@ -283,9 +373,9 @@ function generateAllSchemas(event: any, venue: any, performer: any, locality: an
 }
 
 // ============================================
-// BUILD SSR HTML
+// BUILD SSR HTML FOR BOTS
 // ============================================
-function buildSSRHTML(event: any, venue: any, performer: any, locality: any, relatedEvents: any[], canonical: string, isPast: boolean) {
+function buildSSRHTML(event: any, artist: any, venue: any, relatedEvents: any[], canonical: string, isPast: boolean) {
   const venueName = venue?.name || event.venue_name || "TBA";
   const priceText = event.is_free ? "Free Entry" : event.ticket_tiers?.length ? `From ₹${Math.min(...event.ticket_tiers.map((t: any) => t.price))}` : event.ticket_price ? `₹${event.ticket_price}` : "Contact Organizer";
   
@@ -304,7 +394,21 @@ function buildSSRHTML(event: any, venue: any, performer: any, locality: any, rel
     </div>
   ` : '';
 
-  // Related events HTML
+  // Artist section
+  const artistHtml = artist ? `
+    <div style="background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem">
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center">
+        ${artist.image_url ? `<img src="${escapeHtml(artist.image_url)}" alt="${escapeHtml(artist.name)}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover">` : ''}
+        <div>
+          <h2 style="font-size: 1.25rem; margin-bottom: 0.25rem">About ${escapeHtml(artist.name)}</h2>
+          <p style="color: #4b5563; font-size: 0.875rem">${escapeHtml(truncate(artist.bio || "Renowned performer bringing an unforgettable experience.", 200))}</p>
+          ${artist.follower_count ? `<p style="margin-top: 0.5rem; font-size: 0.75rem; color: #8b5cf6">🎧 ${artist.follower_count.toLocaleString()} followers</p>` : ''}
+        </div>
+      </div>
+    </div>
+  ` : '';
+
+  // Related events
   const relatedHtml = relatedEvents.length > 0 ? `
     <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb">
       <h3 style="margin-bottom: 1rem">You might also like</h3>
@@ -326,7 +430,7 @@ function buildSSRHTML(event: any, venue: any, performer: any, locality: any, rel
   const criticalCSS = `
     <style>
       *{margin:0;padding:0;box-sizing:border-box}
-      body{font-family:system-ui,sans-serif;background:#f8fafc;line-height:1.5}
+      body{font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:#f8fafc;line-height:1.5}
       .event-page{max-width:1000px;margin:0 auto}
       .hero{background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);color:white;padding:2rem;border-radius:0 0 24px 24px}
       .hero h1{font-size:clamp(1.5rem,5vw,2rem);margin:0.5rem 0}
@@ -346,6 +450,7 @@ function buildSSRHTML(event: any, venue: any, performer: any, locality: any, rel
         <div class="hero-stats">
           <span>${escapeHtml(event.category || "Event")}</span>
           ${!isPast ? '<span>🔥 Upcoming</span>' : ''}
+          ${event.is_online ? '<span>💻 Online</span>' : ''}
         </div>
         <h1>${escapeHtml(event.title)}</h1>
         <div class="hero-stats">
@@ -375,6 +480,8 @@ function buildSSRHTML(event: any, venue: any, performer: any, locality: any, rel
           <a href="${escapeHtml(event.booking_url)}" target="_blank" class="booking-btn">🎟️ Book Tickets Now</a>
         ` : ''}
         
+        ${artistHtml}
+        
         <div class="card">
           <h2>About This Event</h2>
           <p style="margin-top:0.5rem; line-height:1.6">${escapeHtml(event.description || event.short_description || `Join us for ${event.title} in Jaipur!`)}</p>
@@ -384,6 +491,10 @@ function buildSSRHTML(event: any, venue: any, performer: any, locality: any, rel
         
         <div style="margin-top:2rem; padding-top:1rem; border-top:1px solid #e5e7eb; font-size:0.75rem; color:#9ca3af; text-align:center">
           <p>© ${SITE_NAME} — Discover the best events in Jaipur</p>
+          <p style="margin-top:0.25rem">
+            <a href="${canonical}" style="color:#9ca3af">Event Page</a> | 
+            <a href="/events" style="color:#9ca3af">All Events</a>
+          </p>
         </div>
       </div>
     </div>
@@ -391,9 +502,10 @@ function buildSSRHTML(event: any, venue: any, performer: any, locality: any, rel
 }
 
 // ============================================
-// MAIN SERVE FUNCTION
+// MAIN SERVE FUNCTION - CRITICAL FIX FOR RAW HTML
 // ============================================
 serve(async (req: Request) => {
+  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -401,10 +513,14 @@ serve(async (req: Request) => {
   const startTime = Date.now();
   const url = new URL(req.url);
   const userAgent = req.headers.get("user-agent") || "";
-  const isSearchBot = isBot(userAgent);
   
+  // CRITICAL: Check for both bots AND social media crawlers
+  // This ensures external links (Google, WhatsApp, Facebook) get proper OG tags
+  const isCrawler = isBot(userAgent);
+  
+  // Log for debugging
   console.log(`[event-ssr] User-Agent: ${userAgent.substring(0, 100)}`);
-  console.log(`[event-ssr] IsBot: ${isSearchBot}`);
+  console.log(`[event-ssr] IsCrawler: ${isCrawler}`);
 
   try {
     const slug = url.searchParams.get("slug")?.trim();
@@ -424,57 +540,100 @@ serve(async (req: Request) => {
     const data = await fetchCompleteEventData(slug);
     
     if (!data || !data.event) {
-      const notFoundHtml = `<!DOCTYPE html><html><head><title>Event Not Found</title></head><body><h1>Event Not Found</h1><a href="/events">Browse events →</a></body></html>`;
-      return new Response(notFoundHtml, { status: 404, headers: { "content-type": "text/html" } });
+      const notFoundHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Event Not Found | ${SITE_NAME}</title>
+  <meta name="robots" content="noindex, nofollow">
+</head>
+<body style="font-family: system-ui; max-width: 600px; margin: 40px auto; padding: 20px">
+  <h1>Event Not Found</h1>
+  <p>We couldn't find an event with slug: ${escapeHtml(slug)}</p>
+  <a href="/events">Browse all events →</a>
+</body>
+</html>`;
+      return new Response(notFoundHtml, {
+        status: 404,
+        headers: { "content-type": "text/html; charset=utf-8" },
+      });
     }
 
-    const { event, venue, performer, locality, relatedEvents } = data;
+    const { event, artist, venue, relatedEvents } = data;
     const isPast = new Date(event.start_date) < new Date();
     const canonical = `${BASE_URL}/events/${event.slug}`;
     
     const title = `${event.title} | ${formatDate(event.start_date)} | ${SITE_NAME}`;
-    const description = event.short_description || `Book tickets for ${event.title} in Jaipur. ${formatDate(event.start_date)} at ${venue?.name || event.venue_name || "TBA"}.`;
+    const description = truncate(event.short_description || event.description || `Book tickets for ${event.title} in Jaipur. ${formatDate(event.start_date)} at ${venue?.name || event.venue_name || "TBA"}.`, 160);
     const image = event.cover_image || DEFAULT_IMAGE;
 
+    // Get SPA shell
     let indexHtml = await getSpaShellHtml();
-    const schemas = generateAllSchemas(event, venue, performer, locality, canonical, isPast);
+    
+    // Generate schemas
+    const schemas = generateAllSchemas(event, artist, venue, canonical, isPast);
 
+    // Build meta tags HTML
     const headHtml = `
 <title>${escapeHtml(title)}</title>
 <meta name="description" content="${escapeHtml(description)}" />
-<meta name="robots" content="${isPast ? 'noindex' : 'index, follow'}" />
+<meta name="robots" content="${isPast ? 'noindex, follow' : 'index, follow, max-image-preview:large'}" />
 <link rel="canonical" href="${escapeHtml(canonical)}" />
+
+<!-- Open Graph (CRITICAL for social media shares) -->
+<meta property="og:type" content="event" />
 <meta property="og:title" content="${escapeHtml(event.title)}" />
 <meta property="og:description" content="${escapeHtml(description)}" />
 <meta property="og:image" content="${escapeHtml(image)}" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 <meta property="og:url" content="${escapeHtml(canonical)}" />
+<meta property="og:site_name" content="${SITE_NAME}" />
+${!isPast && event.start_date ? `<meta property="event:start_time" content="${new Date(event.start_date).toISOString()}" />` : ''}
+
+<!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="${escapeHtml(event.title)}" />
+<meta name="twitter:description" content="${escapeHtml(description)}" />
+<meta name="twitter:image" content="${escapeHtml(image)}" />
+
+<!-- Structured Data -->
 ${schemas.map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`).join('')}
 `;
 
+    // Inject head tags
     if (indexHtml.includes("</head>")) {
       indexHtml = indexHtml.replace(/<\/head>/i, `${headHtml}\n</head>`);
     }
 
-    // CRITICAL: Bot vs User response
-    if (isSearchBot) {
-      const ssrContent = buildSSRHTML(event, venue, performer, locality, relatedEvents, canonical, isPast);
-      const finalHtml = indexHtml.replace('<div id="root"></div>', `<div id="root">${ssrContent}</div>`);
+    // CRITICAL: For crawlers (including social media), return FULL SSR content
+    // This ensures Google, WhatsApp, Facebook see the complete page
+    if (isCrawler) {
+      const ssrContent = buildSSRHTML(event, artist, venue, relatedEvents, canonical, isPast);
       
-      console.log(`[event-ssr] Bot served: ${slug} in ${Date.now() - startTime}ms`);
+      // Inject SSR content into root div
+      const finalHtml = indexHtml.replace(
+        '<div id="root"></div>',
+        `<div id="root">${ssrContent}</div>`
+      );
+      
+      console.log(`[event-ssr] Crawler served: ${slug} in ${Date.now() - startTime}ms`);
       
       return new Response(finalHtml, {
         status: 200,
         headers: {
           "content-type": "text/html; charset=utf-8",
-          "cache-control": "no-cache",
+          "cache-control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
           "vary": "User-Agent",
           "x-ssr-bot": "true",
+          "x-render-time-ms": String(Date.now() - startTime),
         },
       });
     }
     
-    // Normal users get SPA shell
+    // For normal users: Return SPA shell with EMPTY root div
+    // React will hydrate and render the UI properly
+    // This prevents the "raw HTML" issue
     console.log(`[event-ssr] User served: ${slug} in ${Date.now() - startTime}ms`);
     
     return new Response(indexHtml, {
@@ -484,12 +643,28 @@ ${schemas.map(schema => `<script type="application/ld+json">${JSON.stringify(sch
         "cache-control": "public, max-age=3600",
         "vary": "User-Agent",
         "x-ssr-bot": "false",
+        "x-render-time-ms": String(Date.now() - startTime),
       },
     });
 
   } catch (err) {
     console.error("Event SSR fatal error:", err);
-    return new Response(`<!DOCTYPE html><html><body><div id="root"></div></body></html>`, {
+    
+    // Fallback: Return basic SPA shell
+    const errorHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${SITE_NAME} | Events in Jaipur</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="/assets/index.js"></script>
+</body>
+</html>`;
+    
+    return new Response(errorHtml, {
       status: 200,
       headers: { "content-type": "text/html; charset=utf-8" },
     });
