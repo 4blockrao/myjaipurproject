@@ -34,11 +34,35 @@
     },
     {
       "src": "^/sitemap\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap/sitemap"
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
     },
     {
-      "src": "^/sitemaps/([^/]+)\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap/sitemaps/$1.xml"
+      "src": "^/sitemaps/categories\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-categories"
+    },
+    {
+      "src": "^/sitemaps/deals\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-deals"
+    },
+    {
+      "src": "^/sitemaps/events\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-events-xml"
+    },
+    {
+      "src": "^/sitemaps/localities\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-localities"
+    },
+    {
+      "src": "^/sitemaps/merchants\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-merchants"
+    },
+    {
+      "src": "^/sitemaps/news\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-news"
+    },
+    {
+      "src": "^/sitemaps/static\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
     },
     {
       "src": "^/sitemap-events\\.xml$",
