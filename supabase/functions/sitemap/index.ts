@@ -33,7 +33,6 @@ const STATIC_URLS = [
 async function getEventUrls(supabase: any) {
   const urls: Array<{ loc: string; priority: number; changefreq: string; lastmod?: string }> = [];
   
-  // Main event URLs
   const eventMainUrls = [
     { path: "/events", priority: 1.0, changefreq: "hourly" },
     { path: "/events/today", priority: 0.9, changefreq: "hourly" },
@@ -49,7 +48,6 @@ async function getEventUrls(supabase: any) {
     urls.push({ loc: u.path, priority: u.priority, changefreq: u.changefreq });
   });
   
-  // Individual event pages
   const { data: events } = await supabase
     .from("events")
     .select("slug, updated_at")
@@ -65,7 +63,6 @@ async function getEventUrls(supabase: any) {
     });
   });
   
-  // Category pages (from actual events)
   const { data: categories } = await supabase
     .from("events")
     .select("category")
@@ -81,34 +78,16 @@ async function getEventUrls(supabase: any) {
     });
   });
   
-  // Locality event pages
-  const { data: localities } = await supabase
-    .from("events")
-    .select("locality")
-    .eq("status", "published")
-    .not("locality", "is", null);
-  
-  const uniqueLocalities = [...new Set(localities?.map(l => l.locality) || [])];
-  uniqueLocalities.forEach((locality: string) => {
-    urls.push({
-      loc: `/events/in/${locality.toLowerCase().replace(/\s+/g, '-')}`,
-      priority: 0.7,
-      changefreq: "weekly"
-    });
-  });
-  
   return urls;
 }
 
 async function getLocalityUrls(supabase: any) {
   const urls: Array<{ loc: string; priority: number; changefreq: string; lastmod?: string }> = [];
   
-  // Main locality URLs
   urls.push({ loc: "/jaipur", priority: 0.9, changefreq: "weekly" });
   urls.push({ loc: "/jaipur/localities", priority: 0.8, changefreq: "weekly" });
   urls.push({ loc: "/jaipur/zones", priority: 0.7, changefreq: "weekly" });
   
-  // Individual locality pages
   const { data: localities } = await supabase
     .from("localities")
     .select("slug, updated_at");
@@ -122,7 +101,6 @@ async function getLocalityUrls(supabase: any) {
     });
   });
   
-  // Zone pages
   const zones = ["north", "south", "east", "west", "central"];
   zones.forEach(zone => {
     urls.push({
@@ -138,7 +116,6 @@ async function getLocalityUrls(supabase: any) {
 async function getDealUrls(supabase: any) {
   const urls: Array<{ loc: string; priority: number; changefreq: string; lastmod?: string }> = [];
   
-  // Main deal URLs
   const dealMainUrls = [
     { path: "/deals", priority: 0.9, changefreq: "daily" },
     { path: "/deals/today", priority: 0.8, changefreq: "daily" },
@@ -150,7 +127,6 @@ async function getDealUrls(supabase: any) {
     urls.push({ loc: u.path, priority: u.priority, changefreq: u.changefreq });
   });
   
-  // Individual deal pages
   const { data: deals } = await supabase
     .from("deals")
     .select("slug, updated_at")
@@ -171,12 +147,10 @@ async function getDealUrls(supabase: any) {
 async function getMerchantUrls(supabase: any) {
   const urls: Array<{ loc: string; priority: number; changefreq: string; lastmod?: string }> = [];
   
-  // Main merchant URLs
   urls.push({ loc: "/merchants", priority: 0.8, changefreq: "weekly" });
   urls.push({ loc: "/merchants/featured", priority: 0.7, changefreq: "weekly" });
   urls.push({ loc: "/merchants/verified", priority: 0.7, changefreq: "weekly" });
   
-  // Individual merchant pages
   const { data: merchants } = await supabase
     .from("merchants")
     .select("slug, updated_at")
@@ -191,26 +165,12 @@ async function getMerchantUrls(supabase: any) {
     });
   });
   
-  // Merchant category pages
-  const { data: categories } = await supabase
-    .from("merchant_categories")
-    .select("slug");
-  
-  categories?.forEach((cat: any) => {
-    urls.push({
-      loc: `/merchants/category/${cat.slug}`,
-      priority: 0.6,
-      changefreq: "weekly"
-    });
-  });
-  
   return urls;
 }
 
 async function getNewsUrls(supabase: any) {
   const urls: Array<{ loc: string; priority: number; changefreq: string; lastmod?: string }> = [];
   
-  // Main news URLs
   const newsMainUrls = [
     { path: "/news", priority: 0.8, changefreq: "daily" },
     { path: "/news/city", priority: 0.7, changefreq: "daily" },
@@ -225,7 +185,6 @@ async function getNewsUrls(supabase: any) {
     urls.push({ loc: u.path, priority: u.priority, changefreq: u.changefreq });
   });
   
-  // Individual news articles
   const { data: articles } = await supabase
     .from("news_articles")
     .select("slug, published_at")
@@ -286,6 +245,41 @@ function generateSitemapXml(urls: Array<{ loc: string; priority: number; changef
 </urlset>`;
 }
 
+function generateSitemapIndex(): string {
+  const today = new Date().toISOString().split('T')[0];
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>${BASE_URL}/sitemaps/static.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>${BASE_URL}/sitemaps/events.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>${BASE_URL}/sitemaps/localities.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>${BASE_URL}/sitemaps/deals.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>${BASE_URL}/sitemaps/merchants.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>${BASE_URL}/sitemaps/news.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>${BASE_URL}/sitemaps/categories.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+</sitemapindex>`;
+}
+
 // ============================================
 // MAIN SERVE FUNCTION
 // ============================================
@@ -295,41 +289,10 @@ serve(async (req: Request) => {
     const pathname = url.pathname;
     
     // ============================================
-    // Handle sitemap index (root sitemap)
+    // IMPORTANT: Check for index FIRST (before any other matching)
     // ============================================
-    if (pathname === "/sitemap-index.xml" || pathname === "/sitemap.xml" || pathname === "/sitemap" || pathname === "/") {
-      const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <sitemap>
-    <loc>${BASE_URL}/sitemaps/static.xml</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-  </sitemap>
-  <sitemap>
-    <loc>${BASE_URL}/sitemaps/events.xml</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-  </sitemap>
-  <sitemap>
-    <loc>${BASE_URL}/sitemaps/localities.xml</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-  </sitemap>
-  <sitemap>
-    <loc>${BASE_URL}/sitemaps/deals.xml</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-  </sitemap>
-  <sitemap>
-    <loc>${BASE_URL}/sitemaps/merchants.xml</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-  </sitemap>
-  <sitemap>
-    <loc>${BASE_URL}/sitemaps/news.xml</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-  </sitemap>
-  <sitemap>
-    <loc>${BASE_URL}/sitemaps/categories.xml</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-  </sitemap>
-</sitemapindex>`;
-      
+    if (pathname === "/sitemap-index.xml" || pathname === "/sitemap.xml" || pathname === "/sitemap" || pathname === "/" || pathname === "") {
+      const sitemapIndex = generateSitemapIndex();
       return new Response(sitemapIndex, {
         headers: { 
           "content-type": "application/xml", 
@@ -344,9 +307,8 @@ serve(async (req: Request) => {
     });
     
     let urls: Array<{ loc: string; priority: number; changefreq: string; lastmod?: string }> = [];
-    let contentType = "application/xml";
     
-    // Route to specific sitemap
+    // Route to specific sitemaps (check after index)
     if (pathname.includes("/sitemaps/static.xml") || pathname === "/static.xml") {
       urls = STATIC_URLS;
     } 
@@ -377,7 +339,7 @@ serve(async (req: Request) => {
     
     return new Response(xml, {
       headers: {
-        "content-type": contentType,
+        "content-type": "application/xml",
         "cache-control": "public, max-age=3600, s-maxage=86400"
       }
     });
