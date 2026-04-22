@@ -14,47 +14,51 @@
     },
     {
       "src": "^/api/functions/v1/(.*)$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/$1"
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/$1"
     },
     {
       "src": "^/events/([^/]+)/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/event-ssr?slug=$1"
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/event-ssr?slug=$1"
     },
     {
       "src": "^/jaipur/([^/]+)/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/locality-ssr?slug=$1"
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/locality-ssr?slug=$1"
     },
     {
       "src": "^/events/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr"
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/events-list-ssr"
     },
     {
       "src": "^/artists/([^/]+)/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/artist-ssr?slug=$1"
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/artist-ssr?slug=$1"
     },
     {
       "src": "^/sitemap\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/sitemap/sitemap"
+    },
+    {
+      "src": "^/sitemaps/(.*)\\.xml$",
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/sitemap/sitemaps/$1.xml"
     },
     {
       "src": "^/sitemap-events\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-events-xml"
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/sitemap-events-xml"
     },
     {
       "src": "^/sitemap-stories\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-stories"
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/sitemap-stories"
     },
     {
       "src": "^/sitemap-news\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=news"
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/sitemap?type=news"
     },
     {
       "src": "^/sitemap-news-google\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=news-sitemap"
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
     {
       "src": "^/sitemap-artists\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-artists"
+      "dest": "https://rbenryjgtbrjvqxbigq.supabase.co/functions/v1/sitemap-artists"
     },
     {
       "src": "^/localities/([^/]+)/?$",
