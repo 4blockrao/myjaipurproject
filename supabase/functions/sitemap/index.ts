@@ -294,8 +294,10 @@ serve(async (req: Request) => {
     const url = new URL(req.url);
     const pathname = url.pathname;
     
-    // Handle sitemap index
-    if (pathname === "/sitemap-index.xml" || pathname === "/sitemap") {
+    // ============================================
+    // Handle sitemap index (root sitemap)
+    // ============================================
+    if (pathname === "/sitemap-index.xml" || pathname === "/sitemap.xml" || pathname === "/sitemap" || pathname === "/") {
       const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
@@ -329,37 +331,41 @@ serve(async (req: Request) => {
 </sitemapindex>`;
       
       return new Response(sitemapIndex, {
-        headers: { "content-type": "application/xml", "cache-control": "public, max-age=3600" }
+        headers: { 
+          "content-type": "application/xml", 
+          "cache-control": "public, max-age=3600"
+        }
       });
     }
     
-    // Initialize Supabase client
+    // Initialize Supabase client for dynamic sitemaps
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
       auth: { persistSession: false }
     });
     
     let urls: Array<{ loc: string; priority: number; changefreq: string; lastmod?: string }> = [];
+    let contentType = "application/xml";
     
     // Route to specific sitemap
-    if (pathname.includes("/sitemaps/static.xml")) {
+    if (pathname.includes("/sitemaps/static.xml") || pathname === "/static.xml") {
       urls = STATIC_URLS;
     } 
-    else if (pathname.includes("/sitemaps/events.xml")) {
+    else if (pathname.includes("/sitemaps/events.xml") || pathname === "/events.xml") {
       urls = await getEventUrls(supabase);
     }
-    else if (pathname.includes("/sitemaps/localities.xml")) {
+    else if (pathname.includes("/sitemaps/localities.xml") || pathname === "/localities.xml") {
       urls = await getLocalityUrls(supabase);
     }
-    else if (pathname.includes("/sitemaps/deals.xml")) {
+    else if (pathname.includes("/sitemaps/deals.xml") || pathname === "/deals.xml") {
       urls = await getDealUrls(supabase);
     }
-    else if (pathname.includes("/sitemaps/merchants.xml")) {
+    else if (pathname.includes("/sitemaps/merchants.xml") || pathname === "/merchants.xml") {
       urls = await getMerchantUrls(supabase);
     }
-    else if (pathname.includes("/sitemaps/news.xml")) {
+    else if (pathname.includes("/sitemaps/news.xml") || pathname === "/news.xml") {
       urls = await getNewsUrls(supabase);
     }
-    else if (pathname.includes("/sitemaps/categories.xml")) {
+    else if (pathname.includes("/sitemaps/categories.xml") || pathname === "/categories.xml") {
       urls = await getCategoryUrls(supabase);
     }
     else {
@@ -371,7 +377,7 @@ serve(async (req: Request) => {
     
     return new Response(xml, {
       headers: {
-        "content-type": "application/xml",
+        "content-type": contentType,
         "cache-control": "public, max-age=3600, s-maxage=86400"
       }
     });
