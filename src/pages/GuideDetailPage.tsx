@@ -10,7 +10,6 @@ interface Article {
   slug: string;
   title: string;
   content: string;
-  excerpt: string | null;
   category: string;
   article_type: string;
   author: string;
@@ -28,9 +27,10 @@ export default function GuideDetailPage() {
       if (!slug) return;
 
       try {
+        // REMOVED 'excerpt' from select
         const { data, error } = await supabase
           .from('articles')
-          .select('*')
+          .select('id, slug, title, content, category, article_type, author, published_at')
           .eq('slug', slug)
           .eq('status', 'published')
           .single();
@@ -87,7 +87,7 @@ export default function GuideDetailPage() {
     <>
       <GlobalSEO 
         title={article.title}
-        description={article.excerpt || `Comprehensive guide about ${article.title} for Jaipur residents.`}
+        description={`Comprehensive guide about ${article.title} for Jaipur residents.`}
         canonicalUrl={`/guide/${article.slug}`}
       />
       <AppLayout>
@@ -114,12 +114,6 @@ export default function GuideDetailPage() {
               {article.title}
             </h1>
             
-            {article.excerpt && (
-              <p className="text-xl text-gray-600 mb-4">
-                {article.excerpt}
-              </p>
-            )}
-            
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 border-t border-b py-3">
               <span className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
@@ -140,7 +134,7 @@ export default function GuideDetailPage() {
 
           <div 
             className="prose prose-lg max-w-none"
-            dangerouslySetInnerHTML={{ __html: article.content }}
+            dangerouslySetInnerHTML={{ __html: article.content || 'Content coming soon...' }}
           />
 
           <div className="mt-12 p-6 bg-green-50 rounded-xl text-center">
