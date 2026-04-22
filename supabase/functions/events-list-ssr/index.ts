@@ -18,6 +18,7 @@ type EventRow = {
   venue_name?: string | null;
   venue_slug?: string | null;
   performer_name?: string | null;
+  artist_name?: string | null;
 };
 
 const BASE_URL = "https://www.jaipurcircle.com";
@@ -57,16 +58,13 @@ function getDateRanges() {
   const today = getTodayIST();
   const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
   
-  // Weekend: Friday to Sunday
   const currentDay = today.getDay();
   const daysUntilFriday = (5 - currentDay + 7) % 7;
   const weekendStart = new Date(today.getTime() + daysUntilFriday * 24 * 60 * 60 * 1000);
   const weekendEnd = new Date(weekendStart.getTime() + 2 * 24 * 60 * 60 * 1000);
   
-  // This week: next 7 days
   const weekEnd = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
   
-  // Next month: 30-60 days out
   const nextMonthStart = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
   const nextMonthEnd = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000);
   
@@ -105,56 +103,45 @@ function formatShortDate(isoDate: string): string {
 // ROUTE PARSING
 // ============================================
 function parseRoute(pathname: string): RoutePattern {
-  // Remove leading/trailing slashes
   const clean = pathname.replace(/^\/|\/$/g, '');
   const parts = clean.split('/').filter(Boolean);
   
-  // /events
   if (parts.length === 1 && parts[0] === 'events') {
     return { type: "hub" };
   }
   
-  // /events/today
   if (parts.length === 2 && parts[0] === 'events' && parts[1] === 'today') {
     return { type: "today" };
   }
   
-  // /events/tomorrow
   if (parts.length === 2 && parts[0] === 'events' && parts[1] === 'tomorrow') {
     return { type: "tomorrow" };
   }
   
-  // /events/this-weekend
   if (parts.length === 2 && parts[0] === 'events' && parts[1] === 'this-weekend') {
     return { type: "weekend" };
   }
   
-  // /events/this-week
   if (parts.length === 2 && parts[0] === 'events' && parts[1] === 'this-week') {
     return { type: "this-week" };
   }
   
-  // /events/next-month
   if (parts.length === 2 && parts[0] === 'events' && parts[1] === 'next-month') {
     return { type: "next-month" };
   }
   
-  // /events/near-me
   if (parts.length === 2 && parts[0] === 'events' && parts[1] === 'near-me') {
     return { type: "near-me" };
   }
   
-  // /events/category/[category]
   if (parts.length === 3 && parts[0] === 'events' && parts[1] === 'category') {
     return { type: "category", category: parts[2] };
   }
   
-  // /events/[category]/[locality]
   if (parts.length === 3 && parts[0] === 'events') {
     return { type: "category-locality", category: parts[1], locality: parts[2] };
   }
   
-  // /events/[category]
   if (parts.length === 2 && parts[0] === 'events') {
     return { type: "category", category: parts[1] };
   }
@@ -179,8 +166,18 @@ function titleCase(str: string): string {
     .join(' ');
 }
 
+function escapeHtml(str: string): string {
+  if (!str) return "";
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // ============================================
-// DATABASE QUERIES
+// DATABASE QUERIES (Using correct column names)
 // ============================================
 async function fetchEventsByDateRange(
   supabase: any,
@@ -190,7 +187,7 @@ async function fetchEventsByDateRange(
 ): Promise<EventRow[]> {
   const { data } = await supabase
     .from("events")
-    .select("id,title,slug,start_date,end_date,cover_image,is_free,ticket_price,category,locality,venue_name,venue_slug,performer_name")
+    .select("id,title,slug,start_date,end_date,cover_image,is_free,ticket_price,category,locality,venue_name,performer_name,artist_name")
     .eq("status", "published")
     .gte("start_date", startDate)
     .lte("start_date", endDate)
@@ -208,7 +205,7 @@ async function fetchEventsByCategory(
   const today = getDateRanges().today;
   const { data } = await supabase
     .from("events")
-    .select("id,title,slug,start_date,end_date,cover_image,is_free,ticket_price,category,locality,venue_name,venue_slug,performer_name")
+    .select("id,title,slug,start_date,end_date,cover_image,is_free,ticket_price,category,locality,venue_name,performer_name,artist_name")
     .eq("status", "published")
     .eq("category", category)
     .gte("start_date", today)
@@ -227,7 +224,7 @@ async function fetchEventsByCategoryAndLocality(
   const today = getDateRanges().today;
   const { data } = await supabase
     .from("events")
-    .select("id,title,slug,start_date,end_date,cover_image,is_free,ticket_price,category,locality,venue_name,venue_slug,performer_name")
+    .select("id,title,slug,start_date,end_date,cover_image,is_free,ticket_price,category,locality,venue_name,performer_name,artist_name")
     .eq("status", "published")
     .eq("category", category)
     .eq("locality", locality)
@@ -245,7 +242,7 @@ async function fetchUpcomingEvents(
   const today = getDateRanges().today;
   const { data } = await supabase
     .from("events")
-    .select("id,title,slug,start_date,end_date,cover_image,is_free,ticket_price,category,locality,venue_name,venue_slug,performer_name")
+    .select("id,title,slug,start_date,end_date,cover_image,is_free,ticket_price,category,locality,venue_name,performer_name,artist_name")
     .eq("status", "published")
     .gte("start_date", today)
     .order("start_date", { ascending: true })
@@ -301,32 +298,25 @@ function generateEventSearchActionSchema() {
 // ============================================
 // HTML RENDERING
 // ============================================
-function escapeHtml(str: string): string {
-  if (!str) return "";
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
 function renderEventCard(event: EventRow): string {
-  const date = event.start_date ? formatShortDate(event.start_date) : "Date TBA";
+  const date = event.start_date ? formatShortDate(event.start_date.split('T')[0]) : "Date TBA";
   const price = event.is_free 
     ? '<span class="price-free">FREE</span>' 
     : event.ticket_price 
       ? `<span class="price-paid">₹${event.ticket_price}</span>` 
       : '<span class="price-tba">Price TBA</span>';
   
-  const performerHtml = event.performer_name 
-    ? `<div class="event-performer">🎤 ${escapeHtml(event.performer_name)}</div>` 
+  const performer = event.performer_name || event.artist_name;
+  const performerHtml = performer 
+    ? `<div class="event-performer">🎤 ${escapeHtml(performer)}</div>` 
     : '';
+  
+  const imageUrl = event.cover_image || '';
   
   return `
     <a href="/events/${escapeHtml(event.slug || '')}" class="event-card">
-      ${event.cover_image 
-        ? `<img src="${escapeHtml(event.cover_image)}" alt="${escapeHtml(event.title || 'Event')}" loading="lazy" class="event-image">` 
+      ${imageUrl 
+        ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(event.title || 'Event')}" loading="lazy" class="event-image">` 
         : '<div class="event-image-placeholder">🎉</div>'}
       <div class="event-details">
         <h3 class="event-title">${escapeHtml(event.title || 'Untitled Event')}</h3>
@@ -346,9 +336,9 @@ function renderCategoryFilter(currentCategory?: string) {
     { slug: "comedy", name: "Comedy Shows", icon: "😂" },
     { slug: "music", name: "Concerts & Music", icon: "🎵" },
     { slug: "workshop", name: "Workshops", icon: "🔧" },
-    { slug: "theatre", name: "Theatre & Plays", icon: "🎭" },
-    { slug: "festival", name: "Festivals", icon: "🎪" },
-    { slug: "free", name: "Free Events", icon: "🎟️" },
+    { slug: "food", name: "Food Events", icon: "🍽️" },
+    { slug: "art", name: "Art & Exhibition", icon: "🎨" },
+    { slug: "family", name: "Family Events", icon: "👨‍👩‍👧" },
   ];
   
   return `
@@ -367,7 +357,7 @@ function renderTimeFilters(routeType: string) {
   const filters = [
     { type: "today", label: "Today", icon: "☀️" },
     { type: "tomorrow", label: "Tomorrow", icon: "🌅" },
-    { type: "weekend", label: "This Weekend", icon: "🎉" },
+    { type: "this-weekend", label: "This Weekend", icon: "🎉" },
     { type: "this-week", label: "This Week", icon: "📅" },
     { type: "next-month", label: "Next Month", icon: "📆" },
   ];
@@ -392,7 +382,6 @@ function buildSSRHTML(
 ): string {
   const dateRanges = getDateRanges();
   
-  // Determine if this is a time-filtered page
   let dateBadge = "";
   if (route.type === "today") dateBadge = `<div class="date-badge">🔥 Happening Today - ${formatHumanDate(dateRanges.today)}</div>`;
   if (route.type === "tomorrow") dateBadge = `<div class="date-badge">🌅 Tomorrow - ${formatHumanDate(dateRanges.tomorrow)}</div>`;
@@ -540,7 +529,6 @@ serve(async (req: Request) => {
         break;
         
       case "near-me":
-        // For now, fallback to all Jaipur events
         events = await fetchUpcomingEvents(supabase, 50);
         title = "Events Near Me in Jaipur - Local Events in Your Area | JaipurCircle";
         description = "Discover events happening near your location in Jaipur. Concerts, comedy shows, and cultural events nearby.";
