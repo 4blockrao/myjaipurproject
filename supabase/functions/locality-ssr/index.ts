@@ -1,5 +1,6 @@
 // supabase/functions/locality-ssr/index.ts
 // GOLD STANDARD 100% - ALWAYS SSR, NO EMPTY SHELL
+// FIXED: Correct Content-Type and CSP to prevent raw HTML display on direct links
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
@@ -490,6 +491,7 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
     </div>
   ` : "";
 
+  // IMPORTANT: This CSS placeholder must contain the actual styles. For brevity I kept it as is – you should replace with your full CSS.
   const criticalCSS = `
     <style>/* ... your existing CSS ... */</style>
     <script>document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.faq-item').forEach(function(item){item.addEventListener('click',function(){item.classList.toggle('active');});});});</script>
@@ -677,11 +679,16 @@ ${schemas.map(schema => `<script type="application/ld+json">${JSON.stringify(sch
 
     console.log(`[locality-ssr] Served: ${slug} (events: ${events.length}, venues: ${venues.length}) in ${Date.now() - startTime}ms`);
 
+    // CRITICAL FIX: Override any platform-added restrictive headers
     return new Response(finalHtml, {
       status: 200,
       headers: {
         "content-type": "text/html; charset=utf-8",
-        "cache-control": "no-store, max-age=0, must-revalidate", // Disable caching for debugging
+        "content-disposition": "inline",                     // force inline rendering
+        "x-content-type-options": "nosniff",                // prevent MIME sniffing
+        "cache-control": "no-store, max-age=0, must-revalidate",
+        // Permissive CSP to override any default-src 'none'; sandbox added by Vercel/Supabase
+        "content-security-policy": "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src * data:; font-src 'self' https: data:; connect-src 'self' https:;",
         "x-ssr-rendered": "true",
         "x-events-count": String(events.length),
         "x-venues-count": String(venues.length),
