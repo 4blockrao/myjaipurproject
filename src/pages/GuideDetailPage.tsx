@@ -74,7 +74,9 @@ export default function GuideDetailPage() {
 
   const articleHtml = useMemo(() => addHeadingIds(article?.content || ''), [article?.content]);
   const description = article ? buildDescription(article) : '';
-  const canonical = article ? `/guide/${article.slug}` : '/guides';
+  const isNewsFlash = article?.article_type === 'news_flash';
+  const articlePath = article ? (isNewsFlash ? `/news/ipl-2026/${article.slug}` : `/guide/${article.slug}`) : '/guides';
+  const canonical = article ? articlePath : '/guides';
 
   if (loading) {
     return (
@@ -118,7 +120,7 @@ export default function GuideDetailPage() {
     dateModified: article.updated_at || article.published_at,
     author: { '@type': 'Person', name: article.author || 'JaipurCircle Team' },
     publisher: { '@type': 'Organization', name: 'JaipurCircle', url: 'https://jaipurcircle.com' },
-    mainEntityOfPage: `https://jaipurcircle.com/guide/${article.slug}`,
+    mainEntityOfPage: `https://jaipurcircle.com${articlePath}`,
   };
 
   return (
@@ -135,21 +137,21 @@ export default function GuideDetailPage() {
       >
         <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
       </GlobalSEO>
-      <AppLayout title="Guide" backPath="/guides">
+      <AppLayout title={isNewsFlash ? 'IPL Update' : 'Guide'} backPath={isNewsFlash ? '/ipl-2026' : '/guides'}>
         <article className="bg-background pb-8">
           <header className="border-b border-border bg-card">
             <div className="container mx-auto max-w-6xl px-4 py-6 md:py-10">
               <nav className="mb-5 flex items-center gap-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
                 <Link to="/" className="hover:text-primary">Home</Link>
                 <span>/</span>
-                <Link to="/guides" className="hover:text-primary">Guides</Link>
+                <Link to={isNewsFlash ? '/ipl-2026' : '/guides'} className="hover:text-primary">{isNewsFlash ? 'IPL 2026' : 'Guides'}</Link>
                 <span>/</span>
                 <span className="line-clamp-1 text-foreground">{article.title}</span>
               </nav>
 
-              <Link to="/guides" className="mb-5 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+              <Link to={isNewsFlash ? '/ipl-2026' : '/guides'} className="mb-5 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
                 <ArrowLeft className="h-4 w-4" />
-                Back to Guides
+                {isNewsFlash ? 'Back to IPL 2026' : 'Back to Guides'}
               </Link>
 
               <div className="mb-4">
@@ -189,7 +191,7 @@ export default function GuideDetailPage() {
               <div className="guide-prose prose prose-lg max-w-none rounded-2xl border border-border bg-card p-5 shadow-card md:p-8" dangerouslySetInnerHTML={{ __html: articleHtml || '<p>Content coming soon...</p>' }} />
 
               <div className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-card">
-                <ShareButtons title={article.title} url={`https://jaipurcircle.com/guide/${article.slug}`} />
+                <ShareButtons title={article.title} url={`https://jaipurcircle.com${articlePath}`} />
               </div>
 
               <RelatedArticles category={article.category} currentSlug={article.slug} />
