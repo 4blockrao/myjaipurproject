@@ -1,7 +1,37 @@
 {
   "routes": [
-    // ... keep all your existing routes above here ...
-
+    {
+      "src": "^/api/rest/v1/(.*)$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/rest/v1/$1"
+    },
+    {
+      "src": "^/api/auth/v1/(.*)$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/auth/v1/$1"
+    },
+    {
+      "src": "^/api/storage/v1/(.*)$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/storage/v1/$1"
+    },
+    {
+      "src": "^/api/functions/v1/(.*)$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/$1"
+    },
+    {
+      "src": "^/events/([^/]+)/?$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/event-ssr?slug=$1"
+    },
+    {
+      "src": "^/jaipur/([^/]+)/?$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/locality-ssr?slug=$1"
+    },
+    {
+      "src": "^/events/?$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr"
+    },
+    {
+      "src": "^/artists/([^/]+)/?$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/artist-ssr?slug=$1"
+    },
     {
       "src": "^/sitemap\\.xml$",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
@@ -34,7 +64,22 @@
       "src": "^/sitemap-artists\\.xml$",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-artists"
     },
-
-    // ... keep your existing routes below here ...
+    {
+      "src": "^/localities/([^/]+)/?$",
+      "status": 308,
+      "headers": { "Location": "/jaipur/$1" }
+    },
+    {
+      "src": "^/localities/?$",
+      "status": 308,
+      "headers": { "Location": "/jaipur" }
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "^(.*)$",
+      "dest": "/index.html"
+    }
   ]
 }
