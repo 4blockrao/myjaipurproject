@@ -274,10 +274,19 @@ serve(async (req: Request) => {
     const url = new URL(req.url);
     const pathname = url.pathname;
     
-    console.log(`[sitemap] Request path: ${pathname}`);
+    console.log(`[sitemap] Full URL: ${req.url}`);
+    console.log(`[sitemap] Pathname: ${pathname}`);
     
-    // Check for index FIRST
-    if (pathname === "/sitemap-index.xml" || pathname === "/sitemap.xml" || pathname === "/sitemap" || pathname === "/" || pathname === "") {
+    // Normalize the path - remove trailing slashes
+    let normalizedPath = pathname.replace(/\/$/, '');
+    
+    // Check for sitemap index FIRST
+    if (normalizedPath === "/sitemap-index.xml" || 
+        normalizedPath === "/sitemap.xml" || 
+        normalizedPath === "/sitemap" || 
+        normalizedPath === "/" || 
+        normalizedPath === "" ||
+        normalizedPath === "/sitemaps") {
       const sitemapIndex = generateSitemapIndex();
       console.log(`[sitemap] Returning sitemap index`);
       return new Response(sitemapIndex, {
@@ -295,29 +304,38 @@ serve(async (req: Request) => {
     
     let urls: Array<{ loc: string; priority: number; changefreq: string; lastmod?: string }> = [];
     
-    if (pathname.includes("/sitemaps/static.xml") || pathname === "/static.xml") {
+    // Check for static.xml - using endsWith for more reliable matching
+    if (normalizedPath.endsWith("/sitemaps/static.xml") || normalizedPath === "/static.xml") {
+      console.log(`[sitemap] Generating static sitemap`);
       urls = STATIC_URLS;
     } 
-    else if (pathname.includes("/sitemaps/events.xml") || pathname === "/events.xml") {
+    else if (normalizedPath.endsWith("/sitemaps/events.xml") || normalizedPath === "/events.xml") {
+      console.log(`[sitemap] Generating events sitemap`);
       urls = await getEventUrls(supabase);
     }
-    else if (pathname.includes("/sitemaps/localities.xml") || pathname === "/localities.xml") {
+    else if (normalizedPath.endsWith("/sitemaps/localities.xml") || normalizedPath === "/localities.xml") {
+      console.log(`[sitemap] Generating localities sitemap`);
       urls = await getLocalityUrls(supabase);
     }
-    else if (pathname.includes("/sitemaps/deals.xml") || pathname === "/deals.xml") {
+    else if (normalizedPath.endsWith("/sitemaps/deals.xml") || normalizedPath === "/deals.xml") {
+      console.log(`[sitemap] Generating deals sitemap`);
       urls = await getDealUrls(supabase);
     }
-    else if (pathname.includes("/sitemaps/merchants.xml") || pathname === "/merchants.xml") {
+    else if (normalizedPath.endsWith("/sitemaps/merchants.xml") || normalizedPath === "/merchants.xml") {
+      console.log(`[sitemap] Generating merchants sitemap`);
       urls = await getMerchantUrls(supabase);
     }
-    else if (pathname.includes("/sitemaps/news.xml") || pathname === "/news.xml") {
+    else if (normalizedPath.endsWith("/sitemaps/news.xml") || normalizedPath === "/news.xml") {
+      console.log(`[sitemap] Generating news sitemap`);
       urls = await getNewsUrls(supabase);
     }
-    else if (pathname.includes("/sitemaps/categories.xml") || pathname === "/categories.xml") {
+    else if (normalizedPath.endsWith("/sitemaps/categories.xml") || normalizedPath === "/categories.xml") {
+      console.log(`[sitemap] Generating categories sitemap`);
       urls = await getCategoryUrls(supabase);
     }
     else {
       // Default to sitemap index for unknown paths
+      console.log(`[sitemap] Unknown path: ${normalizedPath}, returning index`);
       const sitemapIndex = generateSitemapIndex();
       return new Response(sitemapIndex, {
         status: 200,
@@ -329,7 +347,7 @@ serve(async (req: Request) => {
     }
     
     const xml = generateSitemapXml(urls);
-    console.log(`[sitemap] Returning ${urls.length} URLs`);
+    console.log(`[sitemap] Returning ${urls.length} URLs for ${normalizedPath}`);
     
     return new Response(xml, {
       status: 200,
