@@ -113,31 +113,37 @@ export const getAirportDistance = (connectivity: Connectivity): string | null =>
   return connectivity.distance_to_airport || null;
 };
 
+const normalizeLocalitySlug = (slug: string) => decodeURIComponent(slug).trim().toLowerCase();
+
 export function useLocality(slug: string) {
+  const normalizedSlug = normalizeLocalitySlug(slug);
+
   return useQuery({
-    queryKey: ["locality", slug],
+    queryKey: ["locality", normalizedSlug],
     queryFn: async () => {
-      const { data, error } = await supabase.from("localities").select("*").eq("slug", slug).maybeSingle();
+      const { data, error } = await supabase.from("localities").select("*").eq("slug", normalizedSlug).maybeSingle();
 
       if (error) throw error;
       return data as Locality | null;
     },
-    enabled: !!slug,
+    enabled: !!normalizedSlug,
   });
 }
 
 export function useNearbyLocalities(slugs: string[] | null) {
-  return useQuery({
-    queryKey: ["nearby-localities", slugs],
-    queryFn: async () => {
-      if (!slugs || slugs.length === 0) return [];
+  const normalizedSlugs = slugs?.map(normalizeLocalitySlug) || [];
 
-      const { data, error } = await supabase.from("localities").select("id, name, slug, zone, tags").in("slug", slugs);
+  return useQuery({
+    queryKey: ["nearby-localities", normalizedSlugs],
+    queryFn: async () => {
+      if (normalizedSlugs.length === 0) return [];
+
+      const { data, error } = await supabase.from("localities").select("id, name, slug, zone, tags").in("slug", normalizedSlugs);
 
       if (error) throw error;
       return data as Pick<Locality, "id" | "name" | "slug" | "zone" | "tags">[];
     },
-    enabled: !!slugs && slugs.length > 0,
+    enabled: normalizedSlugs.length > 0,
   });
 }
 
