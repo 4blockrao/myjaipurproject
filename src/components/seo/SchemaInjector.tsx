@@ -1,6 +1,6 @@
-import { Helmet } from 'react-helmet-async';
-import { generateSchema, SchemaData, PageType, detectPageType } from '@/lib/schemaEngine';
-import { useLocation } from 'react-router-dom';
+import { Helmet } from "react-helmet-async";
+import { generateSchema, SchemaData, PageType, detectPageType } from "@/lib/schemaEngine";
+import { useLocation } from "react-router-dom";
 
 interface SchemaInjectorProps {
   pageType?: PageType;
@@ -11,40 +11,37 @@ interface SchemaInjectorProps {
 
 /**
  * SchemaInjector - Dynamic JSON-LD Schema Injection Component
- * 
+ *
  * Automatically generates and injects structured data for:
  * - Homepage, Pillar pages, Sub-pillar pages
  * - Locality pages with nearby/micro localities
  * - News articles, Events, Deals
  * - Jobs, Businesses, Guides, FAQs
- * 
+ *
  * Usage:
  * <SchemaInjector pageType="news" data={{ title, description, url, publishedAt }} />
  */
 export function SchemaInjector({ pageType, data, schema: customSchema }: SchemaInjectorProps) {
   const location = useLocation();
-  
+
   // Auto-detect page type if not provided
   const detectedType = pageType || detectPageType(location.pathname);
-  
+
   // Generate schema
   const schemaData: SchemaData = {
     pageType: detectedType,
     url: `https://www.jaipurcircle.com${location.pathname}`,
-    ...data
+    ...data,
   };
-  
+
   const schemas = customSchema || generateSchema(schemaData);
-  
+
   if (!schemas || schemas.length === 0) return null;
 
   return (
     <Helmet>
       {schemas.map((schemaItem, index) => (
-        <script
-          key={`schema-${index}`}
-          type="application/ld+json"
-        >
+        <script key={`schema-${index}`} type="application/ld+json">
           {JSON.stringify(schemaItem, null, 2)}
         </script>
       ))}
@@ -60,15 +57,17 @@ export function HomepageSchema() {
 }
 
 /**
- * NewsSchema - For news article pages
+ * NewsSchema - For news article pages (UPDATED with author and image)
  */
-export function NewsSchema({ 
-  title, 
-  description, 
-  image, 
-  publishedAt, 
+export function NewsSchema({
+  title,
+  description,
+  image,
+  publishedAt,
   updatedAt,
-  url 
+  url,
+  author,
+  articleType,
 }: {
   title: string;
   description?: string;
@@ -76,17 +75,28 @@ export function NewsSchema({
   publishedAt?: string;
   updatedAt?: string;
   url?: string;
+  author?: string;
+  articleType?: string;
 }) {
   return (
-    <SchemaInjector 
-      pageType="news" 
-      data={{ title, description, image, publishedAt, updatedAt, url }} 
+    <SchemaInjector
+      pageType="news"
+      data={{
+        title,
+        description,
+        image: image || "https://jaipurcircle.com/default-og-image.jpg",
+        publishedAt,
+        updatedAt,
+        url,
+        author: author || "JaipurCircle Team",
+        articleType: articleType || "NewsArticle",
+      }}
     />
   );
 }
 
 /**
- * EventSchema - For event detail pages
+ * EventSchema - For event detail pages (UPDATED with complete fields)
  */
 export function EventSchema({
   title,
@@ -98,7 +108,9 @@ export function EventSchema({
   address,
   ticketUrl,
   price,
-  url
+  url,
+  performer,
+  organizer,
 }: {
   title: string;
   description?: string;
@@ -110,11 +122,26 @@ export function EventSchema({
   ticketUrl?: string;
   price?: number;
   url?: string;
+  performer?: string;
+  organizer?: string;
 }) {
   return (
     <SchemaInjector
       pageType="event"
-      data={{ title, description, image, startDate, endDate, venue, address, ticketUrl, price, url }}
+      data={{
+        title,
+        description,
+        image: image || "https://jaipurcircle.com/ipl-2026-og-image.jpg",
+        startDate,
+        endDate,
+        venue,
+        address,
+        ticketUrl,
+        price,
+        url,
+        performer: performer || "Rajasthan Royals",
+        organizer: organizer || "Rajasthan Royals",
+      }}
     />
   );
 }
@@ -128,7 +155,7 @@ export function DealSchema({
   discount,
   expiry,
   businessName,
-  url
+  url,
 }: {
   title: string;
   description?: string;
@@ -137,12 +164,7 @@ export function DealSchema({
   businessName?: string;
   url?: string;
 }) {
-  return (
-    <SchemaInjector
-      pageType="deal"
-      data={{ title, description, discount, expiry, businessName, url }}
-    />
-  );
+  return <SchemaInjector pageType="deal" data={{ title, description, discount, expiry, businessName, url }} />;
 }
 
 /**
@@ -158,7 +180,7 @@ export function LocalitySchema({
   micro_localities,
   nearby_localities,
   assembly_constituency,
-  geo
+  geo,
 }: {
   name: string;
   slug: string;
@@ -186,8 +208,8 @@ export function LocalitySchema({
           micro_localities,
           nearby_localities,
           assembly_constituency,
-          geo
-        }
+          geo,
+        },
       }}
     />
   );
@@ -202,7 +224,7 @@ export function BusinessSchema({
   phone,
   address,
   cuisines,
-  url
+  url,
 }: {
   name: string;
   image?: string;
@@ -211,28 +233,14 @@ export function BusinessSchema({
   cuisines?: string[];
   url?: string;
 }) {
-  return (
-    <SchemaInjector
-      pageType="business"
-      data={{ name, image, phone, address, cuisines, url }}
-    />
-  );
+  return <SchemaInjector pageType="business" data={{ name, image, phone, address, cuisines, url }} />;
 }
 
 /**
  * FAQSchema - For FAQ pages
  */
-export function FAQSchema({
-  faqs
-}: {
-  faqs: { question: string; answer: string }[];
-}) {
-  return (
-    <SchemaInjector
-      pageType="faq"
-      data={{ faqs }}
-    />
-  );
+export function FAQSchema({ faqs }: { faqs: { question: string; answer: string }[] }) {
+  return <SchemaInjector pageType="faq" data={{ faqs }} />;
 }
 
 /**
@@ -241,16 +249,47 @@ export function FAQSchema({
 export function PillarSchema({
   title,
   description,
-  items
+  items,
 }: {
   title: string;
   description?: string;
   items?: { url: string; name?: string }[];
 }) {
+  return <SchemaInjector pageType="pillar" data={{ title, description, items }} />;
+}
+
+/**
+ * GuideSchema - For evergreen guide pages (NEW)
+ */
+export function GuideSchema({
+  title,
+  description,
+  image,
+  publishedAt,
+  updatedAt,
+  url,
+  author,
+}: {
+  title: string;
+  description?: string;
+  image?: string;
+  publishedAt?: string;
+  updatedAt?: string;
+  url?: string;
+  author?: string;
+}) {
   return (
     <SchemaInjector
-      pageType="pillar"
-      data={{ title, description, items }}
+      pageType="guide"
+      data={{
+        title,
+        description,
+        image: image || "https://jaipurcircle.com/default-og-image.jpg",
+        publishedAt,
+        updatedAt,
+        url,
+        author: author || "JaipurCircle Team",
+      }}
     />
   );
 }
