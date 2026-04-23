@@ -67,6 +67,8 @@ export default function IPL2026Page() {
   const newsFlashes = useMemo(() => articles.filter((article) => article.article_type === 'news_flash'), [articles]);
   const guides = useMemo(() => articles.filter((article) => article.article_type === 'pillar' || article.article_type === 'cluster'), [articles]);
   const pillarGuide = useMemo(() => guides.find((guide) => guide.article_type === 'pillar'), [guides]);
+
+  // Schema: CollectionPage
   const collectionSchema = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
@@ -79,8 +81,90 @@ export default function IPL2026Page() {
     hasPart: articles.map((article) => ({
       '@type': article.article_type === 'news_flash' ? 'NewsArticle' : 'Article',
       headline: article.title,
-      url: `${SITE_URL}${article.article_type === 'news_flash' ? `/news/ipl-2026/${article.slug}` : `/guide/${article.slug}`}`,
+      url: `${SITE_URL}${article.article_type === 'news_flash' ? `/news/${article.slug}` : `/guide/${article.slug}`}`,
     })),
+  };
+
+  // Schema: SportsEvent (for rich results in search)
+  const eventSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'SportsEvent',
+    name: 'IPL 2026 in Jaipur',
+    description: 'Complete guide to IPL 2026 matches at Sawai Mansingh Stadium. Tickets, stadium guide, parking, traffic updates, and match schedules for Rajasthan Royals home games.',
+    startDate: '2026-04-25T19:30+05:30',
+    endDate: '2026-05-19T23:00+05:30',
+    location: {
+      '@type': 'Place',
+      name: 'Sawai Mansingh Stadium',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Jaipur',
+        addressRegion: 'Rajasthan',
+        addressCountry: 'IN',
+      },
+    },
+    organizer: {
+      '@type': 'Organization',
+      name: 'Rajasthan Royals',
+      url: 'https://www.rajasthanroyals.com',
+    },
+    offers: {
+      '@type': 'Offer',
+      price: '1800',
+      priceCurrency: 'INR',
+      availability: 'https://schema.org/InStock',
+      validFrom: '2026-04-21T09:00+05:30',
+    },
+    image: 'https://jaipurcircle.com/ipl-2026-og-image.jpg',
+    url: 'https://jaipurcircle.com/ipl-2026',
+  };
+
+  // Schema: FAQPage (for "People also ask" boxes)
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'When is the first IPL match in Jaipur?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'April 25, 2026 at 7:30 PM IST - Rajasthan Royals vs Sunrisers Hyderabad at Sawai Mansingh Stadium.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How to buy student tickets for RR vs SRH?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: '₹500 student tickets are available on April 23 at West Gate box office, Sawai Mansingh Stadium from 11 AM to 6 PM. Valid college ID required.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What is the ticket price range for IPL in Jaipur?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Tickets range from ₹1,800 for East Stand to ₹22,500 for Shane Warne Gallery.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What items are prohibited at Sawai Mansingh Stadium?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Power banks, outside food and water, large bags, professional cameras, lighters, and helmets are prohibited.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Where can I watch IPL matches in Jaipur if I don\'t have tickets?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Top sports bars in Jaipur include Tapri Central, Masala Chowk, and various sports pubs in C-Scheme and Malviya Nagar.',
+        },
+      },
+    ],
   };
 
   const handleShare = async () => {
@@ -90,8 +174,9 @@ export default function IPL2026Page() {
       url: `${SITE_URL}/ipl-2026`,
     };
 
-    if (navigator.share) await navigator.share(shareData);
-    else {
+    if (navigator.share) {
+      await navigator.share(shareData);
+    } else {
       await navigator.clipboard.writeText(shareData.url);
       toast.success('Campaign link copied');
     }
@@ -109,9 +194,12 @@ export default function IPL2026Page() {
       </GlobalSEO>
       <Helmet>
         <title>IPL 2026 in Jaipur – Complete Guide, Tickets &amp; Schedule</title>
+        <script type="application/ld+json">{JSON.stringify(eventSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
       </Helmet>
       <AppLayout title="IPL 2026" showBackButton={false}>
         <main className="bg-background pb-8">
+          {/* Hero Section */}
           <section className="bg-campaign-ipl text-campaign-ipl-foreground">
             <div className="container mx-auto px-4 py-8 md:py-12">
               <div className="max-w-4xl">
@@ -135,7 +223,9 @@ export default function IPL2026Page() {
                 </p>
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <Button asChild className="bg-whatsapp text-whatsapp-foreground hover:bg-whatsapp/90">
-                    <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"><MessageCircle className="mr-2 h-4 w-4" /> Get WhatsApp alerts</a>
+                    <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
+                      <MessageCircle className="mr-2 h-4 w-4" /> Get WhatsApp alerts
+                    </a>
                   </Button>
                   <Button type="button" variant="secondary" onClick={handleShare}>
                     <Share2 className="mr-2 h-4 w-4" /> Share this campaign
@@ -145,52 +235,94 @@ export default function IPL2026Page() {
             </div>
           </section>
 
+          {/* Urgent News Section */}
           <section className="container mx-auto px-4 py-6 md:py-8">
             <div className="mb-4 flex items-center gap-2">
               <Siren className="h-5 w-5 text-destructive" />
               <h2 className="text-2xl font-extrabold text-foreground">Urgent news</h2>
             </div>
-            {loading ? <Skeleton className="h-32 rounded-lg" /> : newsFlashes.length > 0 ? (
+            {loading ? (
+              <Skeleton className="h-32 rounded-lg" />
+            ) : newsFlashes.length > 0 ? (
               <div className="grid gap-3 md:grid-cols-2">
                 {newsFlashes.map((article) => (
-                  <Link key={article.id} to={`/news/ipl-2026/${article.slug}`} className="rounded-lg border border-destructive/25 bg-card p-4 shadow-card transition-all hover:-translate-y-1 hover:shadow-heritage">
-                    <span className="inline-flex items-center rounded-full bg-destructive/10 px-2 py-1 text-xs font-bold text-destructive">Breaking update</span>
+                  <Link
+                    key={article.id}
+                    to={`/news/${article.slug}`}
+                    className="rounded-lg border border-destructive/25 bg-card p-4 shadow-card transition-all hover:-translate-y-1 hover:shadow-heritage"
+                  >
+                    <span className="inline-flex items-center rounded-full bg-destructive/10 px-2 py-1 text-xs font-bold text-destructive">
+                      Breaking update
+                    </span>
                     <h3 className="mt-3 line-clamp-2 text-lg font-extrabold text-card-foreground">{article.title}</h3>
-                    <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{article.excerpt || 'Latest IPL 2026 Jaipur update from JaipurCircle.'}</p>
-                    <span className="mt-3 inline-flex items-center text-sm font-bold text-primary">Read update <ChevronRight className="h-4 w-4" /></span>
+                    <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+                      {article.excerpt || 'Latest IPL 2026 Jaipur update from JaipurCircle.'}
+                    </p>
+                    <span className="mt-3 inline-flex items-center text-sm font-bold text-primary">
+                      Read update <ChevronRight className="h-4 w-4" />
+                    </span>
                   </Link>
                 ))}
               </div>
-            ) : <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">No urgent updates right now.</p>}
+            ) : (
+              <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
+                No urgent updates right now.
+              </p>
+            )}
           </section>
 
+          {/* IPL Guides Section */}
           <section className="container mx-auto px-4 pb-8">
             <div className="mb-4 flex items-end justify-between gap-3">
               <div>
                 <h2 className="text-2xl font-extrabold text-foreground">IPL guides</h2>
                 <p className="text-sm text-muted-foreground">Tickets, seating, metro, food, parking and match previews.</p>
               </div>
-              <Link to="/guides" className="hidden text-sm font-bold text-primary sm:inline-flex">All guides</Link>
+              <Link to="/guides" className="hidden text-sm font-bold text-primary sm:inline-flex">
+                All guides
+              </Link>
             </div>
             {loading ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{[1, 2, 3, 4, 5, 6].map((item) => <Skeleton key={item} className="h-44 rounded-lg" />)}</div>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3, 4, 5, 6].map((item) => (
+                  <Skeleton key={item} className="h-44 rounded-lg" />
+                ))}
+              </div>
             ) : guides.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {guides.map((guide) => (
-                  <article key={guide.id} className="rounded-lg border border-border bg-card p-4 shadow-card transition-all hover:-translate-y-1 hover:shadow-heritage md:p-5">
+                  <article
+                    key={guide.id}
+                    className="rounded-lg border border-border bg-card p-4 shadow-card transition-all hover:-translate-y-1 hover:shadow-heritage md:p-5"
+                  >
                     <Link to={`/guide/${guide.slug}`} className="block">
                       <CategoryBadge category={guide.category} articleType={guide.article_type} />
                       <h3 className="mt-3 line-clamp-2 text-lg font-extrabold text-card-foreground">{guide.title}</h3>
-                      <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{guide.excerpt || 'A practical JaipurCircle IPL 2026 guide for match day in Jaipur.'}</p>
-                      <span className="mt-4 inline-flex items-center text-sm font-bold text-primary">{guide.id === pillarGuide?.id ? 'Open campaign guide' : 'Read guide'} <ChevronRight className="h-4 w-4" /></span>
+                      <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
+                        {guide.excerpt || 'A practical JaipurCircle IPL 2026 guide for match day in Jaipur.'}
+                      </p>
+                      <span className="mt-4 inline-flex items-center text-sm font-bold text-primary">
+                        {guide.id === pillarGuide?.id ? 'Open campaign guide' : 'Read guide'} <ChevronRight className="h-4 w-4" />
+                      </span>
                     </Link>
                   </article>
                 ))}
               </div>
-            ) : <p className="rounded-lg border border-border bg-card p-6 text-center font-semibold text-muted-foreground">No IPL guides available yet.</p>}
+            ) : (
+              <p className="rounded-lg border border-border bg-card p-6 text-center font-semibold text-muted-foreground">
+                No IPL guides available yet.
+              </p>
+            )}
           </section>
 
-          <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="fixed bottom-24 right-4 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-whatsapp-foreground shadow-lg shadow-whatsapp/30 md:hidden" aria-label="Get IPL 2026 WhatsApp alerts">
+          {/* Floating WhatsApp Button (Mobile Only) */}
+          <a
+            href={WHATSAPP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="fixed bottom-24 right-4 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-whatsapp-foreground shadow-lg shadow-whatsapp/30 md:hidden"
+            aria-label="Get IPL 2026 WhatsApp alerts"
+          >
             <MessageCircle className="h-6 w-6" />
           </a>
         </main>
