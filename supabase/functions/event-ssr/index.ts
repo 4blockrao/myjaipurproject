@@ -1,5 +1,5 @@
 // supabase/functions/event-ssr/index.ts
-// GOLD STANDARD 100% - Includes Artist Schema, Venue Geo, and Raw HTML Fix
+// GOLD STANDARD 100% - ALWAYS SSR, NO EMPTY SHELL
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
@@ -18,26 +18,6 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SUPABASE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 
 let cachedIndexHtml: { html: string; fetchedAt: number } | null = null;
-
-// ============================================
-// ENHANCED BOT DETECTION
-// ============================================
-const BOT_PATTERNS = [
-  /Googlebot/i, /bingbot/i, /Baiduspider/i, /YandexBot/i, /DuckDuckBot/i,
-  /Slurp/i, /GPTBot/i, /CCBot/i, /Applebot/i, /Amazonbot/i,
-  /SemrushBot/i, /AhrefsBot/i, /MJ12bot/i, /rogerbot/i, /DotBot/i,
-  /facebookexternalhit/i, /Facebot/i, /WhatsApp/i, /Twitterbot/i, 
-  /LinkedInBot/i, /Pinterest/i, /TelegramBot/i, /Discordbot/i, 
-  /Slackbot/i, /SkypeUriPreview/i, /RedditBot/i, /Tumblr/i,
-  /DataForSeoBot/i, /MozBot/i, /BLEXBot/i, /Qwantify/i, /ZoomInfoBot/i,
-  /PetalBot/i, /SeekportBot/i, /Exabot/i, /spider/i, /crawler/i
-];
-
-function isBot(userAgent: string): boolean {
-  if (!userAgent) return false;
-  if (userAgent.trim() === "") return true;
-  return BOT_PATTERNS.some(pattern => pattern.test(userAgent));
-}
 
 // ============================================
 // UTILITY FUNCTIONS
@@ -98,15 +78,39 @@ function truncate(str: string, max: number): string {
 }
 
 // ============================================
-// FETCH SPA SHELL
+// FETCH SPA SHELL (WITH FALLBACK)
 // ============================================
 async function getSpaShellHtml(): Promise<string> {
   const now = Date.now();
   const ttlMs = 5 * 60 * 1000;
-  
+
   if (cachedIndexHtml && now - cachedIndexHtml.fetchedAt < ttlMs) {
     return cachedIndexHtml.html;
   }
+
+  const fallbackHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#e91e63">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>${SITE_NAME}</title>
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="/pwa-192x192.png">
+  <style>
+    html, body { overscroll-behavior: none; -webkit-overflow-scrolling: touch; }
+    body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+    * { -webkit-tap-highlight-color: transparent; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" crossorigin src="/assets/index-uPnmVZlR.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-YJsD5eZ5.css">
+</body>
+</html>`;
 
   try {
     const res = await fetch(`${BASE_URL}/index.html?cb=${Math.floor(now / 1000)}`, {
@@ -116,18 +120,28 @@ async function getSpaShellHtml(): Promise<string> {
     if (!res.ok) throw new Error(`Failed to fetch index.html: ${res.status}`);
 
     let html = await res.text();
-    html = html.replace(/<title>.*?<\/title>/, '');
-    html = html.replace(/<div\s+id=["']root["'][^>]*>.*?<\/div>/si, '<div id="root"></div>');
-    
+    html = html.replace(/<title>.*?<\/title>/, "");
+    html = html.replace(/<meta name="description".*?>/, "");
+    html = html.replace(/<meta name="keywords".*?>/, "");
+    html = html.replace(/<meta property="og:title".*?>/g, "");
+    html = html.replace(/<meta property="og:description".*?>/g, "");
+    html = html.replace(/<meta property="og:url".*?>/g, "");
+    html = html.replace(/<meta property="og:image".*?>/g, "");
+    html = html.replace(/<meta name="twitter:title".*?>/g, "");
+    html = html.replace(/<meta name="twitter:description".*?>/g, "");
+    html = html.replace(/<meta name="twitter:image".*?>/g, "");
+    html = html.replace(/<div\s+id=["']root["'][^>]*>.*?<\/div>/is, '<div id="root"></div>');
+
+    if (!html.includes('<script type="module"')) {
+      console.warn("index.html missing script tags, using fallback");
+      html = fallbackHtml;
+    }
+
     cachedIndexHtml = { html, fetchedAt: now };
     return html;
   } catch (err) {
     console.error("Failed to fetch SPA shell:", err);
-    return `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${SITE_NAME}</title></head>
-<body><div id="root"></div><script src="/assets/index.js"></script></body>
-</html>`;
+    return fallbackHtml;
   }
 }
 
@@ -139,7 +153,6 @@ async function fetchCompleteEventData(slug: string) {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  // Removed 'city' from venue select - your venues table doesn't have this column
   const { data: event, error } = await supabase
     .from("events")
     .select(`
@@ -161,7 +174,6 @@ async function fetchCompleteEventData(slug: string) {
     return null;
   }
 
-  // Fetch related events
   let relatedEvents: any[] = [];
   if (event.locality_slug) {
     const { data: related } = await supabase
@@ -175,16 +187,15 @@ async function fetchCompleteEventData(slug: string) {
     relatedEvents = related || [];
   }
 
-  // Prepare ticket tiers
   const ticketTiers = event.ticket_tiers || (event.ticket_price ? [
     { name: "General Admission", price: event.ticket_price, available: true }
   ] : []);
 
-  return { 
-    event: { ...event, ticket_tiers: ticketTiers }, 
-    artist: event.artist, 
+  return {
+    event: { ...event, ticket_tiers: ticketTiers },
+    artist: event.artist,
     venue: event.venue,
-    relatedEvents 
+    relatedEvents,
   };
 }
 
@@ -194,7 +205,6 @@ async function fetchCompleteEventData(slug: string) {
 function generateAllSchemas(event: any, artist: any, venue: any, canonical: string, isPast: boolean) {
   const schemas = [];
 
-  // 1. Main Event Schema
   const eventSchema: any = {
     "@context": "https://schema.org",
     "@type": getEventType(event.category),
@@ -210,45 +220,40 @@ function generateAllSchemas(event: any, artist: any, venue: any, canonical: stri
         "@type": "PostalAddress",
         "addressLocality": event.locality || "Jaipur",
         "addressRegion": "Rajasthan",
-        "addressCountry": "IN"
-      }
+        "addressCountry": "IN",
+      },
     },
     "image": event.cover_image || DEFAULT_IMAGE,
     "url": canonical,
     "isAccessibleForFree": !!event.is_free,
   };
 
-  // ============================================
-  // CRITICAL: ADD PERFORMER (ARTIST) SCHEMA
-  // ============================================
   if (artist && artist.name) {
     eventSchema.performer = {
       "@type": "Person",
       "name": artist.name,
       "description": truncate(artist.bio || "", 300),
       "image": artist.image_url,
-      "sameAs": artist.social_links ? Object.values(artist.social_links) : undefined
+      "sameAs": artist.social_links ? Object.values(artist.social_links) : undefined,
     };
   } else if (event.artist_name) {
     eventSchema.performer = { "@type": "Person", "name": event.artist_name };
   }
 
-  // Add venue geo coordinates
   if (venue?.latitude && venue?.longitude) {
     eventSchema.location.geo = {
       "@type": "GeoCoordinates",
       "latitude": venue.latitude,
-      "longitude": venue.longitude
+      "longitude": venue.longitude,
     };
   }
 
-  // Add ticket offers
   if (event.is_free) {
     eventSchema.offers = {
       "@type": "Offer",
       "price": 0,
       "priceCurrency": "INR",
-      "availability": "https://schema.org/InStock"
+      "availability": "https://schema.org/InStock",
     };
   } else if (event.ticket_tiers?.length > 0) {
     eventSchema.offers = event.ticket_tiers.map((tier: any) => ({
@@ -256,45 +261,41 @@ function generateAllSchemas(event: any, artist: any, venue: any, canonical: stri
       "name": tier.name,
       "price": tier.price,
       "priceCurrency": "INR",
-      "availability": tier.available !== false ? "https://schema.org/InStock" : "https://schema.org/LimitedAvailability"
+      "availability": tier.available !== false ? "https://schema.org/InStock" : "https://schema.org/LimitedAvailability",
     }));
   } else if (event.ticket_price) {
     eventSchema.offers = {
       "@type": "Offer",
       "price": event.ticket_price,
       "priceCurrency": "INR",
-      "availability": "https://schema.org/InStock"
+      "availability": "https://schema.org/InStock",
     };
   }
 
-  // Add organizer
   if (event.organizer_name) {
     eventSchema.organizer = {
       "@type": "Organization",
       "name": event.organizer_name,
-      "url": event.organizer_website
+      "url": event.organizer_website,
     };
   }
 
-  // Add age restriction
   if (event.age_restriction) {
     eventSchema.typicalAgeRange = event.age_restriction;
   }
 
   schemas.push(eventSchema);
 
-  // 2. Breadcrumb Schema
   schemas.push({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home", "item": BASE_URL },
       { "@type": "ListItem", "position": 2, "name": "Events", "item": `${BASE_URL}/events` },
-      { "@type": "ListItem", "position": 3, "name": event.title, "item": canonical }
-    ]
+      { "@type": "ListItem", "position": 3, "name": event.title, "item": canonical },
+    ],
   });
 
-  // 3. FAQ Schema
   schemas.push({
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -302,75 +303,111 @@ function generateAllSchemas(event: any, artist: any, venue: any, canonical: stri
       {
         "@type": "Question",
         "name": `Is ${event.title} confirmed in Jaipur?`,
-        "acceptedAnswer": { "@type": "Answer", "text": `Yes! ${event.title} is confirmed for ${formatDate(event.start_date)} at ${venue?.name || event.venue_name || "the venue"}.` }
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `Yes! ${event.title} is confirmed for ${formatDate(event.start_date)} at ${venue?.name || event.venue_name || "the venue"}.`,
+        },
       },
       {
         "@type": "Question",
         "name": `What are the ticket prices for ${event.title}?`,
-        "acceptedAnswer": { "@type": "Answer", "text": event.is_free ? "Free entry!" : event.ticket_tiers?.length ? `Tickets start from ₹${Math.min(...event.ticket_tiers.map((t: any) => t.price))}` : `Tickets are ₹${event.ticket_price}` }
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": event.is_free
+            ? "Free entry!"
+            : event.ticket_tiers?.length
+            ? `Tickets start from ₹${Math.min(...event.ticket_tiers.map((t: any) => t.price))}`
+            : `Tickets are ₹${event.ticket_price}`,
+        },
       },
       {
         "@type": "Question",
         "name": `Where is ${event.title} taking place?`,
-        "acceptedAnswer": { "@type": "Answer", "text": `At ${venue?.name || event.venue_name || "TBA"} in ${event.locality || "Jaipur"}.` }
-      }
-    ]
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `At ${venue?.name || event.venue_name || "TBA"} in ${event.locality || "Jaipur"}.`,
+        },
+      },
+    ],
   });
 
   return schemas;
 }
 
 // ============================================
-// BUILD SSR HTML FOR BOTS
+// BUILD SSR HTML (FULL PAGE)
 // ============================================
 function buildSSRHTML(event: any, artist: any, venue: any, relatedEvents: any[], canonical: string, isPast: boolean) {
   const venueName = venue?.name || event.venue_name || "TBA";
-  const priceText = event.is_free ? "Free Entry" : event.ticket_tiers?.length ? `From ₹${Math.min(...event.ticket_tiers.map((t: any) => t.price))}` : event.ticket_price ? `₹${event.ticket_price}` : "Contact Organizer";
-  
-  const ticketTiersHtml = event.ticket_tiers?.length > 1 ? `
+  const priceText = event.is_free
+    ? "Free Entry"
+    : event.ticket_tiers?.length
+    ? `From ₹${Math.min(...event.ticket_tiers.map((t: any) => t.price))}`
+    : event.ticket_price
+    ? `₹${event.ticket_price}`
+    : "Contact Organizer";
+
+  const ticketTiersHtml =
+    event.ticket_tiers?.length > 1
+      ? `
     <div class="ticket-tiers" style="margin-top: 1rem">
       <h3>Ticket Categories</h3>
       <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.5rem">
-        ${event.ticket_tiers.map((tier: any) => `
+        ${event.ticket_tiers
+          .map(
+            (tier: any) => `
           <div style="background: #f3f4f6; padding: 0.75rem 1rem; border-radius: 8px; text-align: center; flex: 1; min-width: 100px">
             <div style="font-weight: 600">${escapeHtml(tier.name)}</div>
             <div style="font-size: 1.25rem; font-weight: 700; color: #3b82f6">₹${tier.price}</div>
           </div>
-        `).join('')}
+        `
+          )
+          .join("")}
       </div>
     </div>
-  ` : '';
+  `
+      : "";
 
-  const artistHtml = artist ? `
+  const artistHtml = artist
+    ? `
     <div style="background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem">
       <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center">
-        ${artist.image_url ? `<img src="${escapeHtml(artist.image_url)}" alt="${escapeHtml(artist.name)}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover">` : ''}
+        ${artist.image_url ? `<img src="${escapeHtml(artist.image_url)}" alt="${escapeHtml(artist.name)}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover">` : ""}
         <div>
           <h2 style="font-size: 1.25rem; margin-bottom: 0.25rem">About ${escapeHtml(artist.name)}</h2>
           <p style="color: #4b5563; font-size: 0.875rem">${escapeHtml(truncate(artist.bio || "Renowned performer bringing an unforgettable experience.", 200))}</p>
-          ${artist.follower_count ? `<p style="margin-top: 0.5rem; font-size: 0.75rem; color: #8b5cf6">🎧 ${artist.follower_count.toLocaleString()} followers</p>` : ''}
+          ${artist.follower_count ? `<p style="margin-top: 0.5rem; font-size: 0.75rem; color: #8b5cf6">🎧 ${artist.follower_count.toLocaleString()} followers</p>` : ""}
         </div>
       </div>
     </div>
-  ` : '';
+  `
+    : "";
 
-  const relatedHtml = relatedEvents.length > 0 ? `
+  const relatedHtml =
+    relatedEvents.length > 0
+      ? `
     <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb">
       <h3 style="margin-bottom: 1rem">You might also like</h3>
       <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem">
-        ${relatedEvents.slice(0, 4).map((rel: any) => `
+        ${relatedEvents
+          .slice(0, 4)
+          .map(
+            (rel: any) => `
           <a href="${BASE_URL}/events/${rel.slug}" style="text-decoration: none; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: block">
             ${rel.cover_image ? `<img src="${rel.cover_image}" style="width: 100%; height: 120px; object-fit: cover" loading="lazy">` : '<div style="height: 120px; background: #e5e7eb; display: flex; align-items: center; justify-content: center">🎉</div>'}
             <div style="padding: 0.75rem">
               <h4 style="margin: 0 0 0.25rem; font-size: 0.875rem">${escapeHtml(rel.title)}</h4>
               <div style="font-size: 0.75rem; color: #6b7280">${formatShortDate(rel.start_date)}</div>
-              <div style="font-size: 0.75rem; font-weight: 600; color: #3b82f6; margin-top: 0.25rem">${rel.is_free ? 'FREE' : rel.ticket_price ? `₹${rel.ticket_price}` : 'TBA'}</div>
+              <div style="font-size: 0.75rem; font-weight: 600; color: #3b82f6; margin-top: 0.25rem">${rel.is_free ? "FREE" : rel.ticket_price ? `₹${rel.ticket_price}` : "TBA"}</div>
             </div>
           </a>
-        `).join('')}
+        `
+          )
+          .join("")}
       </div>
     </div>
-  ` : '';
+  `
+      : "";
 
   const criticalCSS = `
     <style>
@@ -394,8 +431,8 @@ function buildSSRHTML(event: any, artist: any, venue: any, relatedEvents: any[],
       <div class="hero">
         <div class="hero-stats">
           <span>${escapeHtml(event.category || "Event")}</span>
-          ${!isPast ? '<span>🔥 Upcoming</span>' : ''}
-          ${event.is_online ? '<span>💻 Online</span>' : ''}
+          ${!isPast ? "<span>🔥 Upcoming</span>" : ""}
+          ${event.is_online ? "<span>💻 Online</span>" : ""}
         </div>
         <h1>${escapeHtml(event.title)}</h1>
         <div class="hero-stats">
@@ -406,7 +443,7 @@ function buildSSRHTML(event: any, artist: any, venue: any, relatedEvents: any[],
       </div>
       
       <div class="container">
-        ${event.cover_image ? `<img src="${escapeHtml(event.cover_image)}" style="width:100%; border-radius:16px; margin-bottom:1.5rem" loading="lazy">` : ''}
+        ${event.cover_image ? `<img src="${escapeHtml(event.cover_image)}" style="width:100%; border-radius:16px; margin-bottom:1.5rem" loading="lazy">` : ""}
         
         <div class="card">
           <h2>Event Details</h2>
@@ -415,15 +452,13 @@ function buildSSRHTML(event: any, artist: any, venue: any, relatedEvents: any[],
             <strong>Time:</strong> <span>${formatTime(event.start_date)}</span>
             <strong>Venue:</strong> <span>${escapeHtml(venueName)}</span>
             <strong>Price:</strong> <span style="font-weight:700;color:#3b82f6">${escapeHtml(priceText)}</span>
-            ${event.duration ? `<strong>Duration:</strong> <span>${escapeHtml(event.duration)}</span>` : ''}
-            ${event.age_restriction ? `<strong>Age Limit:</strong> <span>${escapeHtml(event.age_restriction)}</span>` : ''}
+            ${event.duration ? `<strong>Duration:</strong> <span>${escapeHtml(event.duration)}</span>` : ""}
+            ${event.age_restriction ? `<strong>Age Limit:</strong> <span>${escapeHtml(event.age_restriction)}</span>` : ""}
           </div>
           ${ticketTiersHtml}
         </div>
         
-        ${!isPast && event.booking_url ? `
-          <a href="${escapeHtml(event.booking_url)}" target="_blank" class="booking-btn">🎟️ Book Tickets Now</a>
-        ` : ''}
+        ${!isPast && event.booking_url ? `<a href="${escapeHtml(event.booking_url)}" target="_blank" class="booking-btn">🎟️ Book Tickets Now</a>` : ""}
         
         ${artistHtml}
         
@@ -447,7 +482,7 @@ function buildSSRHTML(event: any, artist: any, venue: any, relatedEvents: any[],
 }
 
 // ============================================
-// MAIN SERVE FUNCTION
+// MAIN SERVE FUNCTION - ALWAYS SSR
 // ============================================
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -457,14 +492,10 @@ serve(async (req: Request) => {
   const startTime = Date.now();
   const url = new URL(req.url);
   const userAgent = req.headers.get("user-agent") || "";
-  const isCrawler = isBot(userAgent);
-  
   console.log(`[event-ssr] User-Agent: ${userAgent.substring(0, 100)}`);
-  console.log(`[event-ssr] IsCrawler: ${isCrawler}`);
 
   try {
     const slug = url.searchParams.get("slug")?.trim();
-    
     if (!slug) {
       return new Response(JSON.stringify({ error: "Missing slug parameter" }), {
         status: 400,
@@ -478,7 +509,6 @@ serve(async (req: Request) => {
     }
 
     const data = await fetchCompleteEventData(slug);
-    
     if (!data || !data.event) {
       const notFoundHtml = `<!DOCTYPE html>
 <html lang="en">
@@ -498,9 +528,11 @@ serve(async (req: Request) => {
     const { event, artist, venue, relatedEvents } = data;
     const isPast = new Date(event.start_date) < new Date();
     const canonical = `${BASE_URL}/events/${event.slug}`;
-    
     const title = `${event.title} | ${formatDate(event.start_date)} | ${SITE_NAME}`;
-    const description = truncate(event.short_description || event.description || `Book tickets for ${event.title} in Jaipur. ${formatDate(event.start_date)} at ${venue?.name || event.venue_name || "TBA"}.`, 160);
+    const description = truncate(
+      event.short_description || event.description || `Book tickets for ${event.title} in Jaipur. ${formatDate(event.start_date)} at ${venue?.name || event.venue_name || "TBA"}.`,
+      160
+    );
     const image = event.cover_image || DEFAULT_IMAGE;
 
     let indexHtml = await getSpaShellHtml();
@@ -509,7 +541,7 @@ serve(async (req: Request) => {
     const headHtml = `
 <title>${escapeHtml(title)}</title>
 <meta name="description" content="${escapeHtml(description)}" />
-<meta name="robots" content="${isPast ? 'noindex, follow' : 'index, follow, max-image-preview:large'}" />
+<meta name="robots" content="${isPast ? "noindex, follow" : "index, follow, max-image-preview:large"}" />
 <link rel="canonical" href="${escapeHtml(canonical)}" />
 <meta property="og:type" content="event" />
 <meta property="og:title" content="${escapeHtml(event.title)}" />
@@ -523,55 +555,37 @@ serve(async (req: Request) => {
 <meta name="twitter:title" content="${escapeHtml(event.title)}" />
 <meta name="twitter:description" content="${escapeHtml(description)}" />
 <meta name="twitter:image" content="${escapeHtml(image)}" />
-${schemas.map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`).join('')}
+${schemas.map((schema) => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`).join("")}
 `;
 
     if (indexHtml.includes("</head>")) {
       indexHtml = indexHtml.replace(/<\/head>/i, `${headHtml}\n</head>`);
     }
 
-    // CRITICAL: For crawlers, return FULL SSR content
-    if (isCrawler) {
-      const ssrContent = buildSSRHTML(event, artist, venue, relatedEvents, canonical, isPast);
-      const finalHtml = indexHtml.replace('<div id="root"></div>', `<div id="root">${ssrContent}</div>`);
-      
-      console.log(`[event-ssr] Crawler served: ${slug} in ${Date.now() - startTime}ms`);
-      
-      return new Response(finalHtml, {
-        status: 200,
-        headers: {
-          "content-type": "text/html; charset=utf-8",
-          "cache-control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
-          "vary": "User-Agent",
-          "x-ssr-bot": "true",
-          "x-render-time-ms": String(Date.now() - startTime),
-        },
-      });
-    }
-    
-    // For normal users: Return SPA shell with EMPTY root div
-    console.log(`[event-ssr] User served: ${slug} in ${Date.now() - startTime}ms`);
-    
-    return new Response(indexHtml, {
+    // ============================================
+    // ALWAYS serve SSR content – NO CONDITIONAL
+    // ============================================
+    const ssrContent = buildSSRHTML(event, artist, venue, relatedEvents, canonical, isPast);
+    const finalHtml = indexHtml.replace('<div id="root"></div>', `<div id="root">${ssrContent}</div>`);
+
+    console.log(`[event-ssr] Served: ${slug} (SSR: true) in ${Date.now() - startTime}ms`);
+
+    return new Response(finalHtml, {
       status: 200,
       headers: {
         "content-type": "text/html; charset=utf-8",
-        "cache-control": "public, max-age=3600",
-        "vary": "User-Agent",
-        "x-ssr-bot": "false",
+        "cache-control": "no-store, max-age=0, must-revalidate",
+        "x-ssr-rendered": "true",
         "x-render-time-ms": String(Date.now() - startTime),
       },
     });
-
   } catch (err) {
     console.error("Event SSR fatal error:", err);
-    
     const errorHtml = `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${SITE_NAME} | Events in Jaipur</title></head>
 <body><div id="root"></div><script src="/assets/index.js"></script></body>
 </html>`;
-    
     return new Response(errorHtml, {
       status: 200,
       headers: { "content-type": "text/html; charset=utf-8" },
