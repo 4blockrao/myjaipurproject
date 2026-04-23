@@ -12,6 +12,7 @@ import TopMerchantsSection from "@/components/home/TopMerchantsSection";
 import TopLocalitiesSection from "@/components/home/TopLocalitiesSection";
 import FeaturedProductsSection from "@/components/home/FeaturedProductsSection";
 import EventsHomeSection from "@/components/home/EventsHomeSection";
+import GuidesHomeSection from "@/components/home/GuidesHomeSection";
 import PropertiesSection from "@/components/home/PropertiesSection";
 import CarsSection from "@/components/home/CarsSection";
 import CategoryPillarSection from "@/components/home/CategoryPillarSection";
@@ -163,6 +164,11 @@ const Index = () => {
         {/* News */}
         <section className="px-4">
           <NewsHomeSection />
+        </section>
+
+        {/* IPL Guides */}
+        <section className="px-4">
+          <GuidesHomeSection />
         </section>
 
         {/* Top Localities */}
