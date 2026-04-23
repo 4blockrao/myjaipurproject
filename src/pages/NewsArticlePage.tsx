@@ -16,6 +16,7 @@ import { NewsInShortSummary } from '@/components/news/NewsInShortSummary';
 import { NewsStructuredContent } from '@/components/news/NewsStructuredContent';
 import { NewsInternalLinks } from '@/components/news/NewsInternalLinks';
 import { NewsSchema } from '@/components/seo/SchemaInjector';
+import ArticleFooter from '@/components/ArticleFooter';
 
 const categoryColors: Record<string, string> = {
   city: 'bg-blue-500/10 text-blue-600 border-blue-200',
@@ -24,6 +25,11 @@ const categoryColors: Record<string, string> = {
   culture: 'bg-pink-500/10 text-pink-600 border-pink-200',
   business: 'bg-green-500/10 text-green-600 border-green-200',
   sports: 'bg-red-500/10 text-red-600 border-red-200',
+  tickets: 'bg-yellow-500/10 text-yellow-600 border-yellow-200',
+  stadium: 'bg-indigo-500/10 text-indigo-600 border-indigo-200',
+  traffic: 'bg-amber-500/10 text-amber-600 border-amber-200',
+  preview: 'bg-emerald-500/10 text-emerald-600 border-emerald-200',
+  general: 'bg-gray-500/10 text-gray-600 border-gray-200',
 };
 
 const categoryEmojis: Record<string, string> = {
@@ -33,6 +39,11 @@ const categoryEmojis: Record<string, string> = {
   culture: '🎭',
   business: '💼',
   sports: '⚽',
+  tickets: '🎟️',
+  stadium: '🏟️',
+  traffic: '🚗',
+  preview: '👀',
+  general: '📰',
 };
 
 export default function NewsArticlePage() {
@@ -40,6 +51,7 @@ export default function NewsArticlePage() {
   const queryClient = useQueryClient();
   const [userId, setUserId] = useState<string | null>(null);
   const [hasLiked, setHasLiked] = useState(false);
+  const [isFromArticlesTable, setIsFromArticlesTable] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -47,33 +59,61 @@ export default function NewsArticlePage() {
     });
   }, []);
 
+  // Query that checks BOTH tables
   const { data: article, isLoading, error } = useQuery({
     queryKey: ['news-article', slug],
     queryFn: async () => {
       if (!slug) throw new Error('No slug provided');
       
-      const { data, error } = await supabase
+      // First, try the news_articles table
+      let { data, error } = await supabase
         .from('news_articles')
         .select('*')
         .eq('slug', slug)
-        .single();
+        .maybeSingle();
       
-      if (error) throw error;
-      return data;
+      if (data) {
+        setIsFromArticlesTable(false);
+        return { ...data, source: 'news_articles' };
+      }
+      
+      // If not found, try the articles table (for campaign news_flash)
+      const { data: articlesData, error: articlesError } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('slug', slug)
+        .eq('status', 'published')
+        .maybeSingle();
+      
+      if (articlesData) {
+        setIsFromArticlesTable(true);
+        // Map articles table fields to match news_articles structure
+        return {
+          ...articlesData,
+          source: 'articles',
+          cover_image: articlesData.featured_image || null,
+          body_html: articlesData.content,
+          like_count: articlesData.whatsapp_share_count || 0,
+          view_count: articlesData.view_count || 0,
+          tags: [],
+        };
+      }
+      
+      throw new Error('Article not found');
     },
     enabled: !!slug,
   });
 
   // Increment view count
   useEffect(() => {
-    if (article?.id) {
+    if (article?.id && !isFromArticlesTable) {
       supabase.rpc('increment_article_views', { article_id: article.id });
     }
-  }, [article?.id]);
+  }, [article?.id, isFromArticlesTable]);
 
-  // Check if user has liked
+  // Check if user has liked (only for news_articles)
   useEffect(() => {
-    if (article?.id && userId) {
+    if (article?.id && userId && !isFromArticlesTable) {
       supabase
         .from('news_likes')
         .select('id')
@@ -84,11 +124,11 @@ export default function NewsArticlePage() {
           setHasLiked(!!data);
         });
     }
-  }, [article?.id, userId]);
+  }, [article?.id, userId, isFromArticlesTable]);
 
   const likeMutation = useMutation({
     mutationFn: async () => {
-      if (!userId || !article?.id) throw new Error('Please log in to like');
+      if (!userId || !article?.id || isFromArticlesTable) throw new Error('Please log in to like');
       
       if (hasLiked) {
         await supabase
@@ -163,22 +203,25 @@ export default function NewsArticlePage() {
     : '';
   const isoDate = publishedDate ? new Date(publishedDate).toISOString() : '';
 
-  // Use pre-rendered HTML if available, fallback to markdown renderer
-  const hasPreRenderedHtml = !!article.body_html;
-  const wordCount = (article as any).word_count || article.content.split(/\s+/).filter(Boolean).length;
-  const readingTime = (article as any).reading_time_minutes || Math.max(1, Math.ceil(wordCount / 200));
+  const wordCount = article.content?.split(/\s+/).filter(Boolean).length || 0;
+  const readingTime = Math.max(1, Math.ceil(wordCount / 200));
+
+  // Determine category display
+  const displayCategory = article.category || article.news_category || 'general';
+  const displayTitle = article.title;
+  const displayExcerpt = article.excerpt || article.meta_description;
+  const coverImage = normalizeImageUrl(article.cover_image || article.featured_image);
 
   return (
     <>
-      {/* Comprehensive SEO Component */}
-      <NewsSEO article={article} />
+      <NewsSEO article={article} source={isFromArticlesTable ? 'articles' : 'news_articles'} />
       <NewsSchema
-        title={article.title}
-        description={article.excerpt || article.meta_description}
-        image={article.cover_image || undefined}
+        title={displayTitle}
+        description={displayExcerpt || ''}
+        image={coverImage || undefined}
         publishedAt={article.published_at || article.created_at || undefined}
         updatedAt={article.updated_at || undefined}
-        url={`https://www.jaipurcircle.com/news/${article.category}/${article.slug}`}
+        url={`https://www.jaipurcircle.com/news/${article.slug}`}
       />
 
       <div className="min-h-screen bg-background pb-24">
@@ -191,14 +234,16 @@ export default function NewsArticlePage() {
               </Button>
             </Link>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => likeMutation.mutate()}
-                className={cn(hasLiked && 'text-red-500')}
-              >
-                <Heart className={cn('h-5 w-5', hasLiked && 'fill-current')} />
-              </Button>
+              {!isFromArticlesTable && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => likeMutation.mutate()}
+                  className={cn(hasLiked && 'text-red-500')}
+                >
+                  <Heart className={cn('h-5 w-5', hasLiked && 'fill-current')} />
+                </Button>
+              )}
               <Button variant="ghost" size="icon" onClick={handleShare}>
                 <Share2 className="h-5 w-5" />
               </Button>
@@ -206,29 +251,23 @@ export default function NewsArticlePage() {
           </div>
         </header>
 
-        {/* Cover Image with proper semantic figure */}
-        {normalizeImageUrl(article.cover_image) && (
+        {/* Cover Image */}
+        {coverImage && (
           <figure className="aspect-video bg-muted">
             <img 
-              src={normalizeImageUrl(article.cover_image) as string}
-              alt={article.title}
+              src={coverImage}
+              alt={displayTitle}
               className="w-full h-full object-cover"
               loading="eager"
               onError={(e) => {
-                // Hide broken images gracefully
                 e.currentTarget.parentElement?.classList.add('hidden');
               }}
             />
           </figure>
         )}
 
-        {/* Article Content - Semantic HTML Structure */}
-        <article 
-          className="p-4"
-          itemScope 
-          itemType="https://schema.org/NewsArticle"
-        >
-          {/* Hidden meta for crawlers */}
+        {/* Article Content */}
+        <article className="p-4" itemScope itemType="https://schema.org/NewsArticle">
           <meta itemProp="datePublished" content={isoDate} />
           <meta itemProp="dateModified" content={article.updated_at || isoDate} />
           <meta itemProp="wordCount" content={String(wordCount)} />
@@ -237,11 +276,14 @@ export default function NewsArticlePage() {
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <Badge 
               variant="outline" 
-              className={cn('text-xs', categoryColors[article.category])}
+              className={cn('text-xs', categoryColors[displayCategory])}
               itemProp="articleSection"
             >
-              {categoryEmojis[article.category]} {article.category}
+              {categoryEmojis[displayCategory]} {displayCategory}
             </Badge>
+            {isFromArticlesTable && article.article_type === 'news_flash' && (
+              <Badge className="bg-red-500 text-white text-xs">⚡ Breaking News</Badge>
+            )}
             {article.locality && (
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <MapPin className="h-3 w-3" />
@@ -256,15 +298,11 @@ export default function NewsArticlePage() {
             )}
           </div>
 
-          {/* H1 Title - Critical for SEO */}
-          <h1 
-            className="text-2xl font-bold text-foreground mb-3 leading-tight"
-            itemProp="headline"
-          >
-            {article.title}
+          <h1 className="text-2xl font-bold text-foreground mb-3 leading-tight" itemProp="headline">
+            {displayTitle}
           </h1>
 
-          {/* Stats and reading time */}
+          {/* Stats */}
           <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6 pb-4 border-b">
             <span className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
@@ -276,55 +314,48 @@ export default function NewsArticlePage() {
             </span>
             <span className="flex items-center gap-1">
               <Eye className="h-4 w-4" />
-              {article.view_count} views
+              {article.view_count || 0} views
             </span>
-            <span className="flex items-center gap-1">
-              <Heart className="h-4 w-4" />
-              {article.like_count} likes
-            </span>
+            {!isFromArticlesTable && (
+              <span className="flex items-center gap-1">
+                <Heart className="h-4 w-4" />
+                {article.like_count || 0} likes
+              </span>
+            )}
           </div>
 
-          {/* Excerpt / Dek - Important for snippets */}
-          {article.excerpt && (
-            <p 
-              className="text-lg text-muted-foreground mb-6 font-medium leading-relaxed border-l-4 border-primary pl-4"
-              itemProp="description"
-            >
-              {article.excerpt}
+          {/* Excerpt */}
+          {displayExcerpt && (
+            <p className="text-lg text-muted-foreground mb-6 font-medium leading-relaxed border-l-4 border-primary pl-4" itemProp="description">
+              {displayExcerpt}
             </p>
           )}
 
-          {/* In Short - AI-Friendly Summary */}
-          <NewsInShortSummary article={article} />
-
           {/* Main Article Body */}
           <div className="mt-6" itemProp="articleBody">
-            {hasPreRenderedHtml ? (
-              // Use pre-rendered HTML for better SEO (no JS execution needed)
+            {(article.body_html || article.content) ? (
               <div 
                 className="article-content prose prose-lg max-w-none dark:prose-invert
                   prose-headings:font-bold prose-headings:text-foreground prose-headings:leading-tight
                   prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:border-b prose-h2:border-border prose-h2:pb-2
                   prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
-                  prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-2
                   prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:mb-5
                   prose-a:text-primary prose-a:font-medium prose-a:underline prose-a:underline-offset-2
-                  prose-strong:text-foreground prose-strong:font-semibold
-                  prose-em:italic prose-em:text-muted-foreground
-                  prose-ul:my-4 prose-ul:ml-6 prose-ul:list-disc prose-ul:space-y-2
-                  prose-ol:my-4 prose-ol:ml-6 prose-ol:list-decimal prose-ol:space-y-2
-                  prose-li:text-muted-foreground prose-li:leading-relaxed
-                  prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:py-2 prose-blockquote:my-6 prose-blockquote:bg-muted/30 prose-blockquote:rounded-r prose-blockquote:italic
-                  prose-figure:my-6 prose-figure:rounded-lg prose-figure:overflow-hidden
-                  prose-img:rounded-lg prose-img:shadow-md
-                  prose-figcaption:text-center prose-figcaption:text-sm prose-figcaption:text-muted-foreground prose-figcaption:mt-2"
-                dangerouslySetInnerHTML={{ __html: article.body_html }}
+                  prose-ul:my-4 prose-ul:ml-6 prose-ul:list-disc
+                  prose-li:text-muted-foreground"
+                dangerouslySetInnerHTML={{ __html: article.body_html || article.content }}
               />
             ) : (
-              // Fallback to runtime markdown rendering
               <NewsStructuredContent content={article.content} />
             )}
           </div>
+
+          {/* Article Footer with Interlinking */}
+          <ArticleFooter
+            campaignSlug={article.campaign_slug}
+            category={displayCategory}
+            articleType={article.article_type}
+          />
 
           {/* Tags */}
           {article.tags && article.tags.length > 0 && (
@@ -332,11 +363,7 @@ export default function NewsArticlePage() {
               <h4 className="text-sm font-medium mb-2">Tags</h4>
               <div className="flex flex-wrap gap-2">
                 {article.tags.map((tag: string) => (
-                  <Badge 
-                    key={tag} 
-                    variant="secondary"
-                    itemProp="keywords"
-                  >
+                  <Badge key={tag} variant="secondary" itemProp="keywords">
                     {tag}
                   </Badge>
                 ))}
@@ -344,7 +371,7 @@ export default function NewsArticlePage() {
             </footer>
           )}
 
-          {/* Published Date - Visible for users */}
+          {/* Published Date */}
           <div className="mt-6 text-sm text-muted-foreground">
             Published on <time dateTime={isoDate}>{formattedDate}</time>
           </div>
@@ -355,7 +382,6 @@ export default function NewsArticlePage() {
             <meta itemProp="url" content="https://jaipurcircle.com" />
           </div>
 
-          {/* Internal Links for SEO */}
           <NewsInternalLinks article={article} />
         </article>
 
