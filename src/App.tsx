@@ -220,7 +220,7 @@ function App() {
                     <Route path="/jaipur/:localitySlug/merchants/:merchantSlug" element={<MerchantDetailPage />} />
 
                     <Route path="/jaipur/:slug/:category" element={<LocalityCategoryPage />} />
-                    <Route path="/jaipur/:slug" element={<LocalityPage />} />
+                    <Route path="/jaipur/:slug" element={<LocalityPage />} caseSensitive={false} />
 
                     {/* Cars */}
                     <Route path="/cars" element={<CarsHubPage />} />
