@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import HeaderMinimal from "@/components/home/HeaderMinimal";
 import HeroCarousel from "@/components/home/HeroCarousel";
@@ -96,100 +97,125 @@ const Index = () => {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Schema for Sitelinks Search Box
+  const webSiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "url": "https://jaipurcircle.com",
+    "name": "JaipurCircle",
+    "description": "Jaipur's hyper-local discovery platform for deals, events, property, automobiles, and local businesses.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://jaipurcircle.com/search?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <HomeSEO />
-      <HomepageSchema />
+    <>
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify(webSiteSchema)}
+        </script>
+      </Helmet>
+      
+      <div className="min-h-screen bg-background flex flex-col">
+        <HomeSEO />
+        <HomepageSchema />
 
-      <HeaderMinimal
-        isAuthenticated={isAuthenticated}
-        onSignIn={() => navigate('/auth')}
-        jaiCoins={userBalance}
-        localityBadge={
-          userLocality ? (
-            <LocalityBadge
-              localityName={userLocality.name}
-              onClick={() => setShowLocalitySelector(true)}
-              variant="header"
-            />
-          ) : null
-        }
-      />
-
-      <main className="flex-1 pb-24">
-        <HeroCarousel />
-        <SearchBarFloating />
-        <CategoryIconGrid onCategorySelect={setSelectedCategory} />
-
-        {/* Hot Deals */}
-        <HotDealsSection
-          deals={hotDeals}
-          isLoading={dealsLoading}
-          title={userLocality ? `Hot Deals in ${userLocality.name}` : "Hot Deals in Jaipur"}
+        <HeaderMinimal
+          isAuthenticated={isAuthenticated}
+          onSignIn={() => navigate('/auth')}
+          jaiCoins={userBalance}
+          localityBadge={
+            userLocality ? (
+              <LocalityBadge
+                localityName={userLocality.name}
+                onClick={() => setShowLocalitySelector(true)}
+                variant="header"
+              />
+            ) : null
+          }
         />
 
-        {/* Events */}
-        <EventsHomeSection />
+        <main className="flex-1 pb-24">
+          <HeroCarousel />
+          <SearchBarFloating />
+          <CategoryIconGrid onCategorySelect={setSelectedCategory} />
 
-        {/* Featured Products (1-2 rows) */}
-        <FeaturedProductsSection />
+          {/* Hot Deals */}
+          <HotDealsSection
+            deals={hotDeals}
+            isLoading={dealsLoading}
+            title={userLocality ? `Hot Deals in ${userLocality.name}` : "Hot Deals in Jaipur"}
+          />
 
-        {/* Food & Dining */}
-        <CategoryPillarSection
-          title="Food & Dining"
-          icon={UtensilsCrossed}
-          iconColor="bg-orange-500"
-          category="food"
-          viewAllLink="/deals?category=food"
+          {/* Events */}
+          <EventsHomeSection />
+
+          {/* Featured Products (1-2 rows) */}
+          <FeaturedProductsSection />
+
+          {/* Food & Dining */}
+          <CategoryPillarSection
+            title="Food & Dining"
+            icon={UtensilsCrossed}
+            iconColor="bg-orange-500"
+            category="food"
+            viewAllLink="/deals?category=food"
+          />
+
+          {/* Beauty & Wellness */}
+          <CategoryPillarSection
+            title="Beauty & Wellness"
+            icon={Sparkles}
+            iconColor="bg-pink-500"
+            category="beauty"
+            viewAllLink="/deals?category=beauty"
+          />
+
+          {/* Properties */}
+          <PropertiesSection />
+
+          {/* Cars */}
+          <CarsSection />
+
+          {/* Top Merchants */}
+          <TopMerchantsSection />
+
+          {/* News */}
+          <section className="px-4">
+            <NewsHomeSection />
+          </section>
+
+          {/* IPL Guides */}
+          <section className="px-4">
+            <GuidesHomeSection />
+          </section>
+
+          {/* Top Localities */}
+          <TopLocalitiesSection />
+        </main>
+
+        <Footer />
+        <BottomNavHeritage />
+
+        <LocalityPromptModal
+          open={showLocalityPrompt}
+          onOpenChange={setShowLocalityPrompt}
+          onSelect={handleLocalitySelect}
         />
 
-        {/* Beauty & Wellness */}
-        <CategoryPillarSection
-          title="Beauty & Wellness"
-          icon={Sparkles}
-          iconColor="bg-pink-500"
-          category="beauty"
-          viewAllLink="/deals?category=beauty"
+        <LocalitySelectorModal
+          open={showLocalitySelector}
+          onOpenChange={setShowLocalitySelector}
+          onSelect={handleLocalitySelect}
         />
-
-        {/* Properties */}
-        <PropertiesSection />
-
-        {/* Cars */}
-        <CarsSection />
-
-        {/* Top Merchants */}
-        <TopMerchantsSection />
-
-        {/* News */}
-        <section className="px-4">
-          <NewsHomeSection />
-        </section>
-
-        {/* IPL Guides */}
-        <section className="px-4">
-          <GuidesHomeSection />
-        </section>
-
-        {/* Top Localities */}
-        <TopLocalitiesSection />
-      </main>
-
-      <Footer />
-      <BottomNavHeritage />
-
-      <LocalityPromptModal
-        open={showLocalityPrompt}
-        onOpenChange={setShowLocalityPrompt}
-        onSelect={handleLocalitySelect}
-      />
-
-      <LocalitySelectorModal
-        open={showLocalitySelector}
-        onOpenChange={setShowLocalitySelector}
-        onSelect={handleLocalitySelect}
-      />
-    </div>
+      </div>
+    </>
   );
 };
 
