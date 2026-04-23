@@ -1,54 +1,22 @@
 // supabase/functions/artist-ssr/index.ts
-// JaipurCircle — Artist Page SSR (Authority + Events in Jaipur by artist + interlinking-ready)
-//
-// Route (via Vercel rewrite): /artists/:slug  ->  /functions/v1/artist-ssr?slug=:slug
-//
-// Notes:
-// - This returns SSR HTML by fetching the SPA shell (/index.html) and injecting SEO head + SSR body blocks.
-// - Artist page is intended to be INDEXABLE (robots index,follow) when found.
-// - If not found, return a clean 404 HTML with noindex, follow (prevents thin garbage indexing).
-// - "Venue is always tied to a locality" is enforced by your data rule; here we simply display venue + locality.
+// Always SSR – serves full artist page (no conditional bot logic)
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
-type ArtistRow = {
-  id: string;
-  name: string | null;
-  slug: string | null;
-  bio?: string | null;
-  avatar_url?: string | null;
-  cover_image?: string | null;
-  website_url?: string | null;
-  instagram_url?: string | null;
-  youtube_url?: string | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-};
-
-type EventRow = {
-  id: string;
-  title: string | null;
-  slug: string | null;
-  start_date: string | null;
-  start_time?: string | null;
-  end_time?: string | null;
-  cover_image?: string | null;
-  is_free?: boolean | null;
-  ticket_price?: number | null;
-  category?: string | null;
-  locality?: string | null;
-  venue_name?: string | null;
-  venue_slug?: string | null;
-};
-
 const BASE_URL = "https://www.jaipurcircle.com";
 const SITE_NAME = "JaipurCircle";
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
+const SUPABASE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 
-const ALLOWED_QUERY_KEYS = new Set(["slug", "cb", "gclid", "fbclid", "msclkid"]);
+let cachedIndexHtml: { html: string; fetchedAt: number } | null = null;
 
-function escapeHtml(input: string): string {
-  return input
+// ============================================
+// UTILITIES
+// ============================================
+function escapeHtml(str: string): string {
+  if (!str) return "";
+  return str
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -75,64 +43,6 @@ function titleCaseFromSlug(slug: string): string {
     .join(" ");
 }
 
-function safeUrl(path: string): string {
-  if (!path.startsWith("/")) return `${BASE_URL}/${path}`;
-  return `${BASE_URL}${path}`;
-}
-
-function metaTag(name: string, content: string) {
-  return `<meta name="${escapeHtml(name)}" content="${escapeHtml(content)}">`;
-}
-
-function linkCanonical(href: string) {
-  return `<link rel="canonical" href="${escapeHtml(href)}">`;
-}
-
-function htmlScriptJsonLd(obj: unknown): string {
-  return `<script type="application/ld+json">${JSON.stringify(obj)}</script>`;
-}
-
-function setOrInsertHead(html: string, injection: string): string {
-  const marker = "<!--ssr-prerender-head-->";
-  if (html.includes(marker)) return html.replace(marker, injection);
-  const idx = html.toLowerCase().indexOf("</head>");
-  if (idx >= 0) return html.slice(0, idx) + injection + "\n" + html.slice(idx);
-  return injection + "\n" + html;
-}
-
-function setOrInsertBody(html: string, injection: string): string {
-  const marker = "<!--ssr-prerender-body-->";
-  if (html.includes(marker)) return html.replace(marker, injection);
-  const idx = html.toLowerCase().indexOf("</body>");
-  if (idx >= 0) return html.slice(0, idx) + injection + "\n" + html.slice(idx);
-  return html + "\n" + injection;
-}
-
-async function fetchSpaShell(): Promise<string> {
-  const res = await fetch(`${BASE_URL}/index.html`, {
-    headers: {
-      "user-agent": "jaipurcircle-artist-ssr/1.0",
-      accept: "text/html",
-    },
-  });
-
-  if (!res.ok) {
-    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${SITE_NAME}</title></head><body><div id="root"></div></body></html>`;
-  }
-
-  return await res.text();
-}
-
-function hasNoisyParams(url: URL): boolean {
-  for (const k of url.searchParams.keys()) {
-    const key = String(k || "").toLowerCase();
-    if (ALLOWED_QUERY_KEYS.has(key)) continue;
-    if (key.startsWith("utm_")) continue;
-    return true;
-  }
-  return false;
-}
-
 function nowIsoDateOnlyIST(): string {
   const now = new Date();
   const istMs = now.getTime() + 5.5 * 60 * 60 * 1000;
@@ -144,468 +54,333 @@ function nowIsoDateOnlyIST(): string {
 }
 
 function formatHumanDateIST(isoDate: string): string {
-  const [y, m, d] = isoDate.split("-").map((x) => Number(x));
+  const [y, m, d] = isoDate.split("-").map(Number);
   const dt = new Date(Date.UTC(y, (m || 1) - 1, d || 1));
   return dt.toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" });
 }
 
-function buildBreadcrumbJsonLd(items: Array<{ name: string; item: string }>) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: items.map((x, i) => ({
-      "@type": "ListItem",
-      position: i + 1,
-      name: x.name,
-      item: x.item,
-    })),
-  };
+function truncate(str: string, max: number): string {
+  if (!str) return "";
+  if (str.length <= max) return str;
+  return str.slice(0, max - 3) + "...";
 }
 
-function buildPersonOrOrganizationJsonLd(args: {
-  name: string;
-  url: string;
-  image?: string | null;
-  description?: string | null;
-  sameAs?: string[];
-}) {
-  // Many artists are people, some are groups. We use "Person" but keep it safe/neutral.
-  const obj: Record<string, unknown> = {
-    "@context": "https://schema.org",
-    "@type": "Person",
-    name: args.name,
-    url: args.url,
-  };
-  if (args.image) obj.image = args.image;
-  if (args.description) obj.description = args.description;
-  if (args.sameAs && args.sameAs.length) obj.sameAs = args.sameAs;
-  return obj;
+// ============================================
+// FETCH SPA SHELL (with fallback)
+// ============================================
+async function getSpaShellHtml(): Promise<string> {
+  const now = Date.now();
+  const ttlMs = 5 * 60 * 1000;
+
+  if (cachedIndexHtml && now - cachedIndexHtml.fetchedAt < ttlMs) {
+    return cachedIndexHtml.html;
+  }
+
+  const fallbackHtml = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${SITE_NAME}</title></head><body><div id="root"></div><script src="/assets/index.js"></script></body></html>`;
+
+  try {
+    const res = await fetch(`${BASE_URL}/index.html?cb=${Math.floor(now / 1000)}`, {
+      headers: { "user-agent": "jaipurcircle-artist-ssr/2.0", accept: "text/html" },
+    });
+    if (!res.ok) throw new Error(`Failed to fetch index.html: ${res.status}`);
+
+    let html = await res.text();
+    html = html.replace(/<title>.*?<\/title>/, "");
+    html = html.replace(/<meta name="description".*?>/, "");
+    html = html.replace(/<meta name="keywords".*?>/, "");
+    html = html.replace(/<meta property="og:title".*?>/g, "");
+    html = html.replace(/<meta property="og:description".*?>/g, "");
+    html = html.replace(/<meta property="og:url".*?>/g, "");
+    html = html.replace(/<meta property="og:image".*?>/g, "");
+    html = html.replace(/<meta name="twitter:title".*?>/g, "");
+    html = html.replace(/<meta name="twitter:description".*?>/g, "");
+    html = html.replace(/<meta name="twitter:image".*?>/g, "");
+    html = html.replace(/<div\s+id=["']root["'][^>]*>.*?<\/div>/is, '<div id="root"></div>');
+
+    if (!html.includes('<script type="module"')) {
+      console.warn("index.html missing script tags, using fallback");
+      html = fallbackHtml;
+    }
+
+    cachedIndexHtml = { html, fetchedAt: now };
+    return html;
+  } catch (err) {
+    console.error("Failed to fetch SPA shell:", err);
+    return fallbackHtml;
+  }
 }
 
-function buildCollectionPageJsonLd(args: { name: string; description: string; url: string }) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    name: args.name,
-    description: args.description,
-    url: args.url,
-    inLanguage: "en-IN",
-    isPartOf: {
-      "@type": "WebSite",
-      name: SITE_NAME,
-      url: BASE_URL,
-    },
-  };
-}
+// ============================================
+// DATABASE QUERIES
+// ============================================
+type ArtistRow = {
+  id: string;
+  name: string | null;
+  slug: string | null;
+  bio?: string | null;
+  avatar_url?: string | null;
+  cover_image?: string | null;
+  website_url?: string | null;
+  instagram_url?: string | null;
+  youtube_url?: string | null;
+};
 
-function buildItemListJsonLd(events: EventRow[]) {
-  const list = events.slice(0, 10).map((e, idx) => {
-    const slug = (e.slug || "").trim();
-    const url = slug ? safeUrl(`/events/${slug}`) : safeUrl("/events");
-    return {
-      "@type": "ListItem",
-      position: idx + 1,
-      url,
-      name: e.title || "Event",
-    };
-  });
+type EventRow = {
+  id: string;
+  title: string | null;
+  slug: string | null;
+  start_date: string | null;
+  cover_image?: string | null;
+  is_free?: boolean | null;
+  ticket_price?: number | null;
+  venue_name?: string | null;
+  locality?: string | null;
+};
 
-  return {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    itemListOrder: "https://schema.org/ItemListOrderAscending",
-    numberOfItems: list.length,
-    itemListElement: list,
-  };
-}
-
-async function queryArtistBySlug(args: {
-  supabase: ReturnType<typeof createClient>;
-  slug: string;
-}): Promise<ArtistRow | null> {
-  const { data } = await args.supabase
+async function queryArtistBySlug(supabase: any, slug: string): Promise<ArtistRow | null> {
+  const { data } = await supabase
     .from("artists")
-    .select("id,name,slug,bio,avatar_url,cover_image,website_url,instagram_url,youtube_url,created_at,updated_at")
-    .eq("slug", args.slug)
+    .select("id,name,slug,bio,avatar_url,cover_image,website_url,instagram_url,youtube_url")
+    .eq("slug", slug)
     .maybeSingle();
-
-  return (data as ArtistRow) || null;
+  return data as ArtistRow | null;
 }
 
-async function queryArtistByNameFuzzy(args: {
-  supabase: ReturnType<typeof createClient>;
-  nameLike: string;
-}): Promise<ArtistRow | null> {
-  // Trigram indexes are present; ilike will still benefit from gin_trgm_ops with proper operators on Postgres,
-  // but Supabase .ilike uses ILIKE. This is a best-effort fallback.
-  const { data } = await args.supabase
+async function queryArtistByNameFuzzy(supabase: any, nameLike: string): Promise<ArtistRow | null> {
+  const { data } = await supabase
     .from("artists")
-    .select("id,name,slug,bio,avatar_url,cover_image,website_url,instagram_url,youtube_url,created_at,updated_at")
-    .ilike("name", args.nameLike)
+    .select("id,name,slug,bio,avatar_url,cover_image,website_url,instagram_url,youtube_url")
+    .ilike("name", nameLike)
     .limit(1);
-
-  const arr = (data as ArtistRow[]) || [];
-  return arr[0] || null;
+  return (data as ArtistRow[])?.[0] || null;
 }
 
-async function queryEventsForArtist(args: {
-  supabase: ReturnType<typeof createClient>;
-  artistId: string;
-  upcoming: boolean;
-  limit: number;
-}): Promise<EventRow[]> {
+async function queryEventsForArtist(supabase: any, artistId: string, upcoming: boolean, limit: number): Promise<EventRow[]> {
   const today = nowIsoDateOnlyIST();
 
-  // Using join table event_artists -> events
-  // Note: Supabase supports relationship selects if FK exists; if not, we do a two-step fetch.
-  // We assume FK exists OR at least event_id/artist_id link is valid.
-
-  const { data: joins, error: joinErr } = await args.supabase
+  // Get artist-event links via event_artists join table
+  const { data: joins, error: joinErr } = await supabase
     .from("event_artists")
     .select("event_id")
-    .eq("artist_id", args.artistId)
+    .eq("artist_id", artistId)
     .order("sort_order", { ascending: true })
     .limit(400);
 
   if (joinErr || !joins?.length) return [];
-
   const eventIds = (joins as Array<{ event_id: string }>).map((j) => j.event_id).filter(Boolean);
   if (!eventIds.length) return [];
 
-  let q = args.supabase
+  let q = supabase
     .from("events")
-    .select("id,title,slug,start_date,start_time,end_time,cover_image,is_free,ticket_price,category,locality,venue_name,venue_slug")
+    .select("id,title,slug,start_date,cover_image,is_free,ticket_price,venue_name,locality")
     .eq("status", "published")
     .in("id", eventIds)
-    .order("start_date", { ascending: args.upcoming })
-    .limit(args.limit);
+    .order("start_date", { ascending: upcoming })
+    .limit(limit);
 
-  if (args.upcoming) q = q.gte("start_date", today);
+  if (upcoming) q = q.gte("start_date", today);
   else q = q.lt("start_date", today);
 
   const { data, error } = await q;
-  if (error) return [];
   return (data as EventRow[]) || [];
 }
 
-function renderAuthorityBlock(args: { updatedHuman: string; upcomingCount: number }) {
-  return `
-<section aria-label="Authority and freshness" style="margin-top:14px; padding:14px; border:1px solid #e5e7eb; border-radius:14px; background:#fff;">
-  <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-    <strong style="font-size:14px;">Trust & freshness</strong>
-    <span style="font-size:12px; color:#6b7280;">Last updated: ${escapeHtml(args.updatedHuman)}</span>
-    <span style="font-size:12px; color:#6b7280;">Upcoming Jaipur events: ${args.upcomingCount}</span>
-  </div>
-  <ul style="margin:10px 0 0 18px; padding:0; font-size:13px; color:#374151; line-height:1.45;">
-    <li>We compile listings from public sources and community submissions; updates roll in daily.</li>
-    <li>Timings, venues, and ticket info shown when available.</li>
-    <li>See something inaccurate? <a href="/help" style="text-decoration:underline;">Report it</a>.</li>
-  </ul>
-</section>
-`.trim();
-}
+// ============================================
+// SSR HTML BUILDER
+// ============================================
+function buildSSRHTML(artist: ArtistRow, upcoming: EventRow[], past: EventRow[]) {
+  const name = artist.name || titleCaseFromSlug(artist.slug || "");
+  const bio = artist.bio || "";
+  const avatar = artist.avatar_url;
+  const website = artist.website_url;
+  const instagram = artist.instagram_url;
+  const youtube = artist.youtube_url;
 
-function renderArtistHeader(args: {
-  name: string;
-  bio?: string | null;
-  avatarUrl?: string | null;
-  website?: string | null;
-  instagram?: string | null;
-  youtube?: string | null;
-}) {
-  const bio = (args.bio || "").trim();
-  const summary = bio.length >= 60 ? bio : `${args.name} — profile and Jaipur events listing on JaipurCircle.`;
-  const avatar = args.avatarUrl
-    ? `<img src="${escapeHtml(args.avatarUrl)}" alt="${escapeHtml(args.name)}" style="width:72px; height:72px; border-radius:16px; object-fit:cover; border:1px solid #e5e7eb;" />`
-    : `<div style="width:72px; height:72px; border-radius:16px; background:#f3f4f6; border:1px solid #e5e7eb;"></div>`;
+  const sameAs: string[] = [];
+  if (website) sameAs.push(website);
+  if (instagram) sameAs.push(instagram);
+  if (youtube) sameAs.push(youtube);
 
-  const links: Array<{ href: string; label: string }> = [];
-  if (args.website) links.push({ href: args.website, label: "Website" });
-  if (args.instagram) links.push({ href: args.instagram, label: "Instagram" });
-  if (args.youtube) links.push({ href: args.youtube, label: "YouTube" });
-
-  const linksHtml = links.length
-    ? `<div style="margin-top:10px; font-size:13px; color:#111827;">
-        ${links
-          .map(
-            (l) =>
-              `<a href="${escapeHtml(l.href)}" rel="nofollow" style="display:inline-block; margin-right:10px; text-decoration:underline;">${escapeHtml(l.label)}</a>`,
-          )
-          .join("")}
-      </div>`
+  const linksHtml = sameAs.length
+    ? `<div style="margin-top:8px;">${sameAs.map(link => `<a href="${escapeHtml(link)}" rel="nofollow" style="display:inline-block; margin-right:12px; text-decoration:underline;">${escapeHtml(new URL(link).hostname)}</a>`).join("")}</div>`
     : "";
 
+  const upcomingHtml = upcoming.length
+    ? `<div class="card"><h3>Upcoming Events (${upcoming.length})</h3><div class="event-grid">${upcoming.map(e => `
+      <a href="${BASE_URL}/events/${e.slug}" class="event-card">
+        ${e.cover_image ? `<img src="${escapeHtml(e.cover_image)}" alt="${escapeHtml(e.title || 'Event')}">` : '<div class="event-placeholder">🎤</div>'}
+        <div><strong>${escapeHtml(e.title || "Event")}</strong><br>${new Date(e.start_date!).toLocaleDateString("en-IN")}<br>${e.venue_name ? escapeHtml(e.venue_name) : ""}${e.locality ? `, ${escapeHtml(e.locality)}` : ""}<br>${e.is_free ? "FREE" : e.ticket_price ? `₹${e.ticket_price}` : "TBA"}</div>
+      </a>
+    `).join("")}</div></div>`
+    : `<div class="card"><p>No upcoming events scheduled for this artist.</p></div>`;
+
+  const pastHtml = past.length
+    ? `<div class="card"><h3>Past Events (${past.length})</h3><div class="event-grid">${past.map(e => `
+      <a href="${BASE_URL}/events/${e.slug}" class="event-card past">
+        <div><strong>${escapeHtml(e.title || "Event")}</strong><br>${new Date(e.start_date!).toLocaleDateString("en-IN")}<br>${e.venue_name ? escapeHtml(e.venue_name) : ""}${e.locality ? `, ${escapeHtml(e.locality)}` : ""}</div>
+      </a>
+    `).join("")}</div></div>`
+    : `<div class="card"><p>No past events recorded.</p></div>`;
+
+  const css = `
+    <style>
+      *{margin:0;padding:0;box-sizing:border-box}
+      body{font-family:system-ui;background:#f8fafc;line-height:1.5}
+      .page{max-width:1000px;margin:0 auto}
+      .hero{background:linear-gradient(135deg,#1e293b,#0f172a);color:white;padding:2rem;border-radius:0 0 24px 24px}
+      .hero h1{font-size:2rem;margin:0.5rem 0}
+      .hero img{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid white;margin-bottom:1rem}
+      .container{padding:1.5rem}
+      .card{background:white;border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+      .event-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1rem}
+      .event-card{display:flex;gap:1rem;background:#f9fafb;border-radius:12px;padding:1rem;text-decoration:none;color:inherit}
+      .event-card img{width:80px;height:80px;object-fit:cover;border-radius:8px}
+      .event-placeholder{width:80px;height:80px;background:#e5e7eb;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:2rem}
+      .past{opacity:0.8}
+      @media (max-width:640px){.container{padding:1rem}}
+    </style>
+  `;
+
   return `
-<header style="display:flex; gap:14px; align-items:flex-start;">
-  ${avatar}
-  <div>
-    <h1 style="margin:0; font-size:26px; line-height:1.15; color:#111827;">${escapeHtml(args.name)}</h1>
-    <p style="margin:10px 0 0 0; font-size:14px; color:#374151; line-height:1.55;">
-      ${escapeHtml(summary)}
-    </p>
-    ${linksHtml}
-  </div>
-</header>
-`.trim();
+    ${css}
+    <div class="page">
+      <div class="hero">
+        ${avatar ? `<img src="${escapeHtml(avatar)}" alt="${escapeHtml(name)}">` : `<div style="font-size:4rem">🎤</div>`}
+        <h1>${escapeHtml(name)}</h1>
+        ${bio ? `<p style="margin-top:0.5rem">${escapeHtml(truncate(bio, 300))}</p>` : ""}
+        ${linksHtml}
+      </div>
+      <div class="container">
+        ${upcomingHtml}
+        ${pastHtml}
+        <div class="card" style="text-align:center; font-size:0.75rem; color:#6b7280">
+          <p>© ${SITE_NAME} – Discover artists and events in Jaipur</p>
+          <p><a href="/events">Browse all events</a> | <a href="/jaipur">Localities</a></p>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
-function renderEventsSection(args: {
-  title: string;
-  events: EventRow[];
-  emptyText: string;
-}) {
-  const items = args.events.slice(0, 12).map((e) => {
-    const t = escapeHtml((e.title || "Event").trim());
-    const slug = (e.slug || "").trim();
-    const href = slug ? `/events/${escapeHtml(slug)}` : "/events";
-    const locality = (e.locality || "").trim();
-    const locLabel = locality ? titleCaseFromSlug(slugify(locality)) : "";
-    const venue = (e.venue_name || "").trim();
-    const metaBits: string[] = [];
-    if (e.start_date) metaBits.push(escapeHtml(e.start_date));
-    if (venue) metaBits.push(escapeHtml(venue));
-    if (locLabel) metaBits.push(`${escapeHtml(locLabel)}, Jaipur`);
+// ============================================
+// SCHEMA GENERATION
+// ============================================
+function generateSchemas(artist: ArtistRow, upcoming: EventRow[], canonical: string) {
+  const schemas = [];
 
-    const meta = metaBits.length
-      ? `<div style="margin-top:4px; font-size:12px; color:#6b7280;">${metaBits.join(" · ")}</div>`
-      : "";
-
-    const badge = e.is_free
-      ? `<span style="display:inline-block; margin-left:10px; font-size:12px; color:#047857;">Free</span>`
-      : "";
-
-    return `
-<li style="margin:10px 0; padding:10px 12px; border:1px solid #e5e7eb; border-radius:14px; background:#fff;">
-  <a href="${href}" style="text-decoration:underline; color:#111827; font-size:14px; font-weight:600;">${t}</a>
-  ${badge}
-  ${meta}
-</li>
-`.trim();
+  // Breadcrumb
+  schemas.push({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
+      { "@type": "ListItem", position: 2, name: "Events", item: `${BASE_URL}/events` },
+      { "@type": "ListItem", position: 3, name: artist.name, item: canonical },
+    ],
   });
 
-  const list =
-    items.length > 0
-      ? `<ul style="list-style:none; margin:12px 0 0 0; padding:0;">${items.join("\n")}</ul>`
-      : `<p style="margin:10px 0 0 0; font-size:13px; color:#6b7280;">${escapeHtml(args.emptyText)}</p>`;
+  // Person
+  const person: any = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: artist.name,
+    url: canonical,
+  };
+  if (artist.bio) person.description = truncate(artist.bio, 300);
+  if (artist.avatar_url) person.image = artist.avatar_url;
+  const sameAs: string[] = [];
+  if (artist.website_url) sameAs.push(artist.website_url);
+  if (artist.instagram_url) sameAs.push(artist.instagram_url);
+  if (artist.youtube_url) sameAs.push(artist.youtube_url);
+  if (sameAs.length) person.sameAs = sameAs;
+  schemas.push(person);
 
-  return `
-<section aria-label="${escapeHtml(args.title)}" style="margin-top:14px; padding:14px; border:1px solid #e5e7eb; border-radius:14px; background:#fff;">
-  <h2 style="margin:0; font-size:16px; color:#111827;">${escapeHtml(args.title)}</h2>
-  ${list}
-</section>
-`.trim();
-}
-
-serve(async (req: Request) => {
-  try {
-    const url = new URL(req.url);
-
-    // Clean noisy params (keep slug/cb and common tracking keys; drop utm_*)
-    if (hasNoisyParams(url)) {
-      const clean = new URL(url.toString());
-      for (const k of [...clean.searchParams.keys()]) {
-        const key = String(k || "").toLowerCase();
-        if (ALLOWED_QUERY_KEYS.has(key)) continue;
-        if (key.startsWith("utm_")) {
-          clean.searchParams.delete(k);
-          continue;
-        }
-        clean.searchParams.delete(k);
-      }
-
-      if (clean.toString() !== url.toString()) {
-        return new Response(null, {
-          status: 308,
-          headers: {
-            location: clean.toString(),
-            "cache-control": "public, max-age=300",
-          },
-        });
-      }
-    }
-
-    const rawSlug = url.searchParams.get("slug") || "";
-    const slug = slugify(rawSlug);
-
-    if (!slug) {
-      const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${SITE_NAME} — Artist</title><meta name="robots" content="noindex, follow"></head><body><h1>Artist</h1><p>Missing artist slug.</p></body></html>`;
-      return new Response(html, {
-        status: 404,
-        headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=0, s-maxage=60" },
-      });
-    }
-
-    // Supabase client
-    const supabaseUrl =
-      Deno.env.get("SUPABASE_URL") ||
-      Deno.env.get("SUPABASE_ANON_URL") ||
-      Deno.env.get("NEXT_PUBLIC_SUPABASE_URL") ||
-      "";
-    const supabaseKey =
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
-      Deno.env.get("SUPABASE_ANON_KEY") ||
-      Deno.env.get("NEXT_PUBLIC_SUPABASE_ANON_KEY") ||
-      "";
-
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      auth: { persistSession: false },
-      global: { headers: { "x-client-info": "jaipurcircle-artist-ssr" } },
-    });
-
-    // Artist lookup
-    let artist = await queryArtistBySlug({ supabase, slug });
-
-    // Fallback: try fuzzy by name if slug not found (rare)
-    if (!artist) {
-      const guessName = titleCaseFromSlug(slug);
-      artist = await queryArtistByNameFuzzy({ supabase, nameLike: `%${guessName}%` });
-    }
-
-    if (!artist || !artist.id || !artist.name) {
-      const notFoundHtml = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Artist not found | ${SITE_NAME}</title><meta name="robots" content="noindex, follow"></head><body><h1>Artist not found</h1><p>This artist page doesn’t exist yet.</p></body></html>`;
-      return new Response(notFoundHtml, {
-        status: 404,
-        headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=0, s-maxage=60" },
-      });
-    }
-
-    const canonicalUrl = safeUrl(`/artists/${artist.slug || slug}`);
-
-    // Events by artist
-    const upcoming = await queryEventsForArtist({ supabase, artistId: artist.id, upcoming: true, limit: 24 });
-    const past = await queryEventsForArtist({ supabase, artistId: artist.id, upcoming: false, limit: 12 });
-
-    // SEO meta
-    const artistName = (artist.name || titleCaseFromSlug(slug)).trim();
-    const title = `${artistName} — Jaipur Events & Profile | ${SITE_NAME}`;
-    const descriptionBase =
-      (artist.bio || "").trim().length >= 80
-        ? (artist.bio || "").trim().slice(0, 180)
-        : `Explore ${artistName}'s profile and upcoming/past events in Jaipur. Dates, venues, and ticket info when available.`;
-    const description = descriptionBase;
-
-    // Robots:
-    // Artist pages are indexable when found.
-    const robots = "index, follow, max-image-preview:large, max-snippet:-1";
-
-    // JSON-LD
-    const breadcrumb = buildBreadcrumbJsonLd([
-      { name: "Home", item: BASE_URL },
-      { name: "Events", item: safeUrl("/events") },
-      { name: "Artists", item: safeUrl("/events") }, // we don't have a dedicated /artists hub yet; keep safe.
-      { name: artistName, item: canonicalUrl },
-    ]);
-
-    const sameAs: string[] = [];
-    if (artist.website_url) sameAs.push(artist.website_url);
-    if (artist.instagram_url) sameAs.push(artist.instagram_url);
-    if (artist.youtube_url) sameAs.push(artist.youtube_url);
-
-    const person = buildPersonOrOrganizationJsonLd({
-      name: artistName,
-      url: canonicalUrl,
-      image: artist.avatar_url || artist.cover_image || null,
-      description: (artist.bio || "").trim() || null,
-      sameAs: sameAs.length ? sameAs : undefined,
-    });
-
-    const collection = buildCollectionPageJsonLd({
-      name: title,
-      description,
-      url: canonicalUrl,
-    });
-
-    const itemList = buildItemListJsonLd(upcoming);
-
-    // SSR body
-    const updatedHuman = formatHumanDateIST(nowIsoDateOnlyIST());
-
-    const authority = renderAuthorityBlock({ updatedHuman, upcomingCount: upcoming.length });
-
-    const header = renderArtistHeader({
-      name: artistName,
-      bio: artist.bio || null,
-      avatarUrl: artist.avatar_url || null,
-      website: artist.website_url || null,
-      instagram: artist.instagram_url || null,
-      youtube: artist.youtube_url || null,
-    });
-
-    const upcomingBlock = renderEventsSection({
-      title: "Upcoming events in Jaipur",
-      events: upcoming,
-      emptyText: "No upcoming Jaipur events are listed for this artist yet.",
-    });
-
-    const pastBlock = renderEventsSection({
-      title: "Past events in Jaipur",
-      events: past,
-      emptyText: "No past Jaipur events are listed for this artist yet.",
-    });
-
-    const interlinkHint = `
-<section aria-label="Discover more" style="margin-top:14px; padding:14px; border:1px solid #e5e7eb; border-radius:14px; background:#fff;">
-  <h2 style="margin:0; font-size:16px; color:#111827;">Discover more</h2>
-  <p style="margin:8px 0 0 0; font-size:13px; color:#374151; line-height:1.55;">
-    Browse more upcoming events across Jaipur by category and locality.
-  </p>
-  <div style="margin-top:10px;">
-    <a href="/events" style="display:inline-block; margin-right:10px; text-decoration:underline;">All Jaipur events</a>
-    <a href="/events/comedy/raja-park" style="display:inline-block; margin-right:10px; text-decoration:underline;">Comedy in Raja Park</a>
-    <a href="/events/music/vaishali-nagar" style="display:inline-block; text-decoration:underline;">Music in Vaishali Nagar</a>
-  </div>
-</section>
-`.trim();
-
-    const ssrBody = `
-<div id="ssr-prerender" style="max-width:980px; margin:0 auto; padding:18px 16px; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;">
-  ${header}
-  ${authority}
-  ${upcomingBlock}
-  ${pastBlock}
-  ${interlinkHint}
-  <footer style="margin-top:16px; font-size:12px; color:#6b7280;">
-    Prefer the full interactive experience? <a href="/events" style="text-decoration:underline;">Open Events</a>.
-  </footer>
-</div>
-`.trim();
-
-    // Head injection
-    const headInjection = `
-${metaTag("robots", robots)}
-${linkCanonical(canonicalUrl)}
-<title>${escapeHtml(title)}</title>
-${metaTag("description", description)}
-${metaTag("og:site_name", SITE_NAME)}
-${metaTag("og:title", title)}
-${metaTag("og:description", description)}
-${metaTag("og:url", canonicalUrl)}
-${htmlScriptJsonLd(breadcrumb)}
-${htmlScriptJsonLd(person)}
-${htmlScriptJsonLd(collection)}
-${htmlScriptJsonLd(itemList)}
-`.trim();
-
-    // Load SPA shell and inject
-    let html = await fetchSpaShell();
-    html = setOrInsertHead(html, `\n${headInjection}\n`);
-    html = setOrInsertBody(html, `\n${ssrBody}\n`);
-
-    // Cache policy: similar to events; allow CDN caching but keep freshness
-    const headers = new Headers();
-    headers.set("content-type", "text/html; charset=utf-8");
-    headers.set("cache-control", "public, max-age=0, s-maxage=900, stale-while-revalidate=86400");
-    headers.set("access-control-allow-origin", "*");
-
-    return new Response(html, { status: 200, headers });
-  } catch (_err) {
-    const fallback = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${SITE_NAME} — Artist</title><meta name="robots" content="noindex, follow"></head><body><h1>Artist</h1><p>Temporarily unavailable.</p></body></html>`;
-    return new Response(fallback, {
-      status: 200,
-      headers: {
-        "content-type": "text/html; charset=utf-8",
-        "cache-control": "public, max-age=0, s-maxage=60",
-      },
+  // ItemList for upcoming events
+  if (upcoming.length) {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: `Upcoming events by ${artist.name} in Jaipur`,
+      numberOfItems: upcoming.length,
+      itemListElement: upcoming.map((e, idx) => ({
+        "@type": "ListItem",
+        position: idx + 1,
+        name: e.title,
+        url: `${BASE_URL}/events/${e.slug}`,
+      })),
     });
   }
+
+  return schemas;
+}
+
+// ============================================
+// MAIN SERVE – ALWAYS SSR
+// ============================================
+serve(async (req: Request) => {
+  const url = new URL(req.url);
+  const rawSlug = url.searchParams.get("slug") || "";
+  const slug = slugify(rawSlug);
+
+  if (!slug) {
+    return new Response("Missing slug", { status: 400 });
+  }
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: false },
+  });
+
+  let artist = await queryArtistBySlug(supabase, slug);
+  if (!artist) {
+    const guessName = titleCaseFromSlug(slug);
+    artist = await queryArtistByNameFuzzy(supabase, `%${guessName}%`);
+  }
+
+  if (!artist || !artist.name) {
+    const notFoundHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Artist not found | ${SITE_NAME}</title><meta name="robots" content="noindex,follow"></head><body><h1>Artist not found</h1><p>No artist with slug "${escapeHtml(slug)}".</p></body></html>`;
+    return new Response(notFoundHtml, { status: 404, headers: { "content-type": "text/html; charset=utf-8" } });
+  }
+
+  const upcoming = await queryEventsForArtist(supabase, artist.id, true, 24);
+  const past = await queryEventsForArtist(supabase, artist.id, false, 12);
+
+  const canonical = `${BASE_URL}/artists/${artist.slug || slug}`;
+  const title = `${artist.name} – Upcoming Shows & Profile | ${SITE_NAME}`;
+  const description = truncate(artist.bio || `Discover ${artist.name} and their upcoming events in Jaipur.`, 160);
+  const image = artist.avatar_url || artist.cover_image || "https://www.jaipurcircle.com/og-default.jpg";
+
+  let indexHtml = await getSpaShellHtml();
+  const schemas = generateSchemas(artist, upcoming, canonical);
+
+  const headHtml = `
+<title>${escapeHtml(title)}</title>
+<meta name="description" content="${escapeHtml(description)}" />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<link rel="canonical" href="${escapeHtml(canonical)}" />
+<meta property="og:type" content="profile" />
+<meta property="og:title" content="${escapeHtml(title)}" />
+<meta property="og:description" content="${escapeHtml(description)}" />
+<meta property="og:image" content="${escapeHtml(image)}" />
+<meta property="og:url" content="${escapeHtml(canonical)}" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="${escapeHtml(title)}" />
+<meta name="twitter:description" content="${escapeHtml(description)}" />
+<meta name="twitter:image" content="${escapeHtml(image)}" />
+${schemas.map(s => `<script type="application/ld+json">${JSON.stringify(s)}</script>`).join("")}
+`;
+
+  if (indexHtml.includes("</head>")) {
+    indexHtml = indexHtml.replace(/<\/head>/i, `${headHtml}\n</head>`);
+  }
+
+  const ssrContent = buildSSRHTML(artist, upcoming, past);
+  const finalHtml = indexHtml.replace('<div id="root"></div>', `<div id="root">${ssrContent}</div>`);
+
+  return new Response(finalHtml, {
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store, max-age=0, must-revalidate",
+      "x-ssr-rendered": "true",
+    },
+  });
 });
