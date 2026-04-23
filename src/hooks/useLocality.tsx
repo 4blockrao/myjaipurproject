@@ -113,42 +113,59 @@ export const getAirportDistance = (connectivity: Connectivity): string | null =>
   return connectivity.distance_to_airport || null;
 };
 
+// ============================================
+// ✅ FIXED: useLocality - Normalize slug to lowercase
+// ============================================
 export function useLocality(slug: string) {
+  // Normalize slug to lowercase for case-insensitive lookup
+  const normalizedSlug = slug?.toLowerCase();
+
   return useQuery({
-    queryKey: ["locality", slug],
+    queryKey: ["locality", normalizedSlug],
     queryFn: async () => {
-      const { data, error } = await supabase.from("localities").select("*").eq("slug", slug).maybeSingle();
+      const { data, error } = await supabase.from("localities").select("*").eq("slug", normalizedSlug).maybeSingle();
 
       if (error) throw error;
       return data as Locality | null;
     },
-    enabled: !!slug,
+    enabled: !!normalizedSlug,
   });
 }
 
 export function useNearbyLocalities(slugs: string[] | null) {
-  return useQuery({
-    queryKey: ["nearby-localities", slugs],
-    queryFn: async () => {
-      if (!slugs || slugs.length === 0) return [];
+  // Normalize all slugs to lowercase
+  const normalizedSlugs = slugs?.map((s) => s.toLowerCase()) || null;
 
-      const { data, error } = await supabase.from("localities").select("id, name, slug, zone, tags").in("slug", slugs);
+  return useQuery({
+    queryKey: ["nearby-localities", normalizedSlugs],
+    queryFn: async () => {
+      if (!normalizedSlugs || normalizedSlugs.length === 0) return [];
+
+      const { data, error } = await supabase
+        .from("localities")
+        .select("id, name, slug, zone, tags")
+        .in("slug", normalizedSlugs);
 
       if (error) throw error;
       return data as Pick<Locality, "id" | "name" | "slug" | "zone" | "tags">[];
     },
-    enabled: !!slugs && slugs.length > 0,
+    enabled: !!normalizedSlugs && normalizedSlugs.length > 0,
   });
 }
 
+// ============================================
+// ✅ FIXED: useLocalityNews - Normalize localityName to lowercase
+// ============================================
 export function useLocalityNews(localityName: string) {
+  const normalizedName = localityName?.toLowerCase();
+
   return useQuery({
-    queryKey: ["locality-news", localityName],
+    queryKey: ["locality-news", normalizedName],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news_articles")
         .select("id, title, slug, category, excerpt, cover_image, published_at")
-        .eq("locality", localityName)
+        .eq("locality", normalizedName)
         .eq("status", "published")
         .order("published_at", { ascending: false })
         .limit(5);
@@ -156,21 +173,23 @@ export function useLocalityNews(localityName: string) {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!localityName,
+    enabled: !!normalizedName,
   });
 }
 
 // ============================================
-// ✅ FIXED: useLocalityEvents - Changed 'locality' to 'locality_slug'
+// ✅ FIXED: useLocalityEvents - Normalize localityName to lowercase
 // ============================================
 export function useLocalityEvents(localityName: string) {
+  const normalizedName = localityName?.toLowerCase();
+
   return useQuery({
-    queryKey: ["locality-events", localityName],
+    queryKey: ["locality-events", normalizedName],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
         .select("id, title, slug, start_date, venue_name, cover_image, is_free, ticket_price")
-        .eq("locality_slug", localityName) // ✅ FIXED: Use 'locality_slug' instead of 'locality'
+        .eq("locality_slug", normalizedName)
         .gte("start_date", new Date().toISOString())
         .order("start_date", { ascending: true })
         .limit(5);
@@ -178,22 +197,24 @@ export function useLocalityEvents(localityName: string) {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!localityName,
+    enabled: !!normalizedName,
   });
 }
 
 // ============================================
-// NOTE: useLocalityDeals - Verify 'location' column exists in deals table
-// If not, change to the correct column name (e.g., 'locality_slug')
+// ✅ FIXED: useLocalityDeals - Normalize localityName to lowercase
+// Note: Using 'location' column - verify this exists in your deals table
 // ============================================
 export function useLocalityDeals(localityName: string) {
+  const normalizedName = localityName?.toLowerCase();
+
   return useQuery({
-    queryKey: ["locality-deals", localityName],
+    queryKey: ["locality-deals", normalizedName],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("deals")
         .select("id, title, image_url, discounted_price, original_price, discount_percentage, category")
-        .eq("location", localityName) // ⚠️ Verify this column exists in 'deals' table
+        .eq("location", normalizedName)
         .eq("is_active", true)
         .eq("approval_status", "approved")
         .order("created_at", { ascending: false })
@@ -202,21 +223,23 @@ export function useLocalityDeals(localityName: string) {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!localityName,
+    enabled: !!normalizedName,
   });
 }
 
 // ============================================
-// NOTE: useLocalityMerchants - This uses ilike on address, likely works
+// ✅ FIXED: useLocalityMerchants - Normalize localityName to lowercase
 // ============================================
 export function useLocalityMerchants(localityName: string) {
+  const normalizedName = localityName?.toLowerCase();
+
   return useQuery({
-    queryKey: ["locality-merchants", localityName],
+    queryKey: ["locality-merchants", normalizedName],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("merchants")
         .select("id, business_name, business_type, address, logo_url, average_rating, total_reviews")
-        .ilike("address", `%${localityName}%`)
+        .ilike("address", `%${normalizedName}%`)
         .eq("is_active", true)
         .eq("approval_status", "approved")
         .limit(6);
@@ -224,6 +247,6 @@ export function useLocalityMerchants(localityName: string) {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!localityName,
+    enabled: !!normalizedName,
   });
 }
