@@ -1654,6 +1654,7 @@ export type Database = {
           latitude: number | null
           locality: string | null
           locality_id: string | null
+          locality_slug: string | null
           longitude: number | null
           meta_description: string | null
           meta_title: string | null
@@ -1754,6 +1755,7 @@ export type Database = {
           latitude?: number | null
           locality?: string | null
           locality_id?: string | null
+          locality_slug?: string | null
           longitude?: number | null
           meta_description?: string | null
           meta_title?: string | null
@@ -1854,6 +1856,7 @@ export type Database = {
           latitude?: number | null
           locality?: string | null
           locality_id?: string | null
+          locality_slug?: string | null
           longitude?: number | null
           meta_description?: string | null
           meta_title?: string | null
@@ -2342,6 +2345,7 @@ export type Database = {
         Row: {
           assembly_constituency: string | null
           avg_rating: number | null
+          banking: Json | null
           best_for: string[] | null
           best_time_to_visit: string | null
           cafes: Json | null
@@ -2349,16 +2353,21 @@ export type Database = {
           civic_helplines: Json | null
           colleges: Json | null
           cons: string[] | null
+          coworking_spaces: Json | null
           created_at: string | null
           data_source: string | null
           description: string | null
+          dining: Json | null
           distance_matrix: Json | null
+          education: Json | null
           emergency_contacts: Json | null
+          entertainment: Json | null
           faq_json: Json | null
           featured_image: string | null
           geo_lat: number | null
           geo_lng: number | null
           h1_override: string | null
+          healthcare: Json | null
           hero_image: string | null
           hospitals: Json | null
           id: string
@@ -2391,6 +2400,7 @@ export type Database = {
           parliamentary_constituency: string | null
           pin_code: string | null
           pincode: string | null
+          places_of_worship: Json | null
           police_station: string | null
           police_station_address: string | null
           police_station_email: string | null
@@ -2401,13 +2411,16 @@ export type Database = {
           police_station_maps: string | null
           police_station_name: string | null
           police_station_phone: string | null
+          police_station_whatsapp: string | null
           popular_eateries: string[] | null
           popular_venues: string[] | null
           population_estimate: number | null
           pros: string[] | null
+          public_transport: string[] | null
           quality_score: number | null
           real_estate: Json | null
           related_localities: string[] | null
+          resident_testimonials: Json | null
           restaurants: Json | null
           review_count: number | null
           safety_rating: number | null
@@ -2415,6 +2428,7 @@ export type Database = {
           schools: Json | null
           seo_blurb: string | null
           seo_content: string | null
+          shopping: Json | null
           shopping_options: string | null
           should_index: boolean | null
           slug: string
@@ -2434,6 +2448,7 @@ export type Database = {
         Insert: {
           assembly_constituency?: string | null
           avg_rating?: number | null
+          banking?: Json | null
           best_for?: string[] | null
           best_time_to_visit?: string | null
           cafes?: Json | null
@@ -2441,16 +2456,21 @@ export type Database = {
           civic_helplines?: Json | null
           colleges?: Json | null
           cons?: string[] | null
+          coworking_spaces?: Json | null
           created_at?: string | null
           data_source?: string | null
           description?: string | null
+          dining?: Json | null
           distance_matrix?: Json | null
+          education?: Json | null
           emergency_contacts?: Json | null
+          entertainment?: Json | null
           faq_json?: Json | null
           featured_image?: string | null
           geo_lat?: number | null
           geo_lng?: number | null
           h1_override?: string | null
+          healthcare?: Json | null
           hero_image?: string | null
           hospitals?: Json | null
           id?: string
@@ -2483,6 +2503,7 @@ export type Database = {
           parliamentary_constituency?: string | null
           pin_code?: string | null
           pincode?: string | null
+          places_of_worship?: Json | null
           police_station?: string | null
           police_station_address?: string | null
           police_station_email?: string | null
@@ -2493,13 +2514,16 @@ export type Database = {
           police_station_maps?: string | null
           police_station_name?: string | null
           police_station_phone?: string | null
+          police_station_whatsapp?: string | null
           popular_eateries?: string[] | null
           popular_venues?: string[] | null
           population_estimate?: number | null
           pros?: string[] | null
+          public_transport?: string[] | null
           quality_score?: number | null
           real_estate?: Json | null
           related_localities?: string[] | null
+          resident_testimonials?: Json | null
           restaurants?: Json | null
           review_count?: number | null
           safety_rating?: number | null
@@ -2507,6 +2531,7 @@ export type Database = {
           schools?: Json | null
           seo_blurb?: string | null
           seo_content?: string | null
+          shopping?: Json | null
           shopping_options?: string | null
           should_index?: boolean | null
           slug: string
@@ -2526,6 +2551,7 @@ export type Database = {
         Update: {
           assembly_constituency?: string | null
           avg_rating?: number | null
+          banking?: Json | null
           best_for?: string[] | null
           best_time_to_visit?: string | null
           cafes?: Json | null
@@ -2533,16 +2559,21 @@ export type Database = {
           civic_helplines?: Json | null
           colleges?: Json | null
           cons?: string[] | null
+          coworking_spaces?: Json | null
           created_at?: string | null
           data_source?: string | null
           description?: string | null
+          dining?: Json | null
           distance_matrix?: Json | null
+          education?: Json | null
           emergency_contacts?: Json | null
+          entertainment?: Json | null
           faq_json?: Json | null
           featured_image?: string | null
           geo_lat?: number | null
           geo_lng?: number | null
           h1_override?: string | null
+          healthcare?: Json | null
           hero_image?: string | null
           hospitals?: Json | null
           id?: string
@@ -2575,6 +2606,7 @@ export type Database = {
           parliamentary_constituency?: string | null
           pin_code?: string | null
           pincode?: string | null
+          places_of_worship?: Json | null
           police_station?: string | null
           police_station_address?: string | null
           police_station_email?: string | null
@@ -2585,13 +2617,16 @@ export type Database = {
           police_station_maps?: string | null
           police_station_name?: string | null
           police_station_phone?: string | null
+          police_station_whatsapp?: string | null
           popular_eateries?: string[] | null
           popular_venues?: string[] | null
           population_estimate?: number | null
           pros?: string[] | null
+          public_transport?: string[] | null
           quality_score?: number | null
           real_estate?: Json | null
           related_localities?: string[] | null
+          resident_testimonials?: Json | null
           restaurants?: Json | null
           review_count?: number | null
           safety_rating?: number | null
@@ -2599,6 +2634,7 @@ export type Database = {
           schools?: Json | null
           seo_blurb?: string | null
           seo_content?: string | null
+          shopping?: Json | null
           shopping_options?: string | null
           should_index?: boolean | null
           slug?: string
@@ -2779,6 +2815,59 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "locality_aliases_view"
             referencedColumns: ["locality_id"]
+          },
+        ]
+      }
+      locality_comparisons: {
+        Row: {
+          comparison_data: Json | null
+          created_at: string | null
+          id: string
+          locality_slug_1: string | null
+          locality_slug_2: string | null
+        }
+        Insert: {
+          comparison_data?: Json | null
+          created_at?: string | null
+          id?: string
+          locality_slug_1?: string | null
+          locality_slug_2?: string | null
+        }
+        Update: {
+          comparison_data?: Json | null
+          created_at?: string | null
+          id?: string
+          locality_slug_1?: string | null
+          locality_slug_2?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locality_comparisons_locality_slug_1_fkey"
+            columns: ["locality_slug_1"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["slug"]
+          },
+          {
+            foreignKeyName: "locality_comparisons_locality_slug_1_fkey"
+            columns: ["locality_slug_1"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_slug"]
+          },
+          {
+            foreignKeyName: "locality_comparisons_locality_slug_2_fkey"
+            columns: ["locality_slug_2"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["slug"]
+          },
+          {
+            foreignKeyName: "locality_comparisons_locality_slug_2_fkey"
+            columns: ["locality_slug_2"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_slug"]
           },
         ]
       }
@@ -3933,6 +4022,7 @@ export type Database = {
           campaign_slug: string | null
           canonical_url: string | null
           capacity: number | null
+          category: string | null
           cover_image_url: string | null
           created_at: string | null
           created_by: string | null
@@ -3977,6 +4067,7 @@ export type Database = {
           campaign_slug?: string | null
           canonical_url?: string | null
           capacity?: number | null
+          category?: string | null
           cover_image_url?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -4021,6 +4112,7 @@ export type Database = {
           campaign_slug?: string | null
           canonical_url?: string | null
           capacity?: number | null
+          category?: string | null
           cover_image_url?: string | null
           created_at?: string | null
           created_by?: string | null
