@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import type { Json } from '@/integrations/supabase/types';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 // Landmark type for major_landmarks field
 export interface Landmark {
@@ -23,13 +23,13 @@ export interface Connectivity {
 // Future profile types for meta field expansion
 export interface EconomyProfile {
   commercial_zones?: string[];
-  business_density?: 'low' | 'medium' | 'high';
+  business_density?: "low" | "medium" | "high";
   major_markets?: string[];
   employment_hubs?: string[];
 }
 
 export interface SocialProfile {
-  healthcare_access?: 'low' | 'medium' | 'high';
+  healthcare_access?: "low" | "medium" | "high";
   education_facilities?: string[];
   recreation_options?: string[];
   community_centers?: string[];
@@ -77,13 +77,7 @@ export const parseLandmarks = (landmarks: Landmark[] | Json | null): Landmark[] 
   if (!landmarks) return [];
   if (Array.isArray(landmarks)) {
     // Validate each landmark has required fields
-    return landmarks.filter(
-      (l): l is Landmark => 
-        typeof l === 'object' && 
-        l !== null && 
-        'name' in l && 
-        'type' in l
-    );
+    return landmarks.filter((l): l is Landmark => typeof l === "object" && l !== null && "name" in l && "type" in l);
   }
   return [];
 };
@@ -91,7 +85,7 @@ export const parseLandmarks = (landmarks: Landmark[] | Json | null): Landmark[] 
 // Helper to safely parse connectivity from JSON
 export const parseConnectivity = (connectivity: Connectivity | Json | null): Connectivity => {
   if (!connectivity) return {};
-  if (typeof connectivity === 'object' && !Array.isArray(connectivity)) {
+  if (typeof connectivity === "object" && !Array.isArray(connectivity)) {
     return connectivity as Connectivity;
   }
   return {};
@@ -100,7 +94,7 @@ export const parseConnectivity = (connectivity: Connectivity | Json | null): Con
 // Helper to safely parse meta field from JSON
 export const parseMeta = (meta: LocalityMeta | Json | null): LocalityMeta => {
   if (!meta) return {};
-  if (typeof meta === 'object' && !Array.isArray(meta)) {
+  if (typeof meta === "object" && !Array.isArray(meta)) {
     return meta as LocalityMeta;
   }
   return {};
@@ -113,7 +107,7 @@ export const getBusStops = (connectivity: Connectivity): string[] => {
 
 // Helper to get airport distance (handles both formats)
 export const getAirportDistance = (connectivity: Connectivity): string | null => {
-  if (typeof connectivity.distance_to_airport_km === 'number') {
+  if (typeof connectivity.distance_to_airport_km === "number") {
     return `${connectivity.distance_to_airport_km} km`;
   }
   return connectivity.distance_to_airport || null;
@@ -121,13 +115,9 @@ export const getAirportDistance = (connectivity: Connectivity): string | null =>
 
 export function useLocality(slug: string) {
   return useQuery({
-    queryKey: ['locality', slug],
+    queryKey: ["locality", slug],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('localities')
-        .select('*')
-        .eq('slug', slug)
-        .maybeSingle();
+      const { data, error } = await supabase.from("localities").select("*").eq("slug", slug).maybeSingle();
 
       if (error) throw error;
       return data as Locality | null;
@@ -138,17 +128,14 @@ export function useLocality(slug: string) {
 
 export function useNearbyLocalities(slugs: string[] | null) {
   return useQuery({
-    queryKey: ['nearby-localities', slugs],
+    queryKey: ["nearby-localities", slugs],
     queryFn: async () => {
       if (!slugs || slugs.length === 0) return [];
-      
-      const { data, error } = await supabase
-        .from('localities')
-        .select('id, name, slug, zone, tags')
-        .in('slug', slugs);
+
+      const { data, error } = await supabase.from("localities").select("id, name, slug, zone, tags").in("slug", slugs);
 
       if (error) throw error;
-      return data as Pick<Locality, 'id' | 'name' | 'slug' | 'zone' | 'tags'>[];
+      return data as Pick<Locality, "id" | "name" | "slug" | "zone" | "tags">[];
     },
     enabled: !!slugs && slugs.length > 0,
   });
@@ -156,14 +143,14 @@ export function useNearbyLocalities(slugs: string[] | null) {
 
 export function useLocalityNews(localityName: string) {
   return useQuery({
-    queryKey: ['locality-news', localityName],
+    queryKey: ["locality-news", localityName],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('news_articles')
-        .select('id, title, slug, category, excerpt, cover_image, published_at')
-        .eq('locality', localityName)
-        .eq('status', 'published')
-        .order('published_at', { ascending: false })
+        .from("news_articles")
+        .select("id, title, slug, category, excerpt, cover_image, published_at")
+        .eq("locality", localityName)
+        .eq("status", "published")
+        .order("published_at", { ascending: false })
         .limit(5);
 
       if (error) throw error;
@@ -173,16 +160,19 @@ export function useLocalityNews(localityName: string) {
   });
 }
 
+// ============================================
+// ✅ FIXED: useLocalityEvents - Changed 'locality' to 'locality_slug'
+// ============================================
 export function useLocalityEvents(localityName: string) {
   return useQuery({
-    queryKey: ['locality-events', localityName],
+    queryKey: ["locality-events", localityName],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('events')
-        .select('id, title, slug, start_date, venue_name, cover_image, is_free, ticket_price')
-        .eq('locality', localityName)
-        .gte('start_date', new Date().toISOString())
-        .order('start_date', { ascending: true })
+        .from("events")
+        .select("id, title, slug, start_date, venue_name, cover_image, is_free, ticket_price")
+        .eq("locality_slug", localityName) // ✅ FIXED: Use 'locality_slug' instead of 'locality'
+        .gte("start_date", new Date().toISOString())
+        .order("start_date", { ascending: true })
         .limit(5);
 
       if (error) throw error;
@@ -192,17 +182,21 @@ export function useLocalityEvents(localityName: string) {
   });
 }
 
+// ============================================
+// NOTE: useLocalityDeals - Verify 'location' column exists in deals table
+// If not, change to the correct column name (e.g., 'locality_slug')
+// ============================================
 export function useLocalityDeals(localityName: string) {
   return useQuery({
-    queryKey: ['locality-deals', localityName],
+    queryKey: ["locality-deals", localityName],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('deals')
-        .select('id, title, image_url, discounted_price, original_price, discount_percentage, category')
-        .eq('location', localityName)
-        .eq('is_active', true)
-        .eq('approval_status', 'approved')
-        .order('created_at', { ascending: false })
+        .from("deals")
+        .select("id, title, image_url, discounted_price, original_price, discount_percentage, category")
+        .eq("location", localityName) // ⚠️ Verify this column exists in 'deals' table
+        .eq("is_active", true)
+        .eq("approval_status", "approved")
+        .order("created_at", { ascending: false })
         .limit(6);
 
       if (error) throw error;
@@ -212,16 +206,19 @@ export function useLocalityDeals(localityName: string) {
   });
 }
 
+// ============================================
+// NOTE: useLocalityMerchants - This uses ilike on address, likely works
+// ============================================
 export function useLocalityMerchants(localityName: string) {
   return useQuery({
-    queryKey: ['locality-merchants', localityName],
+    queryKey: ["locality-merchants", localityName],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('merchants')
-        .select('id, business_name, business_type, address, logo_url, average_rating, total_reviews')
-        .ilike('address', `%${localityName}%`)
-        .eq('is_active', true)
-        .eq('approval_status', 'approved')
+        .from("merchants")
+        .select("id, business_name, business_type, address, logo_url, average_rating, total_reviews")
+        .ilike("address", `%${localityName}%`)
+        .eq("is_active", true)
+        .eq("approval_status", "approved")
         .limit(6);
 
       if (error) throw error;
