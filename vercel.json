@@ -22,16 +22,19 @@
     },
     {
       "src": "^/jaipur/([^/]+)/?$",
-        "dest": "/api/jaipur-proxy?slug=$1"
-
+      "dest": "/api/jaipur-proxy?slug=$1"
+    },
+    {
+      "src": "^/artists/([^/]+)/?$",
+      "dest": "/api/artist-proxy?slug=$1"
+    },
+    {
+      "src": "^/venues/([^/]+)/?$",
+      "dest": "/api/venue-proxy?slug=$1"
     },
     {
       "src": "^/events/?$",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr"
-    },
-    {
-      "src": "^/artists/([^/]+)/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/artist-ssr?slug=$1"
     },
     {
       "src": "^/sitemap\\.xml$",
