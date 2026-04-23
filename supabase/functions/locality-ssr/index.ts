@@ -106,7 +106,17 @@ async function getSpaShellHtml(): Promise<string> {
     if (!res.ok) throw new Error(`Failed to fetch index.html: ${res.status}`);
 
     let html = await res.text();
+    // Remove existing meta tags to avoid duplicates
     html = html.replace(/<title>.*?<\/title>/, "");
+    html = html.replace(/<meta name="description".*?>/, "");
+    html = html.replace(/<meta name="keywords".*?>/, "");
+    html = html.replace(/<meta property="og:title".*?>/g, "");
+    html = html.replace(/<meta property="og:description".*?>/g, "");
+    html = html.replace(/<meta property="og:url".*?>/g, "");
+    html = html.replace(/<meta property="og:image".*?>/g, "");
+    html = html.replace(/<meta name="twitter:title".*?>/g, "");
+    html = html.replace(/<meta name="twitter:description".*?>/g, "");
+    html = html.replace(/<meta name="twitter:image".*?>/g, "");
     html = html.replace(/<div\s+id=["']root["'][^>]*>.*?<\/div>/is, '<div id="root"></div>');
 
     cachedIndexHtml = { html, fetchedAt: now };
@@ -125,7 +135,6 @@ async function fetchCompleteLocalityData(slug: string) {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  // Fetch locality with ALL columns (including new gold standard fields)
   const { data: locality, error } = await supabase.from("localities").select("*").eq("slug", slug).maybeSingle();
 
   if (error || !locality) {
@@ -133,7 +142,6 @@ async function fetchCompleteLocalityData(slug: string) {
     return null;
   }
 
-  // Fetch events
   const { data: events } = await supabase
     .from("events")
     .select("title, slug, start_date, venue_name, cover_image, ticket_price, is_free, category")
@@ -143,15 +151,14 @@ async function fetchCompleteLocalityData(slug: string) {
     .order("start_date", { ascending: true })
     .limit(12);
 
-  // Fetch venues
   const { data: venues } = await supabase
     .from("venues")
     .select("name, slug, category, rating, image")
     .eq("locality_slug", slug)
+    .eq("is_indexable", true)
     .order("rating", { ascending: false, nullsLast: true })
     .limit(8);
 
-  // Fetch nearby localities
   let nearby: any[] = [];
   if (locality.geo_lat && locality.geo_lng) {
     const { data: nearbyData } = await supabase.rpc("nearby_localities_simple", {
@@ -369,7 +376,7 @@ function renderRealEstateCard(locality: any): string {
         <div>
           <h4>📈 Sale Prices</h4>
           ${re.average_price_per_sqft ? `<p><strong>Avg Price/sq ft:</strong> ${re.average_price_per_sqft}</p>` : ""}
-          ${re.price_trend_yoy ? `<p><strong>YoY Growth:</strong> <span style="color: #22c55e;">${re.price_trend_yoy}</span></p>` : ""}
+          ${re.price_trend_yoy ? `<p><strong>Price Trend:</strong> <span style="color: #22c55e;">${re.price_trend_yoy}</span></p>` : ""}
           ${re.popular_societies?.length ? `<p><strong>Popular Societies:</strong> ${re.popular_societies.join(", ")}</p>` : ""}
         </div>
       </div>
@@ -461,7 +468,6 @@ function renderEnhancedFAQ(locality: any): string {
 // MAIN SSR HTML BUILDER (ENHANCED)
 // ============================================
 function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[], eventCount: number) {
-  // Render new gold standard sections
   const emergencyBannerHtml = renderEmergencyBanner(locality);
   const policeCardHtml = renderPoliceStationCard(locality);
   const connectivityHtml = renderConnectivityCard(locality);
@@ -471,7 +477,6 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
   const distanceMatrixHtml = renderDistanceMatrix(locality);
   const enhancedFaqHtml = renderEnhancedFAQ(locality);
 
-  // Existing render functions
   const hasKnownFor = locality.known_for && Array.isArray(locality.known_for) && locality.known_for.length > 0;
   const knownForHtml = hasKnownFor
     ? `
@@ -506,6 +511,7 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
   `
     : "";
 
+  // FIXED: No Events section with helpful CTAs
   const eventsHtml =
     events.length > 0
       ? `
@@ -537,10 +543,23 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
     </div>
   `
       : `
-    <div class="section events-empty">
-      <h3>🎪 No Upcoming Events Yet</h3>
-      <p>Be the first to know when events are announced in ${escapeHtml(locality.name)}</p>
-      <button class="follow-btn" data-locality="${locality.slug}">🔔 Follow this locality</button>
+    <div class="section events-placeholder">
+      <h3>🎪 Explore ${escapeHtml(locality.name)}</h3>
+      <p>No events listed right now, but there's plenty to discover in this vibrant locality!</p>
+      <div class="placeholder-links" style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
+        <a href="${BASE_URL}/venues?locality=${locality.slug}" class="placeholder-link" style="background: #f3f4f6; padding: 0.75rem 1.25rem; border-radius: 8px; text-decoration: none; color: #1f2937; display: inline-flex; align-items: center; gap: 8px;">
+          🏛️ Browse nearby venues →
+        </a>
+        <a href="${BASE_URL}/jaipur/events" class="placeholder-link" style="background: #f3f4f6; padding: 0.75rem 1.25rem; border-radius: 8px; text-decoration: none; color: #1f2937; display: inline-flex; align-items: center; gap: 8px;">
+          📅 Explore Jaipur events →
+        </a>
+        <button class="follow-btn" data-locality="${locality.slug}" style="background: #667eea; color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+          🔔 Follow for updates
+        </button>
+      </div>
+      <div style="margin-top: 1rem; font-size: 0.875rem; color: #6b7280;">
+        💡 Pro tip: Check back often - new events are added regularly!
+      </div>
     </div>
   `;
 
@@ -654,53 +673,44 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
       body{font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:#f8fafc;line-height:1.5}
       .locality-page{max-width:1200px;margin:0 auto}
       
-      /* Emergency Banner */
       .emergency-banner{background:#dc2626;color:white;padding:12px 0;position:sticky;top:0;z-index:1000}
       .emergency-container{max-width:1200px;margin:0 auto;padding:0 1rem;display:flex;flex-wrap:wrap;justify-content:center;gap:20px}
       .emergency-item{color:white;text-decoration:none;padding:6px 12px;border-radius:8px;font-weight:500;transition:background 0.2s}
       .emergency-item:hover{background:rgba(255,255,255,0.2)}
       
-      /* Hero */
       .hero{background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);color:white;padding:clamp(2rem,5vw,3rem);border-radius:0 0 32px 32px}
       .hero h1{font-size:clamp(1.8rem,6vw,2.5rem);margin:0.5rem 0}
       .hero-stats{display:flex;gap:1rem;flex-wrap:wrap;margin:1rem 0;font-size:0.875rem}
       .hero-stat{background:rgba(255,255,255,0.2);padding:0.25rem 0.75rem;border-radius:20px}
       
-      /* Container */
       .container{padding:2rem 1rem}
       .section{background:white;border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
       .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap}
       
-      /* Badges */
       .badge-group{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem}
       .badge{padding:0.5rem 1rem;border-radius:24px;font-size:0.875rem}
       .badge-yellow{background:#fef3c7;color:#92400e}
       .badge-green{background:#dcfce7;color:#166534}
       .badge-gray{background:#f3f4f6;color:#374151}
       
-      /* Police Card */
       .police-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem}
       .police-card p{margin:8px 0}
       .police-card a{color:#3b82f6;text-decoration:none}
       .police-card a:hover{text-decoration:underline}
       
-      /* Connectivity */
       .connectivity-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem}
       .connectivity-card{display:flex;gap:1rem;background:#f9fafb;padding:1rem;border-radius:12px}
       .connectivity-icon{font-size:2rem}
       
-      /* Real Estate */
       .real-estate-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.5rem}
       .real-estate h4{margin-bottom:12px;color:#1e293b}
       .real-estate p{margin:6px 0}
       
-      /* Helplines */
       .helplines-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}
       .helpline-card{background:#f0fdf4;padding:1rem;border-radius:12px;border-left:4px solid #10b981}
       .helpline-card p{margin:6px 0}
       .helpline-card a{color:#3b82f6;text-decoration:none}
       
-      /* Pros/Cons */
       .pros-cons-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem}
       .pros-box{background:#f0fdf4;padding:1.5rem;border-radius:12px}
       .cons-box{background:#fef2f2;padding:1.5rem;border-radius:12px}
@@ -708,13 +718,11 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
       .pros-box li{margin:6px 0;color:#166534}
       .cons-box li{margin:6px 0;color:#991b1b}
       
-      /* Distance Matrix */
       .distance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:0.75rem}
       .distance-item{display:flex;justify-content:space-between;padding:0.75rem;background:#f9fafb;border-radius:8px}
       .distance-label{font-weight:600;color:#4b5563}
       .distance-value{color:#1f2937}
       
-      /* FAQ */
       .faq-item{border-bottom:1px solid #e5e7eb;padding:1rem 0;cursor:pointer}
       .faq-question{font-weight:600;display:flex;justify-content:space-between;align-items:center}
       .faq-answer{display:none;margin-top:0.75rem;color:#4b5563;line-height:1.6}
@@ -722,12 +730,10 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
       .faq-toggle{transition:transform 0.2s}
       .faq-item.active .faq-toggle{transform:rotate(180deg)}
       
-      /* Info Cards */
       .info-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin-bottom:1.5rem}
       .info-card{background:#f0fdf4;padding:1rem;border-radius:12px;display:flex;gap:0.75rem;border-left:4px solid #10b981}
       .info-icon{font-size:1.5rem}
       
-      /* Venues */
       .venue-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem}
       .venue-card{text-decoration:none;color:inherit;background:#f9fafb;border-radius:12px;padding:1rem;transition:transform 0.2s;display:block}
       .venue-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1)}
@@ -737,7 +743,6 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
       .rating{font-size:0.75rem;color:#f59e0b}
       .category{font-size:0.7rem;color:#6b7280}
       
-      /* Events */
       .event-list{display:flex;flex-direction:column;gap:0.75rem}
       .event-card{display:flex;gap:1rem;text-decoration:none;color:inherit;background:#f9fafb;border-radius:12px;overflow:hidden;transition:transform 0.2s}
       .event-card:hover{transform:translateX(4px);background:#f3f4f6}
@@ -749,7 +754,6 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
       .event-price{font-weight:700;color:#3b82f6;margin-top:0.25rem}
       .view-all{color:#3b82f6;text-decoration:none;font-size:0.875rem}
       
-      /* Nearby */
       .nearby-list{display:flex;flex-wrap:wrap;gap:0.75rem}
       .nearby-item{background:#f3f4f6;padding:0.5rem 1rem;border-radius:24px;text-decoration:none;color:#1f2937;font-size:0.875rem;transition:background 0.2s}
       .nearby-item:hover{background:#e5e7eb}
@@ -770,7 +774,6 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
     </style>
     
     <script>
-      // FAQ Toggle functionality
       document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.faq-item').forEach(item => {
           item.addEventListener('click', () => {
@@ -781,7 +784,6 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
     </script>
   `;
 
-  // Return complete HTML with all sections
   return `
     ${criticalCSS}
     <div class="locality-page" data-locality="${locality.slug}" data-events="${eventCount}">
@@ -793,7 +795,6 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
           ${locality.pin_code ? `<span class="hero-stat">📮 Pin: ${locality.pin_code}</span>` : ""}
           ${eventCount > 0 ? `<span class="hero-stat">🎉 ${eventCount} Upcoming Events</span>` : ""}
           ${venues?.length ? `<span class="hero-stat">🏛️ ${venues.length} Venues</span>` : ""}
-          ${locality.avg_rating ? `<span class="hero-stat">⭐ ${locality.avg_rating} (${locality.review_count || 0} reviews)</span>` : ""}
         </div>
         <h1>${escapeHtml(locality.name)}, Jaipur</h1>
         <p>${escapeHtml(truncate(locality.seo_blurb || locality.description || `Complete guide to ${locality.name} with events, venues, and local experiences.`, 200))}</p>
@@ -821,13 +822,18 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
         </div>
         
         ${nearbyHtml}
+        
+        <div class="section" style="font-size: 0.75rem; color: #6b7280; text-align: center; padding: 1rem;">
+          <p>📅 Last Updated: ${new Date(locality.last_verified_at || Date.now()).toLocaleDateString("en-IN", { month: "long", year: "numeric", day: "numeric" })}</p>
+          <p style="margin-top: 4px;">⚠️ Data may change. Please verify before making decisions.</p>
+        </div>
       </div>
     </div>
   `;
 }
 
 // ============================================
-// GENERATE ALL SCHEMAS (ENHANCED)
+// GENERATE ALL SCHEMAS (NO FAKE AGGREGATE RATING)
 // ============================================
 function generateAllSchemas(locality: any, events: any[], venues: any[], canonical: string) {
   const schemas = [];
@@ -844,7 +850,7 @@ function generateAllSchemas(locality: any, events: any[], venues: any[], canonic
     ],
   });
 
-  // 2. Enhanced Place Schema with new fields
+  // 2. Place Schema (NO aggregateRating - removed fake data)
   const placeSchema: any = {
     "@context": "https://schema.org",
     "@type": "Place",
@@ -878,17 +884,7 @@ function generateAllSchemas(locality: any, events: any[], venues: any[], canonic
     placeSchema.keywords = locality.known_for.join(", ");
   }
 
-  if (locality.avg_rating && locality.review_count) {
-    placeSchema.aggregateRating = {
-      "@type": "AggregateRating",
-      ratingValue: locality.avg_rating,
-      reviewCount: locality.review_count,
-      bestRating: "5",
-      worstRating: "1",
-    };
-  }
-
-  // Add police station as additional property
+  // Police station as additional property
   if (locality.police_station_name) {
     placeSchema.additionalProperty = [
       {
@@ -906,7 +902,7 @@ function generateAllSchemas(locality: any, events: any[], venues: any[], canonic
 
   schemas.push(placeSchema);
 
-  // 3. Event Schemas
+  // 3. Event Schemas (only if events exist)
   events.slice(0, 5).forEach((event) => {
     schemas.push({
       "@context": "https://schema.org",
@@ -959,7 +955,7 @@ function generateAllSchemas(locality: any, events: any[], venues: any[], canonic
     });
   }
 
-  // 5. Enhanced FAQ Schema (using actual FAQ data)
+  // 5. FAQ Schema (using actual FAQ data)
   const faqs = locality.faq_json || [];
   if (faqs.length > 0) {
     schemas.push({
@@ -974,72 +970,13 @@ function generateAllSchemas(locality: any, events: any[], venues: any[], canonic
         },
       })),
     });
-  } else {
-    // Fallback FAQ schema
-    let knownForText = "";
-    if (locality.known_for && Array.isArray(locality.known_for) && locality.known_for.length > 0) {
-      knownForText = locality.known_for.slice(0, 3).join(", ");
-    }
-
-    let popularVenuesText = "";
-    if (locality.popular_venues && Array.isArray(locality.popular_venues) && locality.popular_venues.length > 0) {
-      popularVenuesText = locality.popular_venues.slice(0, 3).join(", ");
-    }
-
-    let popularEateriesText = "";
-    if (locality.popular_eateries && Array.isArray(locality.popular_eateries) && locality.popular_eateries.length > 0) {
-      popularEateriesText = locality.popular_eateries.slice(0, 5).join(", ");
-    }
-
-    const fallbackFaqs = [
-      {
-        name: `What are the best places to visit in ${locality.name}, Jaipur?`,
-        text: `${locality.name} is known for ${knownForText}.${popularVenuesText ? ` Popular venues include ${popularVenuesText}.` : ""} Check JaipurCircle for upcoming events and local experiences.`,
-      },
-      {
-        name: `Upcoming events in ${locality.name}`,
-        text:
-          events.length > 0
-            ? `There are currently ${events.length} upcoming events in ${locality.name}. Browse concerts, workshops, cultural programs, and more on JaipurCircle.`
-            : `Stay tuned for upcoming events in ${locality.name}. Follow this locality on JaipurCircle to get notified.`,
-      },
-      {
-        name: `How to reach ${locality.name} in Jaipur?`,
-        text: `${locality.name} is well-connected within Jaipur. ${locality.nearest_metro ? `Nearest metro: ${locality.nearest_metro}. ` : ""}You can also reach by local bus, auto-rickshaw, or app-based cabs.`,
-      },
-      {
-        name: `What are the best restaurants and cafes in ${locality.name}?`,
-        text: popularEateriesText
-          ? `Popular dining spots in ${locality.name} include ${popularEateriesText}.`
-          : `${locality.name} has several dining options ranging from street food to fine dining.`,
-      },
-      {
-        name: `What is the pin code of ${locality.name}, Jaipur?`,
-        text: locality.pin_code
-          ? `The pin code of ${locality.name} is ${locality.pin_code}.`
-          : `The pin code for ${locality.name} is not yet verified.`,
-      },
-    ];
-
-    schemas.push({
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: fallbackFaqs.map((q) => ({
-        "@type": "Question",
-        name: q.name,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: q.text,
-        },
-      })),
-    });
   }
 
   return schemas;
 }
 
 // ============================================
-// MAIN SERVE FUNCTION
+// MAIN SERVE FUNCTION - SSR FOR ALL USERS
 // ============================================
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -1092,24 +1029,21 @@ serve(async (req: Request) => {
 
     const title =
       locality.meta_title ||
-      `${locality.name}, Jaipur — ${eventCount > 0 ? `${eventCount} Upcoming Events, ` : ""}Complete Locality Guide with Police Station, Property Rates & More | ${SITE_NAME}`;
+      `${locality.name}, Jaipur — ${eventCount > 0 ? `${eventCount} Upcoming Events, ` : ""}Complete Locality Guide | ${SITE_NAME}`;
     const description =
       locality.meta_description ||
-      `Complete guide to ${locality.name} in Jaipur. Pin code ${locality.pin_code || "N/A"}, Police Station ${locality.police_station_phone || "N/A"}, Property rates ${locality.real_estate?.average_price_per_sqft || "N/A"}, schools, hospitals, and more.`;
+      `Complete guide to ${locality.name} in Jaipur. Pin code ${locality.pin_code || "N/A"}, Police Station ${locality.police_station_phone || "N/A"}, property rates, schools, hospitals, and more.`;
     const image = locality.featured_image || DEFAULT_IMAGE;
 
     let indexHtml = await getSpaShellHtml();
     const schemas = generateAllSchemas(locality, events, venues, canonical);
 
+    // Clean head - only these tags
     const headHtml = `
 <title>${escapeHtml(title)}</title>
 <meta name="description" content="${escapeHtml(description)}" />
-<meta name="keywords" content="${escapeHtml(locality.name)}, ${locality.name} jaipur, ${locality.name} pin code ${locality.pin_code || ""}, ${locality.name} police station, events in ${locality.slug}, ${locality.name} venues, ${locality.name} guide, jaipur localities" />
 <meta name="robots" content="index, follow, max-image-preview:large" />
 <link rel="canonical" href="${escapeHtml(canonical)}" />
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <meta property="og:type" content="website" />
 <meta property="og:url" content="${escapeHtml(canonical)}" />
@@ -1117,7 +1051,7 @@ serve(async (req: Request) => {
 <meta property="og:title" content="${escapeHtml(title)}" />
 <meta property="og:description" content="${escapeHtml(description)}" />
 <meta property="og:image" content="${escapeHtml(image)}" />
-<meta property="og:image:alt" content="${escapeHtml(locality.name)} - Complete locality guide with police station, property rates, and ${eventCount} upcoming events" />
+<meta property="og:image:alt" content="${escapeHtml(locality.name)} - Complete locality guide" />
 <meta property="og:locale" content="en_IN" />
 
 <meta name="twitter:card" content="summary_large_image" />
@@ -1132,37 +1066,22 @@ ${schemas.map((schema) => `<script type="application/ld+json">${JSON.stringify(s
       indexHtml = indexHtml.replace(/<\/head>/i, `${headHtml}\n</head>`);
     }
 
-    if (isCrawler) {
-      const ssrContent = buildSSRHTML(locality, events, venues, nearby, eventCount);
-      const finalHtml = indexHtml.replace('<div id="root"></div>', `<div id="root">${ssrContent}</div>`);
+    // ALWAYS serve SSR content - NO WHITE SCREEN for ANY user
+    const ssrContent = buildSSRHTML(locality, events, venues, nearby, eventCount);
+    const finalHtml = indexHtml.replace('<div id="root"></div>', `<div id="root">${ssrContent}</div>`);
 
-      console.log(
-        `[locality-ssr] Crawler served: ${slug} (${events.length} events, ${venues.length} venues) in ${Date.now() - startTime}ms`,
-      );
+    console.log(
+      `[locality-ssr] Served: ${slug} (SSR: true, events: ${events.length}, venues: ${venues.length}) in ${Date.now() - startTime}ms`,
+    );
 
-      return new Response(finalHtml, {
-        status: 200,
-        headers: {
-          "content-type": "text/html; charset=utf-8",
-          "cache-control": "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800",
-          vary: "User-Agent",
-          "x-ssr-bot": "true",
-          "x-events-count": String(events.length),
-          "x-venues-count": String(venues.length),
-          "x-render-time-ms": String(Date.now() - startTime),
-        },
-      });
-    }
-
-    console.log(`[locality-ssr] User served: ${slug} in ${Date.now() - startTime}ms`);
-
-    return new Response(indexHtml, {
+    return new Response(finalHtml, {
       status: 200,
       headers: {
         "content-type": "text/html; charset=utf-8",
-        "cache-control": "public, max-age=3600",
-        vary: "User-Agent",
-        "x-ssr-bot": "false",
+        "cache-control": "public, max-age=3600, stale-while-revalidate=86400",
+        "x-ssr-rendered": "true",
+        "x-events-count": String(events.length),
+        "x-venues-count": String(venues.length),
         "x-render-time-ms": String(Date.now() - startTime),
       },
     });
