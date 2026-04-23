@@ -32,7 +32,7 @@ export function SchemaInjector({ pageType, data, schema: customSchema }: SchemaI
     pageType: detectedType,
     url: `https://www.jaipurcircle.com${location.pathname}`,
     ...data,
-  };
+  } as SchemaData;
 
   const schemas = customSchema || generateSchema(schemaData);
 
