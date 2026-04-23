@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { Home, Tag, CalendarDays, Newspaper, User } from "lucide-react";
+import { BookOpen, Home, Tag, CalendarDays, Newspaper } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -16,8 +15,8 @@ const NativeBottomNav = () => {
     { icon: Home, label: "Home", path: "/" },
     { icon: Tag, label: "Deals", path: "/deals" },
     { icon: CalendarDays, label: "Events", path: "/events" },
+    { icon: BookOpen, label: "Guides", path: "/guides" },
     { icon: Newspaper, label: "News", path: "/news" },
-    { icon: User, label: "Account", path: "/account" }
   ];
 
   const isActive = (path: string) => {
