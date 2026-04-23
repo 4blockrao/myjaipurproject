@@ -42,11 +42,11 @@
     },
     {
       "src": "^/sitemaps/([^/]+)\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap/sitemaps/$1.xml"
     },
     {
       "src": "^/sitemap-events\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap/sitemaps/events.xml"
     },
     {
       "src": "^/sitemap-stories\\.xml$",
