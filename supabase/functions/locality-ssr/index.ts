@@ -1070,9 +1070,7 @@ ${schemas.map((schema) => `<script type="application/ld+json">${JSON.stringify(s
     const ssrContent = buildSSRHTML(locality, events, venues, nearby, eventCount);
     const finalHtml = indexHtml.replace('<div id="root"></div>', `<div id="root">${ssrContent}</div>`);
 
-    console.log(
-      `[locality-ssr] Served: ${slug} (SSR: true, events: ${events.length}, venues: ${venues.length}) in ${Date.now() - startTime}ms`,
-    );
+    console.log(`[locality-ssr] Served: ${slug} (SSR: true, events: ${events.length}, venues: ${venues.length}) in ${Date.now() - startTime}ms`);
 
     return new Response(finalHtml, {
       status: 200,
