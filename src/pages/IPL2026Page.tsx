@@ -1,18 +1,19 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
-import { CalendarDays, ChevronRight, Clock, MessageCircle, Share2, Siren } from 'lucide-react';
-import { toast } from 'sonner';
-import AppLayout from '@/components/layout/AppLayout';
-import GlobalSEO from '@/components/seo/GlobalSEO';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import CategoryBadge from '@/components/guides/CategoryBadge';
-import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useMemo, useState } from "react";
+import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
+import { CalendarDays, ChevronRight, Clock, MessageCircle, Share2, Siren } from "lucide-react";
+import { toast } from "sonner";
+import AppLayout from "@/components/layout/AppLayout";
+import GlobalSEO from "@/components/seo/GlobalSEO";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import CategoryBadge from "@/components/guides/CategoryBadge";
+import { supabase } from "@/integrations/supabase/client";
 
-const SITE_URL = 'https://jaipurcircle.com';
-const FIRST_MATCH_AT = new Date('2026-04-25T19:30:00+05:30').getTime();
-const WHATSAPP_URL = 'https://wa.me/919XXXXXXXXX?text=Hi%20I%20want%20IPL%202026%20Jaipur%20updates%20from%20JaipurCircle';
+const SITE_URL = "https://jaipurcircle.com";
+const FIRST_MATCH_AT = new Date("2026-04-25T19:30:00+05:30").getTime();
+const WHATSAPP_URL =
+  "https://wa.me/919XXXXXXXXX?text=Hi%20I%20want%20IPL%202026%20Jaipur%20updates%20from%20JaipurCircle";
 
 interface CampaignArticle {
   id: string;
@@ -20,7 +21,7 @@ interface CampaignArticle {
   title: string;
   excerpt: string | null;
   category: string | null;
-  article_type: 'pillar' | 'cluster' | 'news_flash' | string | null;
+  article_type: "pillar" | "cluster" | "news_flash" | string | null;
   published_at: string | null;
 }
 
@@ -48,12 +49,12 @@ export default function IPL2026Page() {
     async function fetchCampaignArticles() {
       try {
         const { data, error } = await supabase
-          .from('articles')
-          .select('id, slug, title, excerpt, category, article_type, published_at')
-          .eq('status', 'published')
-          .eq('campaign_slug', 'ipl-2026')
-          .in('article_type', ['pillar', 'cluster', 'news_flash'])
-          .order('published_at', { ascending: false });
+          .from("articles")
+          .select("id, slug, title, excerpt, category, article_type, published_at")
+          .eq("status", "published")
+          .eq("campaign_slug", "ipl-2026")
+          .in("article_type", ["pillar", "cluster", "news_flash"])
+          .order("published_at", { ascending: false });
 
         if (!error && data) setArticles(data as CampaignArticle[]);
       } finally {
@@ -64,96 +65,124 @@ export default function IPL2026Page() {
     fetchCampaignArticles();
   }, []);
 
-  const newsFlashes = useMemo(() => articles.filter((article) => article.article_type === 'news_flash'), [articles]);
-  const guides = useMemo(() => articles.filter((article) => article.article_type === 'pillar' || article.article_type === 'cluster'), [articles]);
-  const pillarGuide = useMemo(() => guides.find((guide) => guide.article_type === 'pillar'), [guides]);
+  const newsFlashes = useMemo(() => articles.filter((article) => article.article_type === "news_flash"), [articles]);
+  const guides = useMemo(
+    () => articles.filter((article) => article.article_type === "pillar" || article.article_type === "cluster"),
+    [articles],
+  );
+  const pillarGuide = useMemo(() => guides.find((guide) => guide.article_type === "pillar"), [guides]);
 
   // Schema: CollectionPage
   const collectionSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
-    '@id': `${SITE_URL}/ipl-2026#webpage`,
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${SITE_URL}/ipl-2026#webpage`,
     url: `${SITE_URL}/ipl-2026`,
-    name: 'IPL 2026 in Jaipur – Complete Guide, Tickets & Schedule',
-    description: 'Complete IPL 2026 Jaipur campaign hub with SMS Stadium guides, Rajasthan Royals tickets, urgent updates, schedule, parking and match-day tips.',
-    isPartOf: { '@id': `${SITE_URL}/#website` },
-    about: [{ '@type': 'SportsEvent', name: 'IPL 2026 Jaipur matches' }, { '@type': 'Place', name: 'Sawai Mansingh Stadium, Jaipur' }],
+    name: "IPL 2026 in Jaipur – Complete Guide, Tickets & Schedule",
+    description:
+      "Complete IPL 2026 Jaipur campaign hub with SMS Stadium guides, Rajasthan Royals tickets, urgent updates, schedule, parking and match-day tips.",
+    isPartOf: { "@id": `${SITE_URL}/#website` },
+    about: [
+      { "@type": "SportsEvent", name: "IPL 2026 Jaipur matches" },
+      { "@type": "Place", name: "Sawai Mansingh Stadium, Jaipur" },
+    ],
     hasPart: articles.map((article) => ({
-      '@type': article.article_type === 'news_flash' ? 'NewsArticle' : 'Article',
+      "@type": article.article_type === "news_flash" ? "NewsArticle" : "Article",
       headline: article.title,
-      url: `${SITE_URL}${article.article_type === 'news_flash' ? `/news/${article.slug}` : `/guide/${article.slug}`}`,
+      url: `${SITE_URL}${article.article_type === "news_flash" ? `/news/${article.slug}` : `/guide/${article.slug}`}`,
     })),
   };
 
-  // Schema: SportsEvent (for rich results in search)
+  // Schema: SportsEvent (COMPLETE FIXED VERSION - all required fields)
   const eventSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'SportsEvent',
-    name: 'IPL 2026 in Jaipur',
-    description: 'Complete guide to IPL 2026 matches at Sawai Mansingh Stadium. Tickets, stadium guide, parking, traffic updates, and match schedules for Rajasthan Royals home games.',
-    startDate: '2026-04-25T19:30+05:30',
-    endDate: '2026-05-19T23:00+05:30',
+    "@context": "https://schema.org",
+    "@type": "SportsEvent",
+    name: "IPL 2026 in Jaipur - Rajasthan Royals Home Matches",
+    description:
+      "Complete guide to IPL 2026 matches at Sawai Mansingh Stadium. Rajasthan Royals host Sunrisers Hyderabad, Delhi Capitals, Gujarat Titans, and Lucknow Super Giants in Jaipur.",
+    url: "https://jaipurcircle.com/ipl-2026",
+    image: "https://jaipurcircle.com/ipl-2026-og-image.jpg",
+    startDate: "2026-04-25T19:30+05:30",
+    endDate: "2026-05-19T23:00+05:30",
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     location: {
-      '@type': 'Place',
-      name: 'Sawai Mansingh Stadium',
+      "@type": "Place",
+      name: "Sawai Mansingh Stadium",
       address: {
-        '@type': 'PostalAddress',
-        addressLocality: 'Jaipur',
-        addressRegion: 'Rajasthan',
-        addressCountry: 'IN',
+        "@type": "PostalAddress",
+        streetAddress: "Tonk Road",
+        addressLocality: "Jaipur",
+        addressRegion: "Rajasthan",
+        postalCode: "302015",
+        addressCountry: "IN",
       },
     },
     organizer: {
-      '@type': 'Organization',
-      name: 'Rajasthan Royals',
-      url: 'https://www.rajasthanroyals.com',
+      "@type": "Organization",
+      name: "Rajasthan Royals",
+      url: "https://www.rajasthanroyals.com",
+    },
+    performer: {
+      "@type": "SportsTeam",
+      name: "Rajasthan Royals",
+      sport: "Cricket",
     },
     offers: {
-      '@type': 'Offer',
-      price: '1800',
-      priceCurrency: 'INR',
-      availability: 'https://schema.org/InStock',
-      validFrom: '2026-04-21T09:00+05:30',
+      "@type": "Offer",
+      name: "IPL 2026 Jaipur Tickets",
+      description: "Tickets for Rajasthan Royals home matches at Sawai Mansingh Stadium",
+      price: "1800",
+      priceCurrency: "INR",
+      availability: "https://schema.org/InStock",
+      validFrom: "2026-04-21T09:00+05:30",
+      url: "https://district.zomato.com/ipl-2026-jaipur",
     },
-    image: 'https://jaipurcircle.com/ipl-2026-og-image.jpg',
-    url: 'https://jaipurcircle.com/ipl-2026',
   };
 
   // Schema: FAQPage (for "People also ask" boxes)
   const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
     mainEntity: [
       {
-        '@type': 'Question',
-        name: 'When is the first IPL match in Jaipur?',
+        "@type": "Question",
+        name: "When is the first IPL match in Jaipur?",
         acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'April 25, 2026 at 7:30 PM IST - Rajasthan Royals vs Sunrisers Hyderabad at Sawai Mansingh Stadium.',
+          "@type": "Answer",
+          text: "April 25, 2026 at 7:30 PM IST - Rajasthan Royals vs Sunrisers Hyderabad at Sawai Mansingh Stadium.",
         },
       },
       {
-        '@type': 'Question',
-        name: 'How to buy student tickets for RR vs SRH?',
+        "@type": "Question",
+        name: "How to buy student tickets for RR vs SRH?",
         acceptedAnswer: {
-          '@type': 'Answer',
-          text: '₹500 student tickets are available on April 23 at West Gate box office, Sawai Mansingh Stadium from 11 AM to 6 PM. Valid college ID required.',
+          "@type": "Answer",
+          text: "₹500 student tickets are available on April 23 at West Gate box office, Sawai Mansingh Stadium from 11 AM to 6 PM. Valid college ID required.",
         },
       },
       {
-        '@type': 'Question',
-        name: 'What is the ticket price range for IPL in Jaipur?',
+        "@type": "Question",
+        name: "What is the ticket price range for IPL in Jaipur?",
         acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Tickets range from ₹1,800 for East Stand to ₹22,500 for Shane Warne Gallery.',
+          "@type": "Answer",
+          text: "Tickets range from ₹1,800 for East Stand to ₹22,500 for Shane Warne Gallery.",
         },
       },
       {
-        '@type': 'Question',
-        name: 'What items are prohibited at Sawai Mansingh Stadium?',
+        "@type": "Question",
+        name: "What items are prohibited at Sawai Mansingh Stadium?",
         acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Power banks, outside food and water, large bags, professional cameras, lighters, and helmets are prohibited.',
+          "@type": "Answer",
+          text: "Power banks, outside food and water, large bags, professional cameras, lighters, and helmets are prohibited.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Where can I watch IPL matches in Jaipur if I don't have tickets?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Top sports bars in Jaipur include Tapri Central, Masala Chowk, and various sports pubs in C-Scheme and Malviya Nagar.",
         },
       },
     ],
@@ -161,8 +190,8 @@ export default function IPL2026Page() {
 
   const handleShare = async () => {
     const shareData = {
-      title: 'IPL 2026 in Jaipur – Complete Guide, Tickets & Schedule',
-      text: 'Follow JaipurCircle’s IPL 2026 Jaipur campaign hub for tickets, SMS Stadium guides and urgent updates.',
+      title: "IPL 2026 in Jaipur – Complete Guide, Tickets & Schedule",
+      text: "Follow JaipurCircle’s IPL 2026 Jaipur campaign hub for tickets, SMS Stadium guides and urgent updates.",
       url: `${SITE_URL}/ipl-2026`,
     };
 
@@ -170,7 +199,7 @@ export default function IPL2026Page() {
       await navigator.share(shareData);
     } else {
       await navigator.clipboard.writeText(shareData.url);
-      toast.success('Campaign link copied');
+      toast.success("Campaign link copied");
     }
   };
 
@@ -180,14 +209,26 @@ export default function IPL2026Page() {
         title="IPL 2026 in Jaipur: Complete Guide, Tickets & Schedule | JaipurCircle"
         description="Complete guide to IPL 2026 matches in Jaipur. Tickets ₹1,800-₹22,500, stadium seating, parking, traffic updates, and match schedules for all 4 Rajasthan Royals home games."
         canonical="/ipl-2026"
-        keywords={['IPL 2026 Jaipur', 'RR tickets', 'Sawai Mansingh Stadium', 'Rajasthan Royals schedule', 'IPL tickets Jaipur']}
+        keywords={[
+          "IPL 2026 Jaipur",
+          "RR tickets",
+          "Sawai Mansingh Stadium",
+          "Rajasthan Royals schedule",
+          "IPL tickets Jaipur",
+        ]}
       >
         <script type="application/ld+json">{JSON.stringify(collectionSchema)}</script>
       </GlobalSEO>
       <Helmet>
         <title>IPL 2026 in Jaipur: Complete Guide, Tickets &amp; Schedule | JaipurCircle</title>
-        <meta name="description" content="Complete guide to IPL 2026 matches in Jaipur. Tickets ₹1,800-₹22,500, stadium seating, parking, traffic updates, and match schedules for all 4 Rajasthan Royals home games." />
-        <meta name="keywords" content="IPL 2026 Jaipur, RR tickets, Sawai Mansingh Stadium, Rajasthan Royals schedule, IPL tickets Jaipur" />
+        <meta
+          name="description"
+          content="Complete guide to IPL 2026 matches in Jaipur. Tickets ₹1,800-₹22,500, stadium seating, parking, traffic updates, and match schedules for all 4 Rajasthan Royals home games."
+        />
+        <meta
+          name="keywords"
+          content="IPL 2026 Jaipur, RR tickets, Sawai Mansingh Stadium, Rajasthan Royals schedule, IPL tickets Jaipur"
+        />
         <link rel="canonical" href="https://jaipurcircle.com/ipl-2026" />
         <script type="application/ld+json">{JSON.stringify(eventSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
@@ -203,12 +244,16 @@ export default function IPL2026Page() {
                 </div>
                 <h1 className="text-3xl font-extrabold tracking-normal md:text-5xl">IPL 2026 in Jaipur</h1>
                 <p className="mt-3 max-w-2xl text-base text-campaign-ipl-foreground/90 md:text-xl">
-                  Complete guide, tickets, SMS Stadium tips, urgent updates and match-day planning for Rajasthan Royals home games in Jaipur.
+                  Complete guide, tickets, SMS Stadium tips, urgent updates and match-day planning for Rajasthan Royals
+                  home games in Jaipur.
                 </p>
-                <div className="mt-6 grid grid-cols-4 gap-2 max-w-md" aria-label="Countdown to first IPL match in Jaipur">
+                <div
+                  className="mt-6 grid grid-cols-4 gap-2 max-w-md"
+                  aria-label="Countdown to first IPL match in Jaipur"
+                >
                   {Object.entries(countdown).map(([label, value]) => (
                     <div key={label} className="rounded-lg bg-campaign-ipl-foreground/15 px-2 py-3 text-center">
-                      <div className="text-2xl font-extrabold tabular-nums">{String(value).padStart(2, '0')}</div>
+                      <div className="text-2xl font-extrabold tabular-nums">{String(value).padStart(2, "0")}</div>
                       <div className="text-[11px] font-semibold uppercase text-campaign-ipl-foreground/80">{label}</div>
                     </div>
                   ))}
@@ -251,7 +296,7 @@ export default function IPL2026Page() {
                     </span>
                     <h3 className="mt-3 line-clamp-2 text-lg font-extrabold text-card-foreground">{article.title}</h3>
                     <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-                      {article.excerpt || 'Latest IPL 2026 Jaipur update from JaipurCircle.'}
+                      {article.excerpt || "Latest IPL 2026 Jaipur update from JaipurCircle."}
                     </p>
                     <span className="mt-3 inline-flex items-center text-sm font-bold text-primary">
                       Read update <ChevronRight className="h-4 w-4" />
@@ -271,7 +316,9 @@ export default function IPL2026Page() {
             <div className="mb-4 flex items-end justify-between gap-3">
               <div>
                 <h2 className="text-2xl font-extrabold text-foreground">IPL guides</h2>
-                <p className="text-sm text-muted-foreground">Tickets, seating, metro, food, parking and match previews.</p>
+                <p className="text-sm text-muted-foreground">
+                  Tickets, seating, metro, food, parking and match previews.
+                </p>
               </div>
               <Link to="/guides" className="hidden text-sm font-bold text-primary sm:inline-flex">
                 All guides
@@ -294,10 +341,11 @@ export default function IPL2026Page() {
                       <CategoryBadge category={guide.category} articleType={guide.article_type} />
                       <h3 className="mt-3 line-clamp-2 text-lg font-extrabold text-card-foreground">{guide.title}</h3>
                       <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
-                        {guide.excerpt || 'A practical JaipurCircle IPL 2026 guide for match day in Jaipur.'}
+                        {guide.excerpt || "A practical JaipurCircle IPL 2026 guide for match day in Jaipur."}
                       </p>
                       <span className="mt-4 inline-flex items-center text-sm font-bold text-primary">
-                        {guide.id === pillarGuide?.id ? 'Open campaign guide' : 'Read guide'} <ChevronRight className="h-4 w-4" />
+                        {guide.id === pillarGuide?.id ? "Open campaign guide" : "Read guide"}{" "}
+                        <ChevronRight className="h-4 w-4" />
                       </span>
                     </Link>
                   </article>
