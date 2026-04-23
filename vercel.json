@@ -22,7 +22,8 @@
     },
     {
       "src": "^/jaipur/([^/]+)/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/locality-ssr?slug=$1"
+        "dest": "/api/jaipur-proxy?slug=$1"
+
     },
     {
       "src": "^/events/?$",
