@@ -1,5 +1,6 @@
 // supabase/functions/event-ssr/index.ts
 // GOLD STANDARD 100% - ALWAYS SSR, NO EMPTY SHELL
+// ENHANCED SEO: Better meta descriptions, clean snippets for Google
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
@@ -42,20 +43,20 @@ function formatDate(dateStr: string): string {
   });
 }
 
+function formatShortDate(dateStr: string): string {
+  if (!dateStr) return "TBA";
+  return new Date(dateStr).toLocaleDateString("en-IN", {
+    month: "short",
+    day: "numeric",
+  });
+}
+
 function formatTime(dateStr: string): string {
   if (!dateStr) return "TBA";
   return new Date(dateStr).toLocaleTimeString("en-IN", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-  });
-}
-
-function formatShortDate(dateStr: string): string {
-  if (!dateStr) return "TBA";
-  return new Date(dateStr).toLocaleDateString("en-IN", {
-    month: "short",
-    day: "numeric",
   });
 }
 
@@ -75,6 +76,47 @@ function truncate(str: string, max: number): string {
   if (!str) return "";
   if (str.length <= max) return str;
   return str.slice(0, max - 3) + "...";
+}
+
+// ============================================
+// ENHANCED: Generate SEO-friendly meta description
+// ============================================
+function generateMetaDescription(event: any, venue: any): string {
+  const venueName = venue?.name || event.venue_name || "TBA";
+  const date = formatDate(event.start_date);
+  const priceText = event.is_free
+    ? "Free entry"
+    : event.ticket_tiers?.length
+    ? `Tickets from ₹${Math.min(...event.ticket_tiers.map((t: any) => t.price))}`
+    : event.ticket_price
+    ? `Tickets ₹${event.ticket_price}`
+    : "Ticket details available";
+  
+  let description = `${event.title} on ${date} at ${venueName}, Jaipur. ${priceText}. `;
+  
+  if (event.short_description) {
+    description += truncate(event.short_description, 100);
+  } else if (event.description) {
+    description += truncate(event.description, 100);
+  } else {
+    description += `Don't miss this exciting ${event.category || "event"} in the Pink City. Book your spot today!`;
+  }
+  
+  return truncate(description, 155);
+}
+
+// ============================================
+// ENHANCED: Generate SEO-friendly title
+// ============================================
+function generateMetaTitle(event: any): string {
+  const baseTitle = event.title;
+  const date = formatShortDate(event.start_date);
+  const priceText = event.is_free ? "Free" : event.ticket_price ? `₹${event.ticket_price}` : "";
+  
+  if (priceText) {
+    return `${baseTitle} | ${date} | ${priceText} | JaipurCircle`;
+  }
+  return `${baseTitle} | ${date} | Jaipur Events | JaipurCircle`;
 }
 
 // ============================================
@@ -528,11 +570,12 @@ serve(async (req: Request) => {
     const { event, artist, venue, relatedEvents } = data;
     const isPast = new Date(event.start_date) < new Date();
     const canonical = `${BASE_URL}/events/${event.slug}`;
-    const title = `${event.title} | ${formatDate(event.start_date)} | ${SITE_NAME}`;
-    const description = truncate(
-      event.short_description || event.description || `Book tickets for ${event.title} in Jaipur. ${formatDate(event.start_date)} at ${venue?.name || event.venue_name || "TBA"}.`,
-      160
-    );
+    
+    // ============================================
+    // ENHANCED SEO: Use improved title and description
+    // ============================================
+    const title = generateMetaTitle(event);
+    const description = generateMetaDescription(event, venue);
     const image = event.cover_image || DEFAULT_IMAGE;
 
     let indexHtml = await getSpaShellHtml();
