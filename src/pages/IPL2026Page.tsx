@@ -156,14 +156,6 @@ export default function IPL2026Page() {
           text: 'Power banks, outside food and water, large bags, professional cameras, lighters, and helmets are prohibited.',
         },
       },
-      {
-        '@type': 'Question',
-        name: 'What items are prohibited at Sawai Mansingh Stadium?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Power banks, outside food and water, large bags, professional cameras, lighters, and helmets are prohibited.',
-        },
-      },
     ],
   };
 
