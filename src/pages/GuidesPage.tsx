@@ -36,7 +36,8 @@ export default function GuidesPage() {
           .from('articles')
           .select('id, slug, title, excerpt, category, article_type, published_at')
           .eq('status', 'published')
-          .in('article_type', ['pillar', 'cluster'])
+          .eq('type', 'guide')
+          .eq('is_evergreen', true)
           .order('is_evergreen', { ascending: false })
           .order('published_at', { ascending: false });
 
