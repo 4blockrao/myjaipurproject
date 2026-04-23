@@ -84,6 +84,10 @@ export default {
 					deep: 'hsl(var(--jaipur-deep))',
 					heritage: 'hsl(var(--jaipur-heritage))',
 				},
+				campaign: {
+					ipl: 'hsl(var(--campaign-ipl))',
+					'ipl-foreground': 'hsl(var(--campaign-ipl-foreground))',
+				},
 				whatsapp: {
 					DEFAULT: 'hsl(var(--whatsapp))',
 					foreground: 'hsl(var(--whatsapp-foreground))'
