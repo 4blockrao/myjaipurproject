@@ -247,6 +247,35 @@
     box-shadow: var(--shadow-card);
   }
 
+  .guide-prose {
+    @apply text-foreground;
+  }
+
+  .guide-prose h2 {
+    @apply mt-8 mb-4 text-2xl font-bold text-foreground scroll-mt-24;
+  }
+
+  .guide-prose h3 {
+    @apply mt-6 mb-3 text-xl font-bold text-foreground scroll-mt-24;
+  }
+
+  .guide-prose table {
+    @apply my-4 w-full border-collapse overflow-hidden rounded-lg;
+  }
+
+  .guide-prose th,
+  .guide-prose td {
+    @apply border border-border p-2 align-top;
+  }
+
+  .guide-prose th {
+    @apply bg-muted font-bold;
+  }
+
+  .guide-prose img {
+    @apply h-auto max-w-full rounded-2xl;
+  }
+
   /* Glassmorphism effect */
   .glass {
     @apply bg-background/80 backdrop-blur-xl border border-border/30;
