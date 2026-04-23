@@ -1,72 +1,22 @@
 {
   "routes": [
-    {
-      "src": "^/api/rest/v1/(.*)$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/rest/v1/$1"
-    },
-    {
-      "src": "^/api/auth/v1/(.*)$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/auth/v1/$1"
-    },
-    {
-      "src": "^/api/storage/v1/(.*)$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/storage/v1/$1"
-    },
-    {
-      "src": "^/api/functions/v1/(.*)$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/$1"
-    },
-    {
-      "src": "^/events/([^/]+)/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/event-ssr?slug=$1"
-    },
-    {
-      "src": "^/jaipur/([^/]+)/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/locality-ssr?slug=$1"
-    },
-    {
-      "src": "^/events/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr"
-    },
-    {
-      "src": "^/artists/([^/]+)/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/artist-ssr?slug=$1"
-    },
+    // ... keep all your existing routes above here ...
+
     {
       "src": "^/sitemap\\.xml$",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
     },
     {
-      "src": "^/sitemaps/categories\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=categories"
+      "src": "^/sitemap-index\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
     },
     {
-      "src": "^/sitemaps/deals\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=deals"
-    },
-    {
-      "src": "^/sitemaps/events\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=events"
-    },
-    {
-      "src": "^/sitemaps/localities\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=localities"
-    },
-    {
-      "src": "^/sitemaps/merchants\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=merchants"
-    },
-    {
-      "src": "^/sitemaps/news\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=news"
-    },
-    {
-      "src": "^/sitemaps/static\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=static"
+      "src": "^/sitemaps/([^/]+)\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
     },
     {
       "src": "^/sitemap-events\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=events"
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
     },
     {
       "src": "^/sitemap-stories\\.xml$",
@@ -84,22 +34,7 @@
       "src": "^/sitemap-artists\\.xml$",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-artists"
     },
-    {
-      "src": "^/localities/([^/]+)/?$",
-      "status": 308,
-      "headers": { "Location": "/jaipur/$1" }
-    },
-    {
-      "src": "^/localities/?$",
-      "status": 308,
-      "headers": { "Location": "/jaipur" }
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "^(.*)$",
-      "dest": "/index.html"
-    }
+
+    // ... keep your existing routes below here ...
   ]
 }
