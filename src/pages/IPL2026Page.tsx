@@ -158,10 +158,10 @@ export default function IPL2026Page() {
       },
       {
         '@type': 'Question',
-        name: 'Where can I watch IPL matches in Jaipur if I don\'t have tickets?',
+        name: 'What items are prohibited at Sawai Mansingh Stadium?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Top sports bars in Jaipur include Tapri Central, Masala Chowk, and various sports pubs in C-Scheme and Malviya Nagar.',
+          text: 'Power banks, outside food and water, large bags, professional cameras, lighters, and helmets are prohibited.',
         },
       },
     ],
@@ -185,15 +185,18 @@ export default function IPL2026Page() {
   return (
     <>
       <GlobalSEO
-        title="IPL 2026 in Jaipur – Complete Guide, Tickets & Schedule"
-        description="IPL 2026 Jaipur hub: SMS Stadium tickets, RR match schedule, parking, metro, food, urgent updates and local match-day guides."
+        title="IPL 2026 in Jaipur: Complete Guide, Tickets & Schedule | JaipurCircle"
+        description="Complete guide to IPL 2026 matches in Jaipur. Tickets ₹1,800-₹22,500, stadium seating, parking, traffic updates, and match schedules for all 4 Rajasthan Royals home games."
         canonical="/ipl-2026"
-        keywords={['IPL 2026 Jaipur', 'Rajasthan Royals tickets', 'SMS Stadium Jaipur', 'IPL schedule Jaipur', 'Sawai Mansingh Stadium guide']}
+        keywords={['IPL 2026 Jaipur', 'RR tickets', 'Sawai Mansingh Stadium', 'Rajasthan Royals schedule', 'IPL tickets Jaipur']}
       >
         <script type="application/ld+json">{JSON.stringify(collectionSchema)}</script>
       </GlobalSEO>
       <Helmet>
-        <title>IPL 2026 in Jaipur – Complete Guide, Tickets &amp; Schedule</title>
+        <title>IPL 2026 in Jaipur: Complete Guide, Tickets &amp; Schedule | JaipurCircle</title>
+        <meta name="description" content="Complete guide to IPL 2026 matches in Jaipur. Tickets ₹1,800-₹22,500, stadium seating, parking, traffic updates, and match schedules for all 4 Rajasthan Royals home games." />
+        <meta name="keywords" content="IPL 2026 Jaipur, RR tickets, Sawai Mansingh Stadium, Rajasthan Royals schedule, IPL tickets Jaipur" />
+        <link rel="canonical" href="https://jaipurcircle.com/ipl-2026" />
         <script type="application/ld+json">{JSON.stringify(eventSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
       </Helmet>
@@ -313,6 +316,15 @@ export default function IPL2026Page() {
                 No IPL guides available yet.
               </p>
             )}
+          </section>
+
+          <section className="container mx-auto px-4 pb-8">
+            <Link
+              to="/ipl-2026"
+              className="block rounded-lg border border-campaign-ipl/25 bg-campaign-ipl/10 px-4 py-4 text-center text-sm font-extrabold text-foreground transition-colors hover:bg-campaign-ipl/15"
+            >
+              📢 Part of our IPL 2026 in Jaipur campaign
+            </Link>
           </section>
 
           {/* Floating WhatsApp Button (Mobile Only) */}
