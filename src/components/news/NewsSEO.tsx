@@ -25,6 +25,7 @@ interface NewsSEOProps {
     word_count?: number | null;
     reading_time_minutes?: number | null;
   };
+  source?: 'articles' | 'news_articles';
 }
 
 const BASE_URL = 'https://jaipurcircle.com';
