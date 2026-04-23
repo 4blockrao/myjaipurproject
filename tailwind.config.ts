@@ -83,6 +83,10 @@ export default {
 					sand: 'hsl(var(--jaipur-sand))',
 					deep: 'hsl(var(--jaipur-deep))',
 					heritage: 'hsl(var(--jaipur-heritage))',
+				},
+				whatsapp: {
+					DEFAULT: 'hsl(var(--whatsapp))',
+					foreground: 'hsl(var(--whatsapp-foreground))'
 				}
 			},
 			borderRadius: {
@@ -206,5 +210,5 @@ export default {
 			}
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 } satisfies Config;

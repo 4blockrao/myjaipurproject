@@ -56,6 +56,8 @@
     --jaipur-sand: 35 40% 92%;
     --jaipur-deep: 340 60% 35%;
     --jaipur-heritage: 285 45% 45%;
+    --whatsapp: 142 70% 39%;
+    --whatsapp-foreground: 0 0% 100%;
     
     /* Gradients */
     --gradient-heritage: linear-gradient(135deg, hsl(340, 75%, 55%) 0%, hsl(15, 65%, 55%) 50%, hsl(45, 90%, 55%) 100%);
@@ -113,6 +115,8 @@
     --jaipur-sand: 35 30% 25%;
     --jaipur-deep: 340 55% 45%;
     --jaipur-heritage: 285 40% 50%;
+    --whatsapp: 142 70% 39%;
+    --whatsapp-foreground: 0 0% 100%;
     
     --sidebar-background: 20 20% 10%;
     --sidebar-foreground: 30 30% 95%;
@@ -241,6 +245,35 @@
   .card-heritage {
     @apply bg-card rounded-2xl shadow-sm border border-border/50 overflow-hidden;
     box-shadow: var(--shadow-card);
+  }
+
+  .guide-prose {
+    @apply text-foreground;
+  }
+
+  .guide-prose h2 {
+    @apply mt-8 mb-4 text-2xl font-bold text-foreground scroll-mt-24;
+  }
+
+  .guide-prose h3 {
+    @apply mt-6 mb-3 text-xl font-bold text-foreground scroll-mt-24;
+  }
+
+  .guide-prose table {
+    @apply my-4 w-full border-collapse overflow-hidden rounded-lg;
+  }
+
+  .guide-prose th,
+  .guide-prose td {
+    @apply border border-border p-2 align-top;
+  }
+
+  .guide-prose th {
+    @apply bg-muted font-bold;
+  }
+
+  .guide-prose img {
+    @apply h-auto max-w-full rounded-2xl;
   }
 
   /* Glassmorphism effect */
