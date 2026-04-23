@@ -27,7 +27,8 @@ export default function RelatedArticles({ category, currentSlug }: RelatedArticl
         .from('articles')
         .select('id, slug, title, excerpt, category, article_type')
         .eq('status', 'published')
-        .in('article_type', ['pillar', 'cluster'])
+        .eq('type', 'guide')
+        .eq('is_evergreen', true)
         .neq('slug', currentSlug)
         .limit(3);
 
