@@ -117,19 +117,26 @@ export type Database = {
         Row: {
           article_type: string | null
           author: string | null
+          author_id: string | null
+          campaign_slug: string | null
+          canonical_url: string | null
           category: string | null
           content: string | null
           content_hindi: string | null
+          content_type: string | null
           excerpt: string | null
           excerpt_hindi: string | null
           expires_at: string | null
           focus_keyword: string | null
           id: string
           is_evergreen: boolean | null
+          last_refresh_check: string | null
           match_slug: string | null
           meta_description: string | null
           meta_title: string | null
+          noindex_after_expiry: boolean | null
           published_at: string | null
+          refresh_priority: number | null
           slug: string
           status: string | null
           title: string
@@ -142,19 +149,26 @@ export type Database = {
         Insert: {
           article_type?: string | null
           author?: string | null
+          author_id?: string | null
+          campaign_slug?: string | null
+          canonical_url?: string | null
           category?: string | null
           content?: string | null
           content_hindi?: string | null
+          content_type?: string | null
           excerpt?: string | null
           excerpt_hindi?: string | null
           expires_at?: string | null
           focus_keyword?: string | null
           id?: string
           is_evergreen?: boolean | null
+          last_refresh_check?: string | null
           match_slug?: string | null
           meta_description?: string | null
           meta_title?: string | null
+          noindex_after_expiry?: boolean | null
           published_at?: string | null
+          refresh_priority?: number | null
           slug: string
           status?: string | null
           title: string
@@ -167,19 +181,26 @@ export type Database = {
         Update: {
           article_type?: string | null
           author?: string | null
+          author_id?: string | null
+          campaign_slug?: string | null
+          canonical_url?: string | null
           category?: string | null
           content?: string | null
           content_hindi?: string | null
+          content_type?: string | null
           excerpt?: string | null
           excerpt_hindi?: string | null
           expires_at?: string | null
           focus_keyword?: string | null
           id?: string
           is_evergreen?: boolean | null
+          last_refresh_check?: string | null
           match_slug?: string | null
           meta_description?: string | null
           meta_title?: string | null
+          noindex_after_expiry?: boolean | null
           published_at?: string | null
+          refresh_priority?: number | null
           slug?: string
           status?: string | null
           title?: string
@@ -293,6 +314,87 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
           website?: string | null
+        }
+        Relationships: []
+      }
+      authors: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          expertise: string[] | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          expertise?: string[] | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          expertise?: string[] | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      campaigns: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          hero_image: string | null
+          id: string
+          is_active: boolean | null
+          meta_description: string | null
+          meta_title: string | null
+          name: string
+          show_locality_links: boolean | null
+          show_upcoming_events: boolean | null
+          show_venue_info: boolean | null
+          slug: string
+          start_date: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          hero_image?: string | null
+          id?: string
+          is_active?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
+          name: string
+          show_locality_links?: boolean | null
+          show_upcoming_events?: boolean | null
+          show_venue_info?: boolean | null
+          slug: string
+          start_date?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          hero_image?: string | null
+          id?: string
+          is_active?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
+          name?: string
+          show_locality_links?: boolean | null
+          show_upcoming_events?: boolean | null
+          show_venue_info?: boolean | null
+          slug?: string
+          start_date?: string | null
         }
         Relationships: []
       }
@@ -1518,6 +1620,7 @@ export type Database = {
           audience_tags: string[] | null
           available_seats: number | null
           booking_url: string | null
+          campaign_slug: string | null
           canonical_url: string | null
           capacity: number | null
           category: string | null
@@ -1617,6 +1720,7 @@ export type Database = {
           audience_tags?: string[] | null
           available_seats?: number | null
           booking_url?: string | null
+          campaign_slug?: string | null
           canonical_url?: string | null
           capacity?: number | null
           category?: string | null
@@ -1716,6 +1820,7 @@ export type Database = {
           audience_tags?: string[] | null
           available_seats?: number | null
           booking_url?: string | null
+          campaign_slug?: string | null
           canonical_url?: string | null
           capacity?: number | null
           category?: string | null
@@ -3729,6 +3834,71 @@ export type Database = {
           },
         ]
       }
+      url_redirects: {
+        Row: {
+          created_at: string | null
+          from_path: string
+          id: string
+          redirect_type: number | null
+          to_path: string
+        }
+        Insert: {
+          created_at?: string | null
+          from_path: string
+          id?: string
+          redirect_type?: number | null
+          to_path: string
+        }
+        Update: {
+          created_at?: string | null
+          from_path?: string
+          id?: string
+          redirect_type?: number | null
+          to_path?: string
+        }
+        Relationships: []
+      }
+      user_reviews: {
+        Row: {
+          article_id: string | null
+          comment: string | null
+          created_at: string | null
+          id: string
+          photos: string[] | null
+          rating: number | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          article_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          id: string
+          photos?: string[] | null
+          rating?: number | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          article_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          photos?: string[] | null
+          rating?: number | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_reviews_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           assigned_at: string
@@ -3760,6 +3930,7 @@ export type Database = {
         Row: {
           address: string | null
           amenities: Json | null
+          campaign_slug: string | null
           canonical_url: string | null
           capacity: number | null
           cover_image_url: string | null
@@ -3803,6 +3974,7 @@ export type Database = {
         Insert: {
           address?: string | null
           amenities?: Json | null
+          campaign_slug?: string | null
           canonical_url?: string | null
           capacity?: number | null
           cover_image_url?: string | null
@@ -3846,6 +4018,7 @@ export type Database = {
         Update: {
           address?: string | null
           amenities?: Json | null
+          campaign_slug?: string | null
           canonical_url?: string | null
           capacity?: number | null
           cover_image_url?: string | null
@@ -3900,6 +4073,41 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "locality_aliases_view"
             referencedColumns: ["locality_id"]
+          },
+        ]
+      }
+      videos: {
+        Row: {
+          article_id: string | null
+          duration: number | null
+          id: string
+          title: string | null
+          transcript: string | null
+          youtube_id: string | null
+        }
+        Insert: {
+          article_id?: string | null
+          duration?: number | null
+          id: string
+          title?: string | null
+          transcript?: string | null
+          youtube_id?: string | null
+        }
+        Update: {
+          article_id?: string | null
+          duration?: number | null
+          id?: string
+          title?: string | null
+          transcript?: string | null
+          youtube_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "videos_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
           },
         ]
       }
