@@ -1,6 +1,43 @@
 // lib/seo/event-schema-generator.ts
 // Single source of truth for all event schemas
 
+const BASE_URL = 'https://jaipurcircle.com';
+const DEFAULT_IMAGE = `${BASE_URL}/og-image.png`;
+
+function truncate(value: string | null | undefined, maxLength: number) {
+    const text = value || '';
+    return text.length > maxLength ? `${text.slice(0, maxLength).trim()}...` : text;
+}
+
+function getEventType(category?: string | null) {
+    const normalized = (category || '').toLowerCase();
+    if (normalized.includes('music') || normalized.includes('concert')) return 'MusicEvent';
+    if (normalized.includes('sports') || normalized.includes('cricket')) return 'SportsEvent';
+    if (normalized.includes('food')) return 'FoodEvent';
+    if (normalized.includes('workshop') || normalized.includes('education')) return 'EducationEvent';
+    return 'Event';
+}
+
+function generateLocationSchema(venue: any, event: any) {
+    if (event.is_online) {
+        return { '@type': 'VirtualLocation', url: event.online_url || event.registration_url };
+    }
+
+    return {
+        '@type': 'Place',
+        name: venue?.name || event.venue_name || 'Jaipur',
+        address: venue?.address || event.venue_address || event.locality || 'Jaipur, Rajasthan, India',
+        ...(event.latitude && event.longitude ? {
+            geo: { '@type': 'GeoCoordinates', latitude: event.latitude, longitude: event.longitude }
+        } : {})
+    };
+}
+
+function extractMinAge(ageRestriction: string) {
+    const match = ageRestriction.match(/\d+/);
+    return match ? Number(match[0]) : undefined;
+}
+
 export function generateEventSchema(event: any, venue: any, performer: any, reviews: any[]) {
     const schema: any = {
         "@context": "https://schema.org",
