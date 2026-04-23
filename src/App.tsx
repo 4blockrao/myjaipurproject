@@ -162,12 +162,11 @@ function App() {
                     <Route path="/checkout/new" element={<NewCheckoutPage />} />
                     <Route path="/order-success" element={<OrderSuccessPage />} />
 
-                    {/* News */}
-                    <Route path="/news" element={<NewsPage />} />
+                    {/* News - ORDER MATTERS! Specific routes first */}
                     <Route path="/news/create" element={<CreateNewsPage />} />
-                    <Route path="/news/ipl-2026/:slug" element={<GuideDetailPage />} />
+                    <Route path="/news/:slug" element={<NewsArticlePage />} />
                     <Route path="/news/:category" element={<NewsCategoryPage />} />
-                    <Route path="/news/:category/:slug" element={<NewsArticlePage />} />
+                    <Route path="/news" element={<NewsPage />} />
 
                     {/* Guides - NEW ROUTES */}
                     <Route path="/guides" element={<GuidesPage />} />
@@ -218,10 +217,7 @@ function App() {
                     <Route path="/jaipur/zones/:zoneSlug" element={<ZonePage />} />
 
                     {/* Canonical Merchant SEO Route */}
-                    <Route
-                      path="/jaipur/:localitySlug/merchants/:merchantSlug"
-                      element={<MerchantDetailPage />}
-                    />
+                    <Route path="/jaipur/:localitySlug/merchants/:merchantSlug" element={<MerchantDetailPage />} />
 
                     <Route path="/jaipur/:slug/:category" element={<LocalityCategoryPage />} />
                     <Route path="/jaipur/:slug" element={<LocalityPage />} />
