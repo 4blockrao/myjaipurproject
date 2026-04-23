@@ -3,6 +3,14 @@ import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+const GA_MEASUREMENT_ID = "G-WXS9913G3W";
+
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
 interface AnalyticsContextType {
   sessionId: string;
   trackClick: (elementType: string, elementText?: string, elementId?: string, targetUrl?: string) => void;
@@ -11,6 +19,11 @@ interface AnalyticsContextType {
 }
 
 const AnalyticsContext = createContext<AnalyticsContextType | null>(null);
+
+const sendGtagEvent = (eventName: string, params?: Record<string, unknown>) => {
+  if (typeof window === "undefined" || typeof window.gtag !== "function") return;
+  window.gtag("event", eventName, params || {});
+};
 
 // Generate unique session ID (per-tab via sessionStorage)
 const getOrCreateSessionId = (): string => {
@@ -187,11 +200,20 @@ export const AnalyticsProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const trackPageView = async () => {
       pageStartTime.current = Date.now();
+      const pagePath = location.pathname + location.search;
+
+      if (typeof window.gtag === "function") {
+        window.gtag("config", GA_MEASUREMENT_ID, {
+          page_path: pagePath,
+          page_location: window.location.href,
+          page_title: document.title,
+        });
+      }
 
       try {
         const { error } = await supabase.from("page_views").insert({
           session_id: sessionId.current,
-          page_url: location.pathname + location.search,
+          page_url: pagePath,
           page_title: document.title,
           referrer_url: document.referrer || undefined,
           user_id: user?.id,
@@ -234,6 +256,13 @@ export const AnalyticsProvider = ({ children }: { children: ReactNode }) => {
         .then(({ error }) => {
           if (error) console.error("Failed to track click:", error);
         });
+
+      sendGtagEvent("select_content", {
+        content_type: elementType,
+        item_id: elementId,
+        link_url: targetUrl,
+        page_path: window.location.pathname,
+      });
     },
     [user?.id]
   );
@@ -253,6 +282,12 @@ export const AnalyticsProvider = ({ children }: { children: ReactNode }) => {
         .then(({ error }) => {
           if (error) console.error("Failed to track search:", error);
         });
+
+      sendGtagEvent("search", {
+        search_term: query,
+        search_type: searchType,
+        results_count: resultsCount,
+      });
     },
     [user?.id]
   );
@@ -266,6 +301,11 @@ export const AnalyticsProvider = ({ children }: { children: ReactNode }) => {
       .then(({ error }) => {
         if (error) console.error("Failed to mark conversion:", error);
       });
+
+    sendGtagEvent("generate_lead", {
+      method: "site_conversion",
+      session_id: sessionId.current,
+    });
   }, [user?.id]);
 
   return (
