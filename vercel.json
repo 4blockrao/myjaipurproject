@@ -15,14 +15,14 @@
     {
       "src": "^/api/functions/v1/(.*)$",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/$1"
+    }, 
+    {
+      "src": "^/jaipur/([^/]+)/?$",
+      "dest": "/api/jaipur-proxy?slug=$1"
     },
     {
       "src": "^/events/([^/]+)/?$",
       "dest": "/api/event-proxy?slug=$1"
-    },
-    {
-      "src": "^/jaipur/([^/]+)/?$",
-      "dest": "/api/jaipur-proxy?slug=$1"
     },
     {
       "src": "^/artists/([^/]+)/?$",
