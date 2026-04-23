@@ -1,40 +1,105 @@
-// supabase/functions/sitemap/index.ts
-Deno.serve(async (req) => {
-  const url = new URL(req.url);
-  const type = url.searchParams.get('type');
-  
-  let sitemapXML = '';
-  
-  switch(type) {
-    case 'events':
-      sitemapXML = await generateEventsSitemap();
-      break;
-    case 'categories':
-      sitemapXML = await generateCategoriesSitemap();
-      break;
-    case 'deals':
-      sitemapXML = await generateDealsSitemap();
-      break;
-    case 'localities':
-      sitemapXML = await generateLocalitiesSitemap();
-      break;
-    case 'merchants':
-      sitemapXML = await generateMerchantsSitemap();
-      break;
-    case 'news':
-      sitemapXML = await generateNewsSitemap();
-      break;
-    case 'static':
-      sitemapXML = await generateStaticSitemap();
-      break;
-    default:
-      sitemapXML = await generateMainSitemap(); // Your existing logic
-  }
-  
-  return new Response(sitemapXML, {
-    headers: {
-      'Content-Type': 'application/xml',
-      'Cache-Control': 'public, max-age=3600'
+{
+  "routes": [
+    {
+      "src": "^/api/rest/v1/(.*)$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/rest/v1/$1"
+    },
+    {
+      "src": "^/api/auth/v1/(.*)$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/auth/v1/$1"
+    },
+    {
+      "src": "^/api/storage/v1/(.*)$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/storage/v1/$1"
+    },
+    {
+      "src": "^/api/functions/v1/(.*)$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/$1"
+    },
+    {
+      "src": "^/events/([^/]+)/?$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/event-ssr?slug=$1"
+    },
+    {
+      "src": "^/jaipur/([^/]+)/?$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/locality-ssr?slug=$1"
+    },
+    {
+      "src": "^/events/?$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr"
+    },
+    {
+      "src": "^/artists/([^/]+)/?$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/artist-ssr?slug=$1"
+    },
+    {
+      "src": "^/sitemap\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
+    },
+    {
+      "src": "^/sitemaps/categories\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=categories"
+    },
+    {
+      "src": "^/sitemaps/deals\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=deals"
+    },
+    {
+      "src": "^/sitemaps/events\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=events"
+    },
+    {
+      "src": "^/sitemaps/localities\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=localities"
+    },
+    {
+      "src": "^/sitemaps/merchants\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=merchants"
+    },
+    {
+      "src": "^/sitemaps/news\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=news"
+    },
+    {
+      "src": "^/sitemaps/static\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=static"
+    },
+    {
+      "src": "^/sitemap-events\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=events"
+    },
+    {
+      "src": "^/sitemap-stories\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-stories"
+    },
+    {
+      "src": "^/sitemap-news\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=news"
+    },
+    {
+      "src": "^/sitemap-news-google\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=news-sitemap"
+    },
+    {
+      "src": "^/sitemap-artists\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-artists"
+    },
+    {
+      "src": "^/localities/([^/]+)/?$",
+      "status": 308,
+      "headers": { "Location": "/jaipur/$1" }
+    },
+    {
+      "src": "^/localities/?$",
+      "status": 308,
+      "headers": { "Location": "/jaipur" }
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "^(.*)$",
+      "dest": "/index.html"
     }
-  });
-});
+  ]
+}
