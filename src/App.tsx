@@ -34,6 +34,7 @@ import NewsPage from "./pages/NewsPage";
 import NewsArticlePage from "./pages/NewsArticlePage";
 import NewsCategoryPage from "./pages/NewsCategoryPage";
 import CreateNewsPage from "./pages/CreateNewsPage";
+import IPL2026Page from "./pages/IPL2026Page";
 
 // NEW: Guides imports
 import GuidesPage from "./pages/GuidesPage";
@@ -164,12 +165,14 @@ function App() {
                     {/* News */}
                     <Route path="/news" element={<NewsPage />} />
                     <Route path="/news/create" element={<CreateNewsPage />} />
+                    <Route path="/news/ipl-2026/:slug" element={<GuideDetailPage />} />
                     <Route path="/news/:category" element={<NewsCategoryPage />} />
                     <Route path="/news/:category/:slug" element={<NewsArticlePage />} />
 
                     {/* Guides - NEW ROUTES */}
                     <Route path="/guides" element={<GuidesPage />} />
                     <Route path="/guide/:slug" element={<GuideDetailPage />} />
+                    <Route path="/ipl-2026" element={<IPL2026Page />} />
 
                     {/* Events */}
                     <Route path="/events" element={<EventsPage />} />
