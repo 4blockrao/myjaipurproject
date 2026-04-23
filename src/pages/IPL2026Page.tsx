@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { CalendarDays, ChevronRight, Clock, MessageCircle, Share2, Siren } from 'lucide-react';
 import { toast } from 'sonner';
@@ -106,6 +107,9 @@ export default function IPL2026Page() {
       >
         <script type="application/ld+json">{JSON.stringify(collectionSchema)}</script>
       </GlobalSEO>
+      <Helmet>
+        <title>IPL 2026 in Jaipur – Complete Guide, Tickets &amp; Schedule</title>
+      </Helmet>
       <AppLayout title="IPL 2026" showBackButton={false}>
         <main className="bg-background pb-8">
           <section className="bg-campaign-ipl text-campaign-ipl-foreground">
