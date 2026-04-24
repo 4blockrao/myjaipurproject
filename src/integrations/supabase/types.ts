@@ -44,6 +44,52 @@ export type Database = {
         }
         Relationships: []
       }
+      article_merchants: {
+        Row: {
+          article_id: string | null
+          created_at: string | null
+          id: string
+          mention_context: string | null
+          merchant_id: string | null
+        }
+        Insert: {
+          article_id?: string | null
+          created_at?: string | null
+          id?: string
+          mention_context?: string | null
+          merchant_id?: string | null
+        }
+        Update: {
+          article_id?: string | null
+          created_at?: string | null
+          id?: string
+          mention_context?: string | null
+          merchant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_merchants_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_merchants_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchant_performance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_merchants_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       article_relationships: {
         Row: {
           child_article_id: string | null
@@ -733,6 +779,13 @@ export type Database = {
             foreignKeyName: "coupons_merchant_id_fkey"
             columns: ["merchant_id"]
             isOneToOne: false
+            referencedRelation: "merchant_performance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupons_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
             referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
@@ -897,6 +950,56 @@ export type Database = {
           },
           {
             foreignKeyName: "deals_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchant_performance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deals_merchants: {
+        Row: {
+          created_at: string | null
+          deal_id: string | null
+          id: string
+          merchant_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          deal_id?: string | null
+          id?: string
+          merchant_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          deal_id?: string | null
+          id?: string
+          merchant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_merchants_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_merchants_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchant_performance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_merchants_merchant_id_fkey"
             columns: ["merchant_id"]
             isOneToOne: false
             referencedRelation: "merchants"
@@ -2935,6 +3038,13 @@ export type Database = {
             foreignKeyName: "merchant_category_links_merchant_id_fkey"
             columns: ["merchant_id"]
             isOneToOne: false
+            referencedRelation: "merchant_performance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "merchant_category_links_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
             referencedRelation: "merchants"
             referencedColumns: ["id"]
           },
@@ -2944,6 +3054,8 @@ export type Database = {
         Row: {
           address: string | null
           average_rating: number | null
+          avg_rating: number | null
+          booking_url: string | null
           business_name: string | null
           business_type: string | null
           canonical_url: string | null
@@ -2952,31 +3064,45 @@ export type Database = {
           created_by: string | null
           description: string | null
           editorial_status: string | null
+          google_place_id: string | null
           id: string
           image_url: string | null
           is_active: boolean | null
           is_indexable: boolean | null
           is_verified: boolean | null
+          last_verified: string | null
+          latitude: number | null
           locality: string | null
           locality_id: string | null
           logo_url: string | null
+          longitude: number | null
+          menu_url: string | null
           meta_description: string | null
           meta_title: string | null
           name: string
+          opening_hours_specification: Json | null
           phone: string | null
           published_at: string | null
+          rating_sources: string[] | null
           slug: string
           source_label: string | null
           source_url: string | null
           status: string | null
+          structured_citations: Json | null
           total_reviews: number | null
+          total_views: number | null
+          unstructured_mentions: number | null
           updated_at: string
           updated_by: string | null
+          verification_status: string | null
           website: string | null
+          weekly_views: number | null
         }
         Insert: {
           address?: string | null
           average_rating?: number | null
+          avg_rating?: number | null
+          booking_url?: string | null
           business_name?: string | null
           business_type?: string | null
           canonical_url?: string | null
@@ -2985,31 +3111,45 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           editorial_status?: string | null
+          google_place_id?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
           is_indexable?: boolean | null
           is_verified?: boolean | null
+          last_verified?: string | null
+          latitude?: number | null
           locality?: string | null
           locality_id?: string | null
           logo_url?: string | null
+          longitude?: number | null
+          menu_url?: string | null
           meta_description?: string | null
           meta_title?: string | null
           name: string
+          opening_hours_specification?: Json | null
           phone?: string | null
           published_at?: string | null
+          rating_sources?: string[] | null
           slug: string
           source_label?: string | null
           source_url?: string | null
           status?: string | null
+          structured_citations?: Json | null
           total_reviews?: number | null
+          total_views?: number | null
+          unstructured_mentions?: number | null
           updated_at?: string
           updated_by?: string | null
+          verification_status?: string | null
           website?: string | null
+          weekly_views?: number | null
         }
         Update: {
           address?: string | null
           average_rating?: number | null
+          avg_rating?: number | null
+          booking_url?: string | null
           business_name?: string | null
           business_type?: string | null
           canonical_url?: string | null
@@ -3018,27 +3158,39 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           editorial_status?: string | null
+          google_place_id?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
           is_indexable?: boolean | null
           is_verified?: boolean | null
+          last_verified?: string | null
+          latitude?: number | null
           locality?: string | null
           locality_id?: string | null
           logo_url?: string | null
+          longitude?: number | null
+          menu_url?: string | null
           meta_description?: string | null
           meta_title?: string | null
           name?: string
+          opening_hours_specification?: Json | null
           phone?: string | null
           published_at?: string | null
+          rating_sources?: string[] | null
           slug?: string
           source_label?: string | null
           source_url?: string | null
           status?: string | null
+          structured_citations?: Json | null
           total_reviews?: number | null
+          total_views?: number | null
+          unstructured_mentions?: number | null
           updated_at?: string
           updated_by?: string | null
+          verification_status?: string | null
           website?: string | null
+          weekly_views?: number | null
         }
         Relationships: [
           {
@@ -3308,6 +3460,13 @@ export type Database = {
             columns: ["deal_id"]
             isOneToOne: false
             referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchant_performance"
             referencedColumns: ["id"]
           },
           {
@@ -4837,6 +4996,23 @@ export type Database = {
           notes: string | null
           old_slug: string | null
           updated_at: string | null
+        }
+        Relationships: []
+      }
+      merchant_performance: {
+        Row: {
+          active_deals: number | null
+          article_mentions: number | null
+          avg_rating: number | null
+          id: string | null
+          last_verified: string | null
+          locality: string | null
+          name: string | null
+          slug: string | null
+          total_reviews: number | null
+          total_views: number | null
+          verification_status: string | null
+          weekly_views: number | null
         }
         Relationships: []
       }
