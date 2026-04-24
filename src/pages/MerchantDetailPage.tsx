@@ -45,20 +45,48 @@ const MerchantDetailPage = () => {
   });
 
   const { data: deals = [] } = useQuery({
-    queryKey: ['merchant-deals', id],
+    queryKey: ['merchant-deals', merchant?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Direct merchant_id deals
+      const { data: directDeals } = await supabase
         .from('deals')
         .select('*')
-        .eq('merchant_id', id)
+        .eq('merchant_id', merchant.id)
         .eq('is_active', true)
         .eq('approval_status', 'approved')
         .order('created_at', { ascending: false })
         .limit(20);
-      if (error) throw error;
-      return data || [];
+
+      // Junction-table deals
+      const { data: linked } = await supabase
+        .from('deals_merchants')
+        .select('deal:deals(id, slug, title, description, discount_percentage, image_url, original_price, discounted_price, is_featured, is_active, approval_status)')
+        .eq('merchant_id', merchant.id);
+
+      const linkedDeals = (linked || [])
+        .map((row: any) => row.deal)
+        .filter((d: any) => d && d.is_active !== false);
+
+      const all = [...(directDeals || []), ...linkedDeals];
+      const seen = new Set<string>();
+      return all.filter((d: any) => (d && !seen.has(d.id) && seen.add(d.id)));
     },
-    enabled: !!id,
+    enabled: !!merchant?.id,
+  });
+
+  const { data: featuredArticles = [] } = useQuery({
+    queryKey: ['merchant-articles', merchant?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('article_merchants')
+        .select('article:articles(id, slug, title, type, article_type, status)')
+        .eq('merchant_id', merchant.id);
+      if (error) throw error;
+      return (data || [])
+        .map((row: any) => row.article)
+        .filter((a: any) => a && a.status === 'published');
+    },
+    enabled: !!merchant?.id,
   });
 
   const handleShare = async () => {
