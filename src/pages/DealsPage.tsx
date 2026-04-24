@@ -11,9 +11,7 @@ import DealsSEO from "@/components/seo/DealsSEO";
 import { PillarSchema } from "@/components/seo/SchemaInjector";
 import DealCard, { type DealCardData } from "@/components/deals/DealCard";
 import DealFilters, { type DealFilterCategory } from "@/components/deals/DealFilters";
-import {
-  Search, X, Store, Star, ChevronRight, Sparkles, Flame, TrendingUp,
-} from "lucide-react";
+import { Search, X, Store, Star, ChevronRight, Sparkles, Flame, TrendingUp } from "lucide-react";
 
 interface Merchant {
   id: string;
@@ -62,9 +60,7 @@ const DealsPage = () => {
   const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(
-    searchParams.get("category") || "all"
-  );
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "all");
   const [selectedLocality, setSelectedLocality] = useState<string>("all");
   const [sortBy, setSortBy] = useState("discount");
   const [showSearch, setShowSearch] = useState(false);
@@ -75,16 +71,13 @@ const DealsPage = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        let dealsQuery = supabase
-          .from("deals")
-          .select(
-            `id, slug, title, description, category, discount_percentage,
-             original_price, discounted_price, location, image_url, end_date,
-             is_featured, inventory_count, max_redemptions, current_redemptions,
-             merchants (business_name, is_verified, average_rating)`
-          )
-          .eq("status", "published")
-          .or(`end_date.is.null,end_date.gte.${new Date().toISOString()}`);
+        // SIMPLE: Query the active_deals view (handles status + expiry)
+        let dealsQuery = supabase.from("active_deals").select(`
+            id, slug, title, description, category, discount_percentage,
+            original_price, discounted_price, location, image_url, end_date,
+            is_featured, inventory_count, max_redemptions, current_redemptions,
+            merchant_name, merchant_slug, locality, merchant_rating, merchant_reviews, merchant_verified
+          `);
 
         if (selectedCategory !== "all") {
           dealsQuery = dealsQuery.eq("category", selectedCategory);
@@ -95,34 +88,23 @@ const DealsPage = () => {
 
         // Sort
         if (sortBy === "discount") {
-          dealsQuery = dealsQuery.order("discount_percentage", {
-            ascending: false,
-            nullsFirst: false,
-          });
+          dealsQuery = dealsQuery.order("discount_percentage", { ascending: false, nullsFirst: false });
         } else if (sortBy === "ending") {
           dealsQuery = dealsQuery.order("end_date", { ascending: true });
         } else if (sortBy === "popular") {
-          dealsQuery = dealsQuery.order("current_redemptions", {
-            ascending: false,
-            nullsFirst: false,
-          });
+          dealsQuery = dealsQuery.order("current_redemptions", { ascending: false, nullsFirst: false });
         } else {
           dealsQuery = dealsQuery.order("created_at", { ascending: false });
         }
 
         const merchantsQuery = supabase
           .from("merchants")
-          .select(
-            "id, business_name, business_type, address, logo_url, average_rating, total_reviews, is_verified"
-          )
+          .select("id, business_name, business_type, address, logo_url, average_rating, total_reviews, is_verified")
           .eq("is_active", true)
           .order("average_rating", { ascending: false })
           .limit(10);
 
-        const [dealsResult, merchantsResult] = await Promise.all([
-          dealsQuery.limit(60),
-          merchantsQuery,
-        ]);
+        const [dealsResult, merchantsResult] = await Promise.all([dealsQuery.limit(60), merchantsQuery]);
         if (cancelled) return;
         if (dealsResult.error) throw dealsResult.error;
         if (merchantsResult.error) throw merchantsResult.error;
@@ -173,12 +155,7 @@ const DealsPage = () => {
       backPath="/"
       showHeader
       headerRightAction={
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-10 w-10 rounded-full"
-          onClick={() => setShowSearch((s) => !s)}
-        >
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full" onClick={() => setShowSearch((s) => !s)}>
           {showSearch ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
         </Button>
       }
@@ -253,21 +230,14 @@ const DealsPage = () => {
               <Store className="h-5 w-5 text-primary" />
               <h2 className="font-semibold">Top Merchants</h2>
             </div>
-            <Link
-              to="/merchants"
-              className="flex items-center gap-0.5 text-xs text-primary"
-            >
+            <Link to="/merchants" className="flex items-center gap-0.5 text-xs text-primary">
               View all <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
           <ScrollArea className="-mx-4 w-full px-4">
             <div className="flex gap-3">
               {merchants.map((merchant) => (
-                <Link
-                  key={merchant.id}
-                  to={`/merchant/${merchant.id}`}
-                  className="group w-28 shrink-0 text-center"
-                >
+                <Link key={merchant.id} to={`/merchant/${merchant.id}`} className="group w-28 shrink-0 text-center">
                   <div className="relative mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5 transition-transform group-hover:scale-105">
                     {merchant.logo_url ? (
                       <img
@@ -276,9 +246,7 @@ const DealsPage = () => {
                         className="h-full w-full rounded-full object-cover"
                       />
                     ) : (
-                      <span className="text-2xl">
-                        {businessTypeEmojis[merchant.business_type || ""] || "🏪"}
-                      </span>
+                      <span className="text-2xl">{businessTypeEmojis[merchant.business_type || ""] || "🏪"}</span>
                     )}
                     {merchant.is_verified && (
                       <div className="absolute -bottom-0.5 -right-0.5 rounded-full bg-primary p-0.5">
@@ -286,9 +254,7 @@ const DealsPage = () => {
                       </div>
                     )}
                   </div>
-                  <p className="line-clamp-1 text-xs font-medium">
-                    {merchant.business_name}
-                  </p>
+                  <p className="line-clamp-1 text-xs font-medium">{merchant.business_name}</p>
                   <div className="mt-0.5 flex items-center justify-center gap-0.5">
                     <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
                     <span className="text-[10px] text-muted-foreground">
@@ -330,34 +296,20 @@ const DealsPage = () => {
           <div className="py-16 text-center">
             <div className="mb-4 text-5xl">🔍</div>
             <h3 className="mb-1 text-lg font-semibold">No deals found</h3>
-            <p className="mb-6 text-sm text-muted-foreground">
-              Try a different category, locality, or search term
-            </p>
+            <p className="mb-6 text-sm text-muted-foreground">Try a different category, locality, or search term</p>
             <div className="flex flex-wrap justify-center gap-2">
               {selectedCategory !== "all" && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleCategorySelect("all")}
-                >
+                <Button variant="outline" size="sm" onClick={() => handleCategorySelect("all")}>
                   Clear category
                 </Button>
               )}
               {selectedLocality !== "all" && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedLocality("all")}
-                >
+                <Button variant="outline" size="sm" onClick={() => setSelectedLocality("all")}>
                   Clear locality
                 </Button>
               )}
               {searchQuery && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSearchQuery("")}
-                >
+                <Button variant="outline" size="sm" onClick={() => setSearchQuery("")}>
                   Clear search
                 </Button>
               )}
