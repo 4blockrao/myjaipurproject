@@ -484,6 +484,62 @@ const DealDetailPage = () => {
                   Only {available} left! Hurry up!
                 </div>
               )}
+
+              {/* Stock progress */}
+              {!isUnlimited && deal.max_redemptions ? (
+                <div className="mt-4">
+                  <ProgressBar
+                    sold={deal.current_redemptions || 0}
+                    total={deal.max_redemptions}
+                  />
+                </div>
+              ) : null}
+
+              {/* Countdown */}
+              {deal.end_date && (
+                <div className="mt-4">
+                  <CountdownTimer endDate={deal.end_date} variant="hero" />
+                </div>
+              )}
+
+              {/* Social proof */}
+              <div className="mt-4">
+                <SocialProofCounter
+                  dealId={deal.id}
+                  recentPurchases={recentPurchases}
+                />
+              </div>
+
+              {/* Trust badges */}
+              <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-medium">
+                <span className="inline-flex items-center gap-1 rounded-full bg-green-50 dark:bg-green-950/30 px-2.5 py-1 text-green-700 dark:text-green-400">
+                  <Shield className="h-3 w-3" /> 100% Genuine
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950/30 px-2.5 py-1 text-blue-700 dark:text-blue-400">
+                  <Zap className="h-3 w-3" /> Instant Delivery
+                </span>
+                {merchant?.is_verified && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 dark:bg-purple-950/30 px-2.5 py-1 text-purple-700 dark:text-purple-400">
+                    <BadgeCheck className="h-3 w-3" /> Verified Merchant
+                  </span>
+                )}
+              </div>
+
+              {/* Share buttons */}
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleWhatsAppShare}
+                  className="gap-2"
+                >
+                  <MessageCircle className="h-4 w-4 text-green-600" />
+                  Share on WhatsApp
+                </Button>
+                <Button variant="outline" onClick={handleCopyLink} className="gap-2">
+                  <Copy className="h-4 w-4" />
+                  Copy link
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
