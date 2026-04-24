@@ -322,7 +322,7 @@ const DealsManagement = () => {
   });
 
   const pendingDeals = deals.filter(d => d.approval_status === 'pending_approval' || d.approval_status === 'draft');
-  const activeDeals = deals.filter(d => d.is_active);
+  const activeDeals = deals.filter(d => d.status === 'published');
 
   if (isLoading) {
     return (
@@ -608,8 +608,8 @@ const DealsManagement = () => {
                     <TableCell>{getStatusBadge(deal.approval_status)}</TableCell>
                     <TableCell>
                       <Switch
-                        checked={deal.is_active || false}
-                        onCheckedChange={() => toggleDealActive(deal.id, deal.is_active)}
+                        checked={deal.status === 'published'}
+                        onCheckedChange={() => toggleDealActive(deal.id, deal.status)}
                       />
                     </TableCell>
                     <TableCell>
