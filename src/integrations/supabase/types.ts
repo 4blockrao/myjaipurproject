@@ -791,6 +791,161 @@ export type Database = {
           },
         ]
       }
+      daily_deals: {
+        Row: {
+          clicks_count: number | null
+          created_at: string | null
+          deal_price: number
+          description: string | null
+          discount_percentage: number | null
+          end_time: string
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          is_flash_sale: boolean | null
+          max_per_user: number | null
+          merchant_id: string | null
+          meta_description: string | null
+          meta_title: string | null
+          original_price: number
+          qr_code_url: string | null
+          redemption_code_pattern: string | null
+          redemptions_count: number | null
+          remaining_quantity: number | null
+          slug: string
+          sold_quantity: number | null
+          start_time: string
+          status: string | null
+          title: string
+          total_quantity: number
+          updated_at: string | null
+          views_count: number | null
+        }
+        Insert: {
+          clicks_count?: number | null
+          created_at?: string | null
+          deal_price: number
+          description?: string | null
+          discount_percentage?: number | null
+          end_time: string
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          is_flash_sale?: boolean | null
+          max_per_user?: number | null
+          merchant_id?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          original_price: number
+          qr_code_url?: string | null
+          redemption_code_pattern?: string | null
+          redemptions_count?: number | null
+          remaining_quantity?: number | null
+          slug: string
+          sold_quantity?: number | null
+          start_time?: string
+          status?: string | null
+          title: string
+          total_quantity: number
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Update: {
+          clicks_count?: number | null
+          created_at?: string | null
+          deal_price?: number
+          description?: string | null
+          discount_percentage?: number | null
+          end_time?: string
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          is_flash_sale?: boolean | null
+          max_per_user?: number | null
+          merchant_id?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          original_price?: number
+          qr_code_url?: string | null
+          redemption_code_pattern?: string | null
+          redemptions_count?: number | null
+          remaining_quantity?: number | null
+          slug?: string
+          sold_quantity?: number | null
+          start_time?: string
+          status?: string | null
+          title?: string
+          total_quantity?: number
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_deals_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchant_performance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_deals_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_purchases: {
+        Row: {
+          deal_id: string | null
+          expires_at: string | null
+          id: string
+          purchase_price: number | null
+          purchased_at: string | null
+          qr_code_url: string | null
+          redeemed_at: string | null
+          redemption_code: string | null
+          status: string | null
+          user_id: string | null
+          user_phone: string | null
+        }
+        Insert: {
+          deal_id?: string | null
+          expires_at?: string | null
+          id?: string
+          purchase_price?: number | null
+          purchased_at?: string | null
+          qr_code_url?: string | null
+          redeemed_at?: string | null
+          redemption_code?: string | null
+          status?: string | null
+          user_id?: string | null
+          user_phone?: string | null
+        }
+        Update: {
+          deal_id?: string | null
+          expires_at?: string | null
+          id?: string
+          purchase_price?: number | null
+          purchased_at?: string | null
+          qr_code_url?: string | null
+          redeemed_at?: string | null
+          redemption_code?: string | null
+          status?: string | null
+          user_id?: string | null
+          user_phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_purchases_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "daily_deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deals: {
         Row: {
           address: string | null
@@ -825,6 +980,7 @@ export type Database = {
           meta_title: string | null
           original_price: number | null
           published_at: string | null
+          redemption_instructions: string | null
           slug: string
           source_label: string | null
           source_url: string | null
@@ -832,6 +988,7 @@ export type Database = {
           status: string | null
           subcategory: string | null
           tags: string[] | null
+          terms: string | null
           terms_conditions: string | null
           title: string
           updated_at: string
@@ -872,6 +1029,7 @@ export type Database = {
           meta_title?: string | null
           original_price?: number | null
           published_at?: string | null
+          redemption_instructions?: string | null
           slug: string
           source_label?: string | null
           source_url?: string | null
@@ -879,6 +1037,7 @@ export type Database = {
           status?: string | null
           subcategory?: string | null
           tags?: string[] | null
+          terms?: string | null
           terms_conditions?: string | null
           title: string
           updated_at?: string
@@ -919,6 +1078,7 @@ export type Database = {
           meta_title?: string | null
           original_price?: number | null
           published_at?: string | null
+          redemption_instructions?: string | null
           slug?: string
           source_label?: string | null
           source_url?: string | null
@@ -926,6 +1086,7 @@ export type Database = {
           status?: string | null
           subcategory?: string | null
           tags?: string[] | null
+          terms?: string | null
           terms_conditions?: string | null
           title?: string
           updated_at?: string
@@ -3052,6 +3213,7 @@ export type Database = {
       }
       merchants: {
         Row: {
+          active_deals_count: number | null
           address: string | null
           average_rating: number | null
           avg_rating: number | null
@@ -3064,12 +3226,14 @@ export type Database = {
           created_by: string | null
           description: string | null
           editorial_status: string | null
+          features: string[] | null
           google_place_id: string | null
           id: string
           image_url: string | null
           is_active: boolean | null
           is_indexable: boolean | null
           is_verified: boolean | null
+          known_for: string[] | null
           last_verified: string | null
           latitude: number | null
           locality: string | null
@@ -3080,6 +3244,7 @@ export type Database = {
           meta_description: string | null
           meta_title: string | null
           name: string
+          opening_hours: Json | null
           opening_hours_specification: Json | null
           phone: string | null
           published_at: string | null
@@ -3099,6 +3264,7 @@ export type Database = {
           weekly_views: number | null
         }
         Insert: {
+          active_deals_count?: number | null
           address?: string | null
           average_rating?: number | null
           avg_rating?: number | null
@@ -3111,12 +3277,14 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           editorial_status?: string | null
+          features?: string[] | null
           google_place_id?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
           is_indexable?: boolean | null
           is_verified?: boolean | null
+          known_for?: string[] | null
           last_verified?: string | null
           latitude?: number | null
           locality?: string | null
@@ -3127,6 +3295,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           name: string
+          opening_hours?: Json | null
           opening_hours_specification?: Json | null
           phone?: string | null
           published_at?: string | null
@@ -3146,6 +3315,7 @@ export type Database = {
           weekly_views?: number | null
         }
         Update: {
+          active_deals_count?: number | null
           address?: string | null
           average_rating?: number | null
           avg_rating?: number | null
@@ -3158,12 +3328,14 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           editorial_status?: string | null
+          features?: string[] | null
           google_place_id?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
           is_indexable?: boolean | null
           is_verified?: boolean | null
+          known_for?: string[] | null
           last_verified?: string | null
           latitude?: number | null
           locality?: string | null
@@ -3174,6 +3346,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           name?: string
+          opening_hours?: Json | null
           opening_hours_specification?: Json | null
           phone?: string | null
           published_at?: string | null
