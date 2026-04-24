@@ -1,27 +1,18 @@
 // src/main.tsx
 import React from "react";
-import { createRoot } from "react-dom/client";
+import { hydrateRoot, createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
 const rootEl = document.getElementById("root");
+const hasSSRContent = rootEl?.innerHTML?.length > 1000;
 
 if (rootEl) {
-  console.log("[Bootstrap] Root found, mounting React");
-  try {
-    const root = createRoot(rootEl);
-    root.render(
-      <React.StrictMode>
-        <div>
-          <h1>TEST MOUNT</h1>
-          <App />
-        </div>
-      </React.StrictMode>
-    );
-    console.log("[Bootstrap] React mounted successfully");
-  } catch (error) {
-    console.error("[Bootstrap] React mount error:", error);
+  if (hasSSRContent) {
+    console.log("[Bootstrap] SSR content detected - hydrating");
+    hydrateRoot(rootEl, <App />);
+  } else {
+    console.log("[Bootstrap] No SSR content - creating root");
+    createRoot(rootEl).render(<App />);
   }
-} else {
-  console.error("[Bootstrap] Root element not found");
 }
