@@ -35,7 +35,7 @@ const CategoryPillarSection = ({
           *,
           merchants (business_name, is_verified, average_rating, locality)
         `)
-        .eq('is_active', true)
+        .eq('status', 'published')
         .eq('approval_status', 'approved')
         .ilike('category', `%${category}%`)
         .gte('end_date', new Date().toISOString())

@@ -105,7 +105,7 @@ const CheckoutFlow = () => {
           )
         `)
         .eq('id', dealId)
-        .eq('is_active', true)
+        .eq('status', 'published')
         .single();
 
       if (error) throw error;

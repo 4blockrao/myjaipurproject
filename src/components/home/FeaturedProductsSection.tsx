@@ -18,7 +18,7 @@ const FeaturedProductsSection = () => {
           merchants (business_name, is_verified, average_rating)
         `)
         .eq('is_product_sale', true)
-        .eq('is_active', true)
+        .eq('status', 'published')
         .eq('approval_status', 'approved')
         .order('is_featured', { ascending: false })
         .order('created_at', { ascending: false })

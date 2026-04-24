@@ -19,7 +19,7 @@ const TrendingDealsSection = () => {
           *,
           merchants (business_name, is_verified, average_rating)
         `)
-        .eq('is_active', true)
+        .eq('status', 'published')
         .eq('approval_status', 'approved')
         .eq('is_featured', true)
         .gte('end_date', new Date().toISOString())
