@@ -49,6 +49,59 @@ export function useVenue(venueSlug: string | undefined) {
     queryFn: async (): Promise<Venue | null> => {
       if (!venueSlug) return null;
 
+      // 1. Try the venues table first (canonical source)
+      const { data: venueRow } = await supabase
+        .from('venues' as any)
+        .select('*')
+        .eq('slug', venueSlug)
+        .maybeSingle();
+
+      if (venueRow) {
+        const v: any = venueRow;
+        let zone_name: string | undefined;
+        let locality_slug: string | undefined = v.locality_slug || undefined;
+        let locality_name: string | undefined;
+
+        if (v.locality_id) {
+          const { data: locality } = await supabase
+            .from('localities')
+            .select('name, slug, zone_id')
+            .eq('id', v.locality_id)
+            .maybeSingle();
+          if (locality) {
+            locality_name = locality.name;
+            locality_slug = locality_slug || locality.slug;
+            if (locality.zone_id) {
+              const { data: zone } = await supabase
+                .from('zones')
+                .select('name')
+                .eq('id', locality.zone_id)
+                .maybeSingle();
+              if (zone) zone_name = zone.name;
+            }
+          }
+        }
+
+        return {
+          id: v.id,
+          name: v.name,
+          slug: v.slug,
+          address: v.address || undefined,
+          locality: locality_name,
+          locality_slug,
+          zone_name,
+          description: v.description || undefined,
+          seating_capacity: v.capacity || undefined,
+          latitude: v.latitude ?? v.geo_lat ?? undefined,
+          longitude: v.longitude ?? v.geo_lng ?? undefined,
+          cover_image: v.cover_image_url || v.image_url || v.image || undefined,
+          contact_phone: v.phone || undefined,
+          contact_email: v.email || undefined,
+          website: v.website || undefined,
+        };
+      }
+
+      // 2. Fallback: derive venue from events table by name match
       // Convert slug to searchable venue name
       const venueName = venueSlug
         .split('-')
