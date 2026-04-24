@@ -191,6 +191,18 @@ const DealDetailPage = () => {
     }
   };
 
+  const handleWhatsAppShare = () => {
+    const text = `🔥 ${deal?.title} — ${deal?.discount_percentage || ''}% OFF at ${
+      deal?.merchants?.business_name || 'JaipurCircle'
+    }!\nGrab it for ₹${deal?.discounted_price?.toLocaleString('en-IN')} 👇\n${window.location.href}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleCopyLink = async () => {
+    await navigator.clipboard.writeText(window.location.href);
+    toast({ title: 'Link copied', description: 'Share it with friends!' });
+  };
+
   const handlePurchase = async () => {
     if (!deal) return;
     
