@@ -265,6 +265,32 @@ const MerchantDetailPage = () => {
           </section>
         )}
 
+        {/* Known For & Features */}
+        {(Array.isArray((merchant as any).known_for) && (merchant as any).known_for.length > 0) && (
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Award className="w-4 h-4 text-primary" /> Known For
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {(merchant as any).known_for.map((item: string, i: number) => (
+                <Badge key={i} variant="secondary">{item}</Badge>
+              ))}
+            </div>
+          </section>
+        )}
+        {(Array.isArray((merchant as any).features) && (merchant as any).features.length > 0) && (
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" /> Features
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {(merchant as any).features.map((item: string, i: number) => (
+                <Badge key={i} variant="outline">{item}</Badge>
+              ))}
+            </div>
+          </section>
+        )}
+
         <Separator />
 
         {/* Contact Info */}
@@ -458,6 +484,48 @@ const MerchantDetailPage = () => {
             </section>
           </>
         )}
+
+        {/* Featured In (Articles) */}
+        {featuredArticles.length > 0 && (
+          <>
+            <Separator />
+            <section className="space-y-3">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Award className="w-5 h-5 text-primary" />
+                Featured In
+              </h2>
+              <div className="space-y-2">
+                {featuredArticles.map((a: any) => {
+                  const base = a.type === 'news' ? '/news' : '/guide';
+                  return (
+                    <Link key={a.id} to={`${base}/${a.slug}`}>
+                      <Card className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4 flex items-center justify-between gap-3">
+                          <p className="text-sm font-medium line-clamp-2">{a.title}</p>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          </>
+        )}
+
+        {/* Back to IPL campaign */}
+        <Separator />
+        <Link to="/ipl-2026" className="block">
+          <Card className="bg-primary/5 hover:bg-primary/10 transition-colors">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">← Back to IPL 2026 Guide</p>
+                <p className="text-xs text-muted-foreground">Tickets, schedules & more</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
       </main>
 
       <NativeBottomNav />
