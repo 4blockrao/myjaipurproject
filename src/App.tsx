@@ -36,9 +36,12 @@ import NewsCategoryPage from "./pages/NewsCategoryPage";
 import CreateNewsPage from "./pages/CreateNewsPage";
 import IPL2026Page from "./pages/IPL2026Page";
 
-// NEW: Guides imports
+// Guides imports
 import GuidesPage from "./pages/GuidesPage";
 import GuideDetailPage from "./pages/GuideDetailPage";
+
+// Stories imports
+import StoryPage from "./pages/StoryPage";
 
 import EventsPage from "./pages/EventsPage";
 import EventDetailPage from "./pages/EventDetailPage";
@@ -169,10 +172,14 @@ function App() {
                     <Route path="/news/:category" element={<NewsCategoryPage />} />
                     <Route path="/news" element={<NewsPage />} />
 
-                    {/* Guides - NEW ROUTES */}
+                    {/* Guides */}
                     <Route path="/guides" element={<GuidesPage />} />
                     <Route path="/guide/:slug" element={<GuideDetailPage />} />
                     <Route path="/ipl-2026" element={<IPL2026Page />} />
+
+                    {/* Stories - Editorial/Lifestyle content */}
+                    <Route path="/stories" element={<StoryPage />} />
+                    <Route path="/stories/:slug" element={<StoryPage />} />
 
                     {/* Events */}
                     <Route path="/events" element={<EventsPage />} />
@@ -244,10 +251,6 @@ function App() {
                     <Route path="/properties" element={<PropertiesHubPage />} />
                     <Route path="/properties/:slug" element={<PropertyDetailPage />} />
                     <Route path="/properties/locality/:slug" element={<PropertiesLocalityPage />} />
-
-                    {/* STORIES (SSR) - force browser load */}
-                    <Route path="/stories" element={<SSRHardReload />} />
-                    <Route path="/stories/:slug" element={<SSRHardReload />} />
 
                     {/* Catch-all */}
                     <Route path="*" element={<NotFound />} />
