@@ -1,11 +1,10 @@
 # robots.txt for JaipurCircle
 # https://www.jaipurcircle.com
-# Last updated: 2026-04-22
+# Last updated: 2026-04-24
 
 # Google
 User-agent: Googlebot
 Allow: /
-Crawl-delay: 1
 
 User-agent: Googlebot-Image
 Allow: /
@@ -61,24 +60,37 @@ Allow: /help
 Allow: /install
 Allow: /sitemap
 
+# IPL 2026 Campaign
+Allow: /ipl-2026
+Allow: /ipl-2026/
+
+# Guides
+Allow: /guides
+Allow: /guides/
+Allow: /guide
+Allow: /guide/
+
+# News
+Allow: /news
+Allow: /news/
+
 # Deals & Shopping
 Allow: /deals
 Allow: /deals/
+Allow: /deal
 Allow: /deal/
 Allow: /categories
 
 # Merchants
 Allow: /merchants
+Allow: /merchants/
+Allow: /merchant
 Allow: /merchant/
 Allow: /merchant-onboarding
 
 # Events
 Allow: /events
 Allow: /events/
-
-# News
-Allow: /news
-Allow: /news/
 
 # Jaipur Locality Hub
 Allow: /jaipur
@@ -124,6 +136,7 @@ Disallow: /referral-success
 # Block API and Auth endpoints
 Disallow: /api/
 Disallow: /auth/
+Disallow: /supabase/
 
 # Block query parameters that create duplicate content
 Disallow: /*?*ref=
@@ -135,8 +148,14 @@ Disallow: /*?*gclid=
 # SITEMAPS
 # ========================================
 
-# Main sitemap index (dynamically generated, always up-to-date)
+# Main sitemap - all pages
 Sitemap: https://www.jaipurcircle.com/sitemap.xml
+
+# sitemap 2 
+Sitemap: https://www.jaipurcircle.com/sitemaps/events.xml
+
+# sitemap 3
+Sitemap: https://www.jaipurcircle.com/sitemaps/static.xml
 
 # Host directive
 Host: https://www.jaipurcircle.com
