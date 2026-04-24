@@ -779,6 +779,51 @@ const DealDetailPage = () => {
           {relatedDeals.length > 0 && (
             <>
               <Separator />
+              {recentBuyers.length > 0 && (
+                <section className="space-y-3">
+                  <h2 className="text-lg font-semibold flex items-center gap-2">
+                    <Users className="w-5 h-5 text-primary" />
+                    Recent Buyers
+                  </h2>
+                  <Card className="bg-muted/30">
+                    <CardContent className="p-4 space-y-2">
+                      {recentBuyers.map((b: any, i: number) => {
+                        const initials = (b.user_phone || 'JC').slice(-2).toUpperCase();
+                        const when = b.purchased_at
+                          ? new Date(b.purchased_at)
+                          : new Date();
+                        const mins = Math.max(
+                          1,
+                          Math.round((Date.now() - when.getTime()) / 60000)
+                        );
+                        const ago =
+                          mins < 60
+                            ? `${mins}m ago`
+                            : mins < 1440
+                            ? `${Math.round(mins / 60)}h ago`
+                            : `${Math.round(mins / 1440)}d ago`;
+                        return (
+                          <div key={b.id || i} className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                                {initials}
+                              </AvatarFallback>
+                            </Avatar>
+                            <p className="text-sm text-muted-foreground">
+                              <span className="font-medium text-foreground">
+                                Buyer {b.user_phone ? `***${String(b.user_phone).slice(-4)}` : i + 1}
+                              </span>{' '}
+                              from {locality} bought {ago}
+                            </p>
+                            <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
+                          </div>
+                        );
+                      })}
+                    </CardContent>
+                  </Card>
+                </section>
+              )}
+              <Separator />
               <section className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold">Similar Deals</h2>
