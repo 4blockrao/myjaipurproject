@@ -18,7 +18,7 @@ const TrendingDealsGrid = () => {
            merchants (business_name, is_verified, average_rating)`
         )
         .eq("status", "published")
-        .gte("end_date", new Date().toISOString())
+        .or(`end_date.is.null,end_date.gte.${new Date().toISOString()}`)
         .order("discount_percentage", { ascending: false, nullsFirst: false })
         .limit(6);
       if (error) throw error;

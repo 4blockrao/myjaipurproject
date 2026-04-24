@@ -20,7 +20,7 @@ const RecentDealsSection = () => {
         `)
         .eq('status', 'published')
         .eq('approval_status', 'approved')
-        .gte('end_date', new Date().toISOString())
+        .or(`end_date.is.null,end_date.gte.${new Date().toISOString()}`)
         .order('created_at', { ascending: false })
         .limit(6);
       if (error) throw error;
