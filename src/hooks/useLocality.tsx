@@ -200,7 +200,7 @@ export function useLocalityDeals(localityName: string) {
         .from("deals")
         .select("id, title, image_url, discounted_price, original_price, discount_percentage, category")
         .eq("location", localityName) // ⚠️ Verify this column exists in 'deals' table
-        .eq("is_active", true)
+        .eq("status", "published")
         .eq("approval_status", "approved")
         .order("created_at", { ascending: false })
         .limit(6);
