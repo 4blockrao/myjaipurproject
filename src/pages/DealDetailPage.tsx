@@ -19,8 +19,11 @@ import {
   ShoppingCart, Gift, Award, CheckCircle, Tag,
   Store, BadgeCheck, Coins, 
   Navigation, MessageCircle, Info, FileText,
-  ChevronRight, Sparkles, Shield, Zap
+  ChevronRight, Sparkles, Shield, Zap, Copy
 } from "lucide-react";
+import CountdownTimer from "@/components/deals/CountdownTimer";
+import SocialProofCounter from "@/components/deals/SocialProofCounter";
+import ProgressBar from "@/components/deals/ProgressBar";
 
 interface Deal {
   id: string;
