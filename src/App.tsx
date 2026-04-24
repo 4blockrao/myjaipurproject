@@ -154,9 +154,10 @@ function App() {
                     <Route path="/sitemap" element={<SitemapPage />} />
                     <Route path="/install" element={<InstallPage />} />
 
-                    {/* Deals */}
+                    {/* Deals - FIXED: slug routes added */}
                     <Route path="/deals" element={<DealsPage />} />
-                    <Route path="/deal/:id" element={<DealDetailPage />} />
+                    <Route path="/deals/:slug" element={<DealDetailPage />} />
+                    <Route path="/deal/:slug" element={<DealDetailPage />} />
                     <Route path="/categories" element={<CategoriesPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/checkout/new" element={<NewCheckoutPage />} />
