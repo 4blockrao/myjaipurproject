@@ -66,7 +66,7 @@ const SitemapPage = () => {
         supabase.from('events').select('slug, updated_at').eq('status', 'published'),
         supabase.from('localities').select('slug, updated_at'),
         supabase.from('merchants').select('id, updated_at').eq('is_active', true),
-        supabase.from('deals').select('id, updated_at').eq('is_active', true).eq('approval_status', 'approved'),
+        supabase.from('deals').select('id, updated_at').eq('status', 'published').eq('approval_status', 'approved'),
       ]);
 
       let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
