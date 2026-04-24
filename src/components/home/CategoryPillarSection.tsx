@@ -38,7 +38,7 @@ const CategoryPillarSection = ({
         .eq('status', 'published')
         .eq('approval_status', 'approved')
         .ilike('category', `%${category}%`)
-        .gte('end_date', new Date().toISOString())
+        .or(`end_date.is.null,end_date.gte.${new Date().toISOString()}`)
         .order('is_featured', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(limit);

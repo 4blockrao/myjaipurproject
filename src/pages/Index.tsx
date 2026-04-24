@@ -79,7 +79,7 @@ const Index = () => {
         .select(`*, merchants (business_name, is_verified, average_rating, address)`)
         .eq("approval_status", "approved")
         .eq("status", "published")
-        .gte("end_date", new Date().toISOString())
+        .or(`end_date.is.null,end_date.gte.${new Date().toISOString()}`)
         .order("discount_percentage", { ascending: false })
         .limit(10);
 

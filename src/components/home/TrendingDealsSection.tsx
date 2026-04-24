@@ -22,7 +22,7 @@ const TrendingDealsSection = () => {
         .eq('status', 'published')
         .eq('approval_status', 'approved')
         .eq('is_featured', true)
-        .gte('end_date', new Date().toISOString())
+        .or(`end_date.is.null,end_date.gte.${new Date().toISOString()}`)
         .order('current_redemptions', { ascending: false })
         .limit(5);
       if (error) throw error;
