@@ -78,6 +78,13 @@ export type Database = {
             foreignKeyName: "article_merchants_merchant_id_fkey"
             columns: ["merchant_id"]
             isOneToOne: false
+            referencedRelation: "active_deals"
+            referencedColumns: ["merchant_id"]
+          },
+          {
+            foreignKeyName: "article_merchants_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
             referencedRelation: "merchant_performance"
             referencedColumns: ["id"]
           },
@@ -772,8 +779,22 @@ export type Database = {
             foreignKeyName: "coupons_deal_id_fkey"
             columns: ["deal_id"]
             isOneToOne: false
+            referencedRelation: "active_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupons_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
             referencedRelation: "deals"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupons_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "active_deals"
+            referencedColumns: ["merchant_id"]
           },
           {
             foreignKeyName: "coupons_merchant_id_fkey"
@@ -880,6 +901,13 @@ export type Database = {
           views_count?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "daily_deals_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "active_deals"
+            referencedColumns: ["merchant_id"]
+          },
           {
             foreignKeyName: "daily_deals_merchant_id_fkey"
             columns: ["merchant_id"]
@@ -1113,6 +1141,13 @@ export type Database = {
             foreignKeyName: "deals_merchant_id_fkey"
             columns: ["merchant_id"]
             isOneToOne: false
+            referencedRelation: "active_deals"
+            referencedColumns: ["merchant_id"]
+          },
+          {
+            foreignKeyName: "deals_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
             referencedRelation: "merchant_performance"
             referencedColumns: ["id"]
           },
@@ -1149,8 +1184,22 @@ export type Database = {
             foreignKeyName: "deals_merchants_deal_id_fkey"
             columns: ["deal_id"]
             isOneToOne: false
+            referencedRelation: "active_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_merchants_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
             referencedRelation: "deals"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_merchants_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "active_deals"
+            referencedColumns: ["merchant_id"]
           },
           {
             foreignKeyName: "deals_merchants_merchant_id_fkey"
@@ -1880,6 +1929,7 @@ export type Database = {
           artist_id: string | null
           artist_image: string | null
           artist_name: string | null
+          artist_slug: string | null
           artist_social_links: Json | null
           audience_tags: string[] | null
           available_seats: number | null
@@ -1971,6 +2021,7 @@ export type Database = {
           venue_address: string | null
           venue_id: string | null
           venue_name: string | null
+          venue_slug: string | null
           view_count: number
         }
         Insert: {
@@ -1981,6 +2032,7 @@ export type Database = {
           artist_id?: string | null
           artist_image?: string | null
           artist_name?: string | null
+          artist_slug?: string | null
           artist_social_links?: Json | null
           audience_tags?: string[] | null
           available_seats?: number | null
@@ -2072,6 +2124,7 @@ export type Database = {
           venue_address?: string | null
           venue_id?: string | null
           venue_name?: string | null
+          venue_slug?: string | null
           view_count?: number
         }
         Update: {
@@ -2082,6 +2135,7 @@ export type Database = {
           artist_id?: string | null
           artist_image?: string | null
           artist_name?: string | null
+          artist_slug?: string | null
           artist_social_links?: Json | null
           audience_tags?: string[] | null
           available_seats?: number | null
@@ -2173,6 +2227,7 @@ export type Database = {
           venue_address?: string | null
           venue_id?: string | null
           venue_name?: string | null
+          venue_slug?: string | null
           view_count?: number
         }
         Relationships: [
@@ -2999,6 +3054,53 @@ export type Database = {
           },
         ]
       }
+      locality_answers: {
+        Row: {
+          answer: string
+          answered_by_email: string | null
+          answered_by_name: string | null
+          created_at: string | null
+          id: string
+          is_official: boolean | null
+          question_id: string | null
+          status: string | null
+          updated_at: string | null
+          upvote_count: number | null
+        }
+        Insert: {
+          answer: string
+          answered_by_email?: string | null
+          answered_by_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_official?: boolean | null
+          question_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          upvote_count?: number | null
+        }
+        Update: {
+          answer?: string
+          answered_by_email?: string | null
+          answered_by_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_official?: boolean | null
+          question_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          upvote_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locality_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "locality_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       locality_category_pages: {
         Row: {
           canonical_url: string | null
@@ -3144,6 +3246,63 @@ export type Database = {
           },
         ]
       }
+      locality_questions: {
+        Row: {
+          asked_by_email: string | null
+          asked_by_name: string | null
+          created_at: string | null
+          id: string
+          is_anonymous: boolean | null
+          locality_slug: string | null
+          question: string
+          status: string | null
+          updated_at: string | null
+          upvote_count: number | null
+          view_count: number | null
+        }
+        Insert: {
+          asked_by_email?: string | null
+          asked_by_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          locality_slug?: string | null
+          question: string
+          status?: string | null
+          updated_at?: string | null
+          upvote_count?: number | null
+          view_count?: number | null
+        }
+        Update: {
+          asked_by_email?: string | null
+          asked_by_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          locality_slug?: string | null
+          question?: string
+          status?: string | null
+          updated_at?: string | null
+          upvote_count?: number | null
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locality_questions_locality_slug_fkey"
+            columns: ["locality_slug"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["slug"]
+          },
+          {
+            foreignKeyName: "locality_questions_locality_slug_fkey"
+            columns: ["locality_slug"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_slug"]
+          },
+        ]
+      }
       merchant_categories: {
         Row: {
           created_at: string
@@ -3203,6 +3362,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "merchant_categories"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "merchant_category_links_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "active_deals"
+            referencedColumns: ["merchant_id"]
           },
           {
             foreignKeyName: "merchant_category_links_merchant_id_fkey"
@@ -3641,8 +3807,22 @@ export type Database = {
             foreignKeyName: "orders_deal_id_fkey"
             columns: ["deal_id"]
             isOneToOne: false
+            referencedRelation: "active_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
             referencedRelation: "deals"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "active_deals"
+            referencedColumns: ["merchant_id"]
           },
           {
             foreignKeyName: "orders_merchant_id_fkey"
@@ -4678,6 +4858,47 @@ export type Database = {
       }
     }
     Views: {
+      active_deals: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          current_redemptions: number | null
+          deal_type: string | null
+          description: string | null
+          discount_percentage: number | null
+          discounted_price: number | null
+          end_date: string | null
+          gallery_images: string[] | null
+          id: string | null
+          image_url: string | null
+          inventory_count: number | null
+          is_featured: boolean | null
+          jaicoin_reward: number | null
+          locality: string | null
+          location: string | null
+          max_redemptions: number | null
+          merchant_address: string | null
+          merchant_id: string | null
+          merchant_logo: string | null
+          merchant_name: string | null
+          merchant_phone: string | null
+          merchant_rating: number | null
+          merchant_reviews: number | null
+          merchant_slug: string | null
+          merchant_verified: boolean | null
+          original_price: number | null
+          slug: string | null
+          start_date: string | null
+          status: string | null
+          subcategory: string | null
+          tags: string[] | null
+          terms_conditions: string | null
+          title: string | null
+          updated_at: string | null
+          usage_terms: string | null
+        }
+        Relationships: []
+      }
       category_aliases_view: {
         Row: {
           category_id: string | null

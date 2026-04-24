@@ -195,6 +195,10 @@ function App() {
                     <Route path="/venues" element={<Navigate to="/events" replace />} />
                     <Route path="/venues/:slug" element={<VenuePage />} />
 
+                    {/* Artists */}
+                    <Route path="/artists" element={<Navigate to="/events" replace />} />
+                    <Route path="/artists/:slug" element={<ArtistPage />} />
+
                     {/* Merchants */}
                     <Route path="/merchants" element={<MerchantsPage />} />
                     <Route path="/merchant-onboarding" element={<MerchantOnboardingPage />} />
