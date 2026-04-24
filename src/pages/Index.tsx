@@ -7,6 +7,7 @@ import HeroCarousel from "@/components/home/HeroCarousel";
 import SearchBarFloating from "@/components/home/SearchBarFloating";
 import CategoryIconGrid from "@/components/home/CategoryIconGrid";
 import HotDealsSection from "@/components/home/HotDealsSection";
+import TrendingDealsGrid from "@/components/home/TrendingDealsGrid";
 import BottomNavHeritage from "@/components/home/BottomNavHeritage";
 import { NewsHomeSection } from "@/components/news/NewsHomeSection";
 import TopMerchantsSection from "@/components/home/TopMerchantsSection";
@@ -152,6 +153,9 @@ const Index = () => {
             isLoading={dealsLoading}
             title={userLocality ? `Hot Deals in ${userLocality.name}` : "Hot Deals in Jaipur"}
           />
+
+          {/* 🔥 Trending Deals grid (top 6) */}
+          <TrendingDealsGrid />
 
           {/* Events */}
           <EventsHomeSection />
