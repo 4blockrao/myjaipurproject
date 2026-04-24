@@ -17,10 +17,6 @@
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/$1"
     },
     {
-      "src": "^/artists/([^/]+)/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/artist-ssr?slug=$1"
-    }
-    {
       "src": "^/events/category/([^/]+)/?$",
       "dest": "/api/events-list-ssr?path=/events/category/$1"
     },
@@ -70,7 +66,7 @@
     },
     {
       "src": "^/venues/([^/]+)/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/venue-ssr?slug=$1"
+      "dest": "/api/venue-proxy?slug=$1"
     },
     {
       "src": "^/sitemap\\.xml$",
