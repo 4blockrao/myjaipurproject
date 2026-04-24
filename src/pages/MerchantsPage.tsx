@@ -15,6 +15,7 @@ const SITE_URL = 'https://jaipurcircle.com';
 const MerchantsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedLocality, setSelectedLocality] = useState("all");
 
   const { data: merchants = [], isLoading } = useQuery({
     queryKey: ['all-merchants'],
@@ -43,8 +44,13 @@ const MerchantsPage = () => {
     const matchesSearch = merchant.business_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       merchant.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || merchant.business_type === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesLocality = selectedLocality === 'all' || merchant.locality === selectedLocality;
+    return matchesSearch && matchesCategory && matchesLocality;
   });
+
+  const localities = Array.from(
+    new Set(merchants.map((m: any) => m.locality).filter(Boolean))
+  ).sort() as string[];
 
   const categoryEmojis: Record<string, string> = {
     'Food & Dining': '🍽️',
@@ -171,6 +177,36 @@ const MerchantsPage = () => {
             </button>
           ))}
         </div>
+
+        {/* Locality Filter */}
+        {localities.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <button
+              onClick={() => setSelectedLocality('all')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs whitespace-nowrap transition-colors ${
+                selectedLocality === 'all'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted hover:bg-muted/80'
+              }`}
+            >
+              <MapPin className="w-3 h-3" />
+              All Areas
+            </button>
+            {localities.map((loc) => (
+              <button
+                key={loc}
+                onClick={() => setSelectedLocality(loc)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs whitespace-nowrap capitalize transition-colors ${
+                  selectedLocality === loc
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted hover:bg-muted/80'
+                }`}
+              >
+                {loc.replace(/-/g, ' ')}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Stats */}
         <div className="flex items-center justify-between text-sm text-muted-foreground">

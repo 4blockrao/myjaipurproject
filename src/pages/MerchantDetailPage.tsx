@@ -45,20 +45,48 @@ const MerchantDetailPage = () => {
   });
 
   const { data: deals = [] } = useQuery({
-    queryKey: ['merchant-deals', id],
+    queryKey: ['merchant-deals', merchant?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Direct merchant_id deals
+      const { data: directDeals } = await supabase
         .from('deals')
         .select('*')
-        .eq('merchant_id', id)
+        .eq('merchant_id', merchant.id)
         .eq('is_active', true)
         .eq('approval_status', 'approved')
         .order('created_at', { ascending: false })
         .limit(20);
-      if (error) throw error;
-      return data || [];
+
+      // Junction-table deals
+      const { data: linked } = await supabase
+        .from('deals_merchants')
+        .select('deal:deals(id, slug, title, description, discount_percentage, image_url, original_price, discounted_price, is_featured, is_active, approval_status)')
+        .eq('merchant_id', merchant.id);
+
+      const linkedDeals = (linked || [])
+        .map((row: any) => row.deal)
+        .filter((d: any) => d && d.is_active !== false);
+
+      const all = [...(directDeals || []), ...linkedDeals];
+      const seen = new Set<string>();
+      return all.filter((d: any) => (d && !seen.has(d.id) && seen.add(d.id)));
     },
-    enabled: !!id,
+    enabled: !!merchant?.id,
+  });
+
+  const { data: featuredArticles = [] } = useQuery({
+    queryKey: ['merchant-articles', merchant?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('article_merchants')
+        .select('article:articles(id, slug, title, type, article_type, status)')
+        .eq('merchant_id', merchant.id);
+      if (error) throw error;
+      return (data || [])
+        .map((row: any) => row.article)
+        .filter((a: any) => a && a.status === 'published');
+    },
+    enabled: !!merchant?.id,
   });
 
   const handleShare = async () => {
@@ -234,6 +262,32 @@ const MerchantDetailPage = () => {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">About {merchant.business_name}</h2>
             <p className="text-muted-foreground leading-relaxed">{merchant.description}</p>
+          </section>
+        )}
+
+        {/* Known For & Features */}
+        {(Array.isArray((merchant as any).known_for) && (merchant as any).known_for.length > 0) && (
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Award className="w-4 h-4 text-primary" /> Known For
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {(merchant as any).known_for.map((item: string, i: number) => (
+                <Badge key={i} variant="secondary">{item}</Badge>
+              ))}
+            </div>
+          </section>
+        )}
+        {(Array.isArray((merchant as any).features) && (merchant as any).features.length > 0) && (
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" /> Features
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {(merchant as any).features.map((item: string, i: number) => (
+                <Badge key={i} variant="outline">{item}</Badge>
+              ))}
+            </div>
           </section>
         )}
 
@@ -430,6 +484,48 @@ const MerchantDetailPage = () => {
             </section>
           </>
         )}
+
+        {/* Featured In (Articles) */}
+        {featuredArticles.length > 0 && (
+          <>
+            <Separator />
+            <section className="space-y-3">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Award className="w-5 h-5 text-primary" />
+                Featured In
+              </h2>
+              <div className="space-y-2">
+                {featuredArticles.map((a: any) => {
+                  const base = a.type === 'news' ? '/news' : '/guide';
+                  return (
+                    <Link key={a.id} to={`${base}/${a.slug}`}>
+                      <Card className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4 flex items-center justify-between gap-3">
+                          <p className="text-sm font-medium line-clamp-2">{a.title}</p>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          </>
+        )}
+
+        {/* Back to IPL campaign */}
+        <Separator />
+        <Link to="/ipl-2026" className="block">
+          <Card className="bg-primary/5 hover:bg-primary/10 transition-colors">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">← Back to IPL 2026 Guide</p>
+                <p className="text-xs text-muted-foreground">Tickets, schedules & more</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
       </main>
 
       <NativeBottomNav />
