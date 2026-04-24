@@ -128,6 +128,44 @@ const DealDetailPage = () => {
     enabled: !!deal?.category && !!id
   });
 
+  // Real "bought in last 24h" count from deal_purchases
+  const { data: recentPurchases = 0 } = useQuery({
+    queryKey: ['deal-recent-purchases', deal?.id],
+    queryFn: async () => {
+      if (!deal?.id) return 0;
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { count, error } = await supabase
+        .from('deal_purchases')
+        .select('id', { count: 'exact', head: true })
+        .eq('deal_id', deal.id)
+        .gte('purchased_at', since);
+      if (error) return 0;
+      return count || 0;
+    },
+    enabled: !!deal?.id,
+    staleTime: 60 * 1000,
+  });
+
+  // Recent buyers (avatars + first names) — best-effort, falls back silently
+  const { data: recentBuyers = [] } = useQuery({
+    queryKey: ['deal-recent-buyers', deal?.id],
+    queryFn: async () => {
+      if (!deal?.id) return [] as any[];
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from('deal_purchases')
+        .select('id, purchased_at, user_phone')
+        .eq('deal_id', deal.id)
+        .gte('purchased_at', since)
+        .order('purchased_at', { ascending: false })
+        .limit(5);
+      if (error) return [];
+      return data || [];
+    },
+    enabled: !!deal?.id,
+    staleTime: 60 * 1000,
+  });
+
   const handleSaveDeal = () => {
     setIsSaved(!isSaved);
     toast({
