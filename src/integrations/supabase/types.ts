@@ -2623,6 +2623,9 @@ export type Database = {
           description: string | null
           dining: Json | null
           distance_matrix: Json | null
+          distance_to_airport: string | null
+          distance_to_bus_stand: string | null
+          distance_to_railway: string | null
           education: Json | null
           emergency_contacts: Json | null
           entertainment: Json | null
@@ -2726,6 +2729,9 @@ export type Database = {
           description?: string | null
           dining?: Json | null
           distance_matrix?: Json | null
+          distance_to_airport?: string | null
+          distance_to_bus_stand?: string | null
+          distance_to_railway?: string | null
           education?: Json | null
           emergency_contacts?: Json | null
           entertainment?: Json | null
@@ -2829,6 +2835,9 @@ export type Database = {
           description?: string | null
           dining?: Json | null
           distance_matrix?: Json | null
+          distance_to_airport?: string | null
+          distance_to_bus_stand?: string | null
+          distance_to_railway?: string | null
           education?: Json | null
           emergency_contacts?: Json | null
           entertainment?: Json | null
