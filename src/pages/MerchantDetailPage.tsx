@@ -10,11 +10,27 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  MapPin, Phone, Mail, Globe, Star, ShieldCheck, 
-  Clock, Tag, ChevronRight, Store, BadgeCheck,
-  Navigation, MessageCircle, Share2, ExternalLink,
-  Percent, Award, Users, Calendar, Sparkles
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Globe,
+  Star,
+  ShieldCheck,
+  Clock,
+  Tag,
+  ChevronRight,
+  Store,
+  BadgeCheck,
+  Navigation,
+  MessageCircle,
+  Share2,
+  ExternalLink,
+  Percent,
+  Award,
+  Users,
+  Calendar,
+  Sparkles,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import DealCard, { type DealCardData } from "@/components/deals/DealCard";
@@ -24,20 +40,17 @@ const MerchantDetailPage = () => {
   const { toast } = useToast();
 
   const { data: merchant, isLoading } = useQuery({
-    queryKey: ['merchant', id],
+    queryKey: ["merchant", id],
     queryFn: async () => {
-      // Try to find by ID first, then by slug
-      let query = supabase.from('merchants').select('*');
-      
-      // Check if 'id' looks like a UUID or a slug
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id || '');
-      
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id || "");
+
+      let query = supabase.from("merchants").select("*");
       if (isUUID) {
-        query = query.eq('id', id);
+        query = query.eq("id", id);
       } else {
-        query = query.eq('slug', id);
+        query = query.eq("slug", id);
       }
-      
+
       const { data, error } = await query.single();
       if (error) throw error;
       return data;
@@ -45,47 +58,33 @@ const MerchantDetailPage = () => {
     enabled: !!id,
   });
 
+  // Query deals from active_deals view (no complex filters)
   const { data: deals = [] } = useQuery({
-    queryKey: ['merchant-deals', merchant?.id],
+    queryKey: ["merchant-deals", merchant?.id],
     queryFn: async () => {
-      // Direct merchant_id deals
-      const { data: directDeals } = await supabase
-        .from('deals')
-        .select('*')
-        .eq('merchant_id', merchant.id)
-        .eq('status', 'published')
-        .eq('approval_status', 'approved')
-        .order('created_at', { ascending: false })
-        .limit(20);
+      if (!merchant?.id) return [];
 
-      // Junction-table deals
-      const { data: linked } = await supabase
-        .from('deals_merchants')
-        .select('deal:deals(id, slug, title, description, discount_percentage, image_url, original_price, discounted_price, is_featured, is_active, approval_status)')
-        .eq('merchant_id', merchant.id);
+      const { data, error } = await supabase
+        .from("active_deals")
+        .select("*")
+        .eq("merchant_id", merchant.id)
+        .order("discount_percentage", { ascending: false });
 
-      const linkedDeals = (linked || [])
-        .map((row: any) => row.deal)
-        .filter((d: any) => d && d.is_active !== false);
-
-      const all = [...(directDeals || []), ...linkedDeals];
-      const seen = new Set<string>();
-      return all.filter((d: any) => (d && !seen.has(d.id) && seen.add(d.id)));
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!merchant?.id,
   });
 
   const { data: featuredArticles = [] } = useQuery({
-    queryKey: ['merchant-articles', merchant?.id],
+    queryKey: ["merchant-articles", merchant?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('article_merchants')
-        .select('article:articles(id, slug, title, type, article_type, status)')
-        .eq('merchant_id', merchant.id);
+        .from("article_merchants")
+        .select("article:articles(id, slug, title, type, article_type, status)")
+        .eq("merchant_id", merchant.id);
       if (error) throw error;
-      return (data || [])
-        .map((row: any) => row.article)
-        .filter((a: any) => a && a.status === 'published');
+      return (data || []).map((row: any) => row.article).filter((a: any) => a && a.status === "published");
     },
     enabled: !!merchant?.id,
   });
@@ -94,7 +93,7 @@ const MerchantDetailPage = () => {
     const shareData = {
       title: merchant?.business_name,
       text: `Check out ${merchant?.business_name} on JaipurCircle - Great deals and offers!`,
-      url: window.location.href
+      url: window.location.href,
     };
 
     if (navigator.share) {
@@ -129,9 +128,7 @@ const MerchantDetailPage = () => {
         <main className="pt-16 px-4 flex flex-col items-center justify-center min-h-[60vh]">
           <Store className="w-16 h-16 text-muted-foreground mb-4" />
           <h1 className="text-xl font-semibold mb-2">Merchant Not Found</h1>
-          <p className="text-muted-foreground text-center mb-4">
-            This merchant doesn't exist or has been removed.
-          </p>
+          <p className="text-muted-foreground text-center mb-4">This merchant doesn't exist or has been removed.</p>
           <Link to="/merchants">
             <Button>View All Merchants</Button>
           </Link>
@@ -141,24 +138,23 @@ const MerchantDetailPage = () => {
     );
   }
 
-  const locality = merchant.locality || 'Jaipur';
+  const locality = merchant.locality || "Jaipur";
   const currentYear = new Date().getFullYear();
 
   const categoryEmojis: Record<string, string> = {
-    'Food & Dining': '🍽️',
-    'Beauty & Wellness': '💅',
-    'Shopping': '🛍️',
-    'Electronics': '📱',
-    'Health & Fitness': '💪',
-    'Automotive': '🚗',
-    'Services': '🔧',
-    'Travel': '✈️',
-    'Education': '📚',
+    "Food & Dining": "🍽️",
+    "Beauty & Wellness": "💅",
+    Shopping: "🛍️",
+    Electronics: "📱",
+    "Health & Fitness": "💪",
+    Automotive: "🚗",
+    Services: "🔧",
+    Travel: "✈️",
+    Education: "📚",
   };
 
-  // Stats
-  const featuredDeals = deals.filter(d => d.is_featured);
-  const totalSavings = deals.reduce((acc, d) => {
+  const featuredDeals = deals.filter((d: any) => d.is_featured);
+  const totalSavings = deals.reduce((acc: number, d: any) => {
     if (d.original_price && d.discounted_price) {
       return acc + (d.original_price - d.discounted_price);
     }
@@ -169,9 +165,9 @@ const MerchantDetailPage = () => {
     <div className="min-h-screen bg-background pb-20">
       <MerchantSEO merchant={merchant} dealsCount={deals.length} />
 
-      <FloatingHeader 
-        title={merchant.business_name} 
-        showBackButton 
+      <FloatingHeader
+        title={merchant.business_name}
+        showBackButton
         rightAction={
           <Button variant="ghost" size="icon" onClick={handleShare}>
             <Share2 className="w-5 h-5" />
@@ -180,23 +176,23 @@ const MerchantDetailPage = () => {
       />
 
       <main className="pt-16 px-4 space-y-5 max-w-2xl mx-auto">
-        {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs text-muted-foreground overflow-x-auto pt-2">
-          <Link to="/" className="hover:text-primary whitespace-nowrap">Home</Link>
+          <Link to="/" className="hover:text-primary whitespace-nowrap">
+            Home
+          </Link>
           <ChevronRight className="w-3 h-3 flex-shrink-0" />
-          <Link to="/merchants" className="hover:text-primary whitespace-nowrap">Merchants</Link>
+          <Link to="/merchants" className="hover:text-primary whitespace-nowrap">
+            Merchants
+          </Link>
           <ChevronRight className="w-3 h-3 flex-shrink-0" />
           <span className="text-foreground truncate">{merchant.business_name}</span>
         </nav>
 
-        {/* Hero Card */}
         <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-primary/10 via-background to-secondary/10">
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
               <Avatar className="w-20 h-20 border-4 border-background shadow-lg">
-                {merchant.logo_url ? (
-                  <AvatarImage src={merchant.logo_url} alt={merchant.business_name} />
-                ) : null}
+                {merchant.logo_url ? <AvatarImage src={merchant.logo_url} alt={merchant.business_name} /> : null}
                 <AvatarFallback className="bg-primary/20 text-primary text-2xl font-bold">
                   {merchant.business_name.charAt(0)}
                 </AvatarFallback>
@@ -204,25 +200,22 @@ const MerchantDetailPage = () => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h1 className="text-xl font-bold truncate">{merchant.business_name}</h1>
-                  {merchant.is_verified && (
-                    <BadgeCheck className="w-5 h-5 text-primary flex-shrink-0" />
-                  )}
+                  {merchant.is_verified && <BadgeCheck className="w-5 h-5 text-primary flex-shrink-0" />}
                 </div>
                 {merchant.business_type && (
                   <Badge variant="secondary" className="mb-2">
-                    {categoryEmojis[merchant.business_type] || '🏪'} {merchant.business_type}
+                    {categoryEmojis[merchant.business_type] || "🏪"} {merchant.business_type}
                   </Badge>
                 )}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                  <span className="font-medium">{merchant.average_rating?.toFixed(1) || '4.5'}</span>
+                  <span className="font-medium">{merchant.average_rating?.toFixed(1) || "4.5"}</span>
                   <span>•</span>
                   <span>{merchant.total_reviews || 0} reviews</span>
                 </div>
               </div>
             </div>
 
-            {/* Quick Stats */}
             <div className="grid grid-cols-3 gap-3 mt-5">
               <div className="text-center p-3 rounded-xl bg-background/80">
                 <div className="text-xl font-bold text-primary">{deals.length}</div>
@@ -240,7 +233,6 @@ const MerchantDetailPage = () => {
           </CardContent>
         </Card>
 
-        {/* Trust Badges */}
         <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
           {merchant.is_verified && (
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-50 border border-green-200 flex-shrink-0">
@@ -258,7 +250,6 @@ const MerchantDetailPage = () => {
           </div>
         </div>
 
-        {/* Description */}
         {merchant.description && (
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">About {merchant.business_name}</h2>
@@ -266,27 +257,30 @@ const MerchantDetailPage = () => {
           </section>
         )}
 
-        {/* Known For & Features */}
-        {(Array.isArray((merchant as any).known_for) && (merchant as any).known_for.length > 0) && (
+        {Array.isArray((merchant as any).known_for) && (merchant as any).known_for.length > 0 && (
           <section className="space-y-2">
             <h3 className="text-sm font-semibold flex items-center gap-2">
               <Award className="w-4 h-4 text-primary" /> Known For
             </h3>
             <div className="flex flex-wrap gap-2">
               {(merchant as any).known_for.map((item: string, i: number) => (
-                <Badge key={i} variant="secondary">{item}</Badge>
+                <Badge key={i} variant="secondary">
+                  {item}
+                </Badge>
               ))}
             </div>
           </section>
         )}
-        {(Array.isArray((merchant as any).features) && (merchant as any).features.length > 0) && (
+        {Array.isArray((merchant as any).features) && (merchant as any).features.length > 0 && (
           <section className="space-y-2">
             <h3 className="text-sm font-semibold flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-primary" /> Features
             </h3>
             <div className="flex flex-wrap gap-2">
               {(merchant as any).features.map((item: string, i: number) => (
-                <Badge key={i} variant="outline">{item}</Badge>
+                <Badge key={i} variant="outline">
+                  {item}
+                </Badge>
               ))}
             </div>
           </section>
@@ -294,13 +288,12 @@ const MerchantDetailPage = () => {
 
         <Separator />
 
-        {/* Contact Info */}
         <section className="space-y-3">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <MessageCircle className="w-5 h-5 text-primary" />
             Contact Information
           </h2>
-          
+
           <Card>
             <CardContent className="p-4 space-y-3">
               {merchant.address && (
@@ -310,13 +303,18 @@ const MerchantDetailPage = () => {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium">Address</p>
-                    <p className="text-sm text-muted-foreground">{merchant.address}, {locality}, Jaipur</p>
+                    <p className="text-sm text-muted-foreground">
+                      {merchant.address}, {locality}, Jaipur
+                    </p>
                   </div>
                 </div>
               )}
-              
+
               {merchant.phone && (
-                <a href={`tel:${merchant.phone}`} className="flex items-start gap-3 hover:bg-muted/50 -mx-2 px-2 py-1 rounded-lg transition-colors">
+                <a
+                  href={`tel:${merchant.phone}`}
+                  className="flex items-start gap-3 hover:bg-muted/50 -mx-2 px-2 py-1 rounded-lg transition-colors"
+                >
                   <div className="p-2 rounded-full bg-primary/10">
                     <Phone className="w-4 h-4 text-primary" />
                   </div>
@@ -327,9 +325,12 @@ const MerchantDetailPage = () => {
                   <ChevronRight className="w-4 h-4 text-muted-foreground mt-2" />
                 </a>
               )}
-              
+
               {merchant.email && (
-                <a href={`mailto:${merchant.email}`} className="flex items-start gap-3 hover:bg-muted/50 -mx-2 px-2 py-1 rounded-lg transition-colors">
+                <a
+                  href={`mailto:${merchant.email}`}
+                  className="flex items-start gap-3 hover:bg-muted/50 -mx-2 px-2 py-1 rounded-lg transition-colors"
+                >
                   <div className="p-2 rounded-full bg-primary/10">
                     <Mail className="w-4 h-4 text-primary" />
                   </div>
@@ -340,9 +341,14 @@ const MerchantDetailPage = () => {
                   <ChevronRight className="w-4 h-4 text-muted-foreground mt-2" />
                 </a>
               )}
-              
+
               {merchant.website && (
-                <a href={merchant.website} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 hover:bg-muted/50 -mx-2 px-2 py-1 rounded-lg transition-colors">
+                <a
+                  href={merchant.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-3 hover:bg-muted/50 -mx-2 px-2 py-1 rounded-lg transition-colors"
+                >
                   <div className="p-2 rounded-full bg-primary/10">
                     <Globe className="w-4 h-4 text-primary" />
                   </div>
@@ -356,7 +362,6 @@ const MerchantDetailPage = () => {
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
           <div className="grid grid-cols-3 gap-3">
             {merchant.phone && (
               <a href={`tel:${merchant.phone}`}>
@@ -367,9 +372,9 @@ const MerchantDetailPage = () => {
               </a>
             )}
             {merchant.address && (
-              <a 
-                href={`https://maps.google.com/?q=${encodeURIComponent(merchant.address + ', ' + locality + ', Jaipur')}`}
-                target="_blank" 
+              <a
+                href={`https://maps.google.com/?q=${encodeURIComponent(merchant.address + ", " + locality + ", Jaipur")}`}
+                target="_blank"
                 rel="noopener noreferrer"
               >
                 <Button variant="outline" className="w-full flex-col h-auto py-3 gap-1">
@@ -387,7 +392,6 @@ const MerchantDetailPage = () => {
 
         <Separator />
 
-        {/* Active Deals */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -396,15 +400,14 @@ const MerchantDetailPage = () => {
             </h2>
             <Badge variant="secondary">{deals.length} offers</Badge>
           </div>
-          
+
           {deals.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {deals.map((deal: any) => (
                 <DealCard
                   key={deal.id}
                   deal={{
-                    ...(deal as DealCardData),
-                    location: deal.location || merchant.locality,
+                    ...deal,
                     merchants: {
                       business_name: merchant.business_name,
                       is_verified: merchant.is_verified,
@@ -425,8 +428,7 @@ const MerchantDetailPage = () => {
           )}
         </section>
 
-        {/* Location Link */}
-        {locality && locality !== 'Jaipur' && (
+        {locality && locality !== "Jaipur" && (
           <>
             <Separator />
             <section className="space-y-3">
@@ -434,14 +436,12 @@ const MerchantDetailPage = () => {
                 <MapPin className="w-5 h-5 text-primary" />
                 Explore {locality}
               </h2>
-              <Link to={`/jaipur/${locality.toLowerCase().replace(/\s+/g, '-')}`}>
+              <Link to={`/jaipur/${locality.toLowerCase().replace(/\s+/g, "-")}`}>
                 <Card className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4 flex items-center justify-between">
                     <div>
                       <p className="font-medium">More in {locality}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Discover other merchants and deals in this area
-                      </p>
+                      <p className="text-sm text-muted-foreground">Discover other merchants and deals in this area</p>
                     </div>
                     <ChevronRight className="w-5 h-5 text-muted-foreground" />
                   </CardContent>
@@ -451,7 +451,6 @@ const MerchantDetailPage = () => {
           </>
         )}
 
-        {/* Featured In (Articles) */}
         {featuredArticles.length > 0 && (
           <>
             <Separator />
@@ -462,7 +461,7 @@ const MerchantDetailPage = () => {
               </h2>
               <div className="space-y-2">
                 {featuredArticles.map((a: any) => {
-                  const base = a.type === 'news' ? '/news' : '/guide';
+                  const base = a.type === "news" ? "/news" : "/guide";
                   return (
                     <Link key={a.id} to={`${base}/${a.slug}`}>
                       <Card className="hover:shadow-md transition-shadow">
@@ -479,7 +478,6 @@ const MerchantDetailPage = () => {
           </>
         )}
 
-        {/* Back to IPL campaign */}
         <Separator />
         <Link to="/ipl-2026" className="block">
           <Card className="bg-primary/5 hover:bg-primary/10 transition-colors">
