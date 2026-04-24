@@ -17,6 +17,10 @@
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/$1"
     },
     {
+      "src": "^/artists/([^/]+)/?$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/artist-ssr?slug=$1"
+    }
+    {
       "src": "^/events/category/([^/]+)/?$",
       "dest": "/api/events-list-ssr?path=/events/category/$1"
     },
