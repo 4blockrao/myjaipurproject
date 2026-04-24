@@ -89,7 +89,7 @@ const DealShare = ({ isOpen, onClose }: DealShareProps) => {
             is_verified
           )
         `)
-        .eq('is_active', true)
+        .eq('status', 'published')
         .eq('approval_status', 'approved')
         .gte('end_date', new Date().toISOString())
         .order('created_at', { ascending: false })

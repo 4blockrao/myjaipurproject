@@ -23,7 +23,7 @@ interface Deal {
   discount_percentage: number | null;
   category: string | null;
   location: string | null;
-  is_active: boolean | null;
+  status: string | null;
   is_featured: boolean | null;
   approval_status: string | null;
   jaicoin_reward: number | null;
@@ -124,7 +124,7 @@ const DealsManagement = () => {
         image_url: formData.image_url,
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
-        is_active: true,
+        status: 'published',
         approval_status: 'approved',
         approved_by: user?.id,
         approved_at: new Date().toISOString(),
@@ -182,17 +182,18 @@ const DealsManagement = () => {
     }
   };
 
-  const toggleDealActive = async (id: string, currentStatus: boolean | null) => {
+  const toggleDealActive = async (id: string, currentStatus: string | null) => {
+    const nextStatus = currentStatus === 'published' ? 'draft' : 'published';
     const { error } = await supabase
       .from('deals')
-      .update({ is_active: !currentStatus })
+      .update({ status: nextStatus })
       .eq('id', id);
 
     if (error) {
       toast({ title: "Error", description: "Failed to update deal", variant: "destructive" });
     } else {
-      setDeals(deals.map(d => d.id === id ? { ...d, is_active: !currentStatus } : d));
-      toast({ title: "Updated", description: `Deal ${!currentStatus ? 'activated' : 'deactivated'}` });
+      setDeals(deals.map(d => d.id === id ? { ...d, status: nextStatus } : d));
+      toast({ title: "Updated", description: `Deal ${nextStatus === 'published' ? 'published' : 'unpublished'}` });
     }
   };
 
@@ -216,7 +217,7 @@ const DealsManagement = () => {
       .from('deals')
       .update({ 
         approval_status: 'approved',
-        is_active: true,
+        status: 'published',
         approved_by: user?.id,
         approved_at: new Date().toISOString()
       })
@@ -236,7 +237,7 @@ const DealsManagement = () => {
       .from('deals')
       .update({ 
         approval_status: 'rejected',
-        is_active: false,
+        status: 'draft',
         approved_by: user?.id,
         approved_at: new Date().toISOString()
       })
@@ -321,7 +322,7 @@ const DealsManagement = () => {
   });
 
   const pendingDeals = deals.filter(d => d.approval_status === 'pending_approval' || d.approval_status === 'draft');
-  const activeDeals = deals.filter(d => d.is_active);
+  const activeDeals = deals.filter(d => d.status === 'published');
 
   if (isLoading) {
     return (
@@ -607,8 +608,8 @@ const DealsManagement = () => {
                     <TableCell>{getStatusBadge(deal.approval_status)}</TableCell>
                     <TableCell>
                       <Switch
-                        checked={deal.is_active || false}
-                        onCheckedChange={() => toggleDealActive(deal.id, deal.is_active)}
+                        checked={deal.status === 'published'}
+                        onCheckedChange={() => toggleDealActive(deal.id, deal.status)}
                       />
                     </TableCell>
                     <TableCell>

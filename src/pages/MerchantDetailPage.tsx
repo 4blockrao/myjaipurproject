@@ -53,7 +53,7 @@ const MerchantDetailPage = () => {
         .from('deals')
         .select('*')
         .eq('merchant_id', merchant.id)
-        .eq('is_active', true)
+        .eq('status', 'published')
         .eq('approval_status', 'approved')
         .order('created_at', { ascending: false })
         .limit(20);

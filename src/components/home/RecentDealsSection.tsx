@@ -18,7 +18,7 @@ const RecentDealsSection = () => {
           *,
           merchants (business_name, is_verified, average_rating)
         `)
-        .eq('is_active', true)
+        .eq('status', 'published')
         .eq('approval_status', 'approved')
         .gte('end_date', new Date().toISOString())
         .order('created_at', { ascending: false })

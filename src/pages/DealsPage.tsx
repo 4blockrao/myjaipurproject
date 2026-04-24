@@ -83,7 +83,7 @@ const DealsPage = () => {
              is_featured, inventory_count, max_redemptions, current_redemptions,
              merchants (business_name, is_verified, average_rating)`
           )
-          .eq("is_active", true)
+          .eq("status", "published")
           .gte("end_date", new Date().toISOString());
 
         if (selectedCategory !== "all") {

@@ -45,7 +45,7 @@ const AdminAnalytics = () => {
       ] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("merchants").select("*", { count: "exact", head: true }).eq("is_active", true),
-        supabase.from("deals").select("*", { count: "exact", head: true }).eq("is_active", true),
+        supabase.from("deals").select("*", { count: "exact", head: true }).eq("status", "published"),
         supabase.from("orders").select("*", { count: "exact", head: true }),
         supabase.from("events").select("*", { count: "exact", head: true }).eq("status", "published"),
         supabase.from("event_registrations").select("*", { count: "exact", head: true }),

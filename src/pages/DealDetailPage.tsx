@@ -117,7 +117,7 @@ const DealDetailPage = () => {
           original_price, discounted_price, location, image_url,
           merchants (id, business_name)
         `)
-        .eq('is_active', true)
+        .eq('status', 'published')
         .eq('category', deal?.category || '')
         .neq('id', deal?.id || '')
         .limit(4);

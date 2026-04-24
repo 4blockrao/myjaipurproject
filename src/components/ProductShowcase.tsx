@@ -43,7 +43,7 @@ const ProductShowcase = () => {
             is_verified
           )
         `)
-        .eq('is_active', true)
+        .eq('status', 'published')
         .eq('is_product_sale', true)
         .gt('inventory_count', 0)
         .order('created_at', { ascending: false })

@@ -78,7 +78,7 @@ const DealsDiscovery = () => {
             is_verified
           )
         `)
-        .eq('is_active', true)
+        .eq('status', 'published')
         .order('is_featured', { ascending: false })
         .order('created_at', { ascending: false });
 
