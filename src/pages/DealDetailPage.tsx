@@ -19,8 +19,11 @@ import {
   ShoppingCart, Gift, Award, CheckCircle, Tag,
   Store, BadgeCheck, Coins, 
   Navigation, MessageCircle, Info, FileText,
-  ChevronRight, Sparkles, Shield, Zap
+  ChevronRight, Sparkles, Shield, Zap, Copy
 } from "lucide-react";
+import CountdownTimer from "@/components/deals/CountdownTimer";
+import SocialProofCounter from "@/components/deals/SocialProofCounter";
+import ProgressBar from "@/components/deals/ProgressBar";
 
 interface Deal {
   id: string;
@@ -125,6 +128,44 @@ const DealDetailPage = () => {
     enabled: !!deal?.category && !!id
   });
 
+  // Real "bought in last 24h" count from deal_purchases
+  const { data: recentPurchases = 0 } = useQuery({
+    queryKey: ['deal-recent-purchases', deal?.id],
+    queryFn: async () => {
+      if (!deal?.id) return 0;
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { count, error } = await supabase
+        .from('deal_purchases')
+        .select('id', { count: 'exact', head: true })
+        .eq('deal_id', deal.id)
+        .gte('purchased_at', since);
+      if (error) return 0;
+      return count || 0;
+    },
+    enabled: !!deal?.id,
+    staleTime: 60 * 1000,
+  });
+
+  // Recent buyers (avatars + first names) — best-effort, falls back silently
+  const { data: recentBuyers = [] } = useQuery({
+    queryKey: ['deal-recent-buyers', deal?.id],
+    queryFn: async () => {
+      if (!deal?.id) return [] as any[];
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from('deal_purchases')
+        .select('id, purchased_at, user_phone')
+        .eq('deal_id', deal.id)
+        .gte('purchased_at', since)
+        .order('purchased_at', { ascending: false })
+        .limit(5);
+      if (error) return [];
+      return data || [];
+    },
+    enabled: !!deal?.id,
+    staleTime: 60 * 1000,
+  });
+
   const handleSaveDeal = () => {
     setIsSaved(!isSaved);
     toast({
@@ -148,6 +189,18 @@ const DealDetailPage = () => {
       await navigator.clipboard.writeText(window.location.href);
       toast({ title: "Link copied", description: "Deal link has been copied to clipboard" });
     }
+  };
+
+  const handleWhatsAppShare = () => {
+    const text = `🔥 ${deal?.title} — ${deal?.discount_percentage || ''}% OFF at ${
+      deal?.merchants?.business_name || 'JaipurCircle'
+    }!\nGrab it for ₹${deal?.discounted_price?.toLocaleString('en-IN')} 👇\n${window.location.href}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleCopyLink = async () => {
+    await navigator.clipboard.writeText(window.location.href);
+    toast({ title: 'Link copied', description: 'Share it with friends!' });
   };
 
   const handlePurchase = async () => {
@@ -431,6 +484,62 @@ const DealDetailPage = () => {
                   Only {available} left! Hurry up!
                 </div>
               )}
+
+              {/* Stock progress */}
+              {!isUnlimited && deal.max_redemptions ? (
+                <div className="mt-4">
+                  <ProgressBar
+                    sold={deal.current_redemptions || 0}
+                    total={deal.max_redemptions}
+                  />
+                </div>
+              ) : null}
+
+              {/* Countdown */}
+              {deal.end_date && (
+                <div className="mt-4">
+                  <CountdownTimer endDate={deal.end_date} variant="hero" />
+                </div>
+              )}
+
+              {/* Social proof */}
+              <div className="mt-4">
+                <SocialProofCounter
+                  dealId={deal.id}
+                  recentPurchases={recentPurchases}
+                />
+              </div>
+
+              {/* Trust badges */}
+              <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-medium">
+                <span className="inline-flex items-center gap-1 rounded-full bg-green-50 dark:bg-green-950/30 px-2.5 py-1 text-green-700 dark:text-green-400">
+                  <Shield className="h-3 w-3" /> 100% Genuine
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950/30 px-2.5 py-1 text-blue-700 dark:text-blue-400">
+                  <Zap className="h-3 w-3" /> Instant Delivery
+                </span>
+                {merchant?.is_verified && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 dark:bg-purple-950/30 px-2.5 py-1 text-purple-700 dark:text-purple-400">
+                    <BadgeCheck className="h-3 w-3" /> Verified Merchant
+                  </span>
+                )}
+              </div>
+
+              {/* Share buttons */}
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleWhatsAppShare}
+                  className="gap-2"
+                >
+                  <MessageCircle className="h-4 w-4 text-green-600" />
+                  Share on WhatsApp
+                </Button>
+                <Button variant="outline" onClick={handleCopyLink} className="gap-2">
+                  <Copy className="h-4 w-4" />
+                  Copy link
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -669,6 +778,51 @@ const DealDetailPage = () => {
           {/* Related Deals */}
           {relatedDeals.length > 0 && (
             <>
+              <Separator />
+              {recentBuyers.length > 0 && (
+                <section className="space-y-3">
+                  <h2 className="text-lg font-semibold flex items-center gap-2">
+                    <Users className="w-5 h-5 text-primary" />
+                    Recent Buyers
+                  </h2>
+                  <Card className="bg-muted/30">
+                    <CardContent className="p-4 space-y-2">
+                      {recentBuyers.map((b: any, i: number) => {
+                        const initials = (b.user_phone || 'JC').slice(-2).toUpperCase();
+                        const when = b.purchased_at
+                          ? new Date(b.purchased_at)
+                          : new Date();
+                        const mins = Math.max(
+                          1,
+                          Math.round((Date.now() - when.getTime()) / 60000)
+                        );
+                        const ago =
+                          mins < 60
+                            ? `${mins}m ago`
+                            : mins < 1440
+                            ? `${Math.round(mins / 60)}h ago`
+                            : `${Math.round(mins / 1440)}d ago`;
+                        return (
+                          <div key={b.id || i} className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                                {initials}
+                              </AvatarFallback>
+                            </Avatar>
+                            <p className="text-sm text-muted-foreground">
+                              <span className="font-medium text-foreground">
+                                Buyer {b.user_phone ? `***${String(b.user_phone).slice(-4)}` : i + 1}
+                              </span>{' '}
+                              from {locality} bought {ago}
+                            </p>
+                            <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
+                          </div>
+                        );
+                      })}
+                    </CardContent>
+                  </Card>
+                </section>
+              )}
               <Separator />
               <section className="space-y-4">
                 <div className="flex items-center justify-between">
