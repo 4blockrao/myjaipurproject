@@ -9,9 +9,6 @@ export async function GET(request: Request) {
   
   return new Response(html, {
     status: 200,
-    headers: {
-      'Content-Type': 'text/html',
-      'Cache-Control': 'public, max-age=3600',
-    },
+    headers: { 'Content-Type': 'text/html', 'Cache-Control': 'public, max-age=3600' },
   });
 }
