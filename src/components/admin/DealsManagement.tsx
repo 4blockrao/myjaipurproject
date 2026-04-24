@@ -23,7 +23,7 @@ interface Deal {
   discount_percentage: number | null;
   category: string | null;
   location: string | null;
-  is_active: boolean | null;
+  status: string | null;
   is_featured: boolean | null;
   approval_status: string | null;
   jaicoin_reward: number | null;
