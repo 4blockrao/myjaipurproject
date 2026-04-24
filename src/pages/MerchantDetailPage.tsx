@@ -17,6 +17,7 @@ import {
   Percent, Award, Users, Calendar, Sparkles
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import DealCard, { type DealCardData } from "@/components/deals/DealCard";
 
 const MerchantDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -397,55 +398,20 @@ const MerchantDetailPage = () => {
           </div>
           
           {deals.length > 0 ? (
-            <div className="grid grid-cols-1 gap-3">
-              {deals.map((deal) => (
-                <Link key={deal.id} to={`/deal/${deal.id}`}>
-                  <Card className="overflow-hidden hover:shadow-md transition-all">
-                    <CardContent className="p-0">
-                      <div className="flex gap-3">
-                        <div className="w-24 h-24 bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                          {deal.image_url ? (
-                            <img src={deal.image_url} alt={deal.title} className="w-full h-full object-cover" />
-                          ) : (
-                            <Tag className="w-8 h-8 text-muted-foreground" />
-                          )}
-                        </div>
-                        <div className="flex-1 py-3 pr-3 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium text-sm line-clamp-2">{deal.title}</h3>
-                              <div className="flex items-center gap-2 mt-2">
-                                {deal.discount_percentage && deal.discount_percentage > 0 && (
-                                  <Badge className="bg-destructive/10 text-destructive text-xs gap-1">
-                                    <Percent className="w-3 h-3" />
-                                    {deal.discount_percentage}% OFF
-                                  </Badge>
-                                )}
-                                {deal.is_featured && (
-                                  <Badge variant="outline" className="text-xs gap-1">
-                                    <Sparkles className="w-3 h-3" />
-                                    Featured
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="flex items-baseline gap-2 mt-2">
-                                <span className="text-lg font-bold text-primary">
-                                  ₹{deal.discounted_price?.toLocaleString('en-IN')}
-                                </span>
-                                {deal.original_price && deal.original_price > (deal.discounted_price || 0) && (
-                                  <span className="text-xs text-muted-foreground line-through">
-                                    ₹{deal.original_price.toLocaleString('en-IN')}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-1" />
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {deals.map((deal: any) => (
+                <DealCard
+                  key={deal.id}
+                  deal={{
+                    ...(deal as DealCardData),
+                    location: deal.location || merchant.locality,
+                    merchants: {
+                      business_name: merchant.business_name,
+                      is_verified: merchant.is_verified,
+                      average_rating: merchant.average_rating,
+                    },
+                  }}
+                />
               ))}
             </div>
           ) : (
