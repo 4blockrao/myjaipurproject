@@ -7,7 +7,7 @@ export const config = {
 const SUPABASE_VENUE_SSR_URL =
   "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/venue-ssr";
 
-export default async function handler(request: Request): Promise<Response> {
+export default async function handler(request: Request) {
   const url = new URL(request.url);
   const slug = url.searchParams.get("slug")?.trim();
 
@@ -15,8 +15,8 @@ export default async function handler(request: Request): Promise<Response> {
     return new Response("Missing venue slug", {
       status: 400,
       headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-store",
+        "content-type": "text/plain; charset=utf-8",
+        "cache-control": "no-store",
       },
     });
   }
@@ -26,12 +26,12 @@ export default async function handler(request: Request): Promise<Response> {
 
   try {
     const upstream = await fetch(edgeFunctionUrl, {
-      method: "GET",
       headers: {
-        "User-Agent":
+        "user-agent":
           request.headers.get("user-agent") || "jaipurcircle-venue-proxy",
-        "Accept": "text/html",
+        "accept": "text/html",
       },
+      cache: "no-store",
     });
 
     const html = await upstream.text();
@@ -39,15 +39,14 @@ export default async function handler(request: Request): Promise<Response> {
     return new Response(html, {
       status: upstream.status,
       headers: {
-        "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "no-store, max-age=0, must-revalidate",
-        "X-Venue-Proxy": "true",
-        "X-Upstream-Status": String(upstream.status),
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-store, max-age=0, must-revalidate",
+        "x-venue-proxy": "true",
+        "x-upstream-status": String(upstream.status),
       },
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown venue proxy error";
+    console.error("[venue-proxy] Failed:", error);
 
     return new Response(
       `<!DOCTYPE html>
@@ -60,16 +59,16 @@ export default async function handler(request: Request): Promise<Response> {
 <body>
   <h1>Venue temporarily unavailable</h1>
   <p>Please try again shortly.</p>
-  <pre style="white-space:pre-wrap">${message}</pre>
+  <p><a href="/events">Browse Jaipur events</a></p>
 </body>
 </html>`,
       {
         status: 500,
         headers: {
-          "Content-Type": "text/html; charset=utf-8",
-          "Cache-Control": "no-store",
-          "X-Venue-Proxy": "true",
-          "X-Venue-Proxy-Error": "true",
+          "content-type": "text/html; charset=utf-8",
+          "cache-control": "no-store",
+          "x-venue-proxy": "true",
+          "x-venue-proxy-error": "true",
         },
       },
     );
