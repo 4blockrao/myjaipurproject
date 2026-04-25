@@ -39,22 +39,36 @@ export default async function handler(request: Request) {
     return new Response(html, {
       status: upstream.status,
       headers: {
-        "content-type":
-          upstream.headers.get("content-type") || "text/html; charset=utf-8",
-        "cache-control": "public, s-maxage=3600, stale-while-revalidate=86400",
-        "x-event-proxy": "true",
-        "x-upstream-status": String(upstream.status),
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+        "X-Event-Proxy": "true",
+        "X-Upstream-Status": String(upstream.status),
       },
     });
   } catch (error) {
     console.error("[event-proxy] Failed:", error);
 
-    return new Response("Event SSR proxy failed", {
-      status: 500,
-      headers: {
-        "content-type": "text/plain; charset=utf-8",
-        "cache-control": "no-store",
+    return new Response(
+      `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Event Temporarily Unavailable | JaipurCircle</title>
+</head>
+<body>
+  <h1>Event temporarily unavailable</h1>
+  <p>Please try again shortly.</p>
+  <p><a href="/events">Browse Jaipur events</a></p>
+</body>
+</html>`,
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "no-store",
+        },
       },
-    });
+    );
   }
 }
