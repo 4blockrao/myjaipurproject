@@ -18,7 +18,7 @@
     },
     {
       "src": "/events/category/([^/]+)",
-      "dest": "/api/events-list-ssr?path=/events/category/$1"
+      "dest": "/api/events-list-ssr?path=/events/category/:category"
     },
     {
       "src": "/events/today",
@@ -50,23 +50,19 @@
     },
     {
       "src": "/events/([^/]+)",
-      "dest": "/api/event-proxy?slug=$1"
-    },
-    {
-      "src": "/jaipur/vaishali-nagar",
-      "dest": "/api/jaipur-proxy?slug=vaishali-nagar"
+      "dest": "/api/event-proxy?slug=:slug"
     },
     {
       "src": "/jaipur/([^/]+)",
-      "dest": "/api/jaipur-proxy?slug=$1"
+      "dest": "/api/jaipur-proxy?slug=:slug"
     },
     {
       "src": "/artists/([^/]+)",
-      "dest": "/api/artist-proxy?slug=$1"
+      "dest": "/api/artist-proxy?slug=:slug"
     },
     {
       "src": "/venues/([^/]+)",
-      "dest": "/api/venue-proxy?slug=$1"
+      "dest": "/api/venue-proxy?slug=:slug"
     },
     {
       "src": "/sitemap.xml",
@@ -103,7 +99,7 @@
     {
       "src": "/localities/([^/]+)",
       "status": 308,
-      "headers": { "Location": "/jaipur/$1" }
+      "headers": { "Location": "/jaipur/:slug" }
     },
     {
       "src": "/localities",
