@@ -1,11 +1,11 @@
-// api/deal-proxy.ts
+// api/deals-proxy.ts
 
 export const config = {
   runtime: "edge",
 };
 
 const SUPABASE_DEAL_SSR_URL =
-  "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/deal-ssr";
+  "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/deals-ssr";
 
 export default async function handler(request: Request) {
   const url = new URL(request.url);
@@ -43,6 +43,7 @@ export default async function handler(request: Request) {
         "cache-control": "no-store, max-age=0, must-revalidate",
         "x-deal-proxy": "true",
         "x-upstream-status": String(upstream.status),
+        "x-deal-upstream": "deals-ssr"
       },
     });
   } catch (error) {
