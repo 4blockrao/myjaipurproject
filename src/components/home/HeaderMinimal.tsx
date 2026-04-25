@@ -42,7 +42,7 @@ const HeaderMinimal = ({
               variant="ghost"
               size="sm"
               className="hidden sm:flex items-center gap-1 bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 text-amber-700 dark:text-amber-400 rounded-full px-2 h-8 text-xs"
-              onClick={() => navigate('/account/wallet')}
+              onClick={() => navigate('/wallet')}
             >
               <Coins className="w-3.5 h-3.5" />
               <span className="font-semibold">{jaiCoins.toLocaleString()}</span>
