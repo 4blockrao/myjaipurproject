@@ -2,13 +2,18 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const slug = url.searchParams.get('slug');
   
-  const edgeFunctionUrl = `https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/locality-ssr?slug=${slug}`;
+  const edgeFunctionUrl = `https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/locality-ssr?slug=${slug}&t=${Date.now()}`;
   
   const response = await fetch(edgeFunctionUrl);
   const html = await response.text();
   
   return new Response(html, {
     status: 200,
-    headers: { 'Content-Type': 'text/html', 'Cache-Control': 'public, max-age=3600' },
+    headers: {
+      'Content-Type': 'text/html',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    },
   });
 }
