@@ -7,20 +7,9 @@ import "./index.css";
 /**
  * JaipurCircle: SSR + SPA hybrid boot
  *
- * Public SEO pages such as:
- * - /jaipur/:slug
- * - /events/:slug
- *
- * may be fully rendered by Supabase Edge SSR.
- *
- * If SSR content exists for these pages, DO NOT hydrate or mount React into #root.
- * Hydrating with a mismatched React tree will replace/patch the SSR HTML and cause:
- * "new SSR UI flashes, then old React UI appears".
- *
- * Current rule:
- * - /jaipur/:slug + #ssr-prerender present => keep SSR HTML as source of truth.
- * - /events/:slug + #ssr-prerender present => keep SSR HTML as source of truth.
- * - everything else => normal React SPA mount.
+ * Public SEO pages rendered by Supabase/Vercel SSR include #ssr-prerender.
+ * When that marker exists on a known public route, React must NOT mount,
+ * otherwise the SPA can overwrite the SSR UI.
  */
 
 function hasSSRMarker(): boolean {
@@ -31,35 +20,34 @@ function getPathParts(): string[] {
   return window.location.pathname.split("/").filter(Boolean);
 }
 
-function isSSRLocalityPage(): boolean {
+function isKnownPublicSEOPath(): boolean {
   const parts = getPathParts();
 
-  // Match only /jaipur/:slug
-  // Do not match /jaipur or deeper future cluster paths like /jaipur/:slug/restaurants
-  return parts.length === 2 && parts[0] === "jaipur";
-}
+  if (parts.length === 0) return false;
 
-function isSSREventDetailPage(): boolean {
-  const parts = getPathParts();
+  const first = parts[0];
 
-  // Match only /events/:slug
-  if (parts.length !== 2 || parts[0] !== "events") {
-    return false;
-  }
+  // Locality pages: /jaipur/:slug
+  if (first === "jaipur" && parts.length >= 2) return true;
 
-  // These are event listing/filter pages, not event detail pages.
-  // They should continue to use React unless separately handled as SSR-only later.
-  const reservedEventRoutes = new Set([
-    "today",
-    "tomorrow",
-    "this-week",
-    "this-weekend",
-    "next-month",
-    "near-me",
-    "category",
-  ]);
+  // Event hub, event filters, event categories, event details:
+  // /events
+  // /events/
+  // /events/today
+  // /events/category/comedy
+  // /events/:slug
+  if (first === "events") return true;
 
-  return !reservedEventRoutes.has(parts[1]);
+  // Public entity pages
+  if (first === "venues" && parts.length >= 2) return true;
+  if (first === "artists" && parts.length >= 2) return true;
+
+  // Editorial pages, only if SSR marker exists
+  if (first === "stories") return true;
+  if (first === "news") return true;
+  if (first === "guides") return true;
+
+  return false;
 }
 
 function bootstrap() {
@@ -70,13 +58,10 @@ function bootstrap() {
     return;
   }
 
-  const shouldKeepSSR =
-    hasSSRMarker() &&
-    rootEl.hasChildNodes() &&
-    (isSSRLocalityPage() || isSSREventDetailPage());
+  const shouldKeepSSR = hasSSRMarker() && rootEl.hasChildNodes() && isKnownPublicSEOPath();
 
   if (shouldKeepSSR) {
-    console.log("[Bootstrap] SSR public SEO page detected — React mount skipped.");
+    console.log("[Bootstrap] Public SSR page detected — React mount skipped.");
     return;
   }
 
