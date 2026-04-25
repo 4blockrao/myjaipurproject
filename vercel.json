@@ -16,6 +16,36 @@
       "src": "^/api/functions/v1/(.*)$",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/$1"
     },
+
+    {
+      "src": "^/localities/([^/]+)/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/jaipur/$1"
+      }
+    },
+    {
+      "src": "^/localities/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/jaipur"
+      }
+    },
+    {
+      "src": "^/locality/([^/]+)/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/jaipur/$1"
+      }
+    },
+    {
+      "src": "^/locality/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/jaipur"
+      }
+    },
+
     {
       "src": "^/events/category/([^/]+)/?$",
       "dest": "/api/events-list-ssr?path=/events/category/$1"
@@ -52,10 +82,12 @@
       "src": "^/events/([^/]+)/?$",
       "dest": "/api/event-proxy?slug=$1"
     },
+
     {
       "src": "^/jaipur/([^/]+)/?$",
       "dest": "/api/jaipur-proxy?slug=$1"
     },
+
     {
       "src": "^/artists/([^/]+)/?$",
       "dest": "/api/artist-proxy?slug=$1"
@@ -64,6 +96,7 @@
       "src": "^/venues/([^/]+)/?$",
       "dest": "/api/venue-proxy?slug=$1"
     },
+
     {
       "src": "/sitemap.xml",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
@@ -96,16 +129,7 @@
       "src": "^/sitemap-artists\\.xml$",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-artists"
     },
-    {
-      "src": "^/localities/([^/]+)/?$",
-      "status": 308,
-      "headers": { "Location": "/jaipur/$1" }
-    },
-    {
-      "src": "^/localities/?$",
-      "status": 308,
-      "headers": { "Location": "/jaipur" }
-    },
+
     {
       "handle": "filesystem"
     },
