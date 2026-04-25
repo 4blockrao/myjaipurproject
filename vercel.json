@@ -171,6 +171,23 @@
     },
 
     {
+      "src": "^/news/([^/]+)/?$",
+      "dest": "/api/publication-proxy?type=news&slug=$1"
+    },
+    {
+      "src": "^/guide/([^/]+)/?$",
+      "dest": "/api/publication-proxy?type=guide&slug=$1"
+    },
+    {
+      "src": "^/explore/([^/]+)/?$",
+      "dest": "/api/publication-proxy?type=explore&slug=$1"
+    },
+    {
+      "src": "^/story/([^/]+)/?$",
+      "dest": "/api/publication-proxy?type=story&slug=$1"
+    },
+
+    {
       "src": "/sitemap.xml",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
     },
