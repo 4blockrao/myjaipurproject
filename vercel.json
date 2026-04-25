@@ -102,7 +102,7 @@
     },
     {
       "src": "^/deals/([^/]+)/?$",
-      "dest": "/api/deal-proxy?slug=$1"
+      "dest": "/api/deals-proxy?slug=$1"
     },
 
     {
