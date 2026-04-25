@@ -48,39 +48,39 @@
 
     {
       "src": "^/events$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr/events"
+      "dest": "/api/events-list-ssr?path=/events"
     },
     {
       "src": "^/events/$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr/events"
+      "dest": "/api/events-list-ssr?path=/events"
     },
     {
       "src": "^/events/category/([^/]+)/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr/events/category/$1"
+      "dest": "/api/events-list-ssr?path=/events/category/$1"
     },
     {
       "src": "^/events/today/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr/events/today"
+      "dest": "/api/events-list-ssr?path=/events/today"
     },
     {
       "src": "^/events/tomorrow/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr/events/tomorrow"
+      "dest": "/api/events-list-ssr?path=/events/tomorrow"
     },
     {
       "src": "^/events/this-weekend/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr/events/this-weekend"
+      "dest": "/api/events-list-ssr?path=/events/this-weekend"
     },
     {
       "src": "^/events/this-week/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr/events/this-week"
+      "dest": "/api/events-list-ssr?path=/events/this-week"
     },
     {
       "src": "^/events/next-month/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr/events/next-month"
+      "dest": "/api/events-list-ssr?path=/events/next-month"
     },
     {
       "src": "^/events/near-me/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr/events/near-me"
+      "dest": "/api/events-list-ssr?path=/events/near-me"
     },
     {
       "src": "^/events/([^/]+)/?$",
