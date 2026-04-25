@@ -30,19 +30,24 @@ function isKnownPublicSEOPath(): boolean {
   // Locality pages: /jaipur/:slug
   if (first === "jaipur" && parts.length >= 2) return true;
 
-  // Event hub, event filters, event categories, event details:
+  // Events:
   // /events
-  // /events/
+  // /events/:slug
   // /events/today
   // /events/category/comedy
-  // /events/:slug
   if (first === "events") return true;
 
-  // Public entity pages
+  // Venue / artist pages
   if (first === "venues" && parts.length >= 2) return true;
   if (first === "artists" && parts.length >= 2) return true;
 
-  // Editorial pages, only if SSR marker exists
+  // Merchant detail pages
+  if (first === "merchant" && parts.length >= 2) return true;
+
+  // Deals listing + deal detail pages
+  if (first === "deals") return true;
+
+  // Editorial / content pages
   if (first === "stories") return true;
   if (first === "news") return true;
   if (first === "guides") return true;
