@@ -17,11 +17,43 @@
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/$1"
     },
     {
+      "src": "^/events/category/([^/]+)/?$",
+      "dest": "/api/events-list-ssr?path=/events/category/$1"
+    },
+    {
+      "src": "^/events/today/?$",
+      "dest": "/api/events-list-ssr?path=/events/today"
+    },
+    {
+      "src": "^/events/tomorrow/?$",
+      "dest": "/api/events-list-ssr?path=/events/tomorrow"
+    },
+    {
+      "src": "^/events/this-weekend/?$",
+      "dest": "/api/events-list-ssr?path=/events/this-weekend"
+    },
+    {
+      "src": "^/events/this-week/?$",
+      "dest": "/api/events-list-ssr?path=/events/this-week"
+    },
+    {
+      "src": "^/events/next-month/?$",
+      "dest": "/api/events-list-ssr?path=/events/next-month"
+    },
+    {
+      "src": "^/events/near-me/?$",
+      "dest": "/api/events-list-ssr?path=/events/near-me"
+    },
+    {
+      "src": "^/events/?$",
+      "dest": "/api/events-list-ssr?path=/events"
+    },
+    {
       "src": "^/events/([^/]+)/?$",
       "dest": "/api/event-proxy?slug=$1"
     },
     {
-      "src": "^/jaipur/([a-zA-Z0-9-]+)/?$",
+      "src": "^/jaipur/([^/]+)/?$",
       "dest": "/api/jaipur-proxy?slug=$1"
     },
     {
@@ -31,10 +63,6 @@
     {
       "src": "^/venues/([^/]+)/?$",
       "dest": "/api/venue-proxy?slug=$1"
-    },
-    {
-      "src": "^/events/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr"
     },
     {
       "src": "^/sitemap\\.xml$",
@@ -77,9 +105,6 @@
       "src": "^/localities/?$",
       "status": 308,
       "headers": { "Location": "/jaipur" }
-    },
-    {
-      "handle": "filesystem"
     },
     {
       "src": "^(.*)$",
