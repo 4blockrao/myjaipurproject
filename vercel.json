@@ -88,6 +88,24 @@
     },
 
     {
+      "src": "^/merchant/([^/]+)/?$",
+      "dest": "/api/merchant-proxy?slug=$1"
+    },
+
+    {
+      "src": "^/deals$",
+      "dest": "/api/deals-list-ssr"
+    },
+    {
+      "src": "^/deals/$",
+      "dest": "/api/deals-list-ssr"
+    },
+    {
+      "src": "^/deals/([^/]+)/?$",
+      "dest": "/api/deal-proxy?slug=$1"
+    },
+
+    {
       "src": "^/jaipur/([^/]+)/?$",
       "dest": "/api/jaipur-proxy?slug=$1"
     },
