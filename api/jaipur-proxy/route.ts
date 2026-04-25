@@ -4,15 +4,14 @@ export async function GET(request: Request) {
   const slug = url.searchParams.get('slug');
   
   if (!slug) {
-    return new Response('Missing slug parameter', { status: 400 });
+    return new Response('Missing slug', { status: 400 });
   }
   
-  // Fetch the SSR HTML from the Edge Function
   const edgeFunctionUrl = `https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/locality-ssr?slug=${slug}`;
+  
   const response = await fetch(edgeFunctionUrl);
   const html = await response.text();
   
-  // Return the HTML with no-cache headers
   return new Response(html, {
     status: 200,
     headers: {
