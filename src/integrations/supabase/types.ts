@@ -1964,6 +1964,7 @@ export type Database = {
           is_free: boolean | null
           is_indexable: boolean | null
           is_online: boolean | null
+          is_upcoming: boolean | null
           last_verified_at: string | null
           latitude: number | null
           locality: string | null
@@ -2067,6 +2068,7 @@ export type Database = {
           is_free?: boolean | null
           is_indexable?: boolean | null
           is_online?: boolean | null
+          is_upcoming?: boolean | null
           last_verified_at?: string | null
           latitude?: number | null
           locality?: string | null
@@ -2170,6 +2172,7 @@ export type Database = {
           is_free?: boolean | null
           is_indexable?: boolean | null
           is_online?: boolean | null
+          is_upcoming?: boolean | null
           last_verified_at?: string | null
           latitude?: number | null
           locality?: string | null
