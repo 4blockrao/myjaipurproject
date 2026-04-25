@@ -1,113 +1,117 @@
 {
   "routes": [
     {
-      "src": "^/api/rest/v1/(.*)$",
+      "src": "/api/rest/v1/(.*)",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/rest/v1/$1"
     },
     {
-      "src": "^/api/auth/v1/(.*)$",
+      "src": "/api/auth/v1/(.*)",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/auth/v1/$1"
     },
     {
-      "src": "^/api/storage/v1/(.*)$",
+      "src": "/api/storage/v1/(.*)",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/storage/v1/$1"
     },
     {
-      "src": "^/api/functions/v1/(.*)$",
+      "src": "/api/functions/v1/(.*)",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/$1"
     },
     {
-      "src": "^/events/category/([^/]+)/?$",
+      "src": "/events/category/([^/]+)",
       "dest": "/api/events-list-ssr?path=/events/category/$1"
     },
     {
-      "src": "^/events/today/?$",
+      "src": "/events/today",
       "dest": "/api/events-list-ssr?path=/events/today"
     },
     {
-      "src": "^/events/tomorrow/?$",
+      "src": "/events/tomorrow",
       "dest": "/api/events-list-ssr?path=/events/tomorrow"
     },
     {
-      "src": "^/events/this-weekend/?$",
+      "src": "/events/this-weekend",
       "dest": "/api/events-list-ssr?path=/events/this-weekend"
     },
     {
-      "src": "^/events/this-week/?$",
+      "src": "/events/this-week",
       "dest": "/api/events-list-ssr?path=/events/this-week"
     },
     {
-      "src": "^/events/next-month/?$",
+      "src": "/events/next-month",
       "dest": "/api/events-list-ssr?path=/events/next-month"
     },
     {
-      "src": "^/events/near-me/?$",
+      "src": "/events/near-me",
       "dest": "/api/events-list-ssr?path=/events/near-me"
     },
     {
-      "src": "^/events/?$",
+      "src": "/events",
       "dest": "/api/events-list-ssr?path=/events"
     },
     {
-      "src": "^/events/([^/]+)/?$",
+      "src": "/events/([^/]+)",
       "dest": "/api/event-proxy?slug=$1"
     },
     {
-      "src": "^/jaipur/([^/]+)/?$",
+      "src": "/jaipur/vaishali-nagar",
+      "dest": "/api/jaipur-proxy?slug=vaishali-nagar"
+    },
+    {
+      "src": "/jaipur/([^/]+)",
       "dest": "/api/jaipur-proxy?slug=$1"
     },
     {
-      "src": "^/artists/([^/]+)/?$",
+      "src": "/artists/([^/]+)",
       "dest": "/api/artist-proxy?slug=$1"
     },
     {
-      "src": "^/venues/([^/]+)/?$",
+      "src": "/venues/([^/]+)",
       "dest": "/api/venue-proxy?slug=$1"
     },
     {
-      "src": "^/sitemap\\.xml$",
+      "src": "/sitemap.xml",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
     },
     {
-      "src": "^/sitemap-index\\.xml$",
+      "src": "/sitemap-index.xml",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
     },
     {
-      "src": "^/sitemaps/([^/]+)\\.xml$",
+      "src": "/sitemaps/([^/]+).xml",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap/sitemaps/$1.xml"
     },
     {
-      "src": "^/sitemap-events\\.xml$",
+      "src": "/sitemap-events.xml",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap/sitemaps/events.xml"
     },
     {
-      "src": "^/sitemap-stories\\.xml$",
+      "src": "/sitemap-stories.xml",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-stories"
     },
     {
-      "src": "^/sitemap-news\\.xml$",
+      "src": "/sitemap-news.xml",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=news"
     },
     {
-      "src": "^/sitemap-news-google\\.xml$",
+      "src": "/sitemap-news-google.xml",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
     {
-      "src": "^/sitemap-artists\\.xml$",
+      "src": "/sitemap-artists.xml",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-artists"
     },
     {
-      "src": "^/localities/([^/]+)/?$",
+      "src": "/localities/([^/]+)",
       "status": 308,
       "headers": { "Location": "/jaipur/$1" }
     },
     {
-      "src": "^/localities/?$",
+      "src": "/localities",
       "status": 308,
       "headers": { "Location": "/jaipur" }
     },
     {
-      "src": "^(.*)$",
+      "src": "/(.*)",
       "dest": "/index.html"
     }
   ]
