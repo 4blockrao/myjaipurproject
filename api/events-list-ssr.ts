@@ -10,7 +10,6 @@ const SUPABASE_EVENTS_LIST_SSR_URL =
 export default async function handler(request: Request) {
   const url = new URL(request.url);
   const path = url.searchParams.get("path") || "/events";
-
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
   const edgeFunctionUrl = `${SUPABASE_EVENTS_LIST_SSR_URL}${normalizedPath}`;
