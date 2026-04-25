@@ -12,11 +12,11 @@ export default async function handler(request: Request) {
   const slug = url.searchParams.get("slug")?.trim();
 
   if (!slug) {
-    return new Response("Missing slug parameter", {
+    return new Response("Missing event slug", {
       status: 400,
       headers: {
-        "content-type": "text/plain; charset=utf-8",
-        "cache-control": "no-store",
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-store",
       },
     });
   }
