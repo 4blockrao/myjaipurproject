@@ -47,6 +47,14 @@
     },
 
     {
+      "src": "^/events$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr/events"
+    },
+    {
+      "src": "^/events/$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr/events"
+    },
+    {
       "src": "^/events/category/([^/]+)/?$",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr/events/category/$1"
     },
@@ -73,10 +81,6 @@
     {
       "src": "^/events/near-me/?$",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr/events/near-me"
-    },
-    {
-      "src": "^/events/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/events-list-ssr/events"
     },
     {
       "src": "^/events/([^/]+)/?$",
