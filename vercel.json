@@ -18,6 +18,57 @@
     },
 
     {
+      "src": "^/guides/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/ipl-2026"
+      }
+    },
+    {
+      "src": "^/campaigns/ipl-2026-jaipur/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/ipl-2026"
+      }
+    },
+    {
+      "src": "^/campaigns/ipl-2026/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/ipl-2026"
+      }
+    },
+
+    {
+      "src": "^/ipl-2026/?$",
+      "dest": "/api/campaign-proxy?slug=ipl-2026-jaipur&section=hub"
+    },
+    {
+      "src": "^/ipl-2026/news/?$",
+      "dest": "/api/campaign-proxy?slug=ipl-2026-jaipur&section=news"
+    },
+    {
+      "src": "^/ipl-2026/guides/?$",
+      "dest": "/api/campaign-proxy?slug=ipl-2026-jaipur&section=guides"
+    },
+    {
+      "src": "^/ipl-2026/explore/?$",
+      "dest": "/api/campaign-proxy?slug=ipl-2026-jaipur&section=explore"
+    },
+    {
+      "src": "^/ipl-2026/stories/?$",
+      "dest": "/api/campaign-proxy?slug=ipl-2026-jaipur&section=stories"
+    },
+    {
+      "src": "^/ipl-2026/events/?$",
+      "dest": "/api/campaign-proxy?slug=ipl-2026-jaipur&section=events"
+    },
+    {
+      "src": "^/ipl-2026/deals/?$",
+      "dest": "/api/campaign-proxy?slug=ipl-2026-jaipur&section=deals"
+    },
+
+    {
       "src": "^/localities/([^/]+)/?$",
       "status": 308,
       "headers": {
