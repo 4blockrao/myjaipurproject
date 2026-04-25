@@ -84,7 +84,7 @@
     },
     {
       "src": "^/events/([^/]+)/?$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/event-ssr?slug=$1"
+      "dest": "/api/event-proxy?slug=$1"
     },
 
     {
