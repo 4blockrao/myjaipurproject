@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Newspaper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NewsFeed } from '@/components/news/NewsFeed';
+import { PublicationsLatestSection } from '@/components/news/PublicationsLatestSection';
 import AppLayout from '@/components/layout/AppLayout';
 import GlobalSEO from '@/components/seo/GlobalSEO';
 import { PillarSchema } from '@/components/seo/SchemaInjector';
@@ -89,6 +90,12 @@ export default function NewsPage() {
       </Helmet>
 
       <main className="p-4">
+        <PublicationsLatestSection
+          contentType="news"
+          heading="Latest News"
+          limit={18}
+          className="mb-8"
+        />
         <NewsFeed showHeader={false} />
       </main>
     </AppLayout>

@@ -10,6 +10,7 @@ import HotDealsSection from "@/components/home/HotDealsSection";
 import TrendingDealsGrid from "@/components/home/TrendingDealsGrid";
 import BottomNavHeritage from "@/components/home/BottomNavHeritage";
 import { NewsHomeSection } from "@/components/news/NewsHomeSection";
+import { PublicationsLatestSection } from "@/components/news/PublicationsLatestSection";
 import TopMerchantsSection from "@/components/home/TopMerchantsSection";
 import TopLocalitiesSection from "@/components/home/TopLocalitiesSection";
 import FeaturedProductsSection from "@/components/home/FeaturedProductsSection";
@@ -193,6 +194,14 @@ const Index = () => {
           {/* News */}
           <section className="px-4">
             <NewsHomeSection />
+          </section>
+
+          {/* Latest editorial: news, guides, explore, stories (canonical URLs, crawler-friendly) */}
+          <section className="px-4 py-4">
+            <PublicationsLatestSection
+              heading="Latest from JaipurCircle"
+              limit={12}
+            />
           </section>
 
           {/* IPL Guides */}
