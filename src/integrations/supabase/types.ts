@@ -402,52 +402,106 @@ export type Database = {
       }
       campaigns: {
         Row: {
+          body_html: string | null
+          campaign_type: string | null
+          canonical_url: string | null
+          category_slug: string | null
+          cover_image_url: string | null
           created_at: string | null
           description: string | null
           end_date: string | null
+          ends_at: string | null
+          faq_json: Json | null
           hero_image: string | null
           id: string
+          image_alt: string | null
+          index_status: string | null
           is_active: boolean | null
+          is_indexable: boolean | null
+          legacy_paths: string[] | null
           meta_description: string | null
           meta_title: string | null
           name: string
+          public_path: string | null
+          schema_json: Json | null
           show_locality_links: boolean | null
           show_upcoming_events: boolean | null
           show_venue_info: boolean | null
           slug: string
           start_date: string | null
+          starts_at: string | null
+          status: string | null
+          subtitle: string | null
+          title: string | null
+          updated_at: string | null
         }
         Insert: {
+          body_html?: string | null
+          campaign_type?: string | null
+          canonical_url?: string | null
+          category_slug?: string | null
+          cover_image_url?: string | null
           created_at?: string | null
           description?: string | null
           end_date?: string | null
+          ends_at?: string | null
+          faq_json?: Json | null
           hero_image?: string | null
           id?: string
+          image_alt?: string | null
+          index_status?: string | null
           is_active?: boolean | null
+          is_indexable?: boolean | null
+          legacy_paths?: string[] | null
           meta_description?: string | null
           meta_title?: string | null
           name: string
+          public_path?: string | null
+          schema_json?: Json | null
           show_locality_links?: boolean | null
           show_upcoming_events?: boolean | null
           show_venue_info?: boolean | null
           slug: string
           start_date?: string | null
+          starts_at?: string | null
+          status?: string | null
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string | null
         }
         Update: {
+          body_html?: string | null
+          campaign_type?: string | null
+          canonical_url?: string | null
+          category_slug?: string | null
+          cover_image_url?: string | null
           created_at?: string | null
           description?: string | null
           end_date?: string | null
+          ends_at?: string | null
+          faq_json?: Json | null
           hero_image?: string | null
           id?: string
+          image_alt?: string | null
+          index_status?: string | null
           is_active?: boolean | null
+          is_indexable?: boolean | null
+          legacy_paths?: string[] | null
           meta_description?: string | null
           meta_title?: string | null
           name?: string
+          public_path?: string | null
+          schema_json?: Json | null
           show_locality_links?: boolean | null
           show_upcoming_events?: boolean | null
           show_venue_info?: boolean | null
           slug?: string
           start_date?: string | null
+          starts_at?: string | null
+          status?: string | null
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1001,6 +1055,7 @@ export type Database = {
           is_verified: boolean | null
           jaicoin_reward: number | null
           locality_id: string | null
+          locality_slug: string | null
           location: string | null
           max_redemptions: number | null
           merchant_id: string | null
@@ -1050,6 +1105,7 @@ export type Database = {
           is_verified?: boolean | null
           jaicoin_reward?: number | null
           locality_id?: string | null
+          locality_slug?: string | null
           location?: string | null
           max_redemptions?: number | null
           merchant_id?: string | null
@@ -1099,6 +1155,7 @@ export type Database = {
           is_verified?: boolean | null
           jaicoin_reward?: number | null
           locality_id?: string | null
+          locality_slug?: string | null
           location?: string | null
           max_redemptions?: number | null
           merchant_id?: string | null
@@ -1216,6 +1273,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      entity_aliases: {
+        Row: {
+          alias: string
+          canonical_url: string
+          created_at: string
+          display_name: string
+          entity_id: string | null
+          entity_slug: string
+          entity_type: string
+          id: string
+          is_active: boolean
+          is_exact_safe: boolean
+          normalized_alias: string
+          priority_score: number
+          updated_at: string
+        }
+        Insert: {
+          alias: string
+          canonical_url: string
+          created_at?: string
+          display_name: string
+          entity_id?: string | null
+          entity_slug: string
+          entity_type: string
+          id?: string
+          is_active?: boolean
+          is_exact_safe?: boolean
+          normalized_alias: string
+          priority_score?: number
+          updated_at?: string
+        }
+        Update: {
+          alias?: string
+          canonical_url?: string
+          created_at?: string
+          display_name?: string
+          entity_id?: string | null
+          entity_slug?: string
+          entity_type?: string
+          id?: string
+          is_active?: boolean
+          is_exact_safe?: boolean
+          normalized_alias?: string
+          priority_score?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       ev_charging_stations: {
         Row: {
@@ -2673,8 +2778,12 @@ export type Database = {
           cafes: Json | null
           canonical_url: string | null
           civic_helplines: Json | null
+          civic_reality: Json | null
+          clinics: Json | null
+          coaching_institutes: Json | null
           colleges: Json | null
           cons: string[] | null
+          content_quality_score: number | null
           coworking_spaces: Json | null
           created_at: string | null
           data_source: string | null
@@ -2689,6 +2798,7 @@ export type Database = {
           entertainment: Json | null
           faq_json: Json | null
           featured_image: string | null
+          fitness: Json | null
           geo_lat: number | null
           geo_lng: number | null
           h1_override: string | null
@@ -2710,6 +2820,7 @@ export type Database = {
           malls: Json | null
           meta_description: string | null
           meta_title: string | null
+          micro_areas: Json | null
           micro_localities: string[] | null
           municipality: string | null
           name: string
@@ -2720,9 +2831,12 @@ export type Database = {
           nearest_metro: string | null
           nearest_railway: Json | null
           nightlife: Json | null
+          not_best_for: Json | null
           parent_locality_slug: string | null
+          parking_notes: string | null
           parks: Json | null
           parliamentary_constituency: string | null
+          pharmacies: Json | null
           pin_code: string | null
           pincode: string | null
           places_of_worship: Json | null
@@ -2740,6 +2854,7 @@ export type Database = {
           popular_eateries: string[] | null
           popular_venues: string[] | null
           population_estimate: number | null
+          preschool_daycare: Json | null
           pros: string[] | null
           public_transport: string[] | null
           quality_score: number | null
@@ -2759,9 +2874,12 @@ export type Database = {
           slug: string
           source_label: string | null
           status: Database["public"]["Enums"]["status_enum"] | null
+          student_living: Json | null
+          traffic_notes: string | null
           updated_at: string | null
           venue_categories: string[] | null
           verification_notes: string | null
+          verification_status: string | null
           vibe_tags: string[] | null
           walkability_score: number | null
           ward_name: string | null
@@ -2779,8 +2897,12 @@ export type Database = {
           cafes?: Json | null
           canonical_url?: string | null
           civic_helplines?: Json | null
+          civic_reality?: Json | null
+          clinics?: Json | null
+          coaching_institutes?: Json | null
           colleges?: Json | null
           cons?: string[] | null
+          content_quality_score?: number | null
           coworking_spaces?: Json | null
           created_at?: string | null
           data_source?: string | null
@@ -2795,6 +2917,7 @@ export type Database = {
           entertainment?: Json | null
           faq_json?: Json | null
           featured_image?: string | null
+          fitness?: Json | null
           geo_lat?: number | null
           geo_lng?: number | null
           h1_override?: string | null
@@ -2816,6 +2939,7 @@ export type Database = {
           malls?: Json | null
           meta_description?: string | null
           meta_title?: string | null
+          micro_areas?: Json | null
           micro_localities?: string[] | null
           municipality?: string | null
           name: string
@@ -2826,9 +2950,12 @@ export type Database = {
           nearest_metro?: string | null
           nearest_railway?: Json | null
           nightlife?: Json | null
+          not_best_for?: Json | null
           parent_locality_slug?: string | null
+          parking_notes?: string | null
           parks?: Json | null
           parliamentary_constituency?: string | null
+          pharmacies?: Json | null
           pin_code?: string | null
           pincode?: string | null
           places_of_worship?: Json | null
@@ -2846,6 +2973,7 @@ export type Database = {
           popular_eateries?: string[] | null
           popular_venues?: string[] | null
           population_estimate?: number | null
+          preschool_daycare?: Json | null
           pros?: string[] | null
           public_transport?: string[] | null
           quality_score?: number | null
@@ -2865,9 +2993,12 @@ export type Database = {
           slug: string
           source_label?: string | null
           status?: Database["public"]["Enums"]["status_enum"] | null
+          student_living?: Json | null
+          traffic_notes?: string | null
           updated_at?: string | null
           venue_categories?: string[] | null
           verification_notes?: string | null
+          verification_status?: string | null
           vibe_tags?: string[] | null
           walkability_score?: number | null
           ward_name?: string | null
@@ -2885,8 +3016,12 @@ export type Database = {
           cafes?: Json | null
           canonical_url?: string | null
           civic_helplines?: Json | null
+          civic_reality?: Json | null
+          clinics?: Json | null
+          coaching_institutes?: Json | null
           colleges?: Json | null
           cons?: string[] | null
+          content_quality_score?: number | null
           coworking_spaces?: Json | null
           created_at?: string | null
           data_source?: string | null
@@ -2901,6 +3036,7 @@ export type Database = {
           entertainment?: Json | null
           faq_json?: Json | null
           featured_image?: string | null
+          fitness?: Json | null
           geo_lat?: number | null
           geo_lng?: number | null
           h1_override?: string | null
@@ -2922,6 +3058,7 @@ export type Database = {
           malls?: Json | null
           meta_description?: string | null
           meta_title?: string | null
+          micro_areas?: Json | null
           micro_localities?: string[] | null
           municipality?: string | null
           name?: string
@@ -2932,9 +3069,12 @@ export type Database = {
           nearest_metro?: string | null
           nearest_railway?: Json | null
           nightlife?: Json | null
+          not_best_for?: Json | null
           parent_locality_slug?: string | null
+          parking_notes?: string | null
           parks?: Json | null
           parliamentary_constituency?: string | null
+          pharmacies?: Json | null
           pin_code?: string | null
           pincode?: string | null
           places_of_worship?: Json | null
@@ -2952,6 +3092,7 @@ export type Database = {
           popular_eateries?: string[] | null
           popular_venues?: string[] | null
           population_estimate?: number | null
+          preschool_daycare?: Json | null
           pros?: string[] | null
           public_transport?: string[] | null
           quality_score?: number | null
@@ -2971,9 +3112,12 @@ export type Database = {
           slug?: string
           source_label?: string | null
           status?: Database["public"]["Enums"]["status_enum"] | null
+          student_living?: Json | null
+          traffic_notes?: string | null
           updated_at?: string | null
           venue_categories?: string[] | null
           verification_notes?: string | null
+          verification_status?: string | null
           vibe_tags?: string[] | null
           walkability_score?: number | null
           ward_name?: string | null
@@ -3249,6 +3393,93 @@ export type Database = {
           },
         ]
       }
+      locality_follows: {
+        Row: {
+          created_at: string | null
+          id: string
+          locality_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          locality_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          locality_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locality_follows_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locality_follows_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
+          },
+        ]
+      }
+      locality_qa: {
+        Row: {
+          answer: string | null
+          answered_at: string | null
+          created_at: string | null
+          id: string
+          is_answered: boolean | null
+          locality_id: string | null
+          question: string | null
+          upvotes: number | null
+          user_id: string | null
+        }
+        Insert: {
+          answer?: string | null
+          answered_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_answered?: boolean | null
+          locality_id?: string | null
+          question?: string | null
+          upvotes?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          answer?: string | null
+          answered_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_answered?: boolean | null
+          locality_id?: string | null
+          question?: string | null
+          upvotes?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locality_qa_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locality_qa_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
+          },
+        ]
+      }
       locality_questions: {
         Row: {
           asked_by_email: string | null
@@ -3303,6 +3534,72 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "locality_aliases_view"
             referencedColumns: ["locality_slug"]
+          },
+        ]
+      }
+      locality_reviews: {
+        Row: {
+          cons: string[] | null
+          created_at: string | null
+          downvotes: number | null
+          id: string
+          is_verified_resident: boolean | null
+          locality_id: string | null
+          pros: string[] | null
+          rating: number | null
+          review_text: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+          upvotes: number | null
+          user_id: string | null
+        }
+        Insert: {
+          cons?: string[] | null
+          created_at?: string | null
+          downvotes?: number | null
+          id?: string
+          is_verified_resident?: boolean | null
+          locality_id?: string | null
+          pros?: string[] | null
+          rating?: number | null
+          review_text?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          upvotes?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          cons?: string[] | null
+          created_at?: string | null
+          downvotes?: number | null
+          id?: string
+          is_verified_resident?: boolean | null
+          locality_id?: string | null
+          pros?: string[] | null
+          rating?: number | null
+          review_text?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          upvotes?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locality_reviews_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "localities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locality_reviews_locality_id_fkey"
+            columns: ["locality_id"]
+            isOneToOne: false
+            referencedRelation: "locality_aliases_view"
+            referencedColumns: ["locality_id"]
           },
         ]
       }
@@ -4115,6 +4412,319 @@ export type Database = {
           slug?: string | null
           status?: string | null
           title?: string
+        }
+        Relationships: []
+      }
+      publication_campaigns: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          id: string
+          is_featured: boolean
+          publication_id: string
+          section_label: string | null
+          sort_order: number
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          id?: string
+          is_featured?: boolean
+          publication_id: string
+          section_label?: string | null
+          sort_order?: number
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          is_featured?: boolean
+          publication_id?: string
+          section_label?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publication_campaigns_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "publication_campaigns_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "publications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      publication_entities: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          entity_slug: string | null
+          entity_type: string
+          id: string
+          publication_id: string
+          relationship_type: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          entity_slug?: string | null
+          entity_type: string
+          id?: string
+          publication_id: string
+          relationship_type?: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          entity_slug?: string | null
+          entity_type?: string
+          id?: string
+          publication_id?: string
+          relationship_type?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publication_entities_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "publications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      publication_entity_mentions: {
+        Row: {
+          canonical_url: string
+          confidence: number
+          created_at: string
+          display_name: string
+          entity_id: string | null
+          entity_slug: string
+          entity_type: string
+          first_occurrence_index: number | null
+          id: string
+          link_status: string
+          match_type: string
+          matched_text: string
+          occurrence_count: number
+          publication_id: string
+          updated_at: string
+        }
+        Insert: {
+          canonical_url: string
+          confidence?: number
+          created_at?: string
+          display_name: string
+          entity_id?: string | null
+          entity_slug: string
+          entity_type: string
+          first_occurrence_index?: number | null
+          id?: string
+          link_status?: string
+          match_type?: string
+          matched_text: string
+          occurrence_count?: number
+          publication_id: string
+          updated_at?: string
+        }
+        Update: {
+          canonical_url?: string
+          confidence?: number
+          created_at?: string
+          display_name?: string
+          entity_id?: string | null
+          entity_slug?: string
+          entity_type?: string
+          first_occurrence_index?: number | null
+          id?: string
+          link_status?: string
+          match_type?: string
+          matched_text?: string
+          occurrence_count?: number
+          publication_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publication_entity_mentions_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "publications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      publication_relations: {
+        Row: {
+          created_at: string
+          id: string
+          publication_id: string
+          reason: string | null
+          related_publication_id: string
+          similarity_score: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          publication_id: string
+          reason?: string | null
+          related_publication_id: string
+          similarity_score?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          publication_id?: string
+          reason?: string | null
+          related_publication_id?: string
+          similarity_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publication_relations_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "publications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "publication_relations_related_publication_id_fkey"
+            columns: ["related_publication_id"]
+            isOneToOne: false
+            referencedRelation: "publications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      publications: {
+        Row: {
+          author_bio: string | null
+          author_image: string | null
+          author_name: string
+          author_same_as: string[] | null
+          author_type: string
+          author_url: string | null
+          body_html: string | null
+          canonical_url: string | null
+          category_slug: string | null
+          content_type: string
+          cover_image_url: string | null
+          created_at: string
+          dek: string | null
+          excerpt: string | null
+          faq_json: Json | null
+          id: string
+          image_alt: string | null
+          image_caption: string | null
+          index_status: string
+          is_indexable: boolean
+          meta_description: string | null
+          meta_title: string | null
+          primary_event_slug: string | null
+          primary_locality_slug: string | null
+          primary_venue_slug: string | null
+          published_at: string | null
+          read_time_minutes: number | null
+          schema_json: Json | null
+          slug: string
+          source_label: string | null
+          source_url: string | null
+          status: string
+          subcategory_slug: string | null
+          title: string
+          topic_tags: string[] | null
+          updated_at: string
+          verification_status: string
+          word_count: number | null
+        }
+        Insert: {
+          author_bio?: string | null
+          author_image?: string | null
+          author_name?: string
+          author_same_as?: string[] | null
+          author_type?: string
+          author_url?: string | null
+          body_html?: string | null
+          canonical_url?: string | null
+          category_slug?: string | null
+          content_type: string
+          cover_image_url?: string | null
+          created_at?: string
+          dek?: string | null
+          excerpt?: string | null
+          faq_json?: Json | null
+          id?: string
+          image_alt?: string | null
+          image_caption?: string | null
+          index_status?: string
+          is_indexable?: boolean
+          meta_description?: string | null
+          meta_title?: string | null
+          primary_event_slug?: string | null
+          primary_locality_slug?: string | null
+          primary_venue_slug?: string | null
+          published_at?: string | null
+          read_time_minutes?: number | null
+          schema_json?: Json | null
+          slug: string
+          source_label?: string | null
+          source_url?: string | null
+          status?: string
+          subcategory_slug?: string | null
+          title: string
+          topic_tags?: string[] | null
+          updated_at?: string
+          verification_status?: string
+          word_count?: number | null
+        }
+        Update: {
+          author_bio?: string | null
+          author_image?: string | null
+          author_name?: string
+          author_same_as?: string[] | null
+          author_type?: string
+          author_url?: string | null
+          body_html?: string | null
+          canonical_url?: string | null
+          category_slug?: string | null
+          content_type?: string
+          cover_image_url?: string | null
+          created_at?: string
+          dek?: string | null
+          excerpt?: string | null
+          faq_json?: Json | null
+          id?: string
+          image_alt?: string | null
+          image_caption?: string | null
+          index_status?: string
+          is_indexable?: boolean
+          meta_description?: string | null
+          meta_title?: string | null
+          primary_event_slug?: string | null
+          primary_locality_slug?: string | null
+          primary_venue_slug?: string | null
+          published_at?: string | null
+          read_time_minutes?: number | null
+          schema_json?: Json | null
+          slug?: string
+          source_label?: string | null
+          source_url?: string | null
+          status?: string
+          subcategory_slug?: string | null
+          title?: string
+          topic_tags?: string[] | null
+          updated_at?: string
+          verification_status?: string
+          word_count?: number | null
         }
         Relationships: []
       }
@@ -5433,6 +6043,28 @@ export type Database = {
         }
         Returns: boolean
       }
+      detect_ipl_2026_publication_mentions: {
+        Args: never
+        Returns: {
+          content_type: string
+          inserted_count: number
+          publication_slug: string
+          total_detected: number
+          updated_count: number
+        }[]
+      }
+      detect_publication_entity_mentions: {
+        Args: { p_auto_approve?: boolean; p_publication_id: string }
+        Returns: {
+          inserted_count: number
+          total_detected: number
+          updated_count: number
+        }[]
+      }
+      estimate_publication_read_time: {
+        Args: { p_body: string }
+        Returns: number
+      }
       generate_meta_description: {
         Args: { entity_type: string; name: string }
         Returns: string
@@ -5626,6 +6258,7 @@ export type Database = {
         Args: { p_event_id: string }
         Returns: undefined
       }
+      normalize_entity_text: { Args: { p_text: string }; Returns: string }
       normalize_event_locality_ids: {
         Args: never
         Returns: {
@@ -5638,6 +6271,7 @@ export type Database = {
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       slugify: { Args: { input: string }; Returns: string }
+      strip_tags: { Args: { p_html: string }; Returns: string }
     }
     Enums: {
       app_role:
