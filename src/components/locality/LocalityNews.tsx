@@ -4,6 +4,7 @@ import { Newspaper, ArrowRight, Calendar } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
+import { getNewsCardUrl } from '@/utils/publicationUrl';
 
 interface LocalityNewsProps {
   localityName: string;

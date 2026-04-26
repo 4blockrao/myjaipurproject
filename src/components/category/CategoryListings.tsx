@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Category } from '@/hooks/useCategories';
 import { format } from 'date-fns';
+import { getNewsCardUrl } from '@/utils/publicationUrl';
 
 interface CategoryListingsProps {
   category: Category;
