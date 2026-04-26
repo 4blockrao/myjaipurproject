@@ -171,6 +171,63 @@
     },
 
     {
+      "src": "^/news/rajasthan-royals-2025/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/story/rajasthan-royals-ipl-2026-jaipur-season"
+      }
+    },
+    {
+      "src": "^/news/new-nightlife-jaipur/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/explore/best-nightlife-places-jaipur"
+      }
+    },
+    {
+      "src": "^/news/jaipur-lit-fest-2025/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/story/jaipur-literature-festival-city-culture-guide"
+      }
+    },
+    {
+      "src": "^/news/heritage-conservation-jaipur/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/story/jaipur-heritage-conservation-old-city-guide"
+      }
+    },
+    {
+      "src": "^/news/top-cafes-jaipur/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/explore/best-cafes-in-jaipur"
+      }
+    },
+    {
+      "src": "^/news/jaipur-street-food/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/explore/best-street-food-in-jaipur"
+      }
+    },
+    {
+      "src": "^/news/weekend-getaways-jaipur/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/guide/weekend-getaways-from-jaipur"
+      }
+    },
+    {
+      "src": "^/news/new-business-parks-jaipur/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/story/jaipur-business-parks-startup-growth"
+      }
+    },
+
+    {
       "src": "^/news/([^/]+)/?$",
       "dest": "/api/publication-proxy?type=news&slug=$1"
     },
@@ -249,8 +306,8 @@
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=stories"
     },
     {
-    "src": "^/sitemap-news-google\\.xml$",
-    "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap/sitemaps/news-google.xml"
+      "src": "^/sitemap-news-google\\.xml$",
+      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap/sitemaps/news-google.xml"
     },
     {
       "src": "^/sitemap-categories\\.xml$",
