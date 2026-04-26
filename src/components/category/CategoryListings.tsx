@@ -356,7 +356,7 @@ export const CategoryListings: React.FC<CategoryListingsProps> = ({
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {listings.news.slice(0, 6).map((article: any) => (
-              <Link key={article.id} to={`/news/${article.category}/${article.slug}`}>
+              <Link key={article.id} to={getNewsCardUrl(article)}>
                 <Card className="h-full hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
                     <Badge variant="secondary" className="text-xs mb-2">

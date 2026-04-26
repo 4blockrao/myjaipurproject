@@ -38,7 +38,7 @@ export function LocalityNews({ localityName }: LocalityNewsProps) {
           {news.map((article) => (
             <Link 
               key={article.id} 
-              to={`/news/${article.category}/${article.slug}`}
+              to={getNewsCardUrl(article)}
               className="block group"
             >
               <Card className="transition-all hover:shadow-md hover:border-primary/50">

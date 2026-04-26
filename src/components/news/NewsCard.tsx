@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { useAnalytics } from '@/contexts/AnalyticsContext';
+import { getNewsCardUrl } from '@/utils/publicationUrl';
 
 interface NewsCardProps {
   article: {
@@ -58,7 +59,7 @@ export function NewsCard({ article, variant = 'default' }: NewsCardProps) {
     : '';
 
   const imageUrl = article.cover_image || newsPlaceholders[article.category] || newsPlaceholders.default;
-  const articlePath = `/news/${article.category}/${article.slug}`;
+  const articlePath = getNewsCardUrl(article);
 
   const handleClick = () => {
     trackClick('news_card', article.title, article.id, articlePath);
