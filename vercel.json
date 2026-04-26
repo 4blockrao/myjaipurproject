@@ -1,231 +1,57 @@
 {
-  "routes": [
-    {
-      "src": "^/api/rest/v1/(.*)$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/rest/v1/$1"
-    },
-    {
-      "src": "^/api/auth/v1/(.*)$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/auth/v1/$1"
-    },
-    {
-      "src": "^/api/storage/v1/(.*)$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/storage/v1/$1"
-    },
-    {
-      "src": "^/api/functions/v1/(.*)$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/$1"
-    },
+  "src": "/sitemap.xml",
+  "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
+},
+{
+  "src": "/sitemap-index.xml",
+  "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
+},
+{
+  "src": "^/sitemaps/([^/]+)\\.xml$",
+  "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap/sitemaps/$1.xml"
+},
 
-    {
-      "src": "^/guides/?$",
-      "status": 308,
-      "headers": {
-        "Location": "/ipl-2026"
-      }
-    },
-    {
-      "src": "^/campaigns/ipl-2026-jaipur/?$",
-      "status": 308,
-      "headers": {
-        "Location": "/ipl-2026"
-      }
-    },
-    {
-      "src": "^/campaigns/ipl-2026/?$",
-      "status": 308,
-      "headers": {
-        "Location": "/ipl-2026"
-      }
-    },
-
-    {
-      "src": "^/ipl-2026/?$",
-      "dest": "/api/campaign-proxy?slug=ipl-2026-jaipur&section=hub"
-    },
-    {
-      "src": "^/ipl-2026/news/?$",
-      "dest": "/api/campaign-proxy?slug=ipl-2026-jaipur&section=news"
-    },
-    {
-      "src": "^/ipl-2026/guides/?$",
-      "dest": "/api/campaign-proxy?slug=ipl-2026-jaipur&section=guides"
-    },
-    {
-      "src": "^/ipl-2026/explore/?$",
-      "dest": "/api/campaign-proxy?slug=ipl-2026-jaipur&section=explore"
-    },
-    {
-      "src": "^/ipl-2026/stories/?$",
-      "dest": "/api/campaign-proxy?slug=ipl-2026-jaipur&section=stories"
-    },
-    {
-      "src": "^/ipl-2026/events/?$",
-      "dest": "/api/campaign-proxy?slug=ipl-2026-jaipur&section=events"
-    },
-    {
-      "src": "^/ipl-2026/deals/?$",
-      "dest": "/api/campaign-proxy?slug=ipl-2026-jaipur&section=deals"
-    },
-
-    {
-      "src": "^/localities/([^/]+)/?$",
-      "status": 308,
-      "headers": {
-        "Location": "/jaipur/$1"
-      }
-    },
-    {
-      "src": "^/localities/?$",
-      "status": 308,
-      "headers": {
-        "Location": "/jaipur"
-      }
-    },
-    {
-      "src": "^/locality/([^/]+)/?$",
-      "status": 308,
-      "headers": {
-        "Location": "/jaipur/$1"
-      }
-    },
-    {
-      "src": "^/locality/?$",
-      "status": 308,
-      "headers": {
-        "Location": "/jaipur"
-      }
-    },
-
-    {
-      "src": "^/events$",
-      "dest": "/api/events-list-ssr?path=/events"
-    },
-    {
-      "src": "^/events/$",
-      "dest": "/api/events-list-ssr?path=/events"
-    },
-    {
-      "src": "^/events/category/([^/]+)/?$",
-      "dest": "/api/events-list-ssr?path=/events/category/$1"
-    },
-    {
-      "src": "^/events/today/?$",
-      "dest": "/api/events-list-ssr?path=/events/today"
-    },
-    {
-      "src": "^/events/tomorrow/?$",
-      "dest": "/api/events-list-ssr?path=/events/tomorrow"
-    },
-    {
-      "src": "^/events/this-weekend/?$",
-      "dest": "/api/events-list-ssr?path=/events/this-weekend"
-    },
-    {
-      "src": "^/events/this-week/?$",
-      "dest": "/api/events-list-ssr?path=/events/this-week"
-    },
-    {
-      "src": "^/events/next-month/?$",
-      "dest": "/api/events-list-ssr?path=/events/next-month"
-    },
-    {
-      "src": "^/events/near-me/?$",
-      "dest": "/api/events-list-ssr?path=/events/near-me"
-    },
-    {
-      "src": "^/events/([^/]+)/?$",
-      "dest": "/api/event-proxy?slug=$1"
-    },
-
-    {
-      "src": "^/merchant/([^/]+)/?$",
-      "dest": "/api/merchant-proxy?slug=$1"
-    },
-
-    {
-      "src": "^/deals$",
-      "dest": "/api/deals-list-ssr"
-    },
-    {
-      "src": "^/deals/$",
-      "dest": "/api/deals-list-ssr"
-    },
-    {
-      "src": "^/deals/([^/]+)/?$",
-      "dest": "/api/deals-proxy?slug=$1"
-    },
-
-    {
-      "src": "^/jaipur/([^/]+)/?$",
-      "dest": "/api/jaipur-proxy?slug=$1"
-    },
-
-    {
-      "src": "^/artists/([^/]+)/?$",
-      "dest": "/api/artist-proxy?slug=$1"
-    },
-    {
-      "src": "^/venues/([^/]+)/?$",
-      "dest": "/api/venue-proxy?slug=$1"
-    },
-
-    {
-      "src": "^/news/([^/]+)/?$",
-      "dest": "/api/publication-proxy?type=news&slug=$1"
-    },
-    {
-      "src": "^/guide/([^/]+)/?$",
-      "dest": "/api/publication-proxy?type=guide&slug=$1"
-    },
-    {
-      "src": "^/explore/([^/]+)/?$",
-      "dest": "/api/publication-proxy?type=explore&slug=$1"
-    },
-    {
-      "src": "^/story/([^/]+)/?$",
-      "dest": "/api/publication-proxy?type=story&slug=$1"
-    },
-
-    {
-      "src": "/sitemap.xml",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
-    },
-    {
-      "src": "/sitemap-index.xml",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap"
-    },
-    {
-      "src": "^/sitemaps/([^/]+)\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap/sitemaps/$1.xml"
-    },
-    {
-      "src": "^/sitemap-events\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap/sitemaps/events.xml"
-    },
-    {
-      "src": "^/sitemap-stories\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-stories"
-    },
-    {
-      "src": "^/sitemap-news\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=news"
-    },
-    {
-      "src": "^/sitemap-news-google\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=news-sitemap"
-    },
-    {
-      "src": "^/sitemap-artists\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap-artists"
-    },
-
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "^(.*)$",
-      "dest": "/index.html"
-    }
-  ]
+{
+  "src": "^/sitemap-events\\.xml$",
+  "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=events"
+},
+{
+  "src": "^/sitemap-localities\\.xml$",
+  "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=localities"
+},
+{
+  "src": "^/sitemap-venues\\.xml$",
+  "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=venues"
+},
+{
+  "src": "^/sitemap-deals\\.xml$",
+  "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=deals"
+},
+{
+  "src": "^/sitemap-merchants\\.xml$",
+  "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=merchants"
+},
+{
+  "src": "^/sitemap-artists\\.xml$",
+  "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=artists"
+},
+{
+  "src": "^/sitemap-publications\\.xml$",
+  "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=publications"
+},
+{
+  "src": "^/sitemap-news\\.xml$",
+  "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=news"
+},
+{
+  "src": "^/sitemap-news-google\\.xml$",
+  "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=news-sitemap"
+},
+{
+  "src": "^/sitemap-stories\\.xml$",
+  "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=stories"
+},
+{
+  "src": "^/sitemap-categories\\.xml$",
+  "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=categories"
 }
