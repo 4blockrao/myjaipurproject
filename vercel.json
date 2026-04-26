@@ -249,7 +249,7 @@
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=stories"
     },
     {
-      "src": "^/sitemap-news-google\\.xml$",
+      "src": "^/sitemaps-news-google\\.xml$",
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=news-sitemap"
     },
     {
