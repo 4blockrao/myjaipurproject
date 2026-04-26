@@ -249,8 +249,8 @@
       "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=stories"
     },
     {
-      "src": "^/sitemaps-news-google\\.xml$",
-      "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap?type=news-sitemap"
+    "src": "^/sitemap-news-google\\.xml$",
+    "dest": "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/sitemap/sitemaps/news-google.xml"
     },
     {
       "src": "^/sitemap-categories\\.xml$",
