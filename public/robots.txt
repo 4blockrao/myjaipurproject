@@ -1,14 +1,26 @@
 # robots.txt for JaipurCircle
 # https://www.jaipurcircle.com
-# Last updated: 2026-04-24
+# Last updated: 2026-05-01
+
+# ========================================
+# MAJOR SEARCH ENGINES
+# ========================================
 
 # Google
 User-agent: Googlebot
 Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /merchant-dashboard/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /supabase/
 
+# Google Images
 User-agent: Googlebot-Image
 Allow: /
 
+# Google News
 User-agent: Googlebot-News
 Allow: /news/
 
@@ -17,7 +29,10 @@ User-agent: Bingbot
 Allow: /
 Crawl-delay: 2
 
-# Social Media Crawlers
+# ========================================
+# SOCIAL MEDIA CRAWLERS
+# ========================================
+
 User-agent: Twitterbot
 Allow: /
 
@@ -33,7 +48,10 @@ Allow: /
 User-agent: WhatsApp
 Allow: /
 
-# Other Major Crawlers
+# ========================================
+# OTHER SEARCH ENGINES
+# ========================================
+
 User-agent: DuckDuckBot
 Allow: /
 
@@ -45,100 +63,16 @@ User-agent: Yandex
 Allow: /
 Crawl-delay: 2
 
-# Default rule for all other bots
+# ========================================
+# DEFAULT RULE
+# ========================================
+
 User-agent: *
 Allow: /
-
-# ========================================
-# PUBLIC CONTENT - ALWAYS ALLOW
-# ========================================
-
-# Core Pages
-Allow: /
-Allow: /about
-Allow: /help
-Allow: /install
-Allow: /sitemap
-
-# IPL 2026 Campaign
-Allow: /ipl-2026
-Allow: /ipl-2026/
-
-# Guides
-Allow: /guides
-Allow: /guides/
-Allow: /guide
-Allow: /guide/
-
-# News
-Allow: /news
-Allow: /news/
-
-# Deals & Shopping
-Allow: /deals
-Allow: /deals/
-Allow: /deal
-Allow: /deal/
-Allow: /categories
-
-# Merchants
-Allow: /merchants
-Allow: /merchants/
-Allow: /merchant
-Allow: /merchant/
-Allow: /merchant-onboarding
-
-# Events
-Allow: /events
-Allow: /events/
-
-# Jaipur Locality Hub
-Allow: /jaipur
-Allow: /jaipur/
-Allow: /jaipur/all
-Allow: /jaipur/zones
-Allow: /jaipur/zones/
-
-# Engagement Pages
-Allow: /pro
-Allow: /leaderboard
-Allow: /referral-program
-
-# ========================================
-# PRIVATE/ADMIN PAGES - BLOCK
-# ========================================
-
-Disallow: /admin
 Disallow: /admin/
-Disallow: /dashboard
-Disallow: /merchant-dashboard
-Disallow: /merchant-portal
-Disallow: /event-organizer-dashboard
-Disallow: /events/organizer
-Disallow: /events/create
-Disallow: /news/create
-Disallow: /settings
-Disallow: /profile
-Disallow: /account
-Disallow: /orders
-Disallow: /favorites
-Disallow: /coupons
-Disallow: /wallet
-Disallow: /checkout
-Disallow: /new-checkout
-Disallow: /scan
-Disallow: /user-deals
-Disallow: /my-deals
-Disallow: /my-events
-Disallow: /order-success
-Disallow: /referral-success
-
-# Block API and Auth endpoints
 Disallow: /api/
 Disallow: /auth/
-Disallow: /supabase/
-
-# Block query parameters that create duplicate content
+Disallow: /dashboard/
 Disallow: /*?*ref=
 Disallow: /*?*utm_
 Disallow: /*?*fbclid=
@@ -148,13 +82,9 @@ Disallow: /*?*gclid=
 # SITEMAPS
 # ========================================
 
-# Main sitemap - all pages
 Sitemap: https://www.jaipurcircle.com/sitemap.xml
-
-# sitemap 2 
+Sitemap: https://www.jaipurcircle.com/sitemap-localities.xml
 Sitemap: https://www.jaipurcircle.com/sitemaps/events.xml
-
-# sitemap 3
 Sitemap: https://www.jaipurcircle.com/sitemaps/static.xml
 
 # Host directive
