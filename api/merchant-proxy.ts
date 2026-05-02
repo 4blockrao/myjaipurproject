@@ -1,76 +1,27 @@
-// api/merchant-proxy.ts
-
-export const config = {
-  runtime: "edge",
-};
-
-const SUPABASE_MERCHANT_SSR_URL =
-  "https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/merchant-ssr";
-
-export default async function handler(request: Request) {
-  const url = new URL(request.url);
-  const slug = url.searchParams.get("slug")?.trim();
+// api/merchant-proxy.js
+export default async function handler(req, res) {
+  const { slug } = req.query;
 
   if (!slug) {
-    return new Response("Missing merchant slug", {
-      status: 400,
-      headers: {
-        "content-type": "text/plain; charset=utf-8",
-        "cache-control": "no-store",
-      },
-    });
+    return res.status(400).send('Missing merchant slug');
   }
 
-  const edgeFunctionUrl =
-    `${SUPABASE_MERCHANT_SSR_URL}?slug=${encodeURIComponent(slug)}`;
+  const upstreamUrl = `https://rbenryjgtbrjvqvxbigq.supabase.co/functions/v1/merchant-ssr?slug=${encodeURIComponent(slug)}`;
 
   try {
-    const upstream = await fetch(edgeFunctionUrl, {
-      headers: {
-        "user-agent":
-          request.headers.get("user-agent") || "jaipurcircle-merchant-proxy",
-        "accept": "text/html",
-      },
-      cache: "no-store",
-    });
-
-    const html = await upstream.text();
-
-    return new Response(html, {
-      status: upstream.status,
-      headers: {
-        "content-type": "text/html; charset=utf-8",
-        "cache-control": "no-store, max-age=0, must-revalidate",
-        "x-merchant-proxy": "true",
-        "x-upstream-status": String(upstream.status),
-      },
-    });
+    const upstreamRes = await fetch(upstreamUrl);
+    const html = await upstreamRes.text();
+    
+    // Disable caching completely
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    
+    res.status(200).send(html);
   } catch (error) {
-    console.error("[merchant-proxy] Failed:", error);
-
-    return new Response(
-      `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="robots" content="noindex, nofollow">
-  <title>Merchant Temporarily Unavailable | JaipurCircle</title>
-</head>
-<body>
-  <h1>Merchant temporarily unavailable</h1>
-  <p>Please try again shortly.</p>
-  <p><a href="/deals">Browse Jaipur deals</a></p>
-</body>
-</html>`,
-      {
-        status: 500,
-        headers: {
-          "content-type": "text/html; charset=utf-8",
-          "cache-control": "no-store",
-          "x-merchant-proxy": "true",
-          "x-merchant-proxy-error": "true",
-        },
-      },
-    );
+    console.error('[merchant-proxy] Error:', error);
+    res.status(500).send('Internal Server Error');
   }
 }
