@@ -191,6 +191,10 @@
       "src": "^/venues/([^/]+)/?$",
       "dest": "/api/venue-proxy?slug=$1"
     },
+    {
+  "src": "^/jaipur/([^/]+)/([^/]+)/?$",
+  "dest": "/api/cluster-proxy"
+},
 
     {
       "src": "^/news/rajasthan-royals-2025/?$",
