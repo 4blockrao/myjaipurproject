@@ -20,45 +20,33 @@
     {
       "src": "^/jaipur/[Cc]-[Ss][Cc][Hh][Ee][Mm][Ee]$",
       "status": 301,
-      "headers": {
-        "Location": "/jaipur/c-scheme"
-      }
+      "headers": { "Location": "/jaipur/c-scheme" }
     },
     {
       "src": "^/jaipur/[Cc]-[Ss][Cc][Hh][Ee][Mm][Ee]/?$",
       "status": 301,
-      "headers": {
-        "Location": "/jaipur/c-scheme"
-      }
+      "headers": { "Location": "/jaipur/c-scheme" }
     },
     {
       "src": "^/jaipur/[Cc]-[Ss][Cc][Hh][Ee][Mm][Ee]/(.*)$",
       "status": 301,
-      "headers": {
-        "Location": "/jaipur/c-scheme/$1"
-      }
+      "headers": { "Location": "/jaipur/c-scheme/$1" }
     },
 
     {
       "src": "^/guides/?$",
       "status": 308,
-      "headers": {
-        "Location": "/ipl-2026"
-      }
+      "headers": { "Location": "/ipl-2026" }
     },
     {
       "src": "^/campaigns/ipl-2026-jaipur/?$",
       "status": 308,
-      "headers": {
-        "Location": "/ipl-2026"
-      }
+      "headers": { "Location": "/ipl-2026" }
     },
     {
       "src": "^/campaigns/ipl-2026/?$",
       "status": 308,
-      "headers": {
-        "Location": "/ipl-2026"
-      }
+      "headers": { "Location": "/ipl-2026" }
     },
 
     {
@@ -93,30 +81,22 @@
     {
       "src": "^/localities/([^/]+)/?$",
       "status": 308,
-      "headers": {
-        "Location": "/jaipur/$1"
-      }
+      "headers": { "Location": "/jaipur/$1" }
     },
     {
       "src": "^/localities/?$",
       "status": 308,
-      "headers": {
-        "Location": "/jaipur"
-      }
+      "headers": { "Location": "/jaipur" }
     },
     {
       "src": "^/locality/([^/]+)/?$",
       "status": 308,
-      "headers": {
-        "Location": "/jaipur/$1"
-      }
+      "headers": { "Location": "/jaipur/$1" }
     },
     {
       "src": "^/locality/?$",
       "status": 308,
-      "headers": {
-        "Location": "/jaipur"
-      }
+      "headers": { "Location": "/jaipur" }
     },
 
     {
@@ -188,60 +168,53 @@
     },
 
     {
+      "src": "^/jaipur/([^/]+)/([^/]+)/?$",
+      "dest": "/api/cluster-proxy"
+    },
+    {
+      "src": "^/jaipur/([^/]+)/?$",
+      "dest": "/api/jaipur-proxy?slug=$1"
+    },
+
+    {
       "src": "^/news/rajasthan-royals-2025/?$",
       "status": 308,
-      "headers": {
-        "Location": "/story/rajasthan-royals-ipl-2026-jaipur-season"
-      }
+      "headers": { "Location": "/story/rajasthan-royals-ipl-2026-jaipur-season" }
     },
     {
       "src": "^/news/new-nightlife-jaipur/?$",
       "status": 308,
-      "headers": {
-        "Location": "/explore/best-nightlife-places-jaipur"
-      }
+      "headers": { "Location": "/explore/best-nightlife-places-jaipur" }
     },
     {
       "src": "^/news/jaipur-lit-fest-2025/?$",
       "status": 308,
-      "headers": {
-        "Location": "/story/jaipur-literature-festival-city-culture-guide"
-      }
+      "headers": { "Location": "/story/jaipur-literature-festival-city-culture-guide" }
     },
     {
       "src": "^/news/heritage-conservation-jaipur/?$",
       "status": 308,
-      "headers": {
-        "Location": "/story/jaipur-heritage-conservation-old-city-guide"
-      }
+      "headers": { "Location": "/story/jaipur-heritage-conservation-old-city-guide" }
     },
     {
       "src": "^/news/top-cafes-jaipur/?$",
       "status": 308,
-      "headers": {
-        "Location": "/explore/best-cafes-in-jaipur"
-      }
+      "headers": { "Location": "/explore/best-cafes-in-jaipur" }
     },
     {
       "src": "^/news/jaipur-street-food/?$",
       "status": 308,
-      "headers": {
-        "Location": "/explore/best-street-food-in-jaipur"
-      }
+      "headers": { "Location": "/explore/best-street-food-in-jaipur" }
     },
     {
       "src": "^/news/weekend-getaways-jaipur/?$",
       "status": 308,
-      "headers": {
-        "Location": "/guide/weekend-getaways-from-jaipur"
-      }
+      "headers": { "Location": "/guide/weekend-getaways-from-jaipur" }
     },
     {
       "src": "^/news/new-business-parks-jaipur/?$",
       "status": 308,
-      "headers": {
-        "Location": "/story/jaipur-business-parks-startup-growth"
-      }
+      "headers": { "Location": "/story/jaipur-business-parks-startup-growth" }
     },
 
     {
