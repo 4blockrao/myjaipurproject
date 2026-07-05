@@ -5,6 +5,10 @@ on:
     branches: [ "main" ]
     paths:
       - "supabase/functions/**"
+  workflow_dispatch: {}
+
+env:
+  PROJECT_REF: rbenryjgtbrjvqvxbigq
 
 jobs:
   deploy:
@@ -20,8 +24,12 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
-          supabase functions deploy sitemap --project-ref buwhgxyutfwadazjswio
-          supabase functions deploy merchant-redirect --project-ref buwhgxyutfwadazjswio
-          supabase functions deploy merchant-ssr --project-ref buwhgxyutfwadazjswio
-          supabase functions deploy event-ssr --project-ref buwhgxyutfwadazjswio
-          supabase functions deploy locality-ssr --project-ref buwhgxyutfwadazjswio
+          for fn in \
+            sitemap sitemap-artists sitemap-stories \
+            locality-ssr event-ssr events-list-ssr merchant-ssr \
+            artist-ssr venue-ssr page-ssr story-ssr \
+            scrape-bookmyshow-events register-for-event; do
+            echo "::group::Deploy $fn"
+            supabase functions deploy "$fn" --project-ref "$PROJECT_REF"
+            echo "::endgroup::"
+          done

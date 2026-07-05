@@ -119,10 +119,11 @@ const CheckoutPage = () => {
       }]).select().single();
 
       if (error) throw error;
-      await new Promise(r => setTimeout(r, 1500));
+      // No online payment gateway yet — this records the order as a reservation
+      // that the customer settles with the merchant at redemption.
       navigate(`/order-success/${order.id}`);
     } catch (error) {
-      toast({ title: "Payment Failed", description: "Please try again", variant: "destructive" });
+      toast({ title: "Couldn't place order", description: "Please try again", variant: "destructive" });
     } finally {
       setIsProcessing(false);
     }
@@ -305,14 +306,14 @@ const CheckoutPage = () => {
           ) : (
             <>
               <Shield className="h-4 w-4 mr-2" />
-              Pay ₹{Math.floor(getTotalAmount())}
+              Reserve Deal · ₹{Math.floor(getTotalAmount())}
             </>
           )}
         </Button>
 
         <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1">
           <Shield className="h-3 w-3" />
-          Secure payment powered by Razorpay
+          No charge now — pay the merchant when you redeem
         </p>
       </div>
 

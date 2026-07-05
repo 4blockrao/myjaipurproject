@@ -18,22 +18,6 @@
     },
 
     {
-      "src": "^/jaipur/[Cc]-[Ss][Cc][Hh][Ee][Mm][Ee]$",
-      "status": 301,
-      "headers": { "Location": "/jaipur/c-scheme" }
-    },
-    {
-      "src": "^/jaipur/[Cc]-[Ss][Cc][Hh][Ee][Mm][Ee]/?$",
-      "status": 301,
-      "headers": { "Location": "/jaipur/c-scheme" }
-    },
-    {
-      "src": "^/jaipur/[Cc]-[Ss][Cc][Hh][Ee][Mm][Ee]/(.*)$",
-      "status": 301,
-      "headers": { "Location": "/jaipur/c-scheme/$1" }
-    },
-
-    {
       "src": "^/guides/?$",
       "status": 308,
       "headers": { "Location": "/ipl-2026" }
