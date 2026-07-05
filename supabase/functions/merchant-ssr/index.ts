@@ -22,7 +22,12 @@ function esc(s: string): string {
 }
 
 function escJson(v: any): string {
-  return esc(JSON.stringify(v));
+  // JSON-LD must stay valid JSON (literal quotes). Only neutralise characters
+  // that could break out of the <script> tag; do NOT HTML-escape the quotes.
+  return JSON.stringify(v)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
 }
 
 function fmtDate(d?: string | null): string {
