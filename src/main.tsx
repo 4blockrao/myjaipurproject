@@ -41,8 +41,10 @@ function isKnownPublicSEOPath(): boolean {
   if (first === "venues" && parts.length >= 2) return true;
   if (first === "artists" && parts.length >= 2) return true;
 
-  // Merchant detail pages
-  if (first === "merchant" && parts.length >= 2) return true;
+  // Merchant detail pages — intentionally NOT treated as SSR-only:
+  // they carry the interactive reviews UI, so React must mount and take over
+  // (the merchant-ssr HTML still serves crawlers/first paint).
+  // if (first === "merchant" && parts.length >= 2) return true;
 
   // Deals listing + deal detail pages
   if (first === "deals") return true;
