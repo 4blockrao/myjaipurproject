@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import DealCard, { type DealCardData } from "@/components/deals/DealCard";
+import { MerchantReviews } from "@/components/reviews/MerchantReviews";
 
 const MerchantDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -208,10 +209,16 @@ const MerchantDetailPage = () => {
                   </Badge>
                 )}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                  <span className="font-medium">{merchant.average_rating?.toFixed(1) || "4.5"}</span>
-                  <span>•</span>
-                  <span>{merchant.total_reviews || 0} reviews</span>
+                  {merchant.total_reviews > 0 ? (
+                    <>
+                      <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                      <span className="font-medium">{merchant.average_rating?.toFixed(1)}</span>
+                      <span>•</span>
+                      <a href="#reviews" className="hover:text-foreground">{merchant.total_reviews} reviews</a>
+                    </>
+                  ) : (
+                    <a href="#reviews" className="hover:text-foreground">Be the first to review</a>
+                  )}
                 </div>
               </div>
             </div>
@@ -477,6 +484,12 @@ const MerchantDetailPage = () => {
             </section>
           </>
         )}
+
+        <Separator />
+        <MerchantReviews
+          merchantId={merchant.id}
+          merchantName={merchant.business_name || merchant.name}
+        />
 
         <Separator />
         <Link to="/ipl-2026" className="block">
