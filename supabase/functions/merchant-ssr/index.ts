@@ -72,6 +72,20 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Load published reviews (server-rendered for SEO + AggregateRating rich results)
+    const { data: reviewRows } = await supabase
+      .from("merchant_reviews")
+      .select("rating, reviewer_name, title, body, created_at, is_verified")
+      .eq("merchant_id", merchant.id)
+      .eq("status", "published")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    const reviews = reviewRows || [];
+    const reviewCount = reviews.length;
+    const avgRating = reviewCount
+      ? Math.round((reviews.reduce((s: number, r: any) => s + (r.rating || 0), 0) / reviewCount) * 10) / 10
+      : 0;
+
     // Find primary locality (entity_locality_map)
     const { data: mapRow } = await supabase
       .from("entity_locality_map")
@@ -119,6 +133,17 @@ Deno.serve(async (req) => {
       address: merchant.address
         ? { "@type": "PostalAddress", streetAddress: merchant.address, addressLocality: "Jaipur", addressRegion: "RJ", addressCountry: "IN" }
         : undefined,
+      aggregateRating: reviewCount
+        ? { "@type": "AggregateRating", ratingValue: avgRating, reviewCount, bestRating: 5, worstRating: 1 }
+        : undefined,
+      review: reviews.slice(0, 5).map((r: any) => ({
+        "@type": "Review",
+        reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5, worstRating: 1 },
+        author: { "@type": "Person", name: r.reviewer_name || "A JaipurCircle user" },
+        name: r.title || undefined,
+        reviewBody: r.body || r.title || undefined,
+        datePublished: r.created_at,
+      })),
     };
 
     const breadcrumb = {
@@ -188,6 +213,24 @@ Deno.serve(async (req) => {
 <script type="application/ld+json">${escJson(faqSchema)}</script>
 `;
 
+    const reviewsHtml = reviewCount === 0
+      ? `
+  <section>
+    <h2>Reviews</h2>
+    <p style="color:#555">No reviews yet — be the first to review ${esc(name)} on ${SITE_NAME}.</p>
+  </section>`
+      : `
+  <section>
+    <h2>Reviews — ${avgRating} out of 5 (${reviewCount} review${reviewCount > 1 ? "s" : ""})</h2>
+    ${reviews.map((r: any) => `
+    <article style="margin:12px 0;padding:12px;border:1px solid #eee;border-radius:10px">
+      <div style="font-weight:600">${esc(r.reviewer_name || "A JaipurCircle user")}${r.is_verified ? " · Verified visit" : ""}</div>
+      <div style="color:#f59e0b" aria-label="${r.rating} out of 5 stars">${"★".repeat(r.rating)}${"☆".repeat(5 - r.rating)}</div>
+      ${r.title ? `<div style="font-weight:600;margin-top:4px">${esc(r.title)}</div>` : ""}
+      ${r.body ? `<p style="color:#555;margin:4px 0 0">${esc(r.body)}</p>` : ""}
+    </article>`).join("")}
+  </section>`;
+
     const preContent = `
 <div class="ssr-prerender" style="max-width:900px;margin:0 auto;padding:20px;font-family:system-ui,sans-serif">
   <nav aria-label="Breadcrumb">
@@ -208,6 +251,7 @@ Deno.serve(async (req) => {
       <li><strong>Last updated:</strong> ${esc(fmtDate(merchant.updated_at || merchant.created_at))}</li>
     </ul>
   </div>
+${reviewsHtml}
 
   <section>
     <h2>Frequently Asked Questions</h2>
