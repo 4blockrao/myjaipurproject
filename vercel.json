@@ -152,6 +152,14 @@
     },
 
     {
+      "src": "^/jaipur/?$",
+      "dest": "/api/jaipur-hub"
+    },
+    {
+      "src": "^/jaipur/all/?$",
+      "dest": "/api/jaipur-hub"
+    },
+    {
       "src": "^/jaipur/([^/]+)/([^/]+)/?$",
       "dest": "/api/cluster-proxy"
     },
