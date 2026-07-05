@@ -1,0 +1,50 @@
+name: Weekly Event Scrape & Publish
+
+# Keeps upcoming events fresh automatically so the site never goes stale again.
+# Runs every Monday 06:00 IST (00:30 UTC): scrapes BookMyShow via the edge
+# function, then auto-publishes the newly-imported upcoming events.
+on:
+  schedule:
+    - cron: "30 0 * * 1" # Monday 00:30 UTC == 06:00 IST
+  workflow_dispatch: {} # allows manual runs from the Actions tab
+
+env:
+  SUPABASE_URL: https://rbenryjgtbrjvqvxbigq.supabase.co
+  SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+jobs:
+  scrape-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Guard — service key present
+        run: |
+          if [ -z "$SERVICE_KEY" ]; then
+            echo "::error::SUPABASE_SERVICE_ROLE_KEY secret is not set. Add it in Settings → Secrets → Actions."
+            exit 1
+          fi
+
+      - name: Scrape & import from BookMyShow (Jaipur)
+        run: |
+          echo "Requesting scrape-and-import…"
+          resp=$(curl -sS -X POST "$SUPABASE_URL/functions/v1/scrape-bookmyshow-events" \
+            -H "apikey: $SERVICE_KEY" \
+            -H "Authorization: Bearer $SERVICE_KEY" \
+            -H "Content-Type: application/json" \
+            --max-time 600 \
+            -d '{"action":"scrape-and-import","dryRun":false,"city":"jaipur"}')
+          echo "Scraper response: $resp"
+
+      - name: Publish newly-imported upcoming events
+        run: |
+          TODAY=$(date -u +%F)
+          RECENT=$(date -u -d '3 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+          NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          echo "Publishing drafts created since $RECENT with start_date >= $TODAY"
+          curl -sS -X PATCH \
+            "$SUPABASE_URL/rest/v1/events?editorial_status=eq.draft&start_date=gte.$TODAY&created_at=gte.$RECENT" \
+            -H "apikey: $SERVICE_KEY" \
+            -H "Authorization: Bearer $SERVICE_KEY" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=representation" \
+            -d "{\"status\":\"published\",\"editorial_status\":\"published\",\"is_indexable\":true,\"published_at\":\"$NOW\"}" \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'Published {len(d)} events')" || echo "Publish step returned no rows (nothing new to publish)."
