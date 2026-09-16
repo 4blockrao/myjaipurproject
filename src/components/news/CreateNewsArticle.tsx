@@ -106,18 +106,23 @@ export function CreateNewsArticle() {
         slug,
         excerpt,
         content,
-        cover_image: coverImage || null,
+        cover_image_url: coverImage || null,
         category: category as any,
-        locality: locality || null,
+        // NOTE: live schema has `locality_id` (uuid, FK to localities), not a
+        // free-text `locality` column - this form collects a plain name, so
+        // there's no valid value to send without a name->id lookup that
+        // doesn't exist yet. Omitted rather than sent broken (would fail a
+        // uuid type-cast on every submit); the locality input in this form
+        // currently doesn't persist anywhere as a result - known gap, not
+        // fixed here.
         tags,
         meta_title: metaTitle || title,
         meta_description: metaDescription || excerpt,
-        meta_keywords: tags,
         status,
         is_ai_generated: true,
         ai_prompt: topic,
         published_at: status === 'published' ? new Date().toISOString() : null,
-        structured_data: {
+        schema_json: {
           "@context": "https://schema.org",
           "@type": "NewsArticle",
           "headline": title,
