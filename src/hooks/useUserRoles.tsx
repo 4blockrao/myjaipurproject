@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-export type UserRole = 'user' | 'pro_user' | 'merchant' | 'listing_agent' | 'listing_supervisor' | 'admin' | 'real_estate_broker' | 'event_organizer';
+export type UserRole = 'user' | 'pro_user' | 'merchant' | 'listing_agent' | 'listing_supervisor' | 'admin' | 'real_estate_broker' | 'event_organizer' | 'author';
 
 interface UserRoleData {
   role: UserRole;
@@ -59,6 +59,7 @@ export const useUserRoles = (userId?: string) => {
   const isListingAgent = hasRole('listing_agent');
   const isListingSupervisor = hasRole('listing_supervisor');
   const isAdmin = hasRole('admin');
+  const isAuthor = hasRole('author');
 
   const canManageDeals = hasAnyRole(['listing_agent', 'listing_supervisor', 'admin']);
   const canApproveDeals = hasAnyRole(['listing_supervisor', 'admin']);
@@ -105,6 +106,7 @@ export const useUserRoles = (userId?: string) => {
     isListingAgent,
     isListingSupervisor,
     isAdmin,
+    isAuthor,
     canManageDeals: canManageDeals,
     canApproveDeals: canApproveDeals,
     canManageUsers: canManageUsers,

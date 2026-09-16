@@ -4,13 +4,18 @@ import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, Newspaper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { CreateNewsArticle } from '@/components/news/CreateNewsArticle';
 import NativeBottomNav from '@/components/home/NativeBottomNav';
+import AppLayout from '@/components/layout/AppLayout';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { toast } from 'sonner';
 
 export default function CreateNewsPage() {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [userId, setUserId] = useState<string | undefined>(undefined);
+  const { isLoading: rolesLoading, isAuthor, isAdmin } = useUserRoles(userId);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -18,16 +23,42 @@ export default function CreateNewsPage() {
         toast.error('Please log in to write articles');
         navigate('/');
       } else {
+        setUserId(data.session.user.id);
         setIsAuthenticated(true);
       }
     });
   }, [navigate]);
 
-  if (isAuthenticated === null) {
+  // Route-guard note: this only gates the UI. The real enforcement is the
+  // RLS policy on news_articles (20260915120200_...sql) - a logged-in user
+  // who isn't 'author'/'admin' and somehow reaches CreateNewsArticle would
+  // still be rejected at the database on submit. This guard exists so that
+  // rejection shows as a clear "you don't have access" state instead of a
+  // confusing RLS error surfacing mid-form.
+  if (isAuthenticated === null || rolesLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Loading...</div>
       </div>
+    );
+  }
+
+  if (!isAuthor && !isAdmin) {
+    return (
+      <AppLayout title="Access Denied" showBackButton={true} backPath="/news">
+        <div className="container mx-auto px-4 py-8">
+          <Card>
+            <CardContent className="text-center py-8">
+              <p className="text-muted-foreground">
+                Writing articles requires the "author" role. If you'd like to
+                contribute to JaipurCircle's editorial content, see{' '}
+                <Link to="/about" className="underline">About JaipurCircle</Link>{' '}
+                for how to get in touch.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
     );
   }
 
