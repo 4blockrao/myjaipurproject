@@ -18,6 +18,16 @@
     },
 
     {
+      "src": "^/_next/(.*)$",
+      "dest": "https://REPLACE-WITH-WEB-NEXT-URL.vercel.app/_next/$1"
+    },
+
+    {
+      "src": "^/about/?$",
+      "dest": "/api/about-proxy"
+    },
+
+    {
       "src": "^/guides/?$",
       "status": 308,
       "headers": { "Location": "/ipl-2026" }
@@ -164,8 +174,12 @@
       "dest": "/api/cluster-proxy"
     },
     {
-      "src": "^/jaipur/([^/]+)/?$",
+      "src": "^/jaipur/(localities|zones)/?$",
       "dest": "/api/jaipur-proxy?slug=$1"
+    },
+    {
+      "src": "^/jaipur/([^/]+)/?$",
+      "dest": "https://REPLACE-WITH-WEB-NEXT-URL.vercel.app/jaipur/$1"
     },
 
     {

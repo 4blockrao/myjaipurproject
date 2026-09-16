@@ -138,25 +138,32 @@ async function getDealUrls(supabase: any) {
 
 async function getMerchantUrls(supabase: any) {
   const urls: Array<{ loc: string; priority: number; changefreq: string; lastmod?: string }> = [];
-  
+
+  // "/merchants" (plural) is the real directory/listing route (src/App.tsx).
+  // "/merchants/featured" and "/merchants/verified" are NOT registered routes
+  // anywhere in the app router — they were dead placeholder entries that
+  // resolved as soft-404s (SPA shell). Removed rather than fixed forward,
+  // since there is no such page to point them at today.
   urls.push({ loc: "/merchants", priority: 0.8, changefreq: "weekly" });
-  urls.push({ loc: "/merchants/featured", priority: 0.7, changefreq: "weekly" });
-  urls.push({ loc: "/merchants/verified", priority: 0.7, changefreq: "weekly" });
-  
+
   const { data: merchants } = await supabase
     .from("merchants")
     .select("slug, updated_at")
     .eq("status", "active");
-  
+
   merchants?.forEach((merchant: any) => {
+    // Individual merchant pages live at the SINGULAR route "/merchant/:slug"
+    // (vercel.json: ^/merchant/([^/]+)/?$ -> api/merchant-proxy). The plural
+    // "/merchants/:slug" used here previously does not match any route and
+    // was serving the SPA shell instead of the merchant page.
     urls.push({
-      loc: `/merchants/${merchant.slug}`,
+      loc: `/merchant/${merchant.slug}`,
       priority: 0.7,
       changefreq: "weekly",
       lastmod: merchant.updated_at?.split('T')[0]
     });
   });
-  
+
   return urls;
 }
 
@@ -194,24 +201,83 @@ async function getNewsUrls(supabase: any) {
   return urls;
 }
 
-async function getCategoryUrls(supabase: any) {
+function getCategoryUrls() {
   const urls: Array<{ loc: string; priority: number; changefreq: string }> = [];
-  
+
+  // Only "/categories" (the bare index) is a registered route today
+  // (src/App.tsx has `Route path="/categories"` with no `:slug` child route).
+  // The per-category loop that used to run here emitted "/categories/{slug}"
+  // for all 26 rows in the `categories` table — every one of those 404s as
+  // the SPA shell (confirmed live: HTTP 200, but title/body identical to the
+  // homepage, not a real category page or an honest 404).
+  //
+  // Removed rather than pointed at a real page, since /categories/:slug does
+  // not exist yet. RE-ADD this loop once that route ships:
+  //
+  //   const { data: categories } = await supabase.from("categories").select("slug");
+  //   categories?.forEach((cat: any) => {
+  //     urls.push({ loc: `/categories/${cat.slug}`, priority: 0.6, changefreq: "weekly" });
+  //   });
   urls.push({ loc: "/categories", priority: 0.7, changefreq: "weekly" });
-  
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("slug");
-  
-  categories?.forEach((cat: any) => {
-    urls.push({
-      loc: `/categories/${cat.slug}`,
-      priority: 0.6,
-      changefreq: "weekly"
-    });
-  });
-  
+
   return urls;
+}
+
+// KNOWN-LIVE stopgap list for /guide, /story, /explore ("publications").
+//
+// NOT DB-driven, unlike every other sitemap in this file — deliberately so.
+// The `articles` table (which is where this content conceptually lives) does
+// NOT reflect what the live site actually serves: every one of the 32 rows
+// visible to the anon/publishable key returns HTTP 404 when fetched live
+// under /guide, /story, and /explore (verified directly, all 3 prefixes,
+// multiple slugs, 2026-09-15). Meanwhile these 8 URLs — sourced from the
+// legacy-redirect `Location` targets already hardcoded in vercel.json for
+// this exact purpose — all verified HTTP 200 live on the same date.
+//
+// The function that actually serves these routes (`publication-ssr`) is not
+// in this repository's git history at all (confirmed via `git log --all`) —
+// it was deployed to Supabase out-of-band, so its real query/slug-resolution
+// logic can't be inspected from here to build a correct dynamic query.
+//
+// DO NOT replace this with a naive `.from("articles").select(...)` query —
+// that would reintroduce the exact bug this file is being fixed for
+// elsewhere (shipping confirmed-dead URLs into a sitemap search engines
+// read). Building a correct dynamic version requires either: (a) the actual
+// publication-ssr source, or (b) a service-role/authenticated check of which
+// rows it actually resolves, cross-referenced against live HTTP checks the
+// way this list was built.
+// This list was self-reviewed after first being written: the first version
+// only used the 8 URLs sourced from vercel.json's legacy redirects, and
+// missed 5 more that were sitting in index.html's own #ssr-crawler-links
+// list the whole time. All 5 below were verified HTTP 200 live on 2026-09-15
+// before being added, same bar as the original 8.
+//
+// NOT added here: /news/ipl-2026-jaipur-sms-stadium-matchday-advisory — also
+// verified live, but it's a /news/ URL, not /guide|/story|/explore. It
+// belongs in sitemaps/news.xml, not here. getNewsUrls() below queries
+// `news_articles` directly (this whole file runs on SUPABASE_SERVICE_ROLE_KEY,
+// so that query sees rows the anon key can't) — it's very likely already
+// covered dynamically without needing to be added to any curated list. Not
+// verified directly (would need to inspect getNewsUrls()'s actual output),
+// flagging rather than guessing.
+const KNOWN_LIVE_PUBLICATION_URLS: Array<{ loc: string; priority: number; changefreq: string }> = [
+  { loc: "/guide/weekend-getaways-from-jaipur", priority: 0.7, changefreq: "monthly" },
+  { loc: "/explore/best-nightlife-places-jaipur", priority: 0.7, changefreq: "monthly" },
+  { loc: "/explore/best-cafes-in-jaipur", priority: 0.7, changefreq: "monthly" },
+  { loc: "/explore/best-street-food-in-jaipur", priority: 0.7, changefreq: "monthly" },
+  { loc: "/story/jaipur-literature-festival-city-culture-guide", priority: 0.6, changefreq: "monthly" },
+  { loc: "/story/jaipur-heritage-conservation-old-city-guide", priority: 0.6, changefreq: "monthly" },
+  { loc: "/story/jaipur-business-parks-startup-growth", priority: 0.6, changefreq: "monthly" },
+  { loc: "/story/rajasthan-royals-ipl-2026-jaipur-season", priority: 0.6, changefreq: "monthly" },
+  { loc: "/explore/best-sports-bars-jaipur-watch-ipl", priority: 0.6, changefreq: "monthly" },
+  { loc: "/explore/best-places-watch-ipl-jaipur", priority: 0.6, changefreq: "monthly" },
+  { loc: "/explore/family-friendly-places-watch-ipl-jaipur", priority: 0.6, changefreq: "monthly" },
+  { loc: "/guide/sms-stadium-pitch-report-ipl-jaipur", priority: 0.6, changefreq: "monthly" },
+  { loc: "/story/jaipur-ipl-matchday-culture-sms-stadium", priority: 0.6, changefreq: "monthly" },
+];
+
+function getPublicationUrls() {
+  return KNOWN_LIVE_PUBLICATION_URLS;
 }
 
 function generateSitemapXml(urls: Array<{ loc: string; priority: number; changefreq: string; lastmod?: string }>): string {
@@ -264,6 +330,10 @@ function generateSitemapIndex(): string {
   </sitemap>
   <sitemap>
     <loc>${BASE_URL}/sitemaps/categories.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>${BASE_URL}/sitemaps/publications.xml</loc>
     <lastmod>${today}</lastmod>
   </sitemap>
 </sitemapindex>`;
@@ -331,7 +401,11 @@ serve(async (req: Request) => {
     }
     else if (normalizedPath.endsWith("/sitemaps/categories.xml") || normalizedPath === "/categories.xml") {
       console.log(`[sitemap] Generating categories sitemap`);
-      urls = await getCategoryUrls(supabase);
+      urls = getCategoryUrls();
+    }
+    else if (normalizedPath.endsWith("/sitemaps/publications.xml") || normalizedPath === "/publications.xml") {
+      console.log(`[sitemap] Generating publications sitemap (curated, see KNOWN_LIVE_PUBLICATION_URLS)`);
+      urls = getPublicationUrls();
     }
     else {
       // Default to sitemap index for unknown paths
