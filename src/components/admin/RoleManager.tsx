@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Users, Shield, Crown, Store, FileText, Eye } from "lucide-react";
+import { Users, Shield, Crown, Store, FileText, Eye, Newspaper } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from "@/hooks/useUserRoles";
@@ -31,7 +31,8 @@ const RoleManager = () => {
     merchant: Store,
     listing_agent: FileText,
     listing_supervisor: Eye,
-    admin: Shield
+    admin: Shield,
+    author: Newspaper
   };
 
   const roleColors = {
@@ -40,7 +41,8 @@ const RoleManager = () => {
     merchant: "outline",
     listing_agent: "destructive",
     listing_supervisor: "default",
-    admin: "default"
+    admin: "default",
+    author: "secondary"
   } as const;
 
   useEffect(() => {
@@ -182,6 +184,7 @@ const RoleManager = () => {
                 <SelectItem value="merchant">Merchant</SelectItem>
                 <SelectItem value="listing_agent">Listing Agent</SelectItem>
                 <SelectItem value="listing_supervisor">Listing Supervisor</SelectItem>
+                <SelectItem value="author">Author</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
               </SelectContent>
             </Select>
