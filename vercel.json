@@ -216,6 +216,10 @@
     },
 
     {
+      "src": "^/news/create/?$",
+      "dest": "/index.html"
+    },
+    {
       "src": "^/news/([^/]+)/?$",
       "dest": "/api/publication-proxy?type=news&slug=$1"
     },
