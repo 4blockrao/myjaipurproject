@@ -93,6 +93,20 @@ export function CreateNewsArticle() {
         throw new Error('Please log in to publish articles');
       }
 
+      // author_id on news_articles references authors(id), not the login
+      // user's own auth id (repointed by the 2026-09-15 migration) - RLS
+      // requires author_id = the caller's own linked authors row, so that
+      // has to be looked up rather than assumed to be session.user.id.
+      const { data: authorProfile, error: authorLookupError } = await supabase
+        .from('authors')
+        .select('id')
+        .eq('user_id', session.session.user.id)
+        .single();
+
+      if (authorLookupError || !authorProfile) {
+        throw new Error('No author profile is linked to your account yet - ask an admin to link one before publishing.');
+      }
+
       // Generate slug from title
       const baseSlug = title.toLowerCase()
         .replace(/[^a-z0-9\s]/g, '')
@@ -101,7 +115,7 @@ export function CreateNewsArticle() {
       const slug = `${baseSlug}-${Date.now()}`;
 
       const articleData = {
-        author_id: session.session.user.id,
+        author_id: authorProfile.id,
         title,
         slug,
         excerpt,
