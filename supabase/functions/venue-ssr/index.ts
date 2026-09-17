@@ -329,7 +329,7 @@ ${schemas.map(s => `<script type="application/ld+json">${JSON.stringify(s)}</scr
   return new Response(finalHtml, {
     headers: {
       "content-type": "text/html; charset=utf-8",
-      "cache-control": "no-store, max-age=0, must-revalidate",
+      "cache-control": "public, s-maxage=3600, stale-while-revalidate=86400",
       "x-ssr-rendered": "true",
     },
   });

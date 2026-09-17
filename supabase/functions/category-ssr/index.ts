@@ -341,7 +341,7 @@ ${schemas.map((schema) => `<script type="application/ld+json">${JSON.stringify(s
         "content-type": "text/html; charset=utf-8",
         "content-disposition": "inline",
         "x-content-type-options": "nosniff",
-        "cache-control": "no-store, max-age=0, must-revalidate",
+        "cache-control": "public, s-maxage=3600, stale-while-revalidate=86400",
         "content-security-policy": "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src * data:; font-src 'self' https: data:; connect-src 'self' https:;",
         "x-ssr-rendered": "true",
         "x-render-time-ms": String(Date.now() - startTime),
