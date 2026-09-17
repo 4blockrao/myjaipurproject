@@ -201,24 +201,36 @@ async function getNewsUrls(supabase: any) {
   return urls;
 }
 
-function getCategoryUrls() {
-  const urls: Array<{ loc: string; priority: number; changefreq: string }> = [];
+async function getCategoryUrls(supabase: any) {
+  const urls: Array<{ loc: string; priority: number; changefreq: string; lastmod?: string }> = [];
 
-  // Only "/categories" (the bare index) is a registered route today
-  // (src/App.tsx has `Route path="/categories"` with no `:slug` child route).
-  // The per-category loop that used to run here emitted "/categories/{slug}"
-  // for all 26 rows in the `categories` table — every one of those 404s as
-  // the SPA shell (confirmed live: HTTP 200, but title/body identical to the
-  // homepage, not a real category page or an honest 404).
-  //
-  // Removed rather than pointed at a real page, since /categories/:slug does
-  // not exist yet. RE-ADD this loop once that route ships:
-  //
-  //   const { data: categories } = await supabase.from("categories").select("slug");
-  //   categories?.forEach((cat: any) => {
-  //     urls.push({ loc: `/categories/${cat.slug}`, priority: 0.6, changefreq: "weekly" });
-  //   });
+  // Only "/categories" (the bare index) was a registered route for a while
+  // (src/App.tsx had `Route path="/categories"` with no `:slug` child
+  // route) - the original per-category loop here emitted "/categories/{slug}"
+  // for all 26 rows in the taxonomy `categories` table, every one of which
+  // 404'd as the SPA shell, since nothing real existed at that URL. Removed
+  // 2026-09-15, restored now that /categories/:slug is real: backed by the
+  // new `category_pages` content table (NOT the `categories` taxonomy table
+  // - that distinction matters, `categories` is tags/taxonomy, this queries
+  // actual page content), gated on both status and is_indexable so this can
+  // never reproduce the original bug (a URL existing in the sitemap with no
+  // real content behind it).
   urls.push({ loc: "/categories", priority: 0.7, changefreq: "weekly" });
+
+  const { data: pages } = await supabase
+    .from("category_pages")
+    .select("slug, updated_at")
+    .eq("status", "published")
+    .eq("is_indexable", true);
+
+  pages?.forEach((p: any) => {
+    urls.push({
+      loc: `/categories/${p.slug}`,
+      priority: 0.6,
+      changefreq: "weekly",
+      lastmod: p.updated_at?.split("T")[0],
+    });
+  });
 
   return urls;
 }
@@ -401,7 +413,7 @@ serve(async (req: Request) => {
     }
     else if (normalizedPath.endsWith("/sitemaps/categories.xml") || normalizedPath === "/categories.xml") {
       console.log(`[sitemap] Generating categories sitemap`);
-      urls = getCategoryUrls();
+      urls = await getCategoryUrls(supabase);
     }
     else if (normalizedPath.endsWith("/sitemaps/publications.xml") || normalizedPath === "/publications.xml") {
       console.log(`[sitemap] Generating publications sitemap (curated, see KNOWN_LIVE_PUBLICATION_URLS)`);
