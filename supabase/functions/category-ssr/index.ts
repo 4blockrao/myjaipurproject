@@ -1,12 +1,26 @@
 // supabase/functions/category-ssr/index.ts
-// DESIGN DRAFT — not deployed. Modeled directly on locality-ssr/index.ts
-// (same constants, same utility functions, same overall serve() shape).
+// Deployed 2026-09-17. Modeled directly on locality-ssr/index.ts (same
+// constants, same utility functions, same overall serve() shape).
 //
 // Connects with SUPABASE_SERVICE_ROLE_KEY, same as locality-ssr — which
 // bypasses RLS entirely, so status/is_indexable gating is applied explicitly
 // in the query below, not left to the "Anyone can view published category
 // pages" RLS policy (that policy only protects anon/authenticated requests,
 // not this service-role connection).
+//
+// REQUIRES verify_jwt = false on this function (Supabase project-level
+// setting, checked/set via the Management API, e.g.
+// PATCH /v1/projects/{ref}/functions/category-ssr {"verify_jwt": false}).
+// This is NOT stored in this repo or in supabase/config.toml — it's a live
+// dashboard/API setting that does not travel with the code. New functions
+// default to verify_jwt=true; without this set to false, every request
+// through api/category-proxy.ts (which sends no Authorization header, same
+// as the other SSR proxies) 401s with UNAUTHORIZED_NO_AUTH_HEADER before
+// this file's code ever runs — confirmed live, 2026-09-17. If this function
+// is ever deleted and redeployed from scratch, this setting will NOT be
+// preserved automatically and must be set again. See
+// jaipurcircle_infrastructure_findings.md for the full list of which
+// deployed functions currently have this set.
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
