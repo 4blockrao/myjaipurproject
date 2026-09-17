@@ -67,16 +67,36 @@ inferred, not assumed from which functions are in the CI deploy list:**
 de facto standard for this project, not an exception for one or two
 functions.** `category-ssr` now matches that standard.
 
-**One real anomaly, flagged not fixed:** `swift-processor` is the only
-function with `verify_jwt: true`, and — separately — it has **no local
-source anywhere in `supabase/functions/`** and **zero references anywhere
-in this codebase** (checked directly, `grep -rln "swift-processor"` across
-the whole repo returns nothing). Same pattern as `publication-ssr` was
-before this: a function deployed and live on the project with no trace in
-version control. Unlike `publication-ssr` (which serves real, confirmed-live
-traffic), what `swift-processor` does, who deployed it, or whether it's
-still needed is genuinely unknown from what's checkable here — not
-investigated further, flagged as an open question.
+**One real anomaly — `swift-processor`, investigated 2026-09-17:**
+
+- Created `2026-04-25`, `version: 1`, `updated_at` identical to `created_at`
+  — deployed exactly once, never modified since. Five months dormant as of
+  this investigation.
+- `verify_jwt: true` — the only function of the 29 with this set (see table
+  above).
+- **Zero references anywhere in this codebase** — checked exhaustively, not
+  just an exact-name grep: no local source in `supabase/functions/`, no hit
+  in `vercel.json`, no hit in any other edge function, and a broad substring
+  search for both `swift` and `processor` separately (not just the exact
+  hyphenated name) across every `.ts`/`.tsx`/`.js`/`.json`/`.yml` file in
+  the repo. The only `swift` hits are the unrelated Maruti Suzuki Swift car
+  model in the cars section; the only `processor` hits are build-artifact
+  noise from the separate `web-next/` side-project.
+- **Invocation history unavailable at this access level** — the logs query
+  tool returned the same permission-denied error as every other MCP call
+  against this project all session; a direct Management API analytics
+  endpoint attempt returned 404 (wrong/nonexistent path). No way to
+  determine recency, frequency, or callers from here.
+- **Risk assessment: low.** It already defaults to the safe setting
+  (`verify_jwt: true`, unlike the near-miss this whole entry started from),
+  and nothing in this codebase calls it, so it isn't a live risk to anything
+  currently working.
+- **Still unexplained, and that's a real gap, not just tidiness.** What this
+  function does, who deployed it, and whether it's still needed can't be
+  determined from this session's access. Resolving it needs Prav to check
+  the function's actual source and real invocation logs directly in the
+  Supabase dashboard — not further investigation from here; this session
+  has exhausted what's checkable with the current access level.
 
 **What this means going forward:** any function newly created (not just
 redeployed — redeploying an existing function via `supabase functions
