@@ -27,7 +27,7 @@ jobs:
           for fn in \
             sitemap sitemap-artists sitemap-stories \
             locality-ssr event-ssr events-list-ssr merchant-ssr \
-            artist-ssr venue-ssr page-ssr story-ssr \
+            artist-ssr venue-ssr page-ssr story-ssr category-ssr \
             scrape-bookmyshow-events register-for-event; do
             echo "::group::Deploy $fn"
             supabase functions deploy "$fn" --project-ref "$PROJECT_REF"
