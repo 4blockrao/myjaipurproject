@@ -24,6 +24,11 @@
     },
 
     {
+      "src": "^/categories/([^/]+)/?$",
+      "dest": "/api/category-proxy?slug=$1"
+    },
+
+    {
       "src": "^/guides/?$",
       "status": 308,
       "headers": { "Location": "/ipl-2026" }

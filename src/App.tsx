@@ -85,6 +85,7 @@ import ZonesIndexPage from "./pages/ZonesIndexPage";
 import InstallPage from "./pages/InstallPage";
 
 import CategoryPage from "./pages/CategoryPage";
+import CategoryContentPage from "./pages/CategoryContentPage";
 import LocalityCategoryPage from "./pages/LocalityCategoryPage";
 
 import CarsHubPage from "./pages/CarsHubPage";
@@ -162,6 +163,7 @@ function App() {
                     <Route path="/deals/:slug" element={<DealDetailPage />} />
                     <Route path="/deal/:slug" element={<DealDetailPage />} />
                     <Route path="/categories" element={<CategoriesPage />} />
+                    <Route path="/categories/:slug" element={<CategoryContentPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/checkout/new" element={<NewCheckoutPage />} />
                     <Route path="/order-success" element={<OrderSuccessPage />} />
