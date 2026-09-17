@@ -18,8 +18,13 @@ export default async function handler(req, res) {
 
     console.log(`[jaipur-proxy] Got response: ${upstreamRes.status}, length: ${html.length}`);
 
+    // Forward locality-ssr's own Cache-Control instead of hardcoding one -
+    // this proxy was silently overriding it with no-store, so the SSR
+    // function's actual caching strategy never reached real users. Falls
+    // back to no-store (safe default) if upstream didn't set one at all.
+    const cacheControl = upstreamRes.headers.get('cache-control') || 'no-store';
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
+    res.setHeader('Cache-Control', cacheControl);
     res.status(200).send(html);
   } catch (error) {
     console.error('[jaipur-proxy] Error:', error);

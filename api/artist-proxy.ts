@@ -36,11 +36,17 @@ export default async function handler(request: Request) {
 
     const html = await upstream.text();
 
+    // Forward artist-ssr's own Cache-Control instead of hardcoding one -
+    // this proxy was silently overriding it with no-store, so the SSR
+    // function's actual caching strategy never reached real users. Falls
+    // back to no-store (safe default) if upstream didn't set one at all.
+    const cacheControl = upstream.headers.get("cache-control") || "no-store";
+
     return new Response(html, {
       status: upstream.status,
       headers: {
         "content-type": "text/html; charset=utf-8",
-        "cache-control": "no-store, max-age=0, must-revalidate",
+        "cache-control": cacheControl,
         "x-artist-proxy": "true",
         "x-upstream-status": String(upstream.status),
       },
