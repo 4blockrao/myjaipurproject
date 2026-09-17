@@ -106,3 +106,49 @@ silently the same way `category-ssr` did, if it's meant to be called by an
 unauthenticated proxy. Check this setting explicitly for any new
 public-facing function before assuming a "successful" deploy means it
 actually works.
+
+---
+
+## `web-next` — real codebase, not just the dormant `vercel.json` lines (2026-09-17)
+
+This is a **finding, not a decision** — whether to resume, finish, or
+permanently defer this migration is still open and is Prav's call. Nothing
+below implies that call has been made.
+
+The placeholder `REPLACE-WITH-WEB-NEXT-URL.vercel.app` lines that caused the
+2026-09-17 production outage (documented elsewhere in this session's
+history) turned out to have real code behind them, investigated directly:
+
+- **Real Next.js 16.2.10 / App Router codebase**, committed in a single
+  commit (`ae08d68`, 2026-07-12). Also found to exist as a live, uncommitted
+  working directory with a build output (`.next/`) dated 2026-08-15 — over a
+  month after the last commit — meaning someone ran it locally after the
+  commit and never pushed anything further.
+- **One working route**: `/jaipur/[slug]` — locality pages only, with
+  genuine ISR (Incremental Static Regeneration). Nothing for `/guide/*`,
+  `/merchant/*`, or anything else, despite the project's own `DEPLOY.md`
+  explicitly naming merchants as the planned next tier — that step was
+  never started.
+- **Blocked only by one missing dependency**: `@supabase/supabase-js` was
+  never added to `package.json` despite being imported directly in
+  `src/lib/supabase-server.ts`. Adding it (`^2.45.4`) and running
+  `npm install && npm run build` was sufficient on its own — no further
+  errors surfaced. Clean TypeScript, clean compile, all 107 real locality
+  pages statically generated with working 1-hour-revalidate ISR. This fix is
+  applied locally (`web-next/package.json` + `package-lock.json`) but
+  **deliberately left uncommitted** pending the resume/defer decision.
+- **8 dependency vulnerabilities surfaced on `npm install`** (1 critical, 6
+  high, 1 moderate) — not investigated or addressed, just noted as a real
+  fact about this dependency tree's current state.
+- **The project's own `DEPLOY.md` already documented the exact risk that
+  caused the outage**, in bold: *"Order matters — do NOT push the
+  vercel.json change until web-next is live... every locality page breaks
+  on production"* if the documented 4-step deploy order isn't followed. The
+  outage happened because that order wasn't followed (the `vercel.json`
+  lines were bundled into an unrelated commit), not because the risk was
+  unknown or undocumented.
+
+**Net finding**: this is not a stalled-but-complete migration, and it's not
+an empty routing rule with nothing behind it either. It's a single-route
+pilot, genuinely close to deployable for that one route, abandoned mid-pilot
+before the documented next step (merchants) was ever started.
