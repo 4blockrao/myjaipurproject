@@ -184,3 +184,82 @@ rows. Not investigated further here.
 **Status:** a real, currently-broken page type. No urgency implied — logging
 it so it doesn't get lost, not because it's blocking anything else. Worth a
 dedicated look later.
+
+---
+
+## Lovable's "Upgrade to TanStack Start" does not apply to this project's SSR problem (2026-09-17)
+
+Investigated in response to a direct question of whether Lovable's own
+TanStack Start upgrade feature was a viable third option alongside the
+hand-rolled SSR/proxy architecture this session has been building.
+**Conclusion: it is confirmed inapplicable, and is a potential active
+hazard rather than a neutral non-option if GitHub sync is still live.**
+
+**What the upgrade does, per Lovable's own docs
+(`docs.lovable.dev/features/upgrade-to-tanstack-start`):** rewrites the
+project's page/routing structure from React+Vite into TanStack Start,
+carries over theme/styling/metadata, and moves "internal backend code that
+only your own app uses" into the new template. External-integration backend
+code and the database are explicitly left untouched. 10–35 credits, any
+plan, reversible via version history.
+
+**Why it doesn't reach this project's actual SSR layer:** everything this
+whole engagement has built — `locality-ssr`/`merchant-ssr`/`category-ssr`/
+etc., the Vercel proxy layer (`api/*-proxy.ts`), the hand-built
+`vercel.json` routing table, the author-role RBAC and RLS work — was built
+through this Claude Code session directly against the Supabase CLI/
+Management API/GitHub Actions, never through Lovable's editor or its native
+Supabase integration. Checked precisely via commit authorship, not just
+commit-message grepping (an earlier pass grepping messages for "Lovable"
+undercounted this — the real signal is the `gpt-engineer-app[bot]` GitHub
+App identity Lovable's editor commits through):
+
+- `gpt-engineer-app[bot]` authored **592 of 953 commits (62%)** all-time,
+  first commit 2025-06-21, **last commit 2026-04-26**.
+- **Zero bot commits in the 144 days since** (through 2026-09-17), despite
+  953 total commits in the repo and very heavy, continuous engineering
+  activity across that entire window — including 100% of the SSR/proxy/RLS
+  work this session and prior sessions this engagement covers.
+
+Lovable's "internal backend code... moves into the new template" clause
+almost certainly refers to backend code created through Lovable's own
+AI/chat tooling, which it has a record of. This project's SSR layer was
+never created that way, so there's no reason to believe Lovable's upgrade
+tooling is even aware it exists, let alone would preserve or migrate it.
+
+**Why this is a potential hazard, not just a no-op:** this project's actual
+deploy pipeline (GitHub sync → Vercel auto-deploy on push) matches exactly
+the pattern Lovable's own external-hosting docs describe as their
+recommended integration. If that GitHub sync is still live, running the
+upgrade would push a full routing-structure rewrite as a real commit, which
+the existing Vercel pipeline would auto-deploy straight to production — the
+same pipeline that caused the 2026-04 `vercel.json` outage documented
+elsewhere in this file. TanStack Start's own file-based server routing has
+no concept of the hand-built `vercel.json` legacy-routes array or the
+`api/*-proxy.ts` layer sitting in front of it; nothing in Lovable's docs
+addresses reconciling with a custom `vercel.json`. Pushing this upgrade
+without first fully untangling the custom routing table is a realistic path
+to a second, larger-blast-radius outage.
+
+**GitHub-sync status: unverified from this session, and that's a real
+gap.** Checked what's checkable with the access available:
+
+- Classic repo webhooks (`GET /repos/4blockrao/myjaipurproject/hooks`,
+  checked with a token confirmed to have `admin: true` on the repo — an
+  authoritative check for this specific mechanism): **empty, none
+  registered.**
+- GitHub App installations (the actual mechanism Lovable's sync would use,
+  distinct from classic webhooks): **not checkable from here.**
+  `GET /user/installations` returned `403 — You must authenticate with an
+  access token authorized to a GitHub App`, meaning the CLI token in use
+  this session is the wrong token type for this specific query, not that
+  the answer is negative.
+- Net: the commit-authorship silence (144 days, zero bot commits through
+  heavy repo activity) is strong circumstantial evidence the sync is
+  dormant or severed, but it is **not proof** — an installed-but-currently-
+  unused GitHub App would produce the exact same silence as an uninstalled
+  one, since either way no commits appear unless someone edits inside
+  Lovable's UI. **A live Lovable dashboard check (Settings → GitHub, or
+  Project actions) is the only way to get a definitive answer**, and that
+  needs Prav directly — no further workaround exists from this session's
+  access level.
