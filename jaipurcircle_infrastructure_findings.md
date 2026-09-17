@@ -152,3 +152,35 @@ history) turned out to have real code behind them, investigated directly:
 an empty routing rule with nothing behind it either. It's a single-route
 pilot, genuinely close to deployable for that one route, abandoned mid-pilot
 before the documented next step (merchants) was ever started.
+
+---
+
+## `/artists/:slug` returns 404 for real, existing artist rows (2026-09-17)
+
+Discovered as a side effect of the proxy-layer cache-control spot-check, not
+by investigating artists directly — flagging as a separate, real finding
+rather than chasing it further under that task's scope.
+
+**What was observed:** 5 real slugs pulled directly from the live `artists`
+table via service-role SQL (`vikas-kush-sharma`, `sonu-nigam`, `karthik`,
+`pranit-more`, `rahul-shah`) all returned a live 404 through
+`/artists/:slug` → `api/artist-proxy.ts` → `artist-ssr`. `artist-ssr`'s query
+is a simple, unfiltered `.eq("slug", slug).maybeSingle()` against the same
+table the slugs were pulled from — nothing in the visible query logic
+explains a miss.
+
+**What's confirmed working correctly, so this isn't the proxy fix's bug:**
+`x-artist-proxy: true` on the response proves the request reaches the fixed
+proxy code, and the real `no-store` from `artist-ssr`'s not-found path is
+forwarded correctly, not overridden — the forwarding mechanism itself is
+proven sound on this exact request. The defect is upstream of the proxy.
+
+**Leading hypothesis, not verified:** a data-matching mismatch between the
+`artist_slug` field used elsewhere (e.g. on `events`) and whatever
+table/column/key `artist-ssr` is actually resolving against — possibly a
+different slug format, a different table, or a join that isn't matching real
+rows. Not investigated further here.
+
+**Status:** a real, currently-broken page type. No urgency implied — logging
+it so it doesn't get lost, not because it's blocking anything else. Worth a
+dedicated look later.
