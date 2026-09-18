@@ -197,6 +197,12 @@ function renderEmergencyBanner(locality: any): string {
 
 function renderPoliceStationCard(locality: any): string {
   if (!locality.police_station_name) return "";
+  // SHO name/contact intentionally not rendered (2026-09-18): confirmed
+  // fabricated/placeholder data across this field category (e.g. sequential
+  // placeholder phone numbers), not just individual bad rows. Do not
+  // reintroduce rendering of police_station_incharge /
+  // police_station_incharge_contact until the data itself is re-sourced
+  // from something verifiable.
   return `
     <div class="section police-card">
       <h3>🚔 Police Station Information</h3>
@@ -209,8 +215,6 @@ function renderPoliceStationCard(locality: any): string {
           ${locality.police_station_email ? `<p><strong>Email:</strong> <a href="mailto:${locality.police_station_email}">${locality.police_station_email}</a></p>` : ""}
         </div>
         <div>
-          <p><strong>SHO (In-charge):</strong> ${escapeHtml(locality.police_station_incharge || "To be verified")}</p>
-          <p><strong>SHO Contact:</strong> ${escapeHtml(locality.police_station_incharge_contact || "Contact station directly")}</p>
           <p><strong>Jurisdiction:</strong> ${escapeHtml(locality.police_station_jurisdiction || "")}</p>
           ${locality.police_station_maps ? `<p><strong>Location:</strong> <a href="${locality.police_station_maps}" target="_blank" rel="noopener">View on Google Maps →</a></p>` : ""}
         </div>
@@ -376,19 +380,43 @@ function renderDistanceMatrix(locality: any): string {
   `;
 }
 
+// Matches FAQ questions about property/real-estate pricing so their answer
+// can be overridden below. faq_json stores independently-authored answer
+// text per locality, which drifts from the Real Estate Snapshot card's
+// re.average_price_per_sqft/re.price_trend_yoy over time (confirmed
+// 2026-09-18: vaishali-nagar's FAQ quoted "Rs 5,500-6,500... 20-25%" while
+// its own Snapshot card quoted "Rs 5,650/sq ft (+22.5%)" for the same
+// locality). Rather than trust the stored answer, regenerate it from the
+// same real_estate fields the Snapshot card renders, so the two can never
+// disagree again.
+const PRICE_FAQ_PATTERN = /price|cost|rate/i;
+const SQFT_PATTERN = /sq\s?\.?\s?ft|square\s?feet|per\s?sq/i;
+
+function getCanonicalPriceFaqAnswer(locality: any): string | null {
+  const re = locality.real_estate || {};
+  if (!re.average_price_per_sqft) return null;
+  const trend = re.price_trend_yoy ? ` The market has moved ${re.price_trend_yoy} year-on-year.` : "";
+  return `The average property price in ${locality.name} is around ${re.average_price_per_sqft}.${trend}`;
+}
+
 function renderEnhancedFAQ(locality: any): string {
   const faqs = locality.faq_json || [];
   if (!faqs.length) return "";
+  const canonicalPriceAnswer = getCanonicalPriceFaqAnswer(locality);
   return `
     <div class="section faq-section">
       <h3>❓ Frequently Asked Questions about ${escapeHtml(locality.name)}</h3>
       <div class="faq-list">
-        ${faqs.map((faq: any, idx: number) => `
+        ${faqs.map((faq: any, idx: number) => {
+          const isPriceQuestion = PRICE_FAQ_PATTERN.test(faq.question) && SQFT_PATTERN.test(faq.question);
+          const answer = (isPriceQuestion && canonicalPriceAnswer) ? canonicalPriceAnswer : faq.answer;
+          return `
           <div class="faq-item" data-faq-idx="${idx}">
             <div class="faq-question">${escapeHtml(faq.question)}<span class="faq-toggle">▼</span></div>
-            <div class="faq-answer">${escapeHtml(faq.answer)}</div>
+            <div class="faq-answer">${escapeHtml(answer)}</div>
           </div>
-        `).join("")}
+        `;
+        }).join("")}
       </div>
     </div>
   `;
@@ -474,13 +502,17 @@ function buildSSRHTML(locality: any, events: any[], venues: any[], nearby: any[]
     </div>
   ` : "";
 
+  // Ward name/number intentionally not rendered (2026-09-18): confirmed
+  // fabricated via a "{locality} Ward (NN)" auto-generated template, not
+  // just individual bad rows. Do not reintroduce rendering of
+  // ward_name/ward_number until the data itself is re-sourced from
+  // something verifiable.
   const infoCardsHtml = `
     <div class="info-cards">
       ${locality.pin_code ? `<div class="info-card"><span class="info-icon">📮</span><div><strong>Pin Code</strong><span>${escapeHtml(locality.pin_code)}</span></div></div>` : ""}
       ${locality.safety_rating ? `<div class="info-card"><span class="info-icon">🛡️</span><div><strong>Safety Rating</strong><span>${locality.safety_rating}/5 ⭐</span></div></div>` : ""}
       ${locality.livability_score ? `<div class="info-card"><span class="info-icon">🏠</span><div><strong>Livability Score</strong><span>${locality.livability_score}/100</span></div></div>` : ""}
       ${locality.best_time_to_visit ? `<div class="info-card"><span class="info-icon">📅</span><div><strong>Best Time to Visit</strong><span>${escapeHtml(locality.best_time_to_visit)}</span></div></div>` : ""}
-      ${locality.ward_name ? `<div class="info-card"><span class="info-icon">🗺️</span><div><strong>Ward</strong><span>${escapeHtml(locality.ward_name)} (${locality.ward_number || ""})</span></div></div>` : ""}
     </div>
   `;
 
