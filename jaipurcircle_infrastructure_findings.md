@@ -263,3 +263,79 @@ gap.** Checked what's checkable with the access available:
   Project actions) is the only way to get a definitive answer**, and that
   needs Prav directly — no further workaround exists from this session's
   access level.
+
+---
+
+## `localities.resident_reality` — 70% duplicate coverage, backlog item, not urgent (2026-09-18)
+
+Found while checking whether this field carries the same live-exposure risk
+as the SHO/ward fields fixed the same day. **It doesn't — confirmed not
+urgent, no deploy needed.**
+
+**The data problem, as reported:** only 31 distinct values across 103
+populated `resident_reality` rows — roughly 70% of localities show
+copy-pasted "what it's like to live here" text belonging to a different
+locality. Confirmed example: Tonk Road and Sitapura share identical text in
+this column.
+
+**Why it's not live:** checked two independent ways. Code-level — grepped
+the entire codebase (SPA, every edge function, `web-next/`, generated
+Supabase types) for `resident_reality` in every naming variant: zero
+references anywhere. The two components that sound like candidates
+(`LocalityLivingProfile.tsx`, `LocalityWhyPeopleChoose.tsx`) are fully
+template-generated from other fields or static boilerplate; `locality-ssr`'s
+"About" section explicitly reads `description`/`seo_blurb`/
+`local_insights.{resident_profile,vibe}` only, no generic field dumping.
+Live-response check — diffed every `<p>` on the actual rendered
+`/jaipur/tonk-road` and `/jaipur/sitapura` pages; the only shared text is
+the generic "No events listed right now" boilerplate common to every
+locality by design. No duplicated resident-reality-style prose reaches
+either live page.
+
+**Status: real data-quality problem, sitting inertly in the database.**
+Worth a proper backfill or content pass at some point, not an incident.
+No code change, no deploy, no urgency.
+
+---
+
+## `major_landmarks` vs. `landmarks` — silently dead "Major Landmarks" feature, myjaipurproject only (2026-09-19)
+
+Found as a side effect of pulling the real site-wide landmark list for an
+unrelated `places`-table content task. **This is specific to
+`myjaipurproject` (the live Vite SPA) — confirmed via `pwd`/`git remote -v`
+at the time of the finding.** The separate `jaipurcircle.com` Next.js
+rebuild was checked independently (by that session, against its own
+codebase) and has zero references to `major_landmarks`, using the real
+`landmarks` column consistently — this bug does not exist there.
+
+**The real column, confirmed directly against production** via a live
+PostgREST query (`GET /rest/v1/localities?select=*`, public anon key, no
+elevated access needed): `landmarks`. `major_landmarks` does not exist as a
+column at all — querying it returns a PostgREST `42703` error.
+
+**Eight real call sites in `myjaipurproject/src/` query or reference
+`major_landmarks` regardless:**
+
+```
+src/components/zone/ZoneCommercialClusters.tsx:25
+src/components/events/EventLocalityInsights.tsx:103, 129
+src/components/locality/LocalityAISummary.tsx:11
+src/components/locality/LocalityLandmarks.tsx:11
+src/components/locality/LocalityCommercialMarkets.tsx:11
+src/hooks/useLocality.tsx:5, 65
+src/hooks/useKnowledgeGraph.tsx:37
+src/pages/EventsLocalityPage.tsx:28
+```
+
+Two of these (`EventLocalityInsights.tsx`, `EventsLocalityPage.tsx`) select
+`major_landmarks` directly in a Supabase query — that query 400s live
+against production. The rest (`LocalityLandmarks.tsx` and its sibling
+components) call `parseLandmarks(locality.major_landmarks)`, which always
+receives `undefined`/`null`, always returns an empty array, so
+`landmarks.length === 0` and the component renders nothing.
+
+**Net effect: the "Major Landmarks" card section has been silently dead
+site-wide** — not broken-looking, not erroring visibly, just permanently
+absent, on every locality page, for as long as this mismatch has existed.
+No code change made — logging this as a finding, not fixing it in this
+pass.
