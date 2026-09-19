@@ -32,6 +32,7 @@ interface ProcessedEvent {
   registration_url: string;
   organizer_name: string;
   status: string;
+  editorial_status: string;
   tags: string[];
   slug: string;
   meta_title: string;
@@ -385,6 +386,7 @@ Deno.serve(async (req) => {
             registration_url: event.eventUrl,
             organizer_name: 'BookMyShow',
             status: 'published',
+            editorial_status: 'published',
             tags: [category, 'bookmyshow', 'jaipur-events', locality].filter(Boolean) as string[],
             slug: generateSlug(event.title),
             meta_title: generateMetaTitle(event.title, event.venue),
